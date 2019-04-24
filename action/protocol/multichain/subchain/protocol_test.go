@@ -9,7 +9,6 @@ package subchain
 import (
 	"context"
 	"math/big"
-	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -42,9 +41,6 @@ func TestValidateDeposit(t *testing.T) {
 	var depositIndex DepositIndex
 	require.NoError(t, ws.PutState(depositAddress(10000), &depositIndex))
 	bc.GetFactory().Commit(ws)
-
-	assert.True(t, strings.Contains(err.Error(), "is already confirmed"))
-
 }
 
 func TestMutateDeposit(t *testing.T) {
