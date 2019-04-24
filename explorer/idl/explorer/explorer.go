@@ -303,7 +303,7 @@ type SettleDeposit struct {
 
 type Explorer interface {
 	GetAddressDetails(address string) (AddressDetails, error)
-
+	GetCandidateMetricsByHeight(h int64) (CandidateMetrics, error)
 	PutSubChainBlock(request PutSubChainBlockRequest) (PutSubChainBlockResponse, error)
 
 	GetDeposits(subChainID int64, offset int64, limit int64) ([]Deposit, error)
@@ -370,6 +370,24 @@ func (_p ExplorerProxy) GetDeposits(subChainID int64, offset int64, limit int64)
 		return _cast, nil
 	}
 	return []Deposit{}, _err
+}
+
+func (_p ExplorerProxy) GetCandidateMetricsByHeight(h int64) (CandidateMetrics, error) {
+	_res, _err := _p.client.Call("Explorer.getCandidateMetricsByHeight", h)
+	if _err == nil {
+		_retType := _p.idl.Method("Explorer.getCandidateMetricsByHeight").Returns
+		_res, _err = barrister.Convert(_p.idl, &_retType, reflect.TypeOf(CandidateMetrics{}), _res, "")
+	}
+	if _err == nil {
+		_cast, _ok := _res.(CandidateMetrics)
+		if !_ok {
+			_t := reflect.TypeOf(_res)
+			_msg := fmt.Sprintf("Explorer.getCandidateMetricsByHeight returned invalid type: %v", _t)
+			return CandidateMetrics{}, &barrister.JsonRpcError{Code: -32000, Message: _msg}
+		}
+		return _cast, nil
+	}
+	return CandidateMetrics{}, _err
 }
 
 func NewJSONServer(idl *barrister.Idl, forceASCII bool, explorer Explorer) barrister.Server {

@@ -234,3 +234,26 @@ func (exp *Service) GetDeposits(subChainID int64, offset int64, limit int64) ([]
 	}
 	return deposits, nil
 }
+
+// GetCandidateMetricsByHeight returns the candidates metrics for given height.
+func (exp *Service) GetCandidateMetricsByHeight(h int64) (explorer.CandidateMetrics, error) {
+	if h < 0 {
+		return explorer.CandidateMetrics{}, errors.New("Invalid height")
+	}
+	allCandidates, err := exp.bc.CandidatesByHeight(uint64(h))
+	if err != nil {
+		return explorer.CandidateMetrics{}, errors.Wrapf(err,
+			"Failed to get the candidate metrics")
+	}
+	candidates := make([]explorer.Candidate, 0, len(allCandidates))
+	for _, c := range allCandidates {
+		candidates = append(candidates, explorer.Candidate{
+			Address:   c.Address,
+			TotalVote: c.Votes.String(),
+		})
+	}
+
+	return explorer.CandidateMetrics{
+		Candidates: candidates,
+	}, nil
+}
