@@ -98,21 +98,6 @@ type Service struct {
 // SetMainChainProtocol sets the main-chain side multi-chain protocol
 func (exp *Service) SetMainChainProtocol(mainChain *mainchain.Protocol) { exp.mainChain = mainChain }
 
-// GetBlockchainHeight returns the current blockchain tip height
-func (exp *Service) GetBlockchainHeight() (int64, error) {
-	tip := exp.bc.TipHeight()
-	return int64(tip), nil
-}
-
-// GetAddressBalance returns the balance of an address
-func (exp *Service) GetAddressBalance(address string) (string, error) {
-	state, err := exp.bc.StateByAddr(address)
-	if err != nil {
-		return "", err
-	}
-	return state.Balance.String(), nil
-}
-
 // GetAddressDetails returns the properties of an address
 func (exp *Service) GetAddressDetails(address string) (explorer.AddressDetails, error) {
 	state, err := exp.bc.StateByAddr(address)
