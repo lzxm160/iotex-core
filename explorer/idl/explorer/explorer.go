@@ -319,8 +319,6 @@ type Explorer interface {
 	PutSubChainBlock(request PutSubChainBlockRequest) (PutSubChainBlockResponse, error)
 	SendAction(request SendActionRequest) (SendActionResponse, error)
 	GetPeers() (GetPeersResponse, error)
-	GetReceiptByExecutionID(id string) (Receipt, error)
-	GetReceiptByActionID(id string) (Receipt, error)
 	ReadExecutionState(request Execution) (string, error)
 	GetBlockOrActionByHash(hashStr string) (GetBlkOrActResponse, error)
 	CreateDeposit(request CreateDepositRequest) (CreateDepositResponse, error)

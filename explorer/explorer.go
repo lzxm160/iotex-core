@@ -119,39 +119,6 @@ func (exp *Service) GetAddressDetails(address string) (explorer.AddressDetails, 
 	return details, nil
 }
 
-// GetReceiptByExecutionID gets receipt with corresponding execution id
-// Deprecated
-func (exp *Service) GetReceiptByExecutionID(id string) (explorer.Receipt, error) {
-	return exp.GetReceiptByActionID(id)
-}
-
-// GetReceiptByActionID gets receipt with corresponding action id
-func (exp *Service) GetReceiptByActionID(id string) (explorer.Receipt, error) {
-	bytes, err := hex.DecodeString(id)
-	if err != nil {
-		return explorer.Receipt{}, err
-	}
-	var actionHash hash.Hash256
-	copy(actionHash[:], bytes)
-
-	// get receipt from boltdb
-	if !exp.cfg.UseIndexer {
-		receipt, err := exp.bc.GetReceiptByActionHash(actionHash)
-		if err != nil {
-			return explorer.Receipt{}, err
-		}
-		return convertReceiptToExplorerReceipt(receipt)
-	}
-
-	// get receipt from indexer
-	receipt, err := exp.bc.GetReceiptByActionHash(actionHash)
-	if err != nil {
-		return explorer.Receipt{}, err
-	}
-
-	return convertReceiptToExplorerReceipt(receipt)
-}
-
 // GetCreateDeposit gets create deposit by ID
 func (exp *Service) GetCreateDeposit(createDepositID string) (explorer.CreateDeposit, error) {
 	bytes, err := hex.DecodeString(createDepositID)
