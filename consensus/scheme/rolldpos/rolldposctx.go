@@ -23,9 +23,9 @@ import (
 	"github.com/iotexproject/iotex-core/consensus/consensusfsm"
 	"github.com/iotexproject/iotex-core/consensus/scheme"
 	"github.com/iotexproject/iotex-core/endorsement"
-	"github.com/iotexproject/iotex-core/explorer/idl/explorer"
 	"github.com/iotexproject/iotex-core/pkg/keypair"
 	"github.com/iotexproject/iotex-core/pkg/log"
+	"github.com/iotexproject/iotex-core/protogen/iotexapi"
 	"github.com/iotexproject/iotex-core/state"
 )
 
@@ -34,7 +34,7 @@ type CandidatesByHeightFunc func(uint64) ([]*state.Candidate, error)
 
 type rollDPoSCtx struct {
 	cfg              config.RollDPoS
-	rootChainAPI     explorer.Explorer
+	rootChainAPI     iotexapi.APIServiceClient
 	chain            blockchain.Blockchain
 	actPool          actpool.ActPool
 	broadcastHandler scheme.Broadcast
@@ -54,7 +54,7 @@ func newRollDPoSCtx(
 	blockInterval time.Duration,
 	toleratedOvertime time.Duration,
 	timeBasedRotation bool,
-	rootChainAPI explorer.Explorer,
+	rootChainAPI iotexapi.APIServiceClient,
 	chain blockchain.Blockchain,
 	actPool actpool.ActPool,
 	rp *rolldpos.Protocol,

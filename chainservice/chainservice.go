@@ -10,6 +10,8 @@ import (
 	"context"
 	"os"
 
+	"github.com/iotexproject/iotex-core/protogen/iotexapi"
+
 	"github.com/golang/protobuf/proto"
 	peerstore "github.com/libp2p/go-libp2p-peerstore"
 	"github.com/pkg/errors"
@@ -31,7 +33,6 @@ import (
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/dispatcher"
 	"github.com/iotexproject/iotex-core/explorer"
-	explorerapi "github.com/iotexproject/iotex-core/explorer/idl/explorer"
 	"github.com/iotexproject/iotex-core/indexservice"
 	"github.com/iotexproject/iotex-core/p2p"
 	"github.com/iotexproject/iotex-core/pkg/log"
@@ -47,7 +48,7 @@ type ChainService struct {
 	chain             blockchain.Blockchain
 	electionCommittee committee.Committee
 	rDPoSProtocol     *rolldpos.Protocol
-	explorer          *explorer.Server
+	explorer          iotexapi.APIServiceServer
 	api               *api.Server
 	indexBuilder      *blockchain.IndexBuilder
 	indexservice      *indexservice.Server
@@ -55,7 +56,7 @@ type ChainService struct {
 }
 
 type optionParams struct {
-	rootChainAPI  explorerapi.Explorer
+	rootChainAPI  iotexapi.APIServiceServer
 	isTesting     bool
 	genesisConfig genesis.Genesis
 }
@@ -64,7 +65,7 @@ type optionParams struct {
 type Option func(ops *optionParams) error
 
 // WithRootChainAPI is an option to add a root chain api to ChainService.
-func WithRootChainAPI(exp explorerapi.Explorer) Option {
+func WithRootChainAPI(exp iotexapi.APIServiceServer) Option {
 	return func(ops *optionParams) error {
 		ops.rootChainAPI = exp
 		return nil

@@ -23,9 +23,9 @@ import (
 	"github.com/iotexproject/iotex-core/consensus/consensusfsm"
 	"github.com/iotexproject/iotex-core/consensus/scheme"
 	"github.com/iotexproject/iotex-core/endorsement"
-	"github.com/iotexproject/iotex-core/explorer/idl/explorer"
 	"github.com/iotexproject/iotex-core/pkg/keypair"
 	"github.com/iotexproject/iotex-core/pkg/log"
+	"github.com/iotexproject/iotex-core/protogen/iotexapi"
 	"github.com/iotexproject/iotex-core/protogen/iotextypes"
 )
 
@@ -255,7 +255,7 @@ type Builder struct {
 	actPool                actpool.ActPool
 	broadcastHandler       scheme.Broadcast
 	clock                  clock.Clock
-	rootChainAPI           explorer.Explorer
+	rootChainAPI           iotexapi.APIServiceClient
 	rp                     *rolldpos.Protocol
 	candidatesByHeightFunc CandidatesByHeightFunc
 }
@@ -308,7 +308,7 @@ func (b *Builder) SetClock(clock clock.Clock) *Builder {
 }
 
 // SetRootChainAPI sets root chain API
-func (b *Builder) SetRootChainAPI(api explorer.Explorer) *Builder {
+func (b *Builder) SetRootChainAPI(api iotexapi.APIServiceClient) *Builder {
 	b.rootChainAPI = api
 	return b
 }

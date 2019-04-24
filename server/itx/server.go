@@ -31,13 +31,13 @@ import (
 	"github.com/iotexproject/iotex-core/chainservice"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/dispatcher"
-	"github.com/iotexproject/iotex-core/explorer/idl/explorer"
 	"github.com/iotexproject/iotex-core/p2p"
 	"github.com/iotexproject/iotex-core/pkg/ha"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/probe"
 	"github.com/iotexproject/iotex-core/pkg/routine"
 	"github.com/iotexproject/iotex-core/pkg/util/httputil"
+	"github.com/iotexproject/iotex-core/protogen/iotexapi"
 )
 
 // Server is the iotex server instance containing all components.
@@ -170,9 +170,9 @@ func (s *Server) NewSubChainService(cfg config.Config, opts ...chainservice.Opti
 }
 
 func (s *Server) newSubChainService(cfg config.Config, opts ...chainservice.Option) error {
-	var mainChainAPI explorer.Explorer
+	var mainChainAPI iotexapi.APIServiceClient
 	if s.rootChainService.Explorer() != nil {
-		mainChainAPI = s.rootChainService.Explorer().Explorer()
+		mainChainAPI = s.rootChainService.
 		opts = append(opts, chainservice.WithRootChainAPI(mainChainAPI))
 	}
 	cs, err := chainservice.New(cfg, s.p2pAgent, s.dispatcher, opts...)

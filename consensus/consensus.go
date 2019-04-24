@@ -22,9 +22,9 @@ import (
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/consensus/scheme"
 	"github.com/iotexproject/iotex-core/consensus/scheme/rolldpos"
-	explorerapi "github.com/iotexproject/iotex-core/explorer/idl/explorer"
 	"github.com/iotexproject/iotex-core/pkg/lifecycle"
 	"github.com/iotexproject/iotex-core/pkg/log"
+	"github.com/iotexproject/iotex-core/protogen/iotexapi"
 	"github.com/iotexproject/iotex-core/protogen/iotextypes"
 	"github.com/iotexproject/iotex-core/state"
 )
@@ -48,7 +48,7 @@ type IotxConsensus struct {
 }
 
 type optionParams struct {
-	rootChainAPI     explorerapi.Explorer
+	rootChainAPI     iotexapi.APIServiceServer
 	broadcastHandler scheme.Broadcast
 	rp               *rp.Protocol
 }
@@ -57,7 +57,7 @@ type optionParams struct {
 type Option func(op *optionParams) error
 
 // WithRootChainAPI is an option to add a root chain api to Consensus.
-func WithRootChainAPI(exp explorerapi.Explorer) Option {
+func WithRootChainAPI(exp iotexapi.APIServiceServer) Option {
 	return func(ops *optionParams) error {
 		ops.rootChainAPI = exp
 		return nil
