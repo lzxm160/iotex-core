@@ -17,18 +17,20 @@ import (
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/blockchain/block"
+	explorerapi "github.com/iotexproject/iotex-core/explorer/idl/explorer"
 	"github.com/iotexproject/iotex-core/pkg/hash"
 	"github.com/iotexproject/iotex-core/pkg/keypair"
 	"github.com/iotexproject/iotex-core/pkg/log"
 )
 
 func putBlockToParentChain(
+	rootChainAPI explorerapi.Explorer,
 	subChainAddr string,
 	senderPrvKey keypair.PrivateKey,
 	senderAddr string,
 	b *block.Block,
 ) {
-	if err := putBlockToParentChainTask(subChainAddr, senderPrvKey, b); err != nil {
+	if err := putBlockToParentChainTask(rootChainAPI, subChainAddr, senderPrvKey, b); err != nil {
 		log.L().Error("Failed to put block merkle roots to parent chain.",
 			zap.String("subChainAddress", subChainAddr),
 			zap.String("senderAddress", senderAddr),
@@ -43,26 +45,32 @@ func putBlockToParentChain(
 }
 
 func putBlockToParentChainTask(
+	rootChainAPI explorerapi.Explorer,
 	subChainAddr string,
 	senderPrvKey keypair.PrivateKey,
 	b *block.Block,
 ) error {
-	req, err := constructPutSubChainBlockRequest(subChainAddr, senderPrvKey.PublicKey(), senderPrvKey, b)
+	req, err := constructPutSubChainBlockRequest(rootChainAPI, subChainAddr, senderPrvKey.PublicKey(), senderPrvKey, b)
 	if err != nil {
 		return errors.Wrap(err, "fail to construct PutSubChainBlockRequest")
+	}
+
+	if _, err := rootChainAPI.PutSubChainBlock(req); err != nil {
+		return errors.Wrap(err, "fail to call explorerapi to put block")
 	}
 	return nil
 }
 
 func constructPutSubChainBlockRequest(
+	rootChainAPI explorerapi.Explorer,
 	subChainAddr string,
 	senderPubKey keypair.PublicKey,
 	senderPriKey keypair.PrivateKey,
 	b *block.Block,
-) error {
+) (explorerapi.PutSubChainBlockRequest, error) {
 	senderPCAddr, err := address.FromBytes(senderPubKey.Hash())
 	if err != nil {
-		return err
+		return explorerapi.PutSubChainBlockRequest{}, err
 	}
 	encodedSenderPCAddr := senderPCAddr.String()
 
