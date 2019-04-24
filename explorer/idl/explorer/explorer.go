@@ -55,7 +55,22 @@ type PutSubChainBlockRequest struct {
 type PutSubChainBlockResponse struct {
 	Hash string `json:"hash"`
 }
-
+type Execution struct {
+	Version        int64  `json:"version"`
+	ID             string `json:"ID"`
+	Nonce          int64  `json:"nonce"`
+	Executor       string `json:"executor"`
+	Contract       string `json:"contract"`
+	Amount         string `json:"amount"`
+	ExecutorPubKey string `json:"executorPubKey"`
+	Signature      string `json:"signature"`
+	GasLimit       int64  `json:"gasLimit"`
+	GasPrice       string `json:"gasPrice"`
+	Timestamp      int64  `json:"timestamp"`
+	Data           string `json:"data"`
+	BlockID        string `json:"blockID"`
+	IsPending      bool   `json:"isPending"`
+}
 type Deposit struct {
 	Amount    string `json:"amount"`
 	Address   string `json:"address"`
@@ -77,6 +92,19 @@ func NewExplorerProxy(c barrister.Client) Explorer {
 type ExplorerProxy struct {
 	client barrister.Client
 	idl    *barrister.Idl
+}
+type SendTransferRequest struct {
+	Version      int64  `json:"version"`
+	Nonce        int64  `json:"nonce"`
+	Sender       string `json:"sender"`
+	Recipient    string `json:"recipient"`
+	Amount       string `json:"amount"`
+	SenderPubKey string `json:"senderPubKey"`
+	Signature    string `json:"signature"`
+	Payload      string `json:"payload"`
+	GasLimit     int64  `json:"gasLimit"`
+	GasPrice     string `json:"gasPrice"`
+	IsCoinbase   bool   `json:"isCoinbase"`
 }
 
 func (_p ExplorerProxy) GetAddressDetails(address string) (AddressDetails, error) {
