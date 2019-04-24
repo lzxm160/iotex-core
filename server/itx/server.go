@@ -101,7 +101,9 @@ func newServer(cfg config.Config, testing bool) (*Server, error) {
 	if err := cs.RegisterProtocol(mainchain.ProtocolID, mainChainProtocol); err != nil {
 		return nil, err
 	}
-
+	if cs.Explorer() != nil {
+		cs.Explorer().SetMainChainProtocol(mainChainProtocol)
+	}
 	chains[cs.ChainID()] = cs
 	dispatcher.AddSubscriber(cs.ChainID(), cs)
 	svr := Server{
