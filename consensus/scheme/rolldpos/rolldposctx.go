@@ -386,7 +386,7 @@ func (ctx *rollDPoSCtx) Commit(msg interface{}) (bool, error) {
 		}
 		// putblock to parent chain if the current node is proposer and current chain is a sub chain
 		if ctx.round.Proposer() == ctx.encodedAddr && ctx.chain.ChainAddress() != "" {
-			putBlockToParentChain(ctx.rootChainAPI, ctx.chain.ChainAddress(), ctx.priKey, ctx.encodedAddr, pendingBlock)
+
 		}
 	} else {
 		ctx.logger().Panic(
