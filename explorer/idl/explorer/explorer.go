@@ -302,8 +302,6 @@ type SettleDeposit struct {
 }
 
 type Explorer interface {
-	GetBlockchainHeight() (int64, error)
-	GetAddressBalance(address string) (string, error)
 	GetAddressDetails(address string) (AddressDetails, error)
 	GetCreateDeposit(createDepositID string) (CreateDeposit, error)
 	GetCreateDepositsByAddress(address string, offset int64, limit int64) ([]CreateDeposit, error)
