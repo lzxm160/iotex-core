@@ -30,6 +30,8 @@ import (
 	"github.com/iotexproject/iotex-core/blockchain/genesis"
 	"github.com/iotexproject/iotex-core/chainservice"
 	"github.com/iotexproject/iotex-core/config"
+	"github.com/iotexproject/iotex-core/consensus"
+	schemerolldpos "github.com/iotexproject/iotex-core/consensus/scheme/rolldpos"
 	"github.com/iotexproject/iotex-core/dispatcher"
 	"github.com/iotexproject/iotex-core/p2p"
 	"github.com/iotexproject/iotex-core/pkg/ha"
@@ -101,9 +103,6 @@ func newServer(cfg config.Config, testing bool) (*Server, error) {
 	if err := cs.RegisterProtocol(mainchain.ProtocolID, mainChainProtocol); err != nil {
 		return nil, err
 	}
-	if cs.Explorer() != nil {
-		cs.Explorer().SetMainChainProtocol(mainChainProtocol)
-	}
 	chains[cs.ChainID()] = cs
 	dispatcher.AddSubscriber(cs.ChainID(), cs)
 	svr := Server{
@@ -171,10 +170,19 @@ func (s *Server) NewSubChainService(cfg config.Config, opts ...chainservice.Opti
 
 func (s *Server) newSubChainService(cfg config.Config, opts ...chainservice.Option) error {
 	var mainChainAPI iotexapi.APIServiceClient
-	if s.rootChainService.Explorer() != nil {
-		mainChainAPI = s.rootChainService.
-		opts = append(opts, chainservice.WithRootChainAPI(mainChainAPI))
+	con := s.rootChainService.Consensus()
+	conIotxConsensus, ok := con.(*consensus.IotxConsensus)
+	if !ok {
+		return errors.New("Consensus convert error")
 	}
+	sch := conIotxConsensus.Scheme()
+	schRoll, ok := sch.(*schemerolldpos.RollDPoS)
+	if !ok {
+		return errors.New("Scheme convert error")
+	}
+	mainChainAPI:=schRoll.
+	opts = append(opts, chainservice.WithRootChainAPI(mainChainAPI))
+
 	cs, err := chainservice.New(cfg, s.p2pAgent, s.dispatcher, opts...)
 	if err != nil {
 		return err

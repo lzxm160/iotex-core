@@ -10,14 +10,10 @@ import (
 	"context"
 	"os"
 
-	"github.com/iotexproject/iotex-core/protogen/iotexapi"
-
 	"github.com/golang/protobuf/proto"
-	peerstore "github.com/libp2p/go-libp2p-peerstore"
+	"github.com/libp2p/go-libp2p-peerstore"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-
-	"github.com/iotexproject/iotex-election/committee"
 
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
@@ -32,12 +28,13 @@ import (
 	"github.com/iotexproject/iotex-core/consensus"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/dispatcher"
-	"github.com/iotexproject/iotex-core/explorer"
 	"github.com/iotexproject/iotex-core/indexservice"
 	"github.com/iotexproject/iotex-core/p2p"
 	"github.com/iotexproject/iotex-core/pkg/log"
+	"github.com/iotexproject/iotex-core/protogen/iotexapi"
 	"github.com/iotexproject/iotex-core/protogen/iotexrpc"
 	"github.com/iotexproject/iotex-core/protogen/iotextypes"
+	"github.com/iotexproject/iotex-election/committee"
 )
 
 // ChainService is a blockchain service with all blockchain components.
@@ -48,7 +45,6 @@ type ChainService struct {
 	chain             blockchain.Blockchain
 	electionCommittee committee.Committee
 	rDPoSProtocol     *rolldpos.Protocol
-	explorer          iotexapi.APIServiceServer
 	api               *api.Server
 	indexBuilder      *blockchain.IndexBuilder
 	indexservice      *indexservice.Server
@@ -56,7 +52,7 @@ type ChainService struct {
 }
 
 type optionParams struct {
-	rootChainAPI  iotexapi.APIServiceServer
+	rootChainAPI  iotexapi.APIServiceClient
 	isTesting     bool
 	genesisConfig genesis.Genesis
 }
@@ -65,7 +61,7 @@ type optionParams struct {
 type Option func(ops *optionParams) error
 
 // WithRootChainAPI is an option to add a root chain api to ChainService.
-func WithRootChainAPI(exp iotexapi.APIServiceServer) Option {
+func WithRootChainAPI(exp iotexapi.APIServiceClient) Option {
 	return func(ops *optionParams) error {
 		ops.rootChainAPI = exp
 		return nil
@@ -213,27 +209,6 @@ func New(
 		}
 	}
 
-	var exp *explorer.Server
-	if cfg.Explorer.Enabled {
-		exp, err = explorer.NewServer(
-			cfg.Explorer,
-			chain,
-			consensus,
-			dispatcher,
-			actPool,
-			idx,
-			explorer.WithBroadcastOutbound(func(ctx context.Context, chainID uint32, msg proto.Message) error {
-				ctx = p2p.WitContext(ctx, p2p.Context{ChainID: chainID})
-				return p2pAgent.BroadcastOutbound(ctx, msg)
-			}),
-			explorer.WithNeighbors(p2pAgent.Neighbors),
-			explorer.WithNetworkInfo(p2pAgent.Info),
-		)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	var apiSvr *api.Server
 	if _, ok := cfg.Plugins[config.GatewayPlugin]; ok {
 		apiSvr, err = api.NewServer(
@@ -262,7 +237,6 @@ func New(
 		electionCommittee: electionCommittee,
 		indexservice:      idx,
 		indexBuilder:      indexBuilder,
-		explorer:          exp,
 		api:               apiSvr,
 		registry:          &registry,
 	}, nil
@@ -289,11 +263,6 @@ func (cs *ChainService) Start(ctx context.Context) error {
 	if err := cs.blocksync.Start(ctx); err != nil {
 		return errors.Wrap(err, "error when starting blocksync")
 	}
-	if cs.explorer != nil {
-		if err := cs.explorer.Start(ctx); err != nil {
-			return errors.Wrap(err, "error when starting explorer")
-		}
-	}
 	if cs.api != nil {
 		if err := cs.api.Start(); err != nil {
 			return errors.Wrap(err, "err when starting API server")
@@ -312,11 +281,6 @@ func (cs *ChainService) Stop(ctx context.Context) error {
 	if cs.indexBuilder != nil {
 		if err := cs.indexBuilder.Stop(ctx); err != nil {
 			return errors.Wrap(err, "error when stopping index builder")
-		}
-	}
-	if cs.explorer != nil {
-		if err := cs.explorer.Stop(ctx); err != nil {
-			return errors.Wrap(err, "error when stopping explorer")
 		}
 	}
 	if cs.api != nil {
@@ -414,11 +378,6 @@ func (cs *ChainService) RollDPoSProtocol() *rolldpos.Protocol {
 // IndexService returns the indexservice instance
 func (cs *ChainService) IndexService() *indexservice.Server {
 	return cs.indexservice
-}
-
-// Explorer returns the explorer instance
-func (cs *ChainService) Explorer() *explorer.Server {
-	return cs.explorer
 }
 
 // RegisterProtocol register a protocol

@@ -48,7 +48,7 @@ type IotxConsensus struct {
 }
 
 type optionParams struct {
-	rootChainAPI     iotexapi.APIServiceServer
+	rootChainAPI     iotexapi.APIServiceClient
 	broadcastHandler scheme.Broadcast
 	rp               *rp.Protocol
 }
@@ -57,7 +57,7 @@ type optionParams struct {
 type Option func(op *optionParams) error
 
 // WithRootChainAPI is an option to add a root chain api to Consensus.
-func WithRootChainAPI(exp iotexapi.APIServiceServer) Option {
+func WithRootChainAPI(exp iotexapi.APIServiceClient) Option {
 	return func(ops *optionParams) error {
 		ops.rootChainAPI = exp
 		return nil
