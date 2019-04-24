@@ -257,3 +257,93 @@ func (exp *Service) GetCandidateMetricsByHeight(h int64) (explorer.CandidateMetr
 		Candidates: candidates,
 	}, nil
 }
+func convertExplorerExecutionToActionPb(execution *explorer.Execution) (*iotextypes.Action, error) {
+	executorPubKey, err := keypair.StringToPubKeyBytes(execution.ExecutorPubKey)
+	if err != nil {
+		return nil, err
+	}
+	data, err := hex.DecodeString(execution.Data)
+	if err != nil {
+		return nil, err
+	}
+	signature, err := hex.DecodeString(execution.Signature)
+	if err != nil {
+		return nil, err
+	}
+	amount, ok := big.NewInt(0).SetString(execution.Amount, 10)
+	if !ok {
+		return nil, errors.New("failed to set execution amount")
+	}
+	gasPrice, ok := big.NewInt(0).SetString(execution.GasPrice, 10)
+	if !ok {
+		return nil, errors.New("failed to set execution gas price")
+	}
+	actPb := &iotextypes.Action{
+		Core: &iotextypes.ActionCore{
+			Action: &iotextypes.ActionCore_Execution{
+				Execution: &iotextypes.Execution{
+					Amount:   amount.String(),
+					Contract: execution.Contract,
+					Data:     data,
+				},
+			},
+			Version:  uint32(execution.Version),
+			Nonce:    uint64(execution.Nonce),
+			GasLimit: uint64(execution.GasLimit),
+			GasPrice: gasPrice.String(),
+		},
+		SenderPubKey: executorPubKey,
+		Signature:    signature,
+	}
+	return actPb, nil
+}
+
+func convertExplorerTransferToActionPb(tsfJSON *explorer.SendTransferRequest,
+	maxTransferPayloadBytes uint64) (*iotextypes.Action, error) {
+	payload, err := hex.DecodeString(tsfJSON.Payload)
+	if err != nil {
+		return nil, err
+	}
+	if uint64(len(payload)) > maxTransferPayloadBytes {
+		return nil, errors.Wrapf(
+			ErrTransfer,
+			"transfer payload contains %d bytes, and is longer than %d bytes limit",
+			len(payload),
+			maxTransferPayloadBytes,
+		)
+	}
+	senderPubKey, err := keypair.StringToPubKeyBytes(tsfJSON.SenderPubKey)
+	if err != nil {
+		return nil, err
+	}
+	signature, err := hex.DecodeString(tsfJSON.Signature)
+	if err != nil {
+		return nil, err
+	}
+	amount, ok := big.NewInt(0).SetString(tsfJSON.Amount, 10)
+	if !ok {
+		return nil, errors.New("failed to set transfer amount")
+	}
+	gasPrice, ok := big.NewInt(0).SetString(tsfJSON.GasPrice, 10)
+	if !ok {
+		return nil, errors.New("failed to set transfer gas price")
+	}
+	actPb := &iotextypes.Action{
+		Core: &iotextypes.ActionCore{
+			Action: &iotextypes.ActionCore_Transfer{
+				Transfer: &iotextypes.Transfer{
+					Amount:    amount.String(),
+					Recipient: tsfJSON.Recipient,
+					Payload:   payload,
+				},
+			},
+			Version:  uint32(tsfJSON.Version),
+			Nonce:    uint64(tsfJSON.Nonce),
+			GasLimit: uint64(tsfJSON.GasLimit),
+			GasPrice: gasPrice.String(),
+		},
+		SenderPubKey: senderPubKey,
+		Signature:    signature,
+	}
+	return actPb, nil
+}
