@@ -8,6 +8,7 @@ package poll
 
 import (
 	"context"
+	"fmt"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/db"
@@ -241,5 +242,6 @@ func TestProtocol_Validate(t *testing.T) {
 		},
 	)
 	err=p4.Validate(ctx4,selp4.Action())
+	fmt.Println(err)
 	require.True(strings.Contains(err.Error(), "duplicate candidate"))
 }
