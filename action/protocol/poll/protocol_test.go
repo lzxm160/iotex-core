@@ -230,7 +230,8 @@ func TestProtocol_Validate(t *testing.T) {
 	require.NoError(ws4.State(candidatesutil.ConstructKey(1), &sc4))
 	sc4=append(sc4,&state.Candidate{"1",big.NewInt(10),"2"})
 	act4 := action.NewPutPollResult(1, 1, sc4)
-	elp4 := bd.SetGasLimit(uint64(100000)).
+	bd4 := &action.EnvelopeBuilder{}
+	elp4 := bd4.SetGasLimit(uint64(100000)).
 		SetGasPrice(big.NewInt(10)).
 		SetAction(act4).Build()
 	selp4, err := action.Sign(elp4, senderKey.PriKey)
