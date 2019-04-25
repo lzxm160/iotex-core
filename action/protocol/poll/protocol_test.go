@@ -225,12 +225,12 @@ func TestProtocol_Validate(t *testing.T) {
 	require.NoError(p3.Initialize(ctx4, ws4))
 	var sc4 state.CandidateList
 	require.NoError(ws3.State(candidatesutil.ConstructKey(1), &sc4))
-	sc3=append(sc3,&state.Candidate{"1",big.NewInt(10),"2"})
-	act4 := action.NewPutPollResult(1, 1, sc3)
-	elp = bd.SetGasLimit(uint64(100000)).
+	sc4=append(sc4,&state.Candidate{"1",big.NewInt(10),"2"})
+	act4 := action.NewPutPollResult(1, 1, sc4)
+	elp4 := bd.SetGasLimit(uint64(100000)).
 		SetGasPrice(big.NewInt(10)).
 		SetAction(act4).Build()
-	selp4, err := action.Sign(elp, senderKey.PriKey)
+	selp4, err := action.Sign(elp4, senderKey.PriKey)
 	require.NoError(err)
 	require.NotNil(selp4)
 	ctx4 = protocol.WithValidateActionsCtx(
