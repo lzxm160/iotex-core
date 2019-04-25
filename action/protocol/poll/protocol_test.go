@@ -8,6 +8,9 @@ package poll
 
 import (
 	"context"
+	"github.com/iotexproject/iotex-core/action"
+	"github.com/iotexproject/iotex-core/test/testaddress"
+	"math/big"
 	"testing"
 	"time"
 
@@ -24,7 +27,7 @@ import (
 	"github.com/iotexproject/iotex-core/state/factory"
 )
 
-func TestInitialize(t *testing.T) {
+func initConstruct(t *testing.T)(Protocol,context.Context,factory.WorkingSet,*types.ElectionResult){
 	require := require.New(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -52,6 +55,11 @@ func TestInitialize(t *testing.T) {
 		cfg.Genesis.NumDelegates,
 	)
 	require.NoError(err)
+	return p,ctx,ws,r
+}
+func TestInitialize(t *testing.T) {
+	require := require.New(t)
+	p,ctx,ws,r:=initConstruct(t)
 	require.NoError(p.Initialize(ctx, ws))
 	var sc state.CandidateList
 	require.NoError(ws.State(candidatesutil.ConstructKey(1), &sc))
@@ -69,6 +77,32 @@ func TestInitialize(t *testing.T) {
 }
 
 func TestHandle(t *testing.T) {
+	require := require.New(t)
+	//ctrl := gomock.NewController(t)
+	//defer ctrl.Finish()
+	//
+	//sm := mock_chainmanager.NewMockStateManager(ctrl)
+	p,ctx,ws,_:=initConstruct(t)
+	require.NoError(p.Initialize(ctx, ws))
+
+	// wrong action
+	recipientAddr := testaddress.Addrinfo["alfa"]
+	senderKey := testaddress.Keyinfo["producer"]
+	tsf, err := action.NewTransfer(0, big.NewInt(10), recipientAddr.String(), []byte{}, uint64(100000), big.NewInt(10))
+	require.NoError(err)
+	tsf.Proto()
+	bd := &action.EnvelopeBuilder{}
+	elp := bd.SetGasLimit(uint64(100000)).
+		SetGasPrice(big.NewInt(10)).
+		SetAction(tsf).Build()
+	elp.ByteStream()
+	selp, err := action.Sign(elp, senderKey.PriKey)
+	require.NoError(err)
+	require.NotNil(selp)
+
+	receipt,err:=p.Handle(ctx,selp.Action(),nil)
+	require.NoError(err)
+	require.NotNil(receipt)
 }
 
 func TestProtocol_Validate(t *testing.T) {
