@@ -74,7 +74,7 @@ func TestInitialize(t *testing.T) {
 	p,ctx,ws,r:=initConstruct(t)
 	require.NoError(p.Initialize(ctx, ws))
 	var sc state.CandidateList
-	require.NoError(ws.State(candidatesutil.ConstructKey(123456), &sc))
+	require.NoError(ws.State(candidatesutil.ConstructKey(1), &sc))
 	candidates, err := state.CandidatesToMap(sc)
 	require.NoError(err)
 	require.Equal(2, len(candidates))
