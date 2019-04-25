@@ -55,7 +55,7 @@ func initConstruct(t *testing.T)(Protocol,context.Context,factory.WorkingSet,*ty
 	committee := mock_committee.NewMockCommittee(ctrl)
 	r := types.NewElectionResultForTest(time.Now())
 	committee.EXPECT().ResultByHeight(uint64(123456)).Return(r, nil).AnyTimes()
-	committee.EXPECT().HeightByTime(gomock.Any()).Return(gomock.Any(), nil).AnyTimes()
+	//committee.EXPECT().HeightByTime(gomock.Any()).Return(gomock.Any(), nil).AnyTimes()
 	p, err := NewGovernanceChainCommitteeProtocol(
 		nil,
 		committee,
@@ -199,8 +199,7 @@ func TestProtocol_Validate(t *testing.T) {
 	p3,ctx3,ws3,_:=initConstruct(t)
 	require.NoError(p3.Initialize(ctx3, ws3))
 	var sc3 state.CandidateList
-	require.NoError(ws3.State(candidatesutil.ConstructKey(1), &sc3))
-
+	require.NoError(ws3.State(candidatesutil.ConstructKey(2), &sc3))
 	act3 := action.NewPutPollResult(1, 1, sc3)
 	elp = bd.SetGasLimit(uint64(100000)).
 		SetGasPrice(big.NewInt(10)).
