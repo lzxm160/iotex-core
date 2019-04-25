@@ -89,7 +89,7 @@ func TestHandle(t *testing.T) {
 	//defer ctrl.Finish()
 	//
 	//sm := mock_chainmanager.NewMockStateManager(ctrl)
-	p,ctx,ws,r:=initConstruct(t)
+	p,ctx,ws,_:=initConstruct(t)
 	require.NoError(p.Initialize(ctx, ws))
 
 	// wrong action
