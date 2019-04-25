@@ -174,7 +174,7 @@ func TestProtocol_Validate(t *testing.T) {
 	// Case 1: wrong action type
 	err=p.Validate(ctx,selp.Action())
 	require.Nil(err)
-	// Case 2: not producer
+	// Case 2: Only producer could create this protocol
 	p2,ctx2,ws2,_:=initConstruct(t)
 	require.NoError(p2.Initialize(ctx2, ws2))
 	var sc2 state.CandidateList
@@ -198,7 +198,7 @@ func TestProtocol_Validate(t *testing.T) {
 	)
 	err=p.Validate(ctx2,selp2.Action())
 	require.True(strings.Contains(err.Error(), "Only producer could create this protocol"))
-	// Case 3: delegate error
+	// Case 3: duplicate candidate
 	p3,ctx3,ws3,_:=initConstruct(t)
 	require.NoError(p3.Initialize(ctx3, ws3))
 	var sc3 state.CandidateList
@@ -248,7 +248,7 @@ func TestProtocol_Validate(t *testing.T) {
 	err=p4.Validate(ctx4,selp4.Action())
 	require.True(strings.Contains(err.Error(), "the proposed delegate list length"))
 
-	// Case 5: delegates are not as expected
+	// Case 5: all good
 	p5,ctx5,ws5,_:=initConstruct(t)
 	require.NoError(p5.Initialize(ctx5, ws5))
 	var sc5 state.CandidateList
@@ -272,6 +272,5 @@ func TestProtocol_Validate(t *testing.T) {
 		},
 	)
 	err=p5.Validate(ctx5,selp5.Action())
-	fmt.Println(err)
-	require.True(strings.Contains(err.Error(), "the proposed delegate list length"))
+	require.NoError(err)
 }
