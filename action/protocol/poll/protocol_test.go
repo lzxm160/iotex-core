@@ -211,7 +211,7 @@ func TestProtocol_Validate(t *testing.T) {
 		context.Background(),
 		protocol.ValidateActionsCtx{
 			BlockHeight:  1,
-			ProducerAddr: recipientAddr.String(),
+			ProducerAddr: testaddress.Addrinfo["producer"].String(),
 			Caller:       caller,
 		},
 	)
