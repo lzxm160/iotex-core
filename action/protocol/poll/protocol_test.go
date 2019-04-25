@@ -89,7 +89,7 @@ func TestHandle(t *testing.T) {
 	//defer ctrl.Finish()
 	//
 	//sm := mock_chainmanager.NewMockStateManager(ctrl)
-	p,ctx,ws,_:=initConstruct(t)
+	p,ctx,ws,r:=initConstruct(t)
 	require.NoError(p.Initialize(ctx, ws))
 
 	// wrong action
@@ -97,17 +97,28 @@ func TestHandle(t *testing.T) {
 	senderKey := testaddress.Keyinfo["producer"]
 	tsf, err := action.NewTransfer(0, big.NewInt(10), recipientAddr.String(), []byte{}, uint64(100000), big.NewInt(10))
 	require.NoError(err)
-	tsf.Proto()
 	bd := &action.EnvelopeBuilder{}
 	elp := bd.SetGasLimit(uint64(100000)).
 		SetGasPrice(big.NewInt(10)).
 		SetAction(tsf).Build()
-	elp.ByteStream()
 	selp, err := action.Sign(elp, senderKey.PriKey)
 	require.NoError(err)
 	require.NotNil(selp)
-	// Case I: wrong action type
+	// Case 1: wrong action type
 	receipt,err:=p.Handle(ctx,selp.Action(),nil)
+	require.NoError(err)
+	require.Nil(receipt)
+	// Case 2: right action type
+	var sc state.CandidateList
+	require.NoError(ws.State(candidatesutil.ConstructKey(1), &sc))
+	act := action.NewPutPollResult(1, 123456, sc)
+	elp = bd.SetGasLimit(uint64(100000)).
+		SetGasPrice(big.NewInt(10)).
+		SetAction(act).Build()
+	selp, err = action.Sign(elp, senderKey.PriKey)
+	require.NoError(err)
+	require.NotNil(selp)
+	receipt,err=p.Handle(ctx,selp.Action(),nil)
 	require.NoError(err)
 	require.Nil(receipt)
 }
