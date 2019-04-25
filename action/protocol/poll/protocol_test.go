@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
+	"github.com/iotexproject/iotex-core/test/mock/mock_chainmanager"
 	"github.com/iotexproject/iotex-core/test/testaddress"
 	"math/big"
 	"testing"
@@ -85,10 +86,10 @@ func TestInitialize(t *testing.T) {
 
 func TestHandle(t *testing.T) {
 	require := require.New(t)
-	//ctrl := gomock.NewController(t)
-	//defer ctrl.Finish()
-	//
-	//sm := mock_chainmanager.NewMockStateManager(ctrl)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	sm := mock_chainmanager.NewMockStateManager(ctrl)
 	p,ctx,ws,_:=initConstruct(t)
 	require.NoError(p.Initialize(ctx, ws))
 
@@ -118,7 +119,7 @@ func TestHandle(t *testing.T) {
 	selp, err = action.Sign(elp, senderKey.PriKey)
 	require.NoError(err)
 	require.NotNil(selp)
-	receipt,err=p.Handle(ctx,selp.Action(),nil)
+	receipt,err=p.Handle(ctx,selp.Action(),sm)
 	require.Error(err)
 	require.Nil(receipt)
 }
