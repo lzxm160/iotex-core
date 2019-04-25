@@ -8,6 +8,7 @@ package poll
 
 import (
 	"context"
+	"fmt"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/db"
@@ -198,7 +199,7 @@ func TestProtocol_Validate(t *testing.T) {
 	require.NoError(p3.Initialize(ctx3, ws3))
 	var sc3 state.CandidateList
 	require.NoError(ws3.State(candidatesutil.ConstructKey(1), &sc3))
-	
+
 	act3 := action.NewPutPollResult(1, 1, sc3)
 	elp = bd.SetGasLimit(uint64(100000)).
 		SetGasPrice(big.NewInt(10)).
@@ -206,7 +207,15 @@ func TestProtocol_Validate(t *testing.T) {
 	selp3, err := action.Sign(elp, senderKey.PriKey)
 	require.NoError(err)
 	require.NotNil(selp3)
-
+	ctx3 = protocol.WithValidateActionsCtx(
+		context.Background(),
+		protocol.ValidateActionsCtx{
+			BlockHeight:  1,
+			ProducerAddr: recipientAddr.String(),
+			Caller:       caller,
+		},
+	)
 	err=p.Validate(ctx3,selp3.Action())
+	fmt.Println()
 	require.True(true,strings.Contains(err.Error(), "Only producer could create this protocol"))
 }
