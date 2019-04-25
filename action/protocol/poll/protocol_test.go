@@ -8,7 +8,6 @@ package poll
 
 import (
 	"context"
-	"fmt"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/db"
@@ -114,7 +113,7 @@ func TestHandle(t *testing.T) {
 	require.NotNil(selp)
 	// Case 1: wrong action type
 	receipt,err:=p.Handle(ctx,selp.Action(),nil)
-	require.NoError(err)
+	require.Nil(err)
 	require.Nil(receipt)
 	// Case 2: right action type,setCandidates error
 	var sc state.CandidateList
@@ -128,11 +127,11 @@ func TestHandle(t *testing.T) {
 	require.NotNil(selp)
 	receipt,err=p.Handle(ctx,selp.Action(),sm)
 	require.Error(err)
-	fmt.Println(err)
 	require.Nil(receipt)
 	// Case 3: all right
-	require.NoError(ws.State(candidatesutil.ConstructKey(123456), &sc))
-	act = action.NewPutPollResult(1, 123456, sc)
+	var sc3 state.CandidateList
+	require.NoError(ws.State(candidatesutil.ConstructKey(123456), &sc3))
+	act = action.NewPutPollResult(1, 123456, sc3)
 	elp = bd.SetGasLimit(uint64(100000)).
 		SetGasPrice(big.NewInt(10)).
 		SetAction(act).Build()
