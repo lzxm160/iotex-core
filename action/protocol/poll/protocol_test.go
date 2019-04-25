@@ -52,10 +52,7 @@ func initConstruct(t *testing.T)(Protocol,context.Context,factory.WorkingSet,*ty
 	ws, err := sf.NewWorkingSet()
 	require.NoError(err)
 	committee := mock_committee.NewMockCommittee(ctrl)
-	TimeFormat := "2006-01-02 15:04:05"
-	tim,err:=time.Parse(TimeFormat,"2019-04-25 11:18:46")
-	require.NoError(err)
-	r := types.NewElectionResultForTest(tim)
+	r := types.NewElectionResultForTest(time.Now())
 	committee.EXPECT().ResultByHeight(uint64(123456)).Return(r, nil).AnyTimes()
 	committee.EXPECT().HeightByTime(gomock.Any()).Return(uint64(123456),nil).AnyTimes()
 	p, err := NewGovernanceChainCommitteeProtocol(
