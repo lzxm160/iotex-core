@@ -170,7 +170,6 @@ func TestProtocol_Validate(t *testing.T) {
 	err=p.Validate(ctx,selp.Action())
 	require.Nil(err)
 	// Case 2: not producer
-
 	p3,ctx3,ws3,_:=initConstruct(t)
 	require.NoError(p3.Initialize(ctx3, ws3))
 	var sc3 state.CandidateList
