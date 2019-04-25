@@ -219,5 +219,5 @@ func TestProtocol_Validate(t *testing.T) {
 	)
 	err=p.Validate(ctx3,selp3.Action())
 	fmt.Println(err)
-	require.True(strings.Contains(err.Error(), "Only producer could create this protocol"))
+	require.True(strings.Contains(err.Error(), "duplicate candidate"))
 }
