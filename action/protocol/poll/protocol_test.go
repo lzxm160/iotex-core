@@ -8,6 +8,7 @@ package poll
 
 import (
 	"context"
+	"fmt"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/db"
@@ -271,5 +272,6 @@ func TestProtocol_Validate(t *testing.T) {
 		},
 	)
 	err=p5.Validate(ctx5,selp5.Action())
+	fmt.Println(err)
 	require.True(strings.Contains(err.Error(), "the proposed delegate list length"))
 }
