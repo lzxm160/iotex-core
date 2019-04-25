@@ -55,7 +55,7 @@ func initConstruct(t *testing.T)(Protocol,context.Context,factory.WorkingSet,*ty
 	committee := mock_committee.NewMockCommittee(ctrl)
 	r := types.NewElectionResultForTest(time.Now())
 	committee.EXPECT().ResultByHeight(uint64(123456)).Return(r, nil).AnyTimes()
-	//committee.EXPECT().HeightByTime(gomock.Any()).Return(gomock.Any(), nil).AnyTimes()
+	committee.EXPECT().HeightByTime(gomock.Any()).AnyTimes()
 	p, err := NewGovernanceChainCommitteeProtocol(
 		nil,
 		committee,
@@ -242,6 +242,7 @@ func TestProtocol_Validate(t *testing.T) {
 		},
 	)
 	err=p4.Validate(ctx4,selp4.Action())
+
 	fmt.Println(err)
 	require.True(strings.Contains(err.Error(), "duplicate candidate"))
 }
