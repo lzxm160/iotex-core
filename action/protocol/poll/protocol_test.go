@@ -119,7 +119,7 @@ func TestHandle(t *testing.T) {
 	require.NoError(err)
 	require.NotNil(selp)
 	receipt,err=p.Handle(ctx,selp.Action(),nil)
-	require.NoError(err)
+	require.Error(err)
 	require.Nil(receipt)
 }
 
