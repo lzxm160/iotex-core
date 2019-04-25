@@ -8,6 +8,7 @@ package poll
 
 import (
 	"context"
+	"fmt"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/db"
@@ -127,6 +128,7 @@ func TestHandle(t *testing.T) {
 	require.NotNil(selp)
 	receipt,err=p.Handle(ctx,selp.Action(),sm)
 	require.Error(err)
+	fmt.Println(err)
 	require.Nil(receipt)
 }
 
