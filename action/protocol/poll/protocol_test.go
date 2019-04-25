@@ -170,17 +170,30 @@ func TestProtocol_Validate(t *testing.T) {
 	err=p.Validate(ctx,selp.Action())
 	require.Nil(err)
 	// Case 2: not producer
+
+	p3,ctx3,ws3,_:=initConstruct(t)
+	require.NoError(p3.Initialize(ctx3, ws3))
+	var sc3 state.CandidateList
+	require.NoError(ws3.State(candidatesutil.ConstructKey(1), &sc3))
+	act3 := action.NewPutPollResult(1, 1, sc3)
+	elp = bd.SetGasLimit(uint64(100000)).
+		SetGasPrice(big.NewInt(10)).
+		SetAction(act3).Build()
+	selp3, err := action.Sign(elp, senderKey.PriKey)
+	require.NoError(err)
+	require.NotNil(selp3)
+
 	caller, err := address.FromBytes(selp.SrcPubkey().Hash())
 	require.NoError(err)
-	ctx = protocol.WithValidateActionsCtx(
+	ctx2 := protocol.WithValidateActionsCtx(
 		context.Background(),
 		protocol.ValidateActionsCtx{
-			BlockHeight:  123456,
+			BlockHeight:  1,
 			ProducerAddr: recipientAddr.String(),
 			Caller:       caller,
 		},
 	)
-	err=p.Validate(ctx,selp.Action())
+	err=p.Validate(ctx2,selp3.Action())
 	require.Error(err)
 	fmt.Println(err)
 }
