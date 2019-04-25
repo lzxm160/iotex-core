@@ -53,9 +53,10 @@ func initConstruct(t *testing.T)(Protocol,context.Context,factory.WorkingSet,*ty
 	ws, err := sf.NewWorkingSet()
 	require.NoError(err)
 	committee := mock_committee.NewMockCommittee(ctrl)
-	r := types.NewElectionResultForTest(time.Now())
-	committee.EXPECT().ResultByHeight(gomock.Any()).AnyTimes()
-	committee.EXPECT().HeightByTime(gomock.Any()).AnyTimes()
+	tim:=time.Now()
+	r := types.NewElectionResultForTest(tim)
+	committee.EXPECT().ResultByHeight(uint64(123456)).Return(r, nil).AnyTimes()
+	committee.EXPECT().HeightByTime(tim).AnyTimes()
 	p, err := NewGovernanceChainCommitteeProtocol(
 		nil,
 		committee,
