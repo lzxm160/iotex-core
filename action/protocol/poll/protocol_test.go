@@ -132,7 +132,7 @@ func TestHandle(t *testing.T) {
 	p3,ctx3,ws3,_:=initConstruct(t)
 	require.NoError(p3.Initialize(ctx3, ws3))
 	var sc3 state.CandidateList
-	require.NoError(ws3.State(candidatesutil.ConstructKey(123456), &sc3))
+	require.NoError(ws3.State(candidatesutil.ConstructKey(1), &sc3))
 	act3 := action.NewPutPollResult(1, 123456, sc3)
 	elp = bd.SetGasLimit(uint64(100000)).
 		SetGasPrice(big.NewInt(10)).
