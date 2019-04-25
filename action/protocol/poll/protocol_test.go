@@ -8,7 +8,6 @@ package poll
 
 import (
 	"context"
-	"fmt"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/db"
@@ -218,6 +217,29 @@ func TestProtocol_Validate(t *testing.T) {
 		},
 	)
 	err=p.Validate(ctx3,selp3.Action())
-	fmt.Println(err)
+	require.True(strings.Contains(err.Error(), "duplicate candidate"))
+
+	// Case 4: delegate's length is not equal
+	p4,ctx4,ws4,_:=initConstruct(t)
+	require.NoError(p3.Initialize(ctx4, ws4))
+	var sc4 state.CandidateList
+	require.NoError(ws3.State(candidatesutil.ConstructKey(1), &sc4))
+	sc3=append(sc3,&state.Candidate{"1",big.NewInt(10),"2"})
+	act4 := action.NewPutPollResult(1, 1, sc3)
+	elp = bd.SetGasLimit(uint64(100000)).
+		SetGasPrice(big.NewInt(10)).
+		SetAction(act4).Build()
+	selp4, err := action.Sign(elp, senderKey.PriKey)
+	require.NoError(err)
+	require.NotNil(selp4)
+	ctx4 = protocol.WithValidateActionsCtx(
+		context.Background(),
+		protocol.ValidateActionsCtx{
+			BlockHeight:  1,
+			ProducerAddr: testaddress.Addrinfo["producer"].String(),
+			Caller:       caller,
+		},
+	)
+	err=p4.Validate(ctx4,selp4.Action())
 	require.True(strings.Contains(err.Error(), "duplicate candidate"))
 }
