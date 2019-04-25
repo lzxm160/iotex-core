@@ -90,6 +90,7 @@ func TestHandle(t *testing.T) {
 	defer ctrl.Finish()
 
 	sm := mock_chainmanager.NewMockStateManager(ctrl)
+	sm.EXPECT().State(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	p,ctx,ws,_:=initConstruct(t)
 	require.NoError(p.Initialize(ctx, ws))
 
