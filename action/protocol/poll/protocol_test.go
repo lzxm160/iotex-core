@@ -8,6 +8,7 @@ package poll
 
 import (
 	"context"
+	"fmt"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/db"
@@ -167,5 +168,19 @@ func TestProtocol_Validate(t *testing.T) {
 	require.NotNil(selp)
 	// Case 1: wrong action type
 	err=p.Validate(ctx,selp.Action())
+	require.Nil(err)
+	// Case 2: not producer
+	caller, err := address.FromBytes(selp.SrcPubkey().Hash())
+	require.NoError(err)
+	ctx = protocol.WithValidateActionsCtx(
+		context.Background(),
+		protocol.ValidateActionsCtx{
+			BlockHeight:  123456,
+			ProducerAddr: recipientAddr.String(),
+			Caller:       caller,
+		},
+	)
+	err=p.Validate(ctx,selp.Action())
 	require.Error(err)
+	fmt.Println(err)
 }
