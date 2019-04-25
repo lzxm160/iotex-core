@@ -199,7 +199,9 @@ func TestProtocol_Validate(t *testing.T) {
 	p3,ctx3,ws3,_:=initConstruct(t)
 	require.NoError(p3.Initialize(ctx3, ws3))
 	var sc3 state.CandidateList
-	require.NoError(ws3.State(candidatesutil.ConstructKey(2), &sc3))
+	require.NoError(ws3.State(candidatesutil.ConstructKey(1), &sc3))
+	sc3=append(sc3,&state.Candidate{"1",big.NewInt(10),"2"})
+	sc3=append(sc3,&state.Candidate{"1",big.NewInt(10),"2"})
 	act3 := action.NewPutPollResult(1, 1, sc3)
 	elp = bd.SetGasLimit(uint64(100000)).
 		SetGasPrice(big.NewInt(10)).
