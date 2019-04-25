@@ -209,14 +209,14 @@ func TestProtocol_Validate(t *testing.T) {
 	selp3, err := action.Sign(elp, senderKey.PriKey)
 	require.NoError(err)
 	require.NotNil(selp3)
-	//ctx3 = protocol.WithValidateActionsCtx(
-	//	context.Background(),
-	//	protocol.ValidateActionsCtx{
-	//		BlockHeight:  1,
-	//		ProducerAddr: testaddress.Addrinfo["producer"].String(),
-	//		Caller:       caller,
-	//	},
-	//)
+	ctx3 = protocol.WithValidateActionsCtx(
+		context.Background(),
+		protocol.ValidateActionsCtx{
+			BlockHeight:  1,
+			ProducerAddr: testaddress.Addrinfo["producer"].String(),
+			Caller:       caller,
+		},
+	)
 	err=p.Validate(ctx3,selp3.Action())
 	fmt.Println(err)
 	require.True(true,strings.Contains(err.Error(), "Only producer could create this protocol"))
