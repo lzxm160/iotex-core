@@ -106,10 +106,10 @@ func TestHandle(t *testing.T) {
 	selp, err := action.Sign(elp, senderKey.PriKey)
 	require.NoError(err)
 	require.NotNil(selp)
-
+	// Case I: wrong action type
 	receipt,err:=p.Handle(ctx,selp.Action(),nil)
 	require.NoError(err)
-	require.NotNil(receipt)
+	require.Nil(receipt)
 }
 
 func TestProtocol_Validate(t *testing.T) {
