@@ -43,6 +43,7 @@ func initConstruct(t *testing.T)(Protocol,context.Context,factory.WorkingSet,*ty
 	require.NoError(err)
 	committee := mock_committee.NewMockCommittee(ctrl)
 	r := types.NewElectionResultForTest(time.Now())
+	committee.EXPECT().ResultByHeight(uint64(123456)).Return(r, nil).Times(2)
 	p, err := NewGovernanceChainCommitteeProtocol(
 		nil,
 		committee,
