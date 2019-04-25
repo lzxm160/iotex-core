@@ -55,6 +55,7 @@ func initConstruct(t *testing.T)(Protocol,context.Context,factory.WorkingSet,*ty
 	committee := mock_committee.NewMockCommittee(ctrl)
 	r := types.NewElectionResultForTest(time.Now())
 	committee.EXPECT().ResultByHeight(uint64(123456)).Return(r, nil).AnyTimes()
+	committee.EXPECT().HeightByTime(gomock.Any()).Return(nil, nil).AnyTimes()
 	p, err := NewGovernanceChainCommitteeProtocol(
 		nil,
 		committee,
@@ -207,14 +208,14 @@ func TestProtocol_Validate(t *testing.T) {
 	selp3, err := action.Sign(elp, senderKey.PriKey)
 	require.NoError(err)
 	require.NotNil(selp3)
-	ctx3 = protocol.WithValidateActionsCtx(
-		context.Background(),
-		protocol.ValidateActionsCtx{
-			BlockHeight:  1,
-			ProducerAddr: testaddress.Addrinfo["producer"].String(),
-			Caller:       caller,
-		},
-	)
+	//ctx3 = protocol.WithValidateActionsCtx(
+	//	context.Background(),
+	//	protocol.ValidateActionsCtx{
+	//		BlockHeight:  1,
+	//		ProducerAddr: testaddress.Addrinfo["producer"].String(),
+	//		Caller:       caller,
+	//	},
+	//)
 	err=p.Validate(ctx3,selp3.Action())
 	fmt.Println(err)
 	require.True(true,strings.Contains(err.Error(), "Only producer could create this protocol"))
