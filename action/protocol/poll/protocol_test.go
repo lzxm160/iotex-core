@@ -53,7 +53,9 @@ func initConstruct(t *testing.T)(Protocol,context.Context,factory.WorkingSet,*ty
 	ws, err := sf.NewWorkingSet()
 	require.NoError(err)
 	committee := mock_committee.NewMockCommittee(ctrl)
-	tim:=time.Now()
+	TimeFormat := "2006-01-02 15:04:05"
+	tim,err:=time.Parse(TimeFormat,"2019-04-25 11:18:46")
+	require.NoError(err)
 	r := types.NewElectionResultForTest(tim)
 	committee.EXPECT().ResultByHeight(uint64(123456)).Return(r, nil).AnyTimes()
 	committee.EXPECT().HeightByTime(tim).AnyTimes()
