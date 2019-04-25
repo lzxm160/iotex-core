@@ -246,4 +246,30 @@ func TestProtocol_Validate(t *testing.T) {
 	)
 	err=p4.Validate(ctx4,selp4.Action())
 	require.True(strings.Contains(err.Error(), "the proposed delegate list length"))
+
+	// Case 5: delegates are not as expected
+	p5,ctx5,ws5,_:=initConstruct(t)
+	require.NoError(p4.Initialize(ctx5, ws5))
+	var sc5 state.CandidateList
+	require.NoError(ws4.State(candidatesutil.ConstructKey(1), &sc5))
+	act5 := action.NewPutPollResult(1, 1, sc5)
+	bd5 := &action.EnvelopeBuilder{}
+	elp5 := bd5.SetGasLimit(uint64(100000)).
+		SetGasPrice(big.NewInt(10)).
+		SetAction(act5).Build()
+	selp5, err := action.Sign(elp5, testaddress.Keyinfo["alfa"].PriKey)
+	require.NoError(err)
+	require.NotNil(selp5)
+	caller5, err := address.FromBytes(selp5.SrcPubkey().Hash())
+	require.NoError(err)
+	ctx5 = protocol.WithValidateActionsCtx(
+		context.Background(),
+		protocol.ValidateActionsCtx{
+			BlockHeight:  1,
+			ProducerAddr: testaddress.Addrinfo["producer"].String(),
+			Caller:       caller5,
+		},
+	)
+	err=p5.Validate(ctx5,selp5.Action())
+	require.True(strings.Contains(err.Error(), "the proposed delegate list length"))
 }
