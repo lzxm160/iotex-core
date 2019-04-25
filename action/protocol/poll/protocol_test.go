@@ -225,9 +225,9 @@ func TestProtocol_Validate(t *testing.T) {
 
 	// Case 4: delegate's length is not equal
 	p4,ctx4,ws4,_:=initConstruct(t)
-	require.NoError(p3.Initialize(ctx4, ws4))
+	require.NoError(p4.Initialize(ctx4, ws4))
 	var sc4 state.CandidateList
-	require.NoError(ws3.State(candidatesutil.ConstructKey(123456), &sc4))
+	require.NoError(ws4.State(candidatesutil.ConstructKey(123456), &sc4))
 	sc4=append(sc4,&state.Candidate{"1",big.NewInt(10),"2"})
 	act4 := action.NewPutPollResult(1, 123456, sc4)
 	elp4 := bd.SetGasLimit(uint64(100000)).
