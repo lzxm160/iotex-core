@@ -9,6 +9,7 @@ package poll
 import (
 	"context"
 	"github.com/iotexproject/iotex-core/action"
+	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/test/testaddress"
 	"math/big"
 	"testing"
@@ -32,7 +33,13 @@ func initConstruct(t *testing.T)(Protocol,context.Context,factory.WorkingSet,*ty
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	cfg := config.Default
-	ctx := context.Background()
+	ctx := protocol.WithRunActionsCtx(
+		context.Background(),
+		protocol.RunActionsCtx{
+			BlockHeight: 123456,
+		},
+	)
+
 	sf, err := factory.NewFactory(cfg, factory.InMemTrieOption())
 	require.NoError(err)
 	require.NoError(sf.Start(ctx))
