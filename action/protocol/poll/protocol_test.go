@@ -194,7 +194,7 @@ func TestProtocol_Validate(t *testing.T) {
 		},
 	)
 	err=p.Validate(ctx2,selp2.Action())
-	require.True(true,strings.Contains(err.Error(), "Only producer could create this protocol"))
+	require.True(strings.Contains(err.Error(), "Only producer could create this protocol"))
 	// Case 3: delegate error
 	p3,ctx3,ws3,_:=initConstruct(t)
 	require.NoError(p3.Initialize(ctx3, ws3))
@@ -219,5 +219,5 @@ func TestProtocol_Validate(t *testing.T) {
 	)
 	err=p.Validate(ctx3,selp3.Action())
 	fmt.Println(err)
-	require.True(true,strings.Contains(err.Error(), "Only producer could create this protocol"))
+	require.True(strings.Contains(err.Error(), "Only producer could create this protocol"))
 }
