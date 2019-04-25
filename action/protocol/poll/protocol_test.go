@@ -116,7 +116,7 @@ func TestHandle(t *testing.T) {
 	receipt,err:=p.Handle(ctx,selp.Action(),nil)
 	require.NoError(err)
 	require.Nil(receipt)
-	// Case 2: right action type
+	// Case 2: right action type,setCandidates error
 	var sc state.CandidateList
 	require.NoError(ws.State(candidatesutil.ConstructKey(1), &sc))
 	act := action.NewPutPollResult(1, 123456, sc)
@@ -130,6 +130,18 @@ func TestHandle(t *testing.T) {
 	require.Error(err)
 	fmt.Println(err)
 	require.Nil(receipt)
+	// Case 3: all right
+	require.NoError(ws.State(candidatesutil.ConstructKey(123456), &sc))
+	act = action.NewPutPollResult(1, 123456, sc)
+	elp = bd.SetGasLimit(uint64(100000)).
+		SetGasPrice(big.NewInt(10)).
+		SetAction(act).Build()
+	selp, err = action.Sign(elp, senderKey.PriKey)
+	require.NoError(err)
+	require.NotNil(selp)
+	receipt,err=p.Handle(ctx,selp.Action(),sm)
+	require.NoError(err)
+	require.NotNil(receipt)
 }
 
 func TestProtocol_Validate(t *testing.T) {
