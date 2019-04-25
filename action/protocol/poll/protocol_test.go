@@ -146,4 +146,26 @@ func TestHandle(t *testing.T) {
 }
 
 func TestProtocol_Validate(t *testing.T) {
+	require := require.New(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	p,ctx,ws,_:=initConstruct(t)
+	require.NoError(p.Initialize(ctx, ws))
+
+	// wrong action
+	recipientAddr := testaddress.Addrinfo["alfa"]
+	senderKey := testaddress.Keyinfo["producer"]
+	tsf, err := action.NewTransfer(0, big.NewInt(10), recipientAddr.String(), []byte{}, uint64(100000), big.NewInt(10))
+	require.NoError(err)
+	bd := &action.EnvelopeBuilder{}
+	elp := bd.SetGasLimit(uint64(100000)).
+		SetGasPrice(big.NewInt(10)).
+		SetAction(tsf).Build()
+	selp, err := action.Sign(elp, senderKey.PriKey)
+	require.NoError(err)
+	require.NotNil(selp)
+	// Case 1: wrong action type
+	err=p.Validate(ctx,selp.Action())
+	require.Error(err)
 }
