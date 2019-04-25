@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
+	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/test/mock/mock_chainmanager"
 	"github.com/iotexproject/iotex-core/test/testaddress"
 	"math/big"
@@ -90,7 +91,11 @@ func TestHandle(t *testing.T) {
 	defer ctrl.Finish()
 
 	sm := mock_chainmanager.NewMockStateManager(ctrl)
-	sm.EXPECT().State(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	cb := db.NewCachedBatch()
+	sm.EXPECT().GetCachedBatch().Return(cb).AnyTimes()
+	sm.EXPECT().State(gomock.Any(), gomock.Any()).Return(state.ErrStateNotExist).AnyTimes()
+	sm.EXPECT().PutState(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	sm.EXPECT().Snapshot().Return(1).AnyTimes()
 	p,ctx,ws,_:=initConstruct(t)
 	require.NoError(p.Initialize(ctx, ws))
 
