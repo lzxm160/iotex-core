@@ -8,13 +8,13 @@ package poll
 
 import (
 	"context"
-	"fmt"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/test/mock/mock_chainmanager"
 	"github.com/iotexproject/iotex-core/test/testaddress"
 	"math/big"
+	"strings"
 	"testing"
 	"time"
 
@@ -170,10 +170,35 @@ func TestProtocol_Validate(t *testing.T) {
 	err=p.Validate(ctx,selp.Action())
 	require.Nil(err)
 	// Case 2: not producer
+	p2,ctx2,ws2,_:=initConstruct(t)
+	require.NoError(p2.Initialize(ctx2, ws2))
+	var sc2 state.CandidateList
+	require.NoError(ws2.State(candidatesutil.ConstructKey(1), &sc2))
+	act2 := action.NewPutPollResult(1, 1, sc2)
+	elp = bd.SetGasLimit(uint64(100000)).
+		SetGasPrice(big.NewInt(10)).
+		SetAction(act2).Build()
+	selp2, err := action.Sign(elp, senderKey.PriKey)
+	require.NoError(err)
+	require.NotNil(selp2)
+	caller, err := address.FromBytes(selp.SrcPubkey().Hash())
+	require.NoError(err)
+	ctx2 = protocol.WithValidateActionsCtx(
+		context.Background(),
+		protocol.ValidateActionsCtx{
+			BlockHeight:  1,
+			ProducerAddr: recipientAddr.String(),
+			Caller:       caller,
+		},
+	)
+	err=p.Validate(ctx2,selp2.Action())
+	require.True(true,strings.Contains(err.Error(), "Only producer could create this protocol"))
+	// Case 3: delegate error
 	p3,ctx3,ws3,_:=initConstruct(t)
 	require.NoError(p3.Initialize(ctx3, ws3))
 	var sc3 state.CandidateList
 	require.NoError(ws3.State(candidatesutil.ConstructKey(1), &sc3))
+	
 	act3 := action.NewPutPollResult(1, 1, sc3)
 	elp = bd.SetGasLimit(uint64(100000)).
 		SetGasPrice(big.NewInt(10)).
@@ -182,17 +207,6 @@ func TestProtocol_Validate(t *testing.T) {
 	require.NoError(err)
 	require.NotNil(selp3)
 
-	caller, err := address.FromBytes(selp.SrcPubkey().Hash())
-	require.NoError(err)
-	ctx2 := protocol.WithValidateActionsCtx(
-		context.Background(),
-		protocol.ValidateActionsCtx{
-			BlockHeight:  1,
-			ProducerAddr: recipientAddr.String(),
-			Caller:       caller,
-		},
-	)
-	err=p.Validate(ctx2,selp3.Action())
-	require.Error(err)
-	fmt.Println(err)
+	err=p.Validate(ctx3,selp3.Action())
+	require.True(true,strings.Contains(err.Error(), "Only producer could create this protocol"))
 }
