@@ -41,12 +41,12 @@ func initConstruct(t *testing.T)(Protocol,context.Context,factory.WorkingSet,*ty
 	}()
 	ws, err := sf.NewWorkingSet()
 	require.NoError(err)
-	//committee := mock_committee.NewMockCommittee(ctrl)
-	//r := types.NewElectionResultForTest(time.Now())
-	//committee.EXPECT().ResultByHeight(uint64(123456)).Return(r, nil).Times(2)
+	committee := mock_committee.NewMockCommittee(ctrl)
+	r := types.NewElectionResultForTest(time.Now())
+	committee.EXPECT().ResultByHeight(uint64(123456)).Return(r, nil).Times(2)
 	p, err := NewGovernanceChainCommitteeProtocol(
 		nil,
-		nil,
+		committee,
 		uint64(123456),
 		func(uint64) (time.Time, error) { return time.Now(), nil },
 		func(uint64) uint64 { return 1 },
