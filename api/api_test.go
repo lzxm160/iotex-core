@@ -194,8 +194,8 @@ var (
 		{
 			ta.Addrinfo["producer"].String(),
 			0,
-			4,
-			4,
+			3,
+			3,
 		},
 	}
 
