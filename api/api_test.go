@@ -111,7 +111,7 @@ var (
 			"io1d4c5lp4ea4754wy439g2t99ue7wryu5r2lslh2",
 			"3",
 			6,
-			11,
+			7,
 			11,
 		},
 		{
