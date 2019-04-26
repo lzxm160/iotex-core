@@ -110,8 +110,8 @@ var (
 		{ta.Addrinfo["charlie"].String(),
 			"io1d4c5lp4ea4754wy439g2t99ue7wryu5r2lslh2",
 			"3",
-			1,
-			2,
+			6,
+			7,
 			11,
 		},
 		{
