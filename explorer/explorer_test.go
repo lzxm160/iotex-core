@@ -269,7 +269,7 @@ func TestExplorerApi(t *testing.T) {
 	require.Equal(int64(4), stats.Height)
 	require.Equal(int64(0), stats.Transfers)
 	require.Equal(int64(0), stats.Executions)
-	require.Equal(int64(9), stats.Aps)
+	require.Equal(int64(8), stats.Aps)
 
 	// success
 	balance, err := svc.GetAddressBalance(ta.Addrinfo["charlie"].String())
