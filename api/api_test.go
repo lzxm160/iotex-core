@@ -73,10 +73,10 @@ var (
 	testExecution1, _ = testutil.SignedExecution(ta.Addrinfo["delta"].String(), ta.Keyinfo["producer"].PriKey, 2,
 		big.NewInt(1), testutil.TestGasLimit, big.NewInt(10), []byte{1})
 	executionHash1    = testExecution1.Hash()
-	testExecution2, _ = testutil.SignedExecution(ta.Addrinfo["delta"].String(), ta.Keyinfo["charlie"].PriKey, 1,
+	testExecution2, _ = testutil.SignedExecution(ta.Addrinfo["delta"].String(), ta.Keyinfo["charlie"].PriKey, 5,
 		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
 	executionHash2    = testExecution2.Hash()
-	testExecution3, _ = testutil.SignedExecution(ta.Addrinfo["delta"].String(), ta.Keyinfo["alfa"].PriKey, 2,
+	testExecution3, _ = testutil.SignedExecution(ta.Addrinfo["delta"].String(), ta.Keyinfo["alfa"].PriKey, 1,
 		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
 	executionHash3 = testExecution3.Hash()
 )
@@ -1167,11 +1167,11 @@ func addTestingBlocks(bc blockchain.Blockchain) error {
 	addr4 := ta.Addrinfo["delta"].String()
 	// Add block 1
 	// Producer transfer--> C
-	tsf, err := testutil.SignedTransfer(addr3, priKey0, 1, big.NewInt(10), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
+	gasP := big.NewInt(testutil.TestGasPriceInt64)
+	tsf, err := testutil.SignedTransfer(addr3, priKey0, 1, big.NewInt(10), []byte{}, testutil.TestGasLimit, gasP)
 	if err != nil {
 		return err
 	}
-
 	actionMap := make(map[string][]action.SealedEnvelope)
 	actionMap[addr0] = []action.SealedEnvelope{tsf}
 	blk, err := bc.MintNewBlock(
@@ -1190,7 +1190,6 @@ func addTestingBlocks(bc blockchain.Blockchain) error {
 
 	// Add block 2
 	// Charlie transfer--> A, B, D, P
-	// Charlie vote--> C
 	// Charlie exec--> D
 	recipients := []string{addr1, addr2, addr4, addr0}
 	selps := make([]action.SealedEnvelope, 0)
@@ -1241,7 +1240,6 @@ func addTestingBlocks(bc blockchain.Blockchain) error {
 	// Add block 4
 	// Charlie exec--> D
 	// Alfa exec--> D
-
 	execution1, err = testutil.SignedExecution(addr4, priKey3, 6,
 		big.NewInt(2), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
 	if err != nil {
