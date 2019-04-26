@@ -1247,7 +1247,7 @@ func addTestingBlocks(bc blockchain.Blockchain) error {
 	if err != nil {
 		return err
 	}
-	execution2, err := testutil.SignedExecution(addr4, priKey1, 2,
+	execution2, err := testutil.SignedExecution(addr4, priKey1, 1,
 		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
 	if err != nil {
 		return err
