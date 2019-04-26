@@ -18,7 +18,6 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/proto"
-	"github.com/iotexproject/iotex-election/test/mock/mock_committee"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -49,6 +48,7 @@ import (
 	"github.com/iotexproject/iotex-core/test/mock/mock_factory"
 	ta "github.com/iotexproject/iotex-core/test/testaddress"
 	"github.com/iotexproject/iotex-core/testutil"
+	"github.com/iotexproject/iotex-election/test/mock/mock_committee"
 )
 
 var (
@@ -1201,7 +1201,7 @@ func addTestingBlocks(bc blockchain.Blockchain) error {
 		}
 		selps = append(selps, selp)
 	}
-	execution1, err := testutil.SignedExecution(addr4, priKey3, 6,
+	execution1, err := testutil.SignedExecution(addr4, priKey3, 5,
 		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
 	if err != nil {
 		return err
@@ -1242,7 +1242,7 @@ func addTestingBlocks(bc blockchain.Blockchain) error {
 	// Charlie exec--> D
 	// Alfa exec--> D
 
-	execution1, err = testutil.SignedExecution(addr4, priKey3, 8,
+	execution1, err = testutil.SignedExecution(addr4, priKey3, 6,
 		big.NewInt(2), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
 	if err != nil {
 		return err

@@ -11,5 +11,5 @@ import (
 )
 
 func TestVoteSignVerify(t *testing.T) {
-	// remove vote related test at #1071 
+	// remove vote related test at #1071
 }
