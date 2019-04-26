@@ -180,8 +180,8 @@ var (
 		{
 			ta.Addrinfo["charlie"].String(),
 			1,
-			8,
-			8,
+			6,
+			6,
 		},
 	}
 
