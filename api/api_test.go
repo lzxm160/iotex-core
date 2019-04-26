@@ -273,7 +273,7 @@ var (
 			1,
 			"lifeLongDelegates",
 			4,
-			16,
+			12,
 			5,
 			iotextypes.EpochData{
 				Num:                     1,
