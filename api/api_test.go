@@ -112,7 +112,7 @@ var (
 			"3",
 			6,
 			7,
-			11,
+			7,
 		},
 		{
 			ta.Addrinfo["producer"].String(),
