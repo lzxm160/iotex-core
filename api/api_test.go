@@ -286,7 +286,7 @@ var (
 			5,
 			"governanceChainCommittee",
 			4,
-			16,
+			12,
 			16,
 			iotextypes.EpochData{
 				Num:                     1,
