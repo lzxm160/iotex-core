@@ -127,7 +127,7 @@ func TestActQueueUpdateNonce(t *testing.T) {
 	require.NoError(err)
 	removed := q.UpdateQueue(uint64(2))
 	require.Equal(uint64(2), q.pendingNonce)
-	require.Equal([]action.SealedEnvelope{tsf3, tsf4}, removed)
+	require.Equal([]action.SealedEnvelope{tsf1, tsf2, tsf3, tsf4}, removed)
 }
 
 func TestActQueuePendingActs(t *testing.T) {
