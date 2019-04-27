@@ -185,7 +185,7 @@ func TestActPool_AddActs(t *testing.T) {
 	require.NoError(err)
 
 	pBalance1, _ := ap.getPendingBalance(addr1)
-	require.Equal(uint64(40), pBalance1.Uint64())
+	require.Equal(uint64(10), pBalance1.Uint64())
 	pNonce1, _ := ap.getPendingNonce(addr1)
 	require.Equal(uint64(5), pNonce1)
 
@@ -765,7 +765,7 @@ func TestActPool_Reset(t *testing.T) {
 	require.NoError(err)
 	tsf21, err := testutil.SignedTransfer(addr5, priKey4, uint64(1), big.NewInt(10), []byte{}, uint64(20000), big.NewInt(0))
 	require.NoError(err)
-	tsf22, err := testutil.SignedTransfer(addr4, priKey4, uint64(2), big.NewInt(10), []byte{}, uint64(20000), big.NewInt(0))
+	tsf22, err := testutil.SignedTransfer(addr5, priKey4, uint64(2), big.NewInt(10), []byte{}, uint64(20000), big.NewInt(0))
 	require.NoError(err)
 	tsf23, err := action.NewTransfer(uint64(3), big.NewInt(1), "", []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
