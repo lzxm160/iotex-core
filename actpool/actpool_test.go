@@ -812,7 +812,7 @@ func TestActPool_Reset(t *testing.T) {
 	require.Equal(big.NewInt(0).Uint64(), ap1PBalance4.Uint64())
 	// Addr5
 	ap1PNonce5, _ := ap1.getPendingNonce(addr5)
-	require.Equal(uint64(4), ap1PNonce5)
+	require.Equal(uint64(3), ap1PNonce5)
 	ap1PBalance5, _ := ap1.getPendingBalance(addr5)
 	require.Equal(big.NewInt(10).Uint64(), ap1PBalance5.Uint64())
 	// Let ap1 be BP's actpool
