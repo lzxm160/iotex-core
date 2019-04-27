@@ -9,6 +9,7 @@ package api
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -580,7 +581,7 @@ func TestServer_GetAction(t *testing.T) {
 	svr, err := createServer(cfg, true)
 	require.NoError(err)
 
-	for _, test := range getActionTests {
+	for i, test := range getActionTests {
 		request := &iotexapi.GetActionsRequest{
 			Lookup: &iotexapi.GetActionsRequest_ByHash{
 				ByHash: &iotexapi.GetActionByHashRequest{
@@ -590,6 +591,7 @@ func TestServer_GetAction(t *testing.T) {
 			},
 		}
 		res, err := svr.GetActions(context.Background(), request)
+		fmt.Println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx:", i)
 		require.NoError(err)
 		require.Equal(1, len(res.ActionInfo))
 		act := res.ActionInfo[0]
