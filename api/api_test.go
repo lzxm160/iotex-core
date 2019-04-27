@@ -1232,10 +1232,12 @@ func addTestingBlocks(bc blockchain.Blockchain) error {
 	}
 	execution1, err := testutil.SignedExecution(addr4, priKey3, 6,
 		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
+	testExecution1, _ := testutil.SignedExecution(ta.Addrinfo["delta"].String(), ta.Keyinfo["charlie"].PriKey, 6,
+		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
 	if err != nil {
 		return err
 	}
-	hash := execution1.Hash()
+	hash := testExecution1.Hash()
 	fmt.Printf("xxxxxxxxxxxxxexecution1:%s\n", hex.EncodeToString(hash[:]))
 	selps = append(selps, selp)
 	selps = append(selps, execution1)
