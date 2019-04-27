@@ -72,14 +72,16 @@ var (
 	transferHash1    = testTransfer1.Hash()
 	testTransfer2, _ = testutil.SignedTransfer(ta.Addrinfo["charlie"].String(), ta.Keyinfo["charlie"].PriKey, 5,
 		big.NewInt(10), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
+	transferHash2 = testTransfer2.Hash()
 
-	transferHash2     = testTransfer2.Hash()
 	testExecution1, _ = testutil.SignedExecution(ta.Addrinfo["delta"].String(), ta.Keyinfo["charlie"].PriKey, 6,
 		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
-	executionHash1    = testExecution1.Hash()
+	executionHash1 = testExecution1.Hash()
+
 	testExecution2, _ = testutil.SignedExecution(ta.Addrinfo["delta"].String(), ta.Keyinfo["charlie"].PriKey, 6,
 		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
-	executionHash2    = testExecution2.Hash()
+	executionHash2 = testExecution2.Hash()
+
 	testExecution3, _ = testutil.SignedExecution(ta.Addrinfo["delta"].String(), ta.Keyinfo["alfa"].PriKey, 2,
 		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
 	executionHash3 = testExecution3.Hash()
@@ -1233,7 +1235,7 @@ func addTestingBlocks(bc blockchain.Blockchain) error {
 	if err != nil {
 		return err
 	}
-
+	fmt.Printf("xxxxxxxxxxxxxexecution1:%x\n", execution1.Hash())
 	selps = append(selps, selp)
 	selps = append(selps, execution1)
 	actionMap = make(map[string][]action.SealedEnvelope)
