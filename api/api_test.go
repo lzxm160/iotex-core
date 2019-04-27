@@ -167,7 +167,7 @@ var (
 			checkPending: true,
 			in:           hex.EncodeToString(transferHash2[:]),
 			nonce:        5,
-			senderPubKey: testTransfer1.SrcPubkey().HexString(),
+			senderPubKey: testTransfer2.SrcPubkey().HexString(),
 			blkNumber:    2,
 		},
 		{
@@ -175,7 +175,6 @@ var (
 			in:           hex.EncodeToString(executionHash1[:]),
 			nonce:        6,
 			senderPubKey: testExecution1.SrcPubkey().HexString(),
-			blkNumber:    2,
 		},
 	}
 
