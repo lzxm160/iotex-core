@@ -209,7 +209,7 @@ func testState(sf Factory, t *testing.T) {
 	_, err = accountutil.LoadOrCreateAccount(ws, a, big.NewInt(100))
 	require.NoError(t, err)
 
-	tsf, err := action.NewTransfer(1, big.NewInt(10), a, nil, uint64(20000), big.NewInt(0))
+	tsf, err := action.NewTransfer(1, big.NewInt(10), testaddress.Addrinfo["delta"].String(), nil, uint64(20000), big.NewInt(0))
 	require.NoError(t, err)
 	bd := &action.EnvelopeBuilder{}
 	elp := bd.SetAction(tsf).SetGasLimit(20000).Build()
@@ -238,7 +238,7 @@ func testState(sf Factory, t *testing.T) {
 	require.False(t, accountA.IsCandidate)
 	require.Equal(t, "", accountA.Votee)
 	require.Equal(t, big.NewInt(0), accountA.VotingWeight)
-	require.Equal(t, big.NewInt(100), accountA.Balance)
+	require.Equal(t, big.NewInt(90), accountA.Balance)
 }
 
 func TestNonce(t *testing.T) {
