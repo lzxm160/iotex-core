@@ -210,7 +210,7 @@ func testState(sf Factory, t *testing.T) {
 	_, err = accountutil.LoadOrCreateAccount(ws, a, big.NewInt(100))
 	require.NoError(t, err)
 
-	tsf, err := action.NewTransfer(1, big.NewInt(10000000000000000000), a, nil, uint64(20000), big.NewInt(0))
+	tsf, err := action.NewTransfer(1, big.NewInt(1000000000000000000), a, nil, uint64(20000), big.NewInt(0))
 	require.NoError(t, err)
 	bd := &action.EnvelopeBuilder{}
 	elp := bd.SetAction(tsf).SetGasLimit(20000).Build()
