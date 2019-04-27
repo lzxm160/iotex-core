@@ -73,7 +73,7 @@ var (
 		big.NewInt(10), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
 
 	transferHash2     = testTransfer2.Hash()
-	testExecution1, _ = testutil.SignedExecution(ta.Addrinfo["delta"].String(), ta.Keyinfo["producer"].PriKey, 5,
+	testExecution1, _ = testutil.SignedExecution(ta.Addrinfo["delta"].String(), ta.Keyinfo["charlie"].PriKey, 6,
 		big.NewInt(1), testutil.TestGasLimit, big.NewInt(10), []byte{1})
 	executionHash1    = testExecution1.Hash()
 	testExecution2, _ = testutil.SignedExecution(ta.Addrinfo["delta"].String(), ta.Keyinfo["charlie"].PriKey, 6,
@@ -170,7 +170,7 @@ var (
 		{
 			checkPending: true,
 			in:           hex.EncodeToString(executionHash1[:]),
-			nonce:        5,
+			nonce:        6,
 			senderPubKey: testExecution1.SrcPubkey().HexString(),
 		},
 	}
