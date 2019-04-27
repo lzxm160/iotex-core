@@ -238,7 +238,7 @@ func testState(sf Factory, t *testing.T) {
 	require.False(t, accountA.IsCandidate)
 	require.Equal(t, "", accountA.Votee)
 	require.Equal(t, big.NewInt(0), accountA.VotingWeight)
-	require.Equal(t, big.NewInt(10), accountA.Balance)
+	require.Equal(t, big.NewInt(100), accountA.Balance)
 }
 
 func TestNonce(t *testing.T) {
