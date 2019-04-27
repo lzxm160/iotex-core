@@ -173,6 +173,7 @@ var (
 			in:           hex.EncodeToString(executionHash1[:]),
 			nonce:        6,
 			senderPubKey: testExecution1.SrcPubkey().HexString(),
+			blkNumber:    2,
 		},
 	}
 
