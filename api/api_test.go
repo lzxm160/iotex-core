@@ -74,7 +74,7 @@ var (
 
 	transferHash2     = testTransfer2.Hash()
 	testExecution1, _ = testutil.SignedExecution(ta.Addrinfo["delta"].String(), ta.Keyinfo["charlie"].PriKey, 6,
-		big.NewInt(1), testutil.TestGasLimit, big.NewInt(10), []byte{1})
+		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
 	executionHash1    = testExecution1.Hash()
 	testExecution2, _ = testutil.SignedExecution(ta.Addrinfo["delta"].String(), ta.Keyinfo["charlie"].PriKey, 6,
 		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
