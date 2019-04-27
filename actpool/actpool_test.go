@@ -252,7 +252,7 @@ func TestActPool_AddActs(t *testing.T) {
 	require.NoError(err)
 	err = ap.Add(replaceTsf)
 	require.Equal(action.ErrNonce, errors.Cause(err))
-	replaceTransfer, err := action.NewTransfer(uint64(4), big.NewInt(1), "", []byte{}, uint64(100000), big.NewInt(0))
+	replaceTransfer, err := action.NewTransfer(uint64(4), big.NewInt(1), addr2, []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
 
 	bd := &action.EnvelopeBuilder{}
