@@ -382,7 +382,7 @@ func TestActPool_PickActs(t *testing.T) {
 		require.NoError(err)
 		err = ap.Add(tsf10)
 		require.NoError(err)
-		return ap, []action.SealedEnvelope{tsf1, tsf2, tsf3, tsf4, tsf5}, []action.SealedEnvelope{}, []action.SealedEnvelope{}
+		return ap, []action.SealedEnvelope{tsf1, tsf2, tsf3, tsf4}, []action.SealedEnvelope{}, []action.SealedEnvelope{}
 	}
 
 	t.Run("no-expiry", func(t *testing.T) {
