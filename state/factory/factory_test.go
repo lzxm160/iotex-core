@@ -8,7 +8,6 @@ package factory
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
@@ -210,9 +209,6 @@ func testState(sf Factory, t *testing.T) {
 	_, err = accountutil.LoadOrCreateAccount(ws, a, big.NewInt(100))
 	require.NoError(t, err)
 
-	// a:100(0)
-
-	//vote, err := action.NewVote(0, a, uint64(20000), big.NewInt(0))
 	tsf, err := action.NewTransfer(1, big.NewInt(1), a, nil, uint64(20000), big.NewInt(0))
 	require.NoError(t, err)
 	bd := &action.EnvelopeBuilder{}
@@ -229,11 +225,6 @@ func testState(sf Factory, t *testing.T) {
 	require.NoError(t, err)
 	_ = ws.UpdateBlockLevelInfo(0)
 	require.NoError(t, sf.Commit(ws))
-	h, _ := sf.Height()
-	cand, _ := sf.CandidatesByHeight(h)
-	//require.Equal(t, cand)
-	fmt.Println(cand)
-	// a(a):100(+0=100) b:200 c:300
 
 	//test AccountState() & State()
 	var testAccount state.Account
@@ -244,7 +235,7 @@ func testState(sf Factory, t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, accountA, &testAccount)
 	require.Equal(t, big.NewInt(100), accountA.Balance)
-	require.True(t, accountA.IsCandidate)
+	require.False(t, accountA.IsCandidate)
 	require.Equal(t, a, accountA.Votee)
 	require.Equal(t, big.NewInt(100), accountA.VotingWeight)
 }
