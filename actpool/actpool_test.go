@@ -781,7 +781,7 @@ func TestActPool_Reset(t *testing.T) {
 	require.NoError(err)
 	tsf25, err := testutil.SignedTransfer(addr4, priKey5, uint64(2), big.NewInt(10), []byte{}, uint64(20000), big.NewInt(0))
 	require.NoError(err)
-	tsf26, err := action.NewTransfer(uint64(3), big.NewInt(1), "", []byte{}, uint64(20000), big.NewInt(0))
+	tsf26, err := action.NewTransfer(uint64(3), big.NewInt(1), addr4, []byte{}, uint64(20000), big.NewInt(0))
 	require.NoError(err)
 
 	bd = &action.EnvelopeBuilder{}
