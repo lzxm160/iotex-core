@@ -582,7 +582,7 @@ func TestServer_GetAction(t *testing.T) {
 	svr, err := createServer(cfg, true)
 	require.NoError(err)
 
-	for i, test := range getActionTests {
+	for _, test := range getActionTests {
 		request := &iotexapi.GetActionsRequest{
 			Lookup: &iotexapi.GetActionsRequest_ByHash{
 				ByHash: &iotexapi.GetActionByHashRequest{
