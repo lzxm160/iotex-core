@@ -807,7 +807,7 @@ func TestActPool_Reset(t *testing.T) {
 	// ap1
 	// Addr4
 	ap1PNonce4, _ := ap1.getPendingNonce(addr4)
-	require.Equal(uint64(4), ap1PNonce4)
+	require.Equal(uint64(2), ap1PNonce4)
 	ap1PBalance4, _ := ap1.getPendingBalance(addr4)
 	require.Equal(big.NewInt(0).Uint64(), ap1PBalance4.Uint64())
 	// Addr5
