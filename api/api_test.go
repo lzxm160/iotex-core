@@ -70,7 +70,7 @@ var (
 	testTransfer1, _ = testutil.SignedTransfer(ta.Addrinfo["charlie"].String(), ta.Keyinfo["producer"].PriKey, 1,
 		big.NewInt(10), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
 	transferHash1    = testTransfer1.Hash()
-	testTransfer2, _ = testutil.SignedTransfer(ta.Addrinfo["charlie"].String(), ta.Keyinfo["charlie"].PriKey, 5,
+	testTransfer2, _ = testutil.SignedTransfer(ta.Addrinfo["charlie"].String(), ta.Keyinfo["delta"].PriKey, 5,
 		big.NewInt(10), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
 	transferHash2 = testTransfer2.Hash()
 
@@ -1213,7 +1213,7 @@ func addTestingBlocks(bc blockchain.Blockchain) error {
 
 	// Add block 2
 	// Charlie transfer--> A, B, D, P
-	// Charlie transfer--> C
+	// Charlie transfer--> D
 	// Charlie exec--> D
 	recipients := []string{addr1, addr2, addr4, addr0}
 	selps := make([]action.SealedEnvelope, 0)
@@ -1224,9 +1224,8 @@ func addTestingBlocks(bc blockchain.Blockchain) error {
 		}
 		selps = append(selps, selp)
 	}
-	selp, err := testutil.SignedTransfer(addr3, priKey3, uint64(5), big.NewInt(10), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
+	selp, err := testutil.SignedTransfer(addr4, priKey3, uint64(5), big.NewInt(10), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
 	if err != nil {
-
 		return err
 	}
 	execution1, err := testutil.SignedExecution(addr4, priKey3, 6,
