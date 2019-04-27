@@ -23,7 +23,6 @@ import (
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
-	"github.com/iotexproject/iotex-core/action/protocol/vote"
 	"github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/blockchain/genesis"
 	"github.com/iotexproject/iotex-core/config"
@@ -148,7 +147,7 @@ func TestActPool_AddActs(t *testing.T) {
 	ap, ok := Ap.(*actPool)
 	require.True(ok)
 	ap.AddActionEnvelopeValidators(protocol.NewGenericValidator(bc, genesis.Default.ActionGasLimit))
-	ap.AddActionValidators(account.NewProtocol(), vote.NewProtocol(bc),
+	ap.AddActionValidators(account.NewProtocol(), execution.NewProtocol(bc),
 		execution.NewProtocol(bc))
 	// Test actpool status after adding a sequence of Tsfs/votes: need to check confirmed nonce, pending nonce, and pending balance
 	tsf1, err := testutil.SignedTransfer(addr1, priKey1, uint64(1), big.NewInt(10), []byte{}, uint64(100000), big.NewInt(0))
@@ -157,7 +156,7 @@ func TestActPool_AddActs(t *testing.T) {
 	require.NoError(err)
 	tsf3, err := testutil.SignedTransfer(addr1, priKey1, uint64(3), big.NewInt(30), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
-	vote4, err := testutil.SignedVote(addr1, priKey1, uint64(4), uint64(100000), big.NewInt(0))
+	tsf4, err := testutil.SignedTransfer(addr1, priKey1, uint64(4), big.NewInt(30), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
 	tsf5, err := testutil.SignedTransfer(addr1, priKey1, uint64(5), big.NewInt(50), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
@@ -174,7 +173,7 @@ func TestActPool_AddActs(t *testing.T) {
 	require.NoError(err)
 	err = ap.Add(tsf3)
 	require.NoError(err)
-	err = ap.Add(vote4)
+	err = ap.Add(tsf4)
 	require.NoError(err)
 	err = ap.Add(tsf5)
 	require.Equal(action.ErrBalance, errors.Cause(err))
@@ -212,7 +211,7 @@ func TestActPool_AddActs(t *testing.T) {
 	// Case II: Action already exists in pool
 	err = ap.Add(tsf1)
 	require.Error(err)
-	err = ap.Add(vote4)
+	err = ap.Add(tsf4)
 	require.Error(err)
 	// Case III: Pool space/gas space is full
 	mockBC := mock_blockchain.NewMockBlockchain(ctrl)
@@ -228,7 +227,7 @@ func TestActPool_AddActs(t *testing.T) {
 	}
 	err = ap2.Add(tsf1)
 	require.Equal(action.ErrActPool, errors.Cause(err))
-	err = ap2.Add(vote4)
+	err = ap2.Add(tsf4)
 	require.Equal(action.ErrActPool, errors.Cause(err))
 
 	Ap3, err := NewActPool(mockBC, apConfig)
@@ -253,12 +252,12 @@ func TestActPool_AddActs(t *testing.T) {
 	require.NoError(err)
 	err = ap.Add(replaceTsf)
 	require.Equal(action.ErrNonce, errors.Cause(err))
-	replaceVote, err := action.NewVote(4, "", uint64(100000), big.NewInt(0))
+	replaceTransfer, err := action.NewTransfer(uint64(4), big.NewInt(1), "", []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
 
 	bd := &action.EnvelopeBuilder{}
 	elp := bd.SetNonce(4).
-		SetAction(replaceVote).
+		SetAction(replaceTransfer).
 		SetGasLimit(100000).Build()
 	selp, err := action.Sign(elp, priKey1)
 
@@ -340,7 +339,7 @@ func TestActPool_PickActs(t *testing.T) {
 		ap, ok := Ap.(*actPool)
 		require.True(ok)
 		ap.AddActionEnvelopeValidators(protocol.NewGenericValidator(bc, genesis.Default.ActionGasLimit))
-		ap.AddActionValidators(account.NewProtocol(), vote.NewProtocol(bc))
+		ap.AddActionValidators(account.NewProtocol(), execution.NewProtocol(bc))
 
 		tsf1, err := testutil.SignedTransfer(addr1, priKey1, uint64(1), big.NewInt(10), []byte{}, uint64(100000), big.NewInt(0))
 		require.NoError(err)
@@ -352,9 +351,9 @@ func TestActPool_PickActs(t *testing.T) {
 		require.NoError(err)
 		tsf5, err := testutil.SignedTransfer(addr1, priKey1, uint64(5), big.NewInt(50), []byte{}, uint64(100000), big.NewInt(0))
 		require.NoError(err)
-		vote6, err := testutil.SignedVote(addr1, priKey1, uint64(6), uint64(100000), big.NewInt(0))
+		tsf6, err := testutil.SignedTransfer(addr1, priKey1, uint64(6), big.NewInt(50), []byte{}, uint64(100000), big.NewInt(0))
 		require.NoError(err)
-		vote7, err := testutil.SignedVote(addr2, priKey2, uint64(1), uint64(100000), big.NewInt(0))
+		tsf7, err := testutil.SignedTransfer(addr2, priKey2, uint64(1), big.NewInt(50), []byte{}, uint64(100000), big.NewInt(0))
 		require.NoError(err)
 		tsf8, err := testutil.SignedTransfer(addr2, priKey2, uint64(3), big.NewInt(5), []byte{}, uint64(100000), big.NewInt(0))
 		require.NoError(err)
@@ -373,9 +372,9 @@ func TestActPool_PickActs(t *testing.T) {
 		require.NoError(err)
 		err = ap.Add(tsf5)
 		require.Equal(action.ErrBalance, errors.Cause(err))
-		err = ap.Add(vote6)
+		err = ap.Add(tsf6)
 		require.NoError(err)
-		err = ap.Add(vote7)
+		err = ap.Add(tsf7)
 		require.NoError(err)
 		err = ap.Add(tsf8)
 		require.NoError(err)
@@ -383,14 +382,14 @@ func TestActPool_PickActs(t *testing.T) {
 		require.NoError(err)
 		err = ap.Add(tsf10)
 		require.NoError(err)
-		return ap, []action.SealedEnvelope{tsf1, tsf2, tsf3, tsf4}, []action.SealedEnvelope{vote7}, []action.SealedEnvelope{}
+		return ap, []action.SealedEnvelope{tsf1, tsf2, tsf3, tsf4}, []action.SealedEnvelope{tsf7}, []action.SealedEnvelope{}
 	}
 
 	t.Run("no-expiry", func(t *testing.T) {
 		apConfig := getActPoolCfg()
-		ap, transfers, votes, executions := createActPool(apConfig)
+		ap, transfers, _, executions := createActPool(apConfig)
 		pickedActs := ap.PendingActionMap()
-		require.Equal(t, len(transfers)+len(votes)+len(executions), lenPendingActionMap(pickedActs))
+		require.Equal(t, len(transfers)+len(executions), lenPendingActionMap(pickedActs))
 	})
 
 	t.Run("expiry", func(t *testing.T) {
@@ -412,7 +411,7 @@ func TestActPool_removeConfirmedActs(t *testing.T) {
 		blockchain.InMemDaoOption(),
 		blockchain.EnableExperimentalActions(),
 	)
-	bc.GetFactory().AddActionHandlers(account.NewProtocol(), vote.NewProtocol(bc))
+	bc.GetFactory().AddActionHandlers(account.NewProtocol(), execution.NewProtocol(bc))
 	require.NoError(bc.Start(context.Background()))
 	_, err := bc.CreateState(addr1, big.NewInt(100))
 	require.NoError(err)
@@ -423,7 +422,7 @@ func TestActPool_removeConfirmedActs(t *testing.T) {
 	ap, ok := Ap.(*actPool)
 	require.True(ok)
 	ap.AddActionEnvelopeValidators(protocol.NewGenericValidator(bc, genesis.Default.ActionGasLimit))
-	ap.AddActionValidators(account.NewProtocol(), vote.NewProtocol(bc))
+	ap.AddActionValidators(account.NewProtocol(), execution.NewProtocol(bc))
 
 	tsf1, err := testutil.SignedTransfer(addr1, priKey1, uint64(1), big.NewInt(10), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
@@ -431,7 +430,7 @@ func TestActPool_removeConfirmedActs(t *testing.T) {
 	require.NoError(err)
 	tsf3, err := testutil.SignedTransfer(addr1, priKey1, uint64(3), big.NewInt(30), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
-	vote4, err := testutil.SignedVote(addr1, priKey1, uint64(4), uint64(100000), big.NewInt(0))
+	tsf4, err := testutil.SignedTransfer(addr1, priKey1, uint64(4), big.NewInt(30), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
 
 	err = ap.Add(tsf1)
@@ -440,7 +439,7 @@ func TestActPool_removeConfirmedActs(t *testing.T) {
 	require.NoError(err)
 	err = ap.Add(tsf3)
 	require.NoError(err)
-	err = ap.Add(vote4)
+	err = ap.Add(tsf4)
 	require.NoError(err)
 
 	require.Equal(4, len(ap.allActions))
@@ -455,7 +454,7 @@ func TestActPool_removeConfirmedActs(t *testing.T) {
 			Producer: testaddress.Addrinfo["producer"],
 			GasLimit: gasLimit,
 		})
-	_, err = ws.RunActions(ctx, 0, []action.SealedEnvelope{tsf1, tsf2, tsf3, vote4})
+	_, err = ws.RunActions(ctx, 0, []action.SealedEnvelope{tsf1, tsf2, tsf3, tsf4})
 	require.NoError(err)
 	require.Nil(sf.Commit(ws))
 	ap.removeConfirmedActs()
@@ -470,7 +469,7 @@ func TestActPool_Reset(t *testing.T) {
 		blockchain.InMemStateFactoryOption(),
 		blockchain.InMemDaoOption(),
 	)
-	bc.GetFactory().AddActionHandlers(account.NewProtocol(), vote.NewProtocol(bc))
+	bc.GetFactory().AddActionHandlers(account.NewProtocol(), execution.NewProtocol(bc))
 	require.NoError(bc.Start(context.Background()))
 	_, err := bc.CreateState(addr1, big.NewInt(100))
 	require.NoError(err)
@@ -485,14 +484,14 @@ func TestActPool_Reset(t *testing.T) {
 	ap1, ok := Ap1.(*actPool)
 	require.True(ok)
 	ap1.AddActionEnvelopeValidators(protocol.NewGenericValidator(bc, genesis.Default.ActionGasLimit))
-	ap1.AddActionValidators(account.NewProtocol(), vote.NewProtocol(bc),
+	ap1.AddActionValidators(account.NewProtocol(), execution.NewProtocol(bc),
 		execution.NewProtocol(bc))
 	Ap2, err := NewActPool(bc, apConfig, EnableExperimentalActions())
 	require.NoError(err)
 	ap2, ok := Ap2.(*actPool)
 	require.True(ok)
 	ap2.AddActionEnvelopeValidators(protocol.NewGenericValidator(bc, genesis.Default.ActionGasLimit))
-	ap2.AddActionValidators(account.NewProtocol(), vote.NewProtocol(bc),
+	ap2.AddActionValidators(account.NewProtocol(), execution.NewProtocol(bc),
 		execution.NewProtocol(bc))
 
 	// Tsfs to be added to ap1
@@ -766,39 +765,39 @@ func TestActPool_Reset(t *testing.T) {
 	require.NoError(err)
 	tsf21, err := testutil.SignedTransfer(addr5, priKey4, uint64(1), big.NewInt(10), []byte{}, uint64(20000), big.NewInt(0))
 	require.NoError(err)
-	vote22, err := testutil.SignedVote(addr4, priKey4, uint64(2), uint64(20000), big.NewInt(0))
+	tsf22, err := testutil.SignedTransfer(addr4, priKey4, uint64(2), big.NewInt(10), []byte{}, uint64(20000), big.NewInt(0))
 	require.NoError(err)
-	vote23, err := action.NewVote(3, "", uint64(20000), big.NewInt(0))
+	tsf23, err := action.NewTransfer(uint64(3), big.NewInt(1), "", []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
 
 	bd := &action.EnvelopeBuilder{}
 	elp := bd.SetNonce(3).
 		SetGasLimit(20000).
-		SetAction(vote23).Build()
+		SetAction(tsf23).Build()
 	selp23, err := action.Sign(elp, priKey4)
 	require.NoError(err)
 
-	vote24, err := testutil.SignedVote(addr5, priKey5, uint64(1), uint64(20000), big.NewInt(0))
+	tsf24, err := testutil.SignedTransfer(addr5, priKey5, uint64(1), big.NewInt(10), []byte{}, uint64(20000), big.NewInt(0))
 	require.NoError(err)
 	tsf25, err := testutil.SignedTransfer(addr4, priKey5, uint64(2), big.NewInt(10), []byte{}, uint64(20000), big.NewInt(0))
 	require.NoError(err)
-	vote26, err := action.NewVote(3, "", uint64(20000), big.NewInt(0))
+	tsf26, err := action.NewTransfer(uint64(3), big.NewInt(1), "", []byte{}, uint64(20000), big.NewInt(0))
 	require.NoError(err)
 
 	bd = &action.EnvelopeBuilder{}
 	elp = bd.SetNonce(3).
 		SetGasLimit(20000).
-		SetAction(vote26).Build()
+		SetAction(tsf26).Build()
 	selp26, err := action.Sign(elp, priKey5)
 	require.NoError(err)
 
 	err = ap1.Add(tsf21)
 	require.NoError(err)
-	err = ap1.Add(vote22)
+	err = ap1.Add(tsf22)
 	require.NoError(err)
 	err = ap1.Add(selp23)
 	require.NoError(err)
-	err = ap1.Add(vote24)
+	err = ap1.Add(tsf24)
 	require.NoError(err)
 	err = ap1.Add(tsf25)
 	require.NoError(err)
@@ -864,7 +863,7 @@ func TestActPool_removeInvalidActs(t *testing.T) {
 	ap, ok := Ap.(*actPool)
 	require.True(ok)
 	ap.AddActionEnvelopeValidators(protocol.NewGenericValidator(bc, genesis.Default.ActionGasLimit))
-	ap.AddActionValidators(account.NewProtocol(), vote.NewProtocol(bc))
+	ap.AddActionValidators(account.NewProtocol(), execution.NewProtocol(bc))
 
 	tsf1, err := testutil.SignedTransfer(addr1, priKey1, uint64(1), big.NewInt(10), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
@@ -872,7 +871,7 @@ func TestActPool_removeInvalidActs(t *testing.T) {
 	require.NoError(err)
 	tsf3, err := testutil.SignedTransfer(addr1, priKey1, uint64(3), big.NewInt(30), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
-	vote4, err := testutil.SignedVote(addr1, priKey1, uint64(4), uint64(100000), big.NewInt(0))
+	tsf4, err := testutil.SignedTransfer(addr1, priKey1, uint64(4), big.NewInt(30), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
 
 	err = ap.Add(tsf1)
@@ -881,12 +880,12 @@ func TestActPool_removeInvalidActs(t *testing.T) {
 	require.NoError(err)
 	err = ap.Add(tsf3)
 	require.NoError(err)
-	err = ap.Add(vote4)
+	err = ap.Add(tsf4)
 	require.NoError(err)
 
 	hash1 := tsf1.Hash()
-	hash2 := vote4.Hash()
-	acts := []action.SealedEnvelope{tsf1, vote4}
+	hash2 := tsf4.Hash()
+	acts := []action.SealedEnvelope{tsf1, tsf4}
 	require.NotNil(ap.allActions[hash1])
 	require.NotNil(ap.allActions[hash2])
 	ap.removeInvalidActs(acts)
@@ -914,20 +913,20 @@ func TestActPool_GetPendingNonce(t *testing.T) {
 	ap, ok := Ap.(*actPool)
 	require.True(ok)
 	ap.AddActionEnvelopeValidators(protocol.NewGenericValidator(bc, genesis.Default.ActionGasLimit))
-	ap.AddActionValidators(account.NewProtocol(), vote.NewProtocol(bc))
+	ap.AddActionValidators(account.NewProtocol(), execution.NewProtocol(bc))
 
 	tsf1, err := testutil.SignedTransfer(addr1, priKey1, uint64(1), big.NewInt(10), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
 	tsf3, err := testutil.SignedTransfer(addr1, priKey1, uint64(3), big.NewInt(30), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
-	vote4, err := testutil.SignedVote(addr1, priKey1, uint64(4), uint64(100000), big.NewInt(0))
+	tsf4, err := testutil.SignedTransfer(addr1, priKey1, uint64(4), big.NewInt(30), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
 
 	err = ap.Add(tsf1)
 	require.NoError(err)
 	err = ap.Add(tsf3)
 	require.NoError(err)
-	err = ap.Add(vote4)
+	err = ap.Add(tsf4)
 	require.NoError(err)
 
 	nonce, err := ap.GetPendingNonce(addr2)
@@ -958,27 +957,27 @@ func TestActPool_GetUnconfirmedActs(t *testing.T) {
 	ap, ok := Ap.(*actPool)
 	require.True(ok)
 	ap.AddActionEnvelopeValidators(protocol.NewGenericValidator(bc, genesis.Default.ActionGasLimit))
-	ap.AddActionValidators(account.NewProtocol(), vote.NewProtocol(bc))
+	ap.AddActionValidators(account.NewProtocol(), execution.NewProtocol(bc))
 
 	tsf1, err := testutil.SignedTransfer(addr1, priKey1, uint64(1), big.NewInt(10), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
 	tsf3, err := testutil.SignedTransfer(addr1, priKey1, uint64(3), big.NewInt(30), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
-	vote4, err := testutil.SignedVote(addr1, priKey1, uint64(4), uint64(100000), big.NewInt(0))
+	tsf4, err := testutil.SignedTransfer(addr1, priKey1, uint64(4), big.NewInt(30), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
 
 	err = ap.Add(tsf1)
 	require.NoError(err)
 	err = ap.Add(tsf3)
 	require.NoError(err)
-	err = ap.Add(vote4)
+	err = ap.Add(tsf4)
 	require.NoError(err)
 
 	acts := ap.GetUnconfirmedActs(addr2)
 	require.Equal([]action.SealedEnvelope{}, acts)
 
 	acts = ap.GetUnconfirmedActs(addr1)
-	require.Equal([]action.SealedEnvelope{tsf1, tsf3, vote4}, acts)
+	require.Equal([]action.SealedEnvelope{tsf1, tsf3, tsf4}, acts)
 }
 
 func TestActPool_GetActionByHash(t *testing.T) {
@@ -1003,9 +1002,9 @@ func TestActPool_GetActionByHash(t *testing.T) {
 	tsf1, err := testutil.SignedTransfer(addr1, priKey1, uint64(1), big.NewInt(10), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
 	hash1 := tsf1.Hash()
-	vote2, err := testutil.SignedVote(addr1, priKey1, uint64(2), uint64(100000), big.NewInt(0))
+	tsf2, err := testutil.SignedTransfer(addr1, priKey1, uint64(2), big.NewInt(10), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
-	hash2 := vote2.Hash()
+	hash2 := tsf2.Hash()
 
 	ap.allActions[hash1] = tsf1
 	act, err := ap.GetActionByHash(hash1)
@@ -1015,10 +1014,10 @@ func TestActPool_GetActionByHash(t *testing.T) {
 	require.Equal(action.ErrHash, errors.Cause(err))
 	require.Equal(action.SealedEnvelope{}, act)
 
-	ap.allActions[hash2] = vote2
+	ap.allActions[hash2] = tsf2
 	act, err = ap.GetActionByHash(hash2)
 	require.NoError(err)
-	require.Equal(vote2, act)
+	require.Equal(tsf2, act)
 }
 
 func TestActPool_GetCapacity(t *testing.T) {
@@ -1042,7 +1041,7 @@ func TestActPool_GetSize(t *testing.T) {
 		blockchain.InMemDaoOption(),
 		blockchain.EnableExperimentalActions(),
 	)
-	bc.GetFactory().AddActionHandlers(account.NewProtocol(), vote.NewProtocol(bc))
+	bc.GetFactory().AddActionHandlers(account.NewProtocol(), execution.NewProtocol(bc))
 	require.NoError(bc.Start(context.Background()))
 	_, err := bc.CreateState(addr1, big.NewInt(100))
 	require.NoError(err)
@@ -1053,7 +1052,7 @@ func TestActPool_GetSize(t *testing.T) {
 	ap, ok := Ap.(*actPool)
 	require.True(ok)
 	ap.AddActionEnvelopeValidators(protocol.NewGenericValidator(bc, genesis.Default.ActionGasLimit))
-	ap.AddActionValidators(account.NewProtocol(), vote.NewProtocol(bc))
+	ap.AddActionValidators(account.NewProtocol(), execution.NewProtocol(bc))
 	require.Zero(ap.GetSize())
 	require.Zero(ap.GetGasSize())
 
@@ -1063,12 +1062,12 @@ func TestActPool_GetSize(t *testing.T) {
 	require.NoError(err)
 	tsf3, err := testutil.SignedTransfer(addr1, priKey1, uint64(3), big.NewInt(30), []byte{}, uint64(20000), big.NewInt(0))
 	require.NoError(err)
-	vote4, err := testutil.SignedVote(addr1, priKey1, uint64(4), uint64(20000), big.NewInt(0))
+	tsf4, err := testutil.SignedTransfer(addr1, priKey1, uint64(4), big.NewInt(30), []byte{}, uint64(20000), big.NewInt(0))
 	require.NoError(err)
 	require.NoError(ap.Add(tsf1))
 	require.NoError(ap.Add(tsf2))
 	require.NoError(ap.Add(tsf3))
-	require.NoError(ap.Add(vote4))
+	require.NoError(ap.Add(tsf4))
 	require.Equal(uint64(4), ap.GetSize())
 	require.Equal(uint64(40000), ap.GetGasSize())
 	sf := bc.GetFactory()
@@ -1082,7 +1081,7 @@ func TestActPool_GetSize(t *testing.T) {
 			Producer: testaddress.Addrinfo["producer"],
 			GasLimit: gasLimit,
 		})
-	_, err = ws.RunActions(ctx, 0, []action.SealedEnvelope{tsf1, tsf2, tsf3, vote4})
+	_, err = ws.RunActions(ctx, 0, []action.SealedEnvelope{tsf1, tsf2, tsf3, tsf4})
 	require.NoError(err)
 	require.Nil(sf.Commit(ws))
 	ap.removeConfirmedActs()
