@@ -1224,20 +1224,16 @@ func addTestingBlocks(bc blockchain.Blockchain) error {
 		}
 		selps = append(selps, selp)
 	}
-	selp, err := testutil.SignedTransfer(addr3, priKey3, uint64(5), big.NewInt(1), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
+	selp, err := testutil.SignedTransfer(addr3, priKey3, uint64(5), big.NewInt(10), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
 	if err != nil {
 
 		return err
 	}
 	execution1, err := testutil.SignedExecution(addr4, priKey3, 6,
 		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
-	testExecution1, _ := testutil.SignedExecution(ta.Addrinfo["delta"].String(), ta.Keyinfo["charlie"].PriKey, 6,
-		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
 	if err != nil {
 		return err
 	}
-	hash := testExecution1.Hash()
-	fmt.Printf("xxxxxxxxxxxxxexecution1:%s\n", hex.EncodeToString(hash[:]))
 	selps = append(selps, selp)
 	selps = append(selps, execution1)
 	actionMap = make(map[string][]action.SealedEnvelope)
