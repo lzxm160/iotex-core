@@ -375,13 +375,13 @@ func TestActPool_PickActs(t *testing.T) {
 		err = ap.Add(tsf6)
 		require.Error(err)
 		err = ap.Add(tsf7)
-		require.NoError(err)
+		require.Error(err)
 		err = ap.Add(tsf8)
-		require.NoError(err)
+		require.Error(err)
 		err = ap.Add(tsf9)
-		require.NoError(err)
+		require.Error(err)
 		err = ap.Add(tsf10)
-		require.NoError(err)
+		require.Error(err)
 		return ap, []action.SealedEnvelope{tsf1, tsf2, tsf3, tsf4, tsf5}, []action.SealedEnvelope{}, []action.SealedEnvelope{}
 	}
 
