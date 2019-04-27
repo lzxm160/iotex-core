@@ -1236,7 +1236,7 @@ func addTestingBlocks(bc blockchain.Blockchain) error {
 		return err
 	}
 	hash := execution1.Hash()
-	fmt.Printf("xxxxxxxxxxxxxexecution1:%x\n", hex.EncodeToString(hash[:]))
+	fmt.Printf("xxxxxxxxxxxxxexecution1:%s\n", hex.EncodeToString(hash[:]))
 	selps = append(selps, selp)
 	selps = append(selps, execution1)
 	actionMap = make(map[string][]action.SealedEnvelope)
