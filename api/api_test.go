@@ -9,7 +9,6 @@ package api
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -593,7 +592,6 @@ func TestServer_GetAction(t *testing.T) {
 			},
 		}
 		res, err := svr.GetActions(context.Background(), request)
-		fmt.Println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx:", i, ":", test.in)
 		require.NoError(err)
 		require.Equal(1, len(res.ActionInfo))
 		act := res.ActionInfo[0]
