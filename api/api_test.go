@@ -154,14 +154,14 @@ var (
 		blkNumber    uint64
 	}{
 		{
-			checkPending: false,
+			checkPending: true,
 			in:           hex.EncodeToString(transferHash1[:]),
 			nonce:        1,
 			senderPubKey: testTransfer1.SrcPubkey().HexString(),
 			blkNumber:    1,
 		},
 		{
-			checkPending: false,
+			checkPending: true,
 			in:           hex.EncodeToString(transferHash2[:]),
 			nonce:        5,
 			senderPubKey: testTransfer1.SrcPubkey().HexString(),
