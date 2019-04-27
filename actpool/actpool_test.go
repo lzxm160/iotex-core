@@ -802,7 +802,7 @@ func TestActPool_Reset(t *testing.T) {
 	err = ap1.Add(tsf25)
 	require.NoError(err)
 	err = ap1.Add(selp26)
-	require.NoError(err)
+	require.Error(err)
 	// Check confirmed nonce, pending nonce, and pending balance after adding actions above for account4 and account5
 	// ap1
 	// Addr4
