@@ -85,7 +85,7 @@ lint:
 lint-rich:
 	$(ECHO_V)rm -rf $(LINT_LOG)
 	@echo "Running golangcli lint..."
-	@golangci-lint run $(VERBOSITY_FLAG)--enable-all -D gochecknoglobals -D prealloc| tee -a $(LINT_LOG)
+	@golangci-lint run $(VERBOSITY_FLAG)--enable-all -D gochecknoglobals -D prealloc -D lll| tee -a $(LINT_LOG)
 
 .PHONY: test
 test: fmt
