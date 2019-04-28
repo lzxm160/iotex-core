@@ -85,7 +85,7 @@ lint:
 lint-rich:
 	$(ECHO_V)rm -rf $(LINT_LOG)
 	@echo "Running golangcli lint..."
-	go list ./... | grep -v /vendor/ | grep -v /explorer/idl/ | grep -v /api/idl/ | xargs $golangci-lint run $(VERBOSITY_FLAG)--enable-all | tee -a $(LINT_LOG)
+	go list ./... | grep -v /vendor/ | grep -v /explorer/idl/ | grep -v /api/idl/ | xargs golangci-lint run $(VERBOSITY_FLAG)--enable-all | tee -a $(LINT_LOG)
 
 .PHONY: test
 test: fmt
