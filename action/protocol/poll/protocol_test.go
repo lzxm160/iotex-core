@@ -8,7 +8,6 @@ package poll
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"strings"
 	"testing"
@@ -244,7 +243,7 @@ func TestProtocol_Validate(t *testing.T) {
 	)
 	err = p4.Validate(ctx4, selp4.Action())
 	require.True(strings.Contains(err.Error(), "the proposed delegate list length"))
-	// Case 5: candidate's weight is not equal
+	// Case 5: candidate's vote is not equal
 	p5, ctx5, ws5, _ := initConstruct(t)
 	require.NoError(p5.Initialize(ctx5, ws5))
 	var sc5 state.CandidateList
@@ -269,8 +268,7 @@ func TestProtocol_Validate(t *testing.T) {
 		},
 	)
 	err = p5.Validate(ctx5, selp5.Action())
-	fmt.Println("err:", err)
-	//require.True(strings.Contains(err.Error(), "the proposed delegate list length"))
+	require.True(strings.Contains(err.Error(), "delegates are not as expected"))
 	// Case 6: all good
 	p6, ctx6, ws6, _ := initConstruct(t)
 	require.NoError(p6.Initialize(ctx6, ws6))
