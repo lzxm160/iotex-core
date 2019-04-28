@@ -1115,7 +1115,7 @@ func TestActPool_AddActionNotEnoughGasPride(t *testing.T) {
 		uint64(20000),
 		big.NewInt(0),
 	)
-	require.NoError(err)
+	require.NoError(t, err)
 	require.Error(t, ap.Add(tsf))
 }
 

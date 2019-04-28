@@ -267,7 +267,7 @@ func TestCreateBlockchain(t *testing.T) {
 	// create chain
 	registry := protocol.Registry{}
 	acc := account.NewProtocol()
-	registry.Register(account.ProtocolID, acc)
+	require.NoError(registry.Register(account.ProtocolID, acc))
 	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
 	require.NoError(registry.Register(rolldpos.ProtocolID, rp))
 	bc := NewBlockchain(cfg, InMemStateFactoryOption(), InMemDaoOption(), RegistryOption(&registry), EnableExperimentalActions())
@@ -384,7 +384,7 @@ func TestBlockchain_MintNewBlock_PopAccount(t *testing.T) {
 	addr1 := ta.Addrinfo["alfa"].String()
 	addr3 := ta.Addrinfo["charlie"].String()
 	priKey3 := ta.Keyinfo["charlie"].PriKey
-	addTestingTsfBlocks(bc)
+	require.NoError(t, addTestingTsfBlocks(bc))
 
 	// test third block
 	bytes := []byte{}
