@@ -52,6 +52,8 @@ import (
 	"github.com/iotexproject/iotex-core/testutil"
 )
 
+const lld = "lifeLongDelegates"
+
 var (
 	testTransfer, _ = testutil.SignedTransfer(ta.Addrinfo["alfa"].String(),
 		ta.Keyinfo["alfa"].PriKey, 3, big.NewInt(10), []byte{}, testutil.TestGasLimit,
@@ -746,7 +748,7 @@ func TestServer_GetChainMeta(t *testing.T) {
 
 	var pol poll.Protocol
 	for _, test := range getChainMetaTests {
-		if test.pollProtocolType == "lifeLongDelegates" {
+		if test.pollProtocolType == lld {
 			pol = poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
 		} else if test.pollProtocolType == "governanceChainCommittee" {
 			committee := mock_committee.NewMockCommittee(ctrl)

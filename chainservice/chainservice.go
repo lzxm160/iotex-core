@@ -52,8 +52,8 @@ type ChainService struct {
 }
 
 type optionParams struct {
-	isTesting     bool
-	// commented for make lint-rich
+	isTesting bool
+	// commented for make lint-ri ch
 	// genesisConfig genesis.Genesis
 }
 

@@ -921,7 +921,6 @@ func TestBlocks(t *testing.T) {
 	require.NoError(sf.Commit(ws))
 
 	for i := 0; i < 10; i++ {
-		acts := []action.SealedEnvelope{}
 		actionMap := make(map[string][]action.SealedEnvelope)
 		actionMap[a] = []action.SealedEnvelope{}
 		for i := 0; i < 1000; i++ {
