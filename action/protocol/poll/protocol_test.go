@@ -249,7 +249,9 @@ func TestProtocol_Validate(t *testing.T) {
 	require.NoError(p5.Initialize(ctx5, ws5))
 	var sc5 state.CandidateList
 	require.NoError(ws5.State(candidatesutil.ConstructKey(1), &sc5))
-	fmt.Println(sc5)
+	for _,can:=range sc5{
+		fmt.Println(can)
+	}
 	act5 := action.NewPutPollResult(1, 1, sc5)
 	bd5 := &action.EnvelopeBuilder{}
 	elp5 := bd5.SetGasLimit(uint64(100000)).
