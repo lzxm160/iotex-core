@@ -927,7 +927,6 @@ func TestBlocks(t *testing.T) {
 		for i := 0; i < 1000; i++ {
 			tsf, err := testutil.SignedTransfer(c, priKeyA, 1, big.NewInt(2), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
 			require.NoError(err)
-			acts = append(acts, tsf)
 			actionMap[a] = append(actionMap[a], tsf)
 		}
 		blk, _ := bc.MintNewBlock(

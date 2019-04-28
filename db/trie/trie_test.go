@@ -39,8 +39,6 @@ var (
 	}
 )
 
-const testTriePath = "trie.test"
-
 func TestEmptyTrie(t *testing.T) {
 	require := require.New(t)
 	tr, err := NewTrie()

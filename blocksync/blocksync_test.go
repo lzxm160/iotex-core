@@ -463,9 +463,15 @@ func TestBlockSyncerSync(t *testing.T) {
 }
 
 func newTestConfig() (config.Config, error) {
-	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+	testTrieFile, err := ioutil.TempFile(os.TempDir(), "trie")
+	if err!=nil{
+		return config.Config{},nil
+	}
 	testTriePath := testTrieFile.Name()
-	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	testDBFile, err := ioutil.TempFile(os.TempDir(), "db")
+	if err!=nil{
+		return config.Config{},nil
+	}
 	testDBPath := testDBFile.Name()
 
 	cfg := config.Default
