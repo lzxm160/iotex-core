@@ -249,8 +249,8 @@ func TestProtocol_Validate(t *testing.T) {
 	require.NoError(p5.Initialize(ctx5, ws5))
 	var sc5 state.CandidateList
 	require.NoError(ws5.State(candidatesutil.ConstructKey(1), &sc5))
-	for _,can:=range sc5{
-		fmt.Println(can)
+	for i,_:=range sc5{
+		sc5[i].Votes=big.NewInt(10)
 	}
 	act5 := action.NewPutPollResult(1, 1, sc5)
 	bd5 := &action.EnvelopeBuilder{}
