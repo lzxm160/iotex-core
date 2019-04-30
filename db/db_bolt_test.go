@@ -25,7 +25,7 @@ func BenchmarkBoltDB_Get(b *testing.B) {
 			path:   path.Name(),
 			config: config.Default.DB,
 		}
-		db.Start(context.Background())
+		require.NoError(b, db.Start(context.Background()))
 		defer db.Stop(context.Background())
 
 		key := []byte("key")

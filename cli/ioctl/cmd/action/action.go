@@ -66,11 +66,20 @@ func setActionFlags(cmds ...*cobra.Command) {
 			"set gas price (unit: 10^(-6)Iotx)")
 		cmd.Flags().StringVarP(&signer, "signer", "s", "", "choose a signing account")
 		cmd.Flags().Uint64VarP(&nonce, "nonce", "n", 0, "set nonce")
-		cmd.MarkFlagRequired("signer")
+		err := cmd.MarkFlagRequired("signer")
+		if err != nil {
+			return
+		}
 		if cmd == actionDeployCmd || cmd == actionInvokeCmd {
 			cmd.Flags().BytesHexVarP(&bytecode, "bytecode", "b", nil, "set the byte code")
-			cmd.MarkFlagRequired("gas-limit")
-			cmd.MarkFlagRequired("bytecode")
+			err := cmd.MarkFlagRequired("gas-limit")
+			if err != nil {
+				return
+			}
+			err = cmd.MarkFlagRequired("bytecode")
+			if err != nil {
+				return
+			}
 		}
 	}
 }
