@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/libp2p/go-libp2p-peerstore"
+	peerstore "github.com/libp2p/go-libp2p-peerstore"
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/iotex-core/action"
