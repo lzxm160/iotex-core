@@ -15,6 +15,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/iotexproject/iotex-core/action/protocol/vote/candidatesutil"
+
 	"github.com/facebookgo/clock"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
@@ -1355,7 +1357,22 @@ func (bc *blockchain) createPollGenesisStates(ctx context.Context, ws factory.Wo
 	for _, d := range bc.config.Genesis.Delegates {
 		addrs = append(addrs, d.OperatorAddr())
 	}
-	return vp.Initialize(ctx, ws, addrs)
+	for _, addr := range addrs {
+		selfNominator, err := accountutil.LoadOrCreateAccount(ws, addr.String(), big.NewInt(0))
+		if err != nil {
+			return errors.Wrapf(err, "failed to load or create the account of self nominator %s", addr)
+		}
+		selfNominator.IsCandidate = true
+		if err := candidatesutil.LoadAndAddCandidates(ws, 0, addr.String()); err != nil {
+			return err
+		}
+		if err := accountutil.StoreAccount(ws, addr.String(), selfNominator); err != nil {
+			return errors.Wrap(err, "failed to update pending account changes to trie")
+		}
+		if err := candidatesutil.LoadAndUpdateCandidates(ws, 0, addr.String(), selfNominator.Balance); err != nil {
+			return errors.Wrap(err, "failed to load and update candidates")
+		}
+	}
 }
 
 func calculateReceiptRoot(receipts []*action.Receipt) hash.Hash256 {
