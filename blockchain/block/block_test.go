@@ -120,10 +120,8 @@ func TestConvertFromBlockPb(t *testing.T) {
 	require.True(t, len(blockBytes) > 0)
 
 	require.Equal(t, uint64(123456789), newblk.Header.height)
-
 	require.Equal(t, uint64(101), newblk.Actions[0].Nonce())
 	require.Equal(t, uint64(102), newblk.Actions[1].Nonce())
-
 	require.Equal(t, blk.Header.txRoot, blk.TxRoot())
 	require.Equal(t, blk.Header.receiptRoot, blk.ReceiptRoot())
 }
