@@ -102,26 +102,6 @@ func TestConvertFromBlockPb(t *testing.T) {
 					},
 					SenderPubKey: senderPubKey.Bytes(),
 				},
-				{
-					Core: &iotextypes.ActionCore{
-						Action: &iotextypes.ActionCore_Vote{
-							Vote: &iotextypes.Vote{},
-						},
-						Version: version.ProtocolVersion,
-						Nonce:   103,
-					},
-					SenderPubKey: senderPubKey.Bytes(),
-				},
-				{
-					Core: &iotextypes.ActionCore{
-						Action: &iotextypes.ActionCore_Vote{
-							Vote: &iotextypes.Vote{},
-						},
-						Version: version.ProtocolVersion,
-						Nonce:   104,
-					},
-					SenderPubKey: senderPubKey.Bytes(),
-				},
 			},
 		},
 	}))
