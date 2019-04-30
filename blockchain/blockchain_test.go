@@ -481,7 +481,7 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 	require.Nil(addTestingTsfBlocks(bc))
 	err = bc.Stop(ctx)
 	require.NoError(err)
-	require.Equal(22, ms.Counter())
+	require.Equal(24, ms.Counter())
 
 	// Load a blockchain from DB
 	sf, err = factory.NewFactory(cfg, factory.DefaultTrieOption())
