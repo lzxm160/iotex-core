@@ -1373,6 +1373,7 @@ func (bc *blockchain) createPollGenesisStates(ctx context.Context, ws factory.Wo
 			return errors.Wrap(err, "failed to load and update candidates")
 		}
 	}
+	return nil
 }
 
 func calculateReceiptRoot(receipts []*action.Receipt) hash.Hash256 {
