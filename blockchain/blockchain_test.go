@@ -833,8 +833,6 @@ func TestBlockchainInitialCandidate(t *testing.T) {
 	defer func() {
 		require.NoError(bc.Stop(context.Background()))
 	}()
-	_, err = sf.CandidatesByHeight(0)
-	require.Error(err)
 }
 
 func TestBlockchain_StateByAddr(t *testing.T) {
