@@ -808,7 +808,7 @@ func TestBlockchainInitialCandidate(t *testing.T) {
 	cfg := config.Default
 	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.ChainDBPath = testDBPath
-
+	fmt.Println(cfg.Genesis.Delegates)
 	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
 	require.NoError(err)
 	accountProtocol := account.NewProtocol()
@@ -837,6 +837,7 @@ func TestBlockchainInitialCandidate(t *testing.T) {
 	candidate, err := sf.CandidatesByHeight(0)
 	fmt.Println("CAN:", candidate)
 	fmt.Println("err:", err)
+
 }
 
 func TestBlockchain_StateByAddr(t *testing.T) {
