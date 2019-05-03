@@ -20,7 +20,8 @@ import (
 )
 
 // CandidatesPrefix is the prefix of the key of candidateList
-const CandidatesPrefix = "Candidates."
+//const CandidatesPrefix = "Candidates."
+const CandidatesPrefix = ""
 
 // LoadAndAddCandidates loads candidates from trie and adds a new candidate
 func LoadAndAddCandidates(sm protocol.StateManager, blkHeight uint64, addr string) error {
