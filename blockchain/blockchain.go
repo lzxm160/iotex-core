@@ -1351,6 +1351,11 @@ func (bc *blockchain) createPollGenesisStates(ctx context.Context, ws factory.Wo
 			ws,
 		)
 	}
+	pollProtocol := poll.NewLifeLongDelegatesProtocol(bc.config.Genesis.Delegates)
+	err := bc.registry.Register(poll.ProtocolID, pollProtocol)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
