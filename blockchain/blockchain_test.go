@@ -808,7 +808,6 @@ func TestBlockchainInitialCandidate(t *testing.T) {
 	cfg := config.Default
 	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.ChainDBPath = testDBPath
-	fmt.Println(cfg.Genesis.Delegates)
 	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
 	require.NoError(err)
 	accountProtocol := account.NewProtocol()
@@ -837,7 +836,6 @@ func TestBlockchainInitialCandidate(t *testing.T) {
 	candidate, err := sf.CandidatesByHeight(0)
 	fmt.Println("CAN:", candidate)
 	fmt.Println("err:", err)
-
 }
 
 func TestBlockchain_StateByAddr(t *testing.T) {
@@ -957,7 +955,7 @@ func TestActions(t *testing.T) {
 	require.NoError(err)
 	_, err = accountutil.LoadOrCreateAccount(ws, c, big.NewInt(100000))
 	require.NoError(err)
-	gasLimit := testutil.TestGasLimit
+	gasLimit := testuttil.TestGasLimit
 	ctx := protocol.WithRunActionsCtx(context.Background(),
 		protocol.RunActionsCtx{
 			Producer: ta.Addrinfo["producer"],
