@@ -832,10 +832,9 @@ func TestBlockchainInitialCandidate(t *testing.T) {
 	defer func() {
 		require.NoError(bc.Stop(context.Background()))
 	}()
-	// TODO: we will fix this test case by testing using lifeLongDelegatesProtocol to initialize the candidates
 	candidate, err := sf.CandidatesByHeight(0)
-	fmt.Println("CAN:", candidate)
-	fmt.Println("err:", err)
+	require.NoError(err)
+	require.Equal(24, len(candidate))
 }
 
 func TestBlockchain_StateByAddr(t *testing.T) {
