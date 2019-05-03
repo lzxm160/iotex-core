@@ -32,7 +32,7 @@ var genesisPath string
 
 func init() {
 	flag.StringVar(&genesisPath, "genesis-path", "", "Genesis path")
-	initeDefaultConfig()
+	initTestDefaultConfig()
 }
 
 func defaultConfig() Genesis {
@@ -66,7 +66,7 @@ func defaultConfig() Genesis {
 	}
 }
 
-func initeDefaultConfig() {
+func initTestDefaultConfig() {
 	Default = defaultConfig()
 	for i := 0; i < identityset.Size(); i++ {
 		addr := identityset.Address(i).String()
