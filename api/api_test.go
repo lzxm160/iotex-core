@@ -994,7 +994,7 @@ func TestServer_AvailableBalance(t *testing.T) {
 	require.NoError(t, err)
 	val, ok := big.NewInt(0).SetString(string(out.Data), 10)
 	require.True(t, ok)
-	assert.Equal(t, unit.ConvertIotxToRau(1200000000), val)
+	assert.Equal(t, unit.ConvertIotxToRau(1199999936), val)
 }
 
 func TestServer_ReadDelegatesByEpoch(t *testing.T) {
