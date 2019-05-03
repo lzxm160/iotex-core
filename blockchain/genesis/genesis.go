@@ -26,7 +26,7 @@ import (
 )
 
 // Default contains the default genesis config
-var Default Genesis
+var Default = defaultConfig()
 
 var genesisPath string
 
