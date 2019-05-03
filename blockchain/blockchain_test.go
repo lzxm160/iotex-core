@@ -955,7 +955,7 @@ func TestActions(t *testing.T) {
 	require.NoError(err)
 	_, err = accountutil.LoadOrCreateAccount(ws, c, big.NewInt(100000))
 	require.NoError(err)
-	gasLimit := testuttil.TestGasLimit
+	gasLimit := testutil.TestGasLimit
 	ctx := protocol.WithRunActionsCtx(context.Background(),
 		protocol.RunActionsCtx{
 			Producer: ta.Addrinfo["producer"],
