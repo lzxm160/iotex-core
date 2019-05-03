@@ -833,7 +833,7 @@ func TestBlockchainInitialCandidate(t *testing.T) {
 		require.NoError(bc.Stop(context.Background()))
 	}()
 	// TODO: we will fix this test case by testing using lifeLongDelegatesProtocol to initialize the candidates
-	candidate, err := sf.CandidatesByHeight(1)
+	candidate, err := sf.CandidatesByHeight(0)
 	fmt.Println("CAN:", candidate)
 	fmt.Println("err:", err)
 }
