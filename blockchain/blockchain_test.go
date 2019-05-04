@@ -16,6 +16,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/iotexproject/iotex-core/action/protocol/poll"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/iotex-core/action"
@@ -809,7 +811,6 @@ func TestBlockchainInitialCandidate(t *testing.T) {
 	cfg := config.Default
 	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.ChainDBPath = testDBPath
-	cfg.Genesis.EnableGravityChainVoting = false
 	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
 	require.NoError(err)
 	accountProtocol := account.NewProtocol()
@@ -830,12 +831,16 @@ func TestBlockchainInitialCandidate(t *testing.T) {
 	require.NoError(registry.Register(rolldpos.ProtocolID, rolldposProtocol))
 	rewardingProtocol := rewarding.NewProtocol(bc, rolldposProtocol)
 	require.NoError(registry.Register(rewarding.ProtocolID, rewardingProtocol))
+	require.NoError(registry.Register(poll.ProtocolID, poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)))
 	require.NoError(bc.Start(context.Background()))
 	defer func() {
 		require.NoError(bc.Stop(context.Background()))
 	}()
+
 	// TODO: we will fix this test case by testing using lifeLongDelegatesProtocol to initialize the candidates
-	// candidate, err := sf.CandidatesByHeight(0)
+	candidate, err := sf.CandidatesByHeight(0)
+	require.NotNil(candidate)
+	require.NoError(err)
 }
 
 func TestBlockchain_StateByAddr(t *testing.T) {
