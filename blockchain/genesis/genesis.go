@@ -26,13 +26,13 @@ import (
 )
 
 // Default contains the default genesis config
-var Default Genesis
+var Default = initDefaultConfig()
 
 var genesisPath string
 
 func init() {
 	flag.StringVar(&genesisPath, "genesis-path", "", "Genesis path")
-	initDefaultConfig()
+	//initDefaultConfig()
 }
 
 func defaultConfig() Genesis {
@@ -66,8 +66,8 @@ func defaultConfig() Genesis {
 	}
 }
 
-func initDefaultConfig() {
-	Default = defaultConfig()
+func initDefaultConfig() Genesis {
+	Default := defaultConfig()
 	for i := 0; i < identityset.Size(); i++ {
 		addr := identityset.Address(i).String()
 		value := unit.ConvertIotxToRau(100000000).String()
@@ -80,6 +80,7 @@ func initDefaultConfig() {
 			})
 		}
 	}
+	return Default
 }
 
 type (
