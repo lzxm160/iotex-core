@@ -69,11 +69,11 @@ func defaultConfig() Genesis {
 
 func initDefaultConfig() {
 	Default = defaultConfig()
+	Default.Delegates = make([]Delegate, 0)
 	for i := 0; i < identityset.Size(); i++ {
 		addr := identityset.Address(i).String()
 		value := unit.ConvertIotxToRau(100000000).String()
 		Default.InitBalanceMap[addr] = value
-		Default.Delegates = make([]Delegate, 0)
 		if uint64(i) < Default.NumDelegates {
 			Default.Delegates = append(Default.Delegates, Delegate{
 				OperatorAddrStr: addr,
