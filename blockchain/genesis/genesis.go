@@ -26,13 +26,13 @@ import (
 )
 
 // Default contains the default genesis config
-var Default = initTeDefaultConfig()
+var Default Genesis
 
 var genesisPath string
 
 func init() {
 	flag.StringVar(&genesisPath, "genesis-path", "", "Genesis path")
-	initTeDefaultConfig()
+	initDefaultConfig()
 }
 
 func defaultConfig() Genesis {
@@ -66,7 +66,7 @@ func defaultConfig() Genesis {
 	}
 }
 
-func initTeDefaultConfig() Genesis {
+func initDefaultConfig() {
 	Default = defaultConfig()
 	for i := 0; i < identityset.Size(); i++ {
 		addr := identityset.Address(i).String()
@@ -80,7 +80,6 @@ func initTeDefaultConfig() Genesis {
 			})
 		}
 	}
-	return Default
 }
 
 type (
