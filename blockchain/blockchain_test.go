@@ -832,7 +832,7 @@ func TestBlockchainInitialCandidate(t *testing.T) {
 	defer func() {
 		require.NoError(bc.Stop(context.Background()))
 	}()
-	candidate, err := sf.CandidatesByHeight(1)
+	candidate, err := sf.CandidatesByHeight(0)
 	require.NoError(err)
 	require.Equal(24, len(candidate))
 }
