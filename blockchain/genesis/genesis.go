@@ -68,7 +68,7 @@ func defaultConfig() Genesis {
 }
 
 func initDefaultConfig() Genesis {
-	Default = defaultConfig()
+	Default := defaultConfig()
 	Default.Delegates = make([]Delegate, 0)
 	for i := 0; i < identityset.Size(); i++ {
 		addr := identityset.Address(i).String()
