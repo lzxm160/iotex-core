@@ -8,6 +8,7 @@ package genesis
 
 import (
 	"flag"
+	"fmt"
 	"math/big"
 	"sort"
 	"time"
@@ -26,7 +27,7 @@ import (
 )
 
 // Default contains the default genesis config
-var Default *Genesis
+var Default Genesis
 
 var genesisPath string
 
@@ -67,8 +68,7 @@ func defaultConfig() Genesis {
 }
 
 func initDefaultConfig() {
-	defaults := defaultConfig()
-	Default = &defaults
+	Default = defaultConfig()
 	for i := 0; i < identityset.Size(); i++ {
 		addr := identityset.Address(i).String()
 		value := unit.ConvertIotxToRau(100000000).String()
@@ -80,6 +80,7 @@ func initDefaultConfig() {
 				VotesStr:        value,
 			})
 		}
+		fmt.Println("////////////////////:", len(Default.Delegates))
 	}
 }
 
