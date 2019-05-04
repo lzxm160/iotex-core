@@ -73,6 +73,7 @@ func initDefaultConfig() {
 		addr := identityset.Address(i).String()
 		value := unit.ConvertIotxToRau(100000000).String()
 		Default.InitBalanceMap[addr] = value
+		Default.Delegates = make([]Delegate, 0)
 		if uint64(i) < Default.NumDelegates {
 			Default.Delegates = append(Default.Delegates, Delegate{
 				OperatorAddrStr: addr,
