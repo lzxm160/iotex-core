@@ -308,8 +308,6 @@ func registerDefaultProtocols(cs *chainservice.ChainService, genesisConfig genes
 			}
 		} else {
 			delegates := genesisConfig.Delegates
-			fmt.Println("$$$$$$$$$$$$$$$$$$:", len(genesisConfig.Delegates))
-			fmt.Println("$$$$$$$$$$$$$$$$$$:", len(delegates))
 			if uint64(len(delegates)) < genesisConfig.NumDelegates {
 				return errors.New("invalid delegate address in genesis block")
 			}
