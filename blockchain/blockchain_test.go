@@ -808,7 +808,7 @@ func TestBlockchainInitialCandidate(t *testing.T) {
 	cfg := config.Default
 	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.ChainDBPath = testDBPath
-
+	cfg.Genesis.EnableGravityChainVoting = false
 	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
 	require.NoError(err)
 	accountProtocol := account.NewProtocol()
@@ -843,7 +843,7 @@ func TestBlockchain_StateByAddr(t *testing.T) {
 	cfg := config.Default
 	// disable account-based testing
 	// create chain
-
+	cfg.Genesis.EnableGravityChainVoting = false
 	bc := NewBlockchain(cfg, InMemDaoOption(), InMemStateFactoryOption())
 	require.NoError(bc.Start(context.Background()))
 	require.NotNil(bc)
@@ -873,7 +873,7 @@ func TestBlocks(t *testing.T) {
 
 	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.ChainDBPath = testDBPath
-
+	cfg.Genesis.EnableGravityChainVoting = false
 	sf, _ := factory.NewFactory(cfg, factory.InMemTrieOption())
 
 	// Create a blockchain from scratch
