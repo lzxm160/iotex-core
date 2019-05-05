@@ -636,7 +636,7 @@ func TestLoadBlockchainfromDBWithoutExplorer(t *testing.T) {
 	cfg.DB.UseBadgerDB = false // test with boltDB
 	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.ChainDBPath = testDBPath
-	cfg.Genesis.EnableGravityChainVoting = false
+	//cfg.Genesis.EnableGravityChainVoting = false
 	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
 	require.NoError(err)
 	sf.AddActionHandlers(account.NewProtocol())
