@@ -16,7 +16,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/iotex-core/action"
@@ -24,6 +23,7 @@ import (
 	"github.com/iotexproject/iotex-core/action/protocol/account"
 	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
+	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/blockchain/block"
@@ -783,7 +783,7 @@ func TestBlockchain_Validator(t *testing.T) {
 	cfg := config.Default
 	// disable account-based testing
 	cfg.Chain.TrieDBPath = ""
-	cfg.Genesis.EnableGravityChainVoting = false
+	//cfg.Genesis.EnableGravityChainVoting = false
 	ctx := context.Background()
 	bc := NewBlockchain(cfg, InMemDaoOption(), InMemStateFactoryOption())
 	require.NoError(t, bc.Start(ctx))
