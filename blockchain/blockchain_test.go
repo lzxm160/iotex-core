@@ -656,7 +656,7 @@ func TestLoadBlockchainfromDBWithoutExplorer(t *testing.T) {
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc, genesis.Default.ActionGasLimit))
 	bc.Validator().AddActionValidators(acc)
 	sf.AddActionHandlers(acc)
-	require.NoError(bc.Start(ctx))
+	require.Error(bc.Start(ctx))
 
 	require.NoError(addCreatorToFactory(sf))
 
