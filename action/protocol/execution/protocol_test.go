@@ -256,6 +256,7 @@ func (sct *SmartContractTest) prepareBlockchain(
 	cfg := config.Default
 	cfg.Plugins[config.GatewayPlugin] = true
 	cfg.Chain.EnableAsyncIndexWrite = false
+	cfg.Genesis.EnableGravityChainVoting = false
 	registry := protocol.Registry{}
 	acc := account.NewProtocol()
 	registry.Register(account.ProtocolID, acc)
