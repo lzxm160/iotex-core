@@ -405,6 +405,7 @@ func TestProtocol_Handle(t *testing.T) {
 		cfg.Chain.TrieDBPath = testTriePath
 		cfg.Chain.ChainDBPath = testDBPath
 		cfg.Chain.EnableAsyncIndexWrite = false
+		cfg.Genesis.EnableGravityChainVoting = false
 		registry := protocol.Registry{}
 		acc := account.NewProtocol()
 		registry.Register(account.ProtocolID, acc)
