@@ -262,7 +262,7 @@ func TestCreateBlockchain(t *testing.T) {
 	cfg := config.Default
 	// disable account-based testing
 	cfg.Chain.TrieDBPath = ""
-
+	cfg.Genesis.EnableGravityChainVoting = false
 	// create chain
 	registry := protocol.Registry{}
 	acc := account.NewProtocol()
