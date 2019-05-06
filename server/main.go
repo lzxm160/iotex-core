@@ -52,7 +52,7 @@ func main() {
 	if err != nil {
 		glog.Fatalln("Failed to new genesis config.", zap.Error(err))
 	}
-
+	fmt.Println(genesisCfg)
 	cfg, err := config.New()
 	if err != nil {
 		glog.Fatalln("Failed to new config.", zap.Error(err))
