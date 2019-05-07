@@ -90,7 +90,7 @@ func newServer(cfg config.Config, testing bool) (*Server, error) {
 			protocol.NewGenericValidator(cs.Blockchain(), cfg.Genesis.ActionGasLimit),
 		)
 	// Install protocols
-	if err := registerDefaultProtocols(cs, cfg.Genesis); err != nil {
+	if err := registerDefaultProtocols(cs, cfg); err != nil {
 		return nil, err
 	}
 	mainChainProtocol := mainchain.NewProtocol(cs.Blockchain())
