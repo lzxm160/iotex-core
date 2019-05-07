@@ -1088,7 +1088,7 @@ func (bc *blockchain) pickAndRunActions(ctx context.Context, actionMap map[strin
 			break
 		}
 	}
-	if bc.config.Consensus.Scheme != config.StandaloneScheme {
+	if bc.config.Consensus.Scheme == config.RollDPoSScheme {
 		rp := bc.mustGetRollDPoSProtocol()
 		epochNum := rp.GetEpochNum(raCtx.BlockHeight)
 		lastBlkHeight := rp.GetEpochLastBlockHeight(epochNum)
