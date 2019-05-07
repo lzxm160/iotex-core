@@ -948,7 +948,7 @@ func TestServer_EstimateGasForAction(t *testing.T) {
 
 func TestServer_ReadUnclaimedBalance(t *testing.T) {
 	cfg := newConfig()
-
+	cfg.Consensus.Scheme = config.RollDPoSScheme
 	svr, err := createServer(cfg, false)
 	require.NoError(t, err)
 
