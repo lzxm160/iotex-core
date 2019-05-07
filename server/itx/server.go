@@ -280,47 +280,49 @@ func registerDefaultProtocols(cs *chainservice.ChainService, cfg config.Config) 
 	if err = cs.RegisterProtocol(rolldpos.ProtocolID, rolldposProtocol); err != nil {
 		return
 	}
-	if cfg.Consensus.Scheme == config.RollDPoSScheme && genesisConfig.EnableGravityChainVoting {
-		electionCommittee := cs.ElectionCommittee()
-		gravityChainStartHeight := genesisConfig.GravityChainStartHeight
-		var pollProtocol poll.Protocol
-		if genesisConfig.GravityChainStartHeight != 0 && electionCommittee != nil {
-			if pollProtocol, err = poll.NewGovernanceChainCommitteeProtocol(
-				cs.Blockchain(),
-				electionCommittee,
-				gravityChainStartHeight,
-				func(height uint64) (time.Time, error) {
-					header, err := cs.Blockchain().BlockHeaderByHeight(height)
-					if err != nil {
-						return time.Now(), errors.Wrapf(
-							err, "error when getting the block at height: %d",
-							height,
-						)
-					}
-					return header.Timestamp(), nil
-				},
-				rolldposProtocol.GetEpochHeight,
-				rolldposProtocol.GetEpochNum,
-				genesisConfig.NumCandidateDelegates,
-				genesisConfig.NumDelegates,
-			); err != nil {
+	if cfg.Consensus.Scheme != config.StandaloneScheme {
+		if genesisConfig.EnableGravityChainVoting {
+			electionCommittee := cs.ElectionCommittee()
+			gravityChainStartHeight := genesisConfig.GravityChainStartHeight
+			var pollProtocol poll.Protocol
+			if genesisConfig.GravityChainStartHeight != 0 && electionCommittee != nil {
+				if pollProtocol, err = poll.NewGovernanceChainCommitteeProtocol(
+					cs.Blockchain(),
+					electionCommittee,
+					gravityChainStartHeight,
+					func(height uint64) (time.Time, error) {
+						header, err := cs.Blockchain().BlockHeaderByHeight(height)
+						if err != nil {
+							return time.Now(), errors.Wrapf(
+								err, "error when getting the block at height: %d",
+								height,
+							)
+						}
+						return header.Timestamp(), nil
+					},
+					rolldposProtocol.GetEpochHeight,
+					rolldposProtocol.GetEpochNum,
+					genesisConfig.NumCandidateDelegates,
+					genesisConfig.NumDelegates,
+				); err != nil {
+					return
+				}
+			} else {
+				delegates := genesisConfig.Delegates
+				if uint64(len(delegates)) < genesisConfig.NumDelegates {
+					return errors.New("invalid delegate address in genesis block")
+				}
+				pollProtocol = poll.NewLifeLongDelegatesProtocol(delegates)
+			}
+			if err = cs.RegisterProtocol(poll.ProtocolID, pollProtocol); err != nil {
 				return
 			}
-		} else {
-			delegates := genesisConfig.Delegates
-			if uint64(len(delegates)) < genesisConfig.NumDelegates {
-				return errors.New("invalid delegate address in genesis block")
-			}
-			pollProtocol = poll.NewLifeLongDelegatesProtocol(delegates)
 		}
-		if err = cs.RegisterProtocol(poll.ProtocolID, pollProtocol); err != nil {
+		rewardingProtocol := rewarding.NewProtocol(cs.Blockchain(), rolldposProtocol)
+		if err = cs.RegisterProtocol(rewarding.ProtocolID, rewardingProtocol); err != nil {
 			return
 		}
 	}
 	executionProtocol := execution.NewProtocol(cs.Blockchain())
-	if err = cs.RegisterProtocol(execution.ProtocolID, executionProtocol); err != nil {
-		return
-	}
-	rewardingProtocol := rewarding.NewProtocol(cs.Blockchain(), rolldposProtocol)
-	return cs.RegisterProtocol(rewarding.ProtocolID, rewardingProtocol)
+	return cs.RegisterProtocol(execution.ProtocolID, executionProtocol)
 }
