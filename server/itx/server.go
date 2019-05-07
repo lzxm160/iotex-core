@@ -318,11 +318,11 @@ func registerDefaultProtocols(cs *chainservice.ChainService, cfg config.Config) 
 				return
 			}
 		}
-		rewardingProtocol := rewarding.NewProtocol(cs.Blockchain(), rolldposProtocol)
-		if err = cs.RegisterProtocol(rewarding.ProtocolID, rewardingProtocol); err != nil {
-			return
-		}
 	}
 	executionProtocol := execution.NewProtocol(cs.Blockchain())
-	return cs.RegisterProtocol(execution.ProtocolID, executionProtocol)
+	if err = cs.RegisterProtocol(execution.ProtocolID, executionProtocol); err != nil {
+		return
+	}
+	rewardingProtocol := rewarding.NewProtocol(cs.Blockchain(), rolldposProtocol)
+	return cs.RegisterProtocol(rewarding.ProtocolID, rewardingProtocol)
 }
