@@ -27,7 +27,7 @@ func TestEncodeDecode(t *testing.T) {
 	ss, err := s1.Serialize()
 	require.NoError(err)
 	require.NotEmpty(ss)
-	require.Equal(85, len(ss))
+	require.Equal(64, len(ss))
 
 	s2 := Account{}
 	require.NoError(s2.Deserialize(ss))
