@@ -50,7 +50,6 @@ func TestProtocol_HandleTransfer(t *testing.T) {
 	pubKeyAlfa := hash.BytesToHash160(testaddress.Addrinfo["alfa"].Bytes())
 	pubKeyBravo := hash.BytesToHash160(testaddress.Addrinfo["bravo"].Bytes())
 	pubKeyCharlie := hash.BytesToHash160(testaddress.Addrinfo["charlie"].Bytes())
-	pubKeyDelta := hash.BytesToHash160(testaddress.Addrinfo["delta"].Bytes())
 
 	require.NoError(ws.PutState(pubKeyAlfa, &accountAlfa))
 	require.NoError(ws.PutState(pubKeyBravo, &accountBravo))
