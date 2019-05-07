@@ -988,7 +988,7 @@ func TestServer_TotalBalance(t *testing.T) {
 
 func TestServer_AvailableBalance(t *testing.T) {
 	cfg := newConfig()
-
+	cfg.Consensus.Scheme = config.RollDPoSScheme
 	svr, err := createServer(cfg, false)
 	require.NoError(t, err)
 
