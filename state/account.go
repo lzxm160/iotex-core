@@ -71,11 +71,6 @@ func (st *Account) FromProto(acPb *accountpb.Account) {
 		st.CodeHash = make([]byte, len(acPb.CodeHash))
 		copy(st.CodeHash, acPb.CodeHash)
 	}
-	st.IsCandidate = acPb.IsCandidate
-	st.VotingWeight = big.NewInt(0)
-	if acPb.VotingWeight != nil {
-		st.VotingWeight.SetBytes(acPb.VotingWeight)
-	}
 }
 
 // Deserialize deserializes bytes into account state
