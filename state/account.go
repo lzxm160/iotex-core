@@ -66,7 +66,6 @@ func (st *Account) FromProto(acPb *accountpb.Account) {
 	if acPb.CodeHash != nil {
 		st.CodeHash = make([]byte, len(acPb.CodeHash))
 		copy(st.CodeHash, acPb.CodeHash)
-	}
 	st.IsCandidate = acPb.IsCandidate
 	}
 }
