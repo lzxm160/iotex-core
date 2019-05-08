@@ -114,7 +114,6 @@ func (st *Account) Clone() *Account {
 	s := *st
 	s.Balance = nil
 	s.Balance = new(big.Int).Set(st.Balance)
-	s.VotingWeight = nil
 	s.VotingWeight = new(big.Int).Set(st.VotingWeight)
 	if st.CodeHash != nil {
 		s.CodeHash = nil
