@@ -32,6 +32,7 @@ type Account struct {
 	Root     hash.Hash256 // storage trie root for contract account
 	CodeHash []byte       // hash of the smart contract byte-code for contract account
 	IsCandidate  bool
+	VotingWeight *big.Int
 }
 
 // ToProto converts to protobuf's Account
@@ -46,6 +47,9 @@ func (st *Account) ToProto() *accountpb.Account {
 	acPb.CodeHash = make([]byte, len(st.CodeHash))
 	copy(acPb.CodeHash, st.CodeHash)
 	acPb.IsCandidate = st.IsCandidate
+	if st.VotingWeight != nil {
+		acPb.VotingWeight = st.VotingWeight.Bytes()
+	}
 	return acPb
 }
 
