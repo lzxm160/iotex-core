@@ -138,6 +138,8 @@ func TestBlockEpochReward(t *testing.T) {
 		dbFilePaths = append(dbFilePaths, trieDBPath)
 		networkPort := 4689 + i
 		apiPort := 14014 + i
+		HTTPStatsPort := 8080 + i
+		HTTPAdminPort := 9009 + i
 		cfg := newConfig(chainDBPath, trieDBPath, identityset.PrivateKey(i),
 			networkPort, apiPort, uint64(numNodes))
 		if i == 0 {
@@ -150,6 +152,8 @@ func TestBlockEpochReward(t *testing.T) {
 		cfg.Genesis.Delegates[i].OperatorAddrStr = identityset.Address(i).String()
 		//Generate random votes  from [1000,2000]
 		cfg.Genesis.Delegates[i].VotesStr = strconv.Itoa(1000 + rand.Intn(1000))
+		cfg.System.HTTPStatsPort = HTTPStatsPort
+		cfg.System.HTTPAdminPort = HTTPAdminPort
 		configs[i] = cfg
 	}
 
@@ -621,7 +625,6 @@ func newConfig(
 
 	cfg.Genesis.BlockInterval = 100 * time.Millisecond
 	cfg.Genesis.EnableGravityChainVoting = true
-	cfg.Consensus.Scheme = config.RollDPoSScheme
 	cfg.Genesis.Rewarding.FoundationBonusLastEpoch = 2
 	return cfg
 }
