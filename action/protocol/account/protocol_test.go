@@ -41,8 +41,8 @@ func TestAccount(t *testing.T) {
 	b := make([]byte, 0, siz)
 	ret, err := afterVotingRemove.XXX_Marshal(b, false)
 	require.NoError(t, err)
-	fmt.Printf("%x\n", ret)
-	fmt.Printf("%x\n", b)
+	retString := fmt.Sprintf("%x", ret)
+	require.Equal(t, "0801120231301a04726f6f742209636f64652068617368", retString)
 }
 
 func TestLoadOrCreateAccountState(t *testing.T) {
