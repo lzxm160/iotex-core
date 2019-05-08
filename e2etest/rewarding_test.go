@@ -150,7 +150,6 @@ func TestBlockEpochReward(t *testing.T) {
 		cfg.Genesis.Delegates[i].OperatorAddrStr = identityset.Address(i).String()
 		//Generate random votes  from [1000,2000]
 		cfg.Genesis.Delegates[i].VotesStr = strconv.Itoa(1000 + rand.Intn(1000))
-		cfg.Consensus.Scheme = config.RollDPoSScheme
 		configs[i] = cfg
 	}
 
@@ -622,7 +621,7 @@ func newConfig(
 
 	cfg.Genesis.BlockInterval = 100 * time.Millisecond
 	cfg.Genesis.EnableGravityChainVoting = true
-
+	cfg.Consensus.Scheme = config.RollDPoSScheme
 	cfg.Genesis.Rewarding.FoundationBonusLastEpoch = 2
 	return cfg
 }
