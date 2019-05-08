@@ -46,10 +46,6 @@ func (st *Account) ToProto() *accountpb.Account {
 	copy(acPb.Root, st.Root[:])
 	acPb.CodeHash = make([]byte, len(st.CodeHash))
 	copy(acPb.CodeHash, st.CodeHash)
-	acPb.IsCandidate = st.IsCandidate
-	if st.VotingWeight != nil {
-		acPb.VotingWeight = st.VotingWeight.Bytes()
-	}
 	return acPb
 }
 
