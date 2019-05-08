@@ -8,8 +8,11 @@ package account
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"testing"
+
+	"github.com/iotexproject/iotex-core/action/protocol/account/accountpb"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,6 +29,21 @@ import (
 	"github.com/iotexproject/iotex-core/test/testaddress"
 	"github.com/iotexproject/iotex-core/testutil"
 )
+
+func TestAccount(t *testing.T) {
+	afterVotingRemove := accountpb.Account{
+		Nonce:    1,
+		Balance:  "10",
+		Root:     []byte("root"),
+		CodeHash: []byte("code hash"),
+	}
+	siz := afterVotingRemove.XXX_Size()
+	b := make([]byte, 0, siz)
+	ret, err := afterVotingRemove.XXX_Marshal(b, false)
+	require.NoError(t, err)
+	retString := fmt.Sprintf("%x", ret)
+	require.Equal(t, "0801120231301a04726f6f742209636f64652068617368", retString)
+}
 
 func TestLoadOrCreateAccountState(t *testing.T) {
 	require := require.New(t)
