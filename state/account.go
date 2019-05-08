@@ -31,6 +31,8 @@ type Account struct {
 	Balance  *big.Int
 	Root     hash.Hash256 // storage trie root for contract account
 	CodeHash []byte       // hash of the smart contract byte-code for contract account
+	IsCandidate  bool
+	VotingWeight *big.Int
 }
 
 // ToProto converts to protobuf's Account
