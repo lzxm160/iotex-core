@@ -45,7 +45,7 @@ func (st *Account) ToProto() *accountpb.Account {
 	acPb.CodeHash = make([]byte, len(st.CodeHash))
 	copy(acPb.CodeHash, st.CodeHash)
 	acPb.IsCandidate = false
-	acPb.VotingWeight = big.NewInt(0)
+	acPb.VotingWeight = big.NewInt(0).Bytes()
 	
 	return acPb
 }
