@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/iotexproject/go-pkgs/crypto"
 	peerstore "github.com/libp2p/go-libp2p-peerstore"
 	"github.com/stretchr/testify/require"
 
@@ -32,6 +31,7 @@ import (
 	"github.com/iotexproject/iotex-core/server/itx"
 	ta "github.com/iotexproject/iotex-core/test/testaddress"
 	"github.com/iotexproject/iotex-core/testutil"
+	"github.com/iotexproject/iotex-coreori/pkg/keypair"
 )
 
 const (
