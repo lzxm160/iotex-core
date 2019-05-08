@@ -138,19 +138,20 @@ func TestBlockEpochReward(t *testing.T) {
 		dbFilePaths = append(dbFilePaths, trieDBPath)
 		networkPort := 4689 + i
 		apiPort := 14014 + i
-		config := newConfig(chainDBPath, trieDBPath, identityset.PrivateKey(i),
+		cfg := newConfig(chainDBPath, trieDBPath, identityset.PrivateKey(i),
 			networkPort, apiPort, uint64(numNodes))
 		if i == 0 {
-			config.Network.BootstrapNodes = []string{}
-			config.Network.MasterKey = "bootnode"
+			cfg.Network.BootstrapNodes = []string{}
+			cfg.Network.MasterKey = "bootnode"
 		}
 
 		//Set Operator and Reward address
-		config.Genesis.Delegates[i].RewardAddrStr = identityset.Address(i + numNodes).String()
-		config.Genesis.Delegates[i].OperatorAddrStr = identityset.Address(i).String()
+		cfg.Genesis.Delegates[i].RewardAddrStr = identityset.Address(i + numNodes).String()
+		cfg.Genesis.Delegates[i].OperatorAddrStr = identityset.Address(i).String()
 		//Generate random votes  from [1000,2000]
-		config.Genesis.Delegates[i].VotesStr = strconv.Itoa(1000 + rand.Intn(1000))
-		configs[i] = config
+		cfg.Genesis.Delegates[i].VotesStr = strconv.Itoa(1000 + rand.Intn(1000))
+		cfg.Consensus.Scheme = config.RollDPoSScheme
+		configs[i] = cfg
 	}
 
 	for _, dbFilePath := range dbFilePaths {
