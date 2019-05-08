@@ -100,7 +100,7 @@ func TestBlockReward(t *testing.T) {
 	require.NoError(t, err)
 	balance, err := rp.UnclaimedBalance(ctx, ws, addr)
 	require.NoError(t, err)
-	require.True(t, balance.Cmp(big.NewInt(0).Mul(blockReward, big.NewInt(5))) <= 0)
+	assert.True(t, balance.Cmp(big.NewInt(0).Mul(blockReward, big.NewInt(5))) <= 0)
 
 	for i := 1; i <= 5; i++ {
 		blk, err := svr.ChainService(1).Blockchain().GetBlockByHeight(uint64(i))
