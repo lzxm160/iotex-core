@@ -126,6 +126,5 @@ func (st *Account) Clone() *Account {
 func EmptyAccount() Account {
 	return Account{
 		Balance: big.NewInt(0),
-		VotingWeight: big.NewInt(0),
 	}
 }
