@@ -33,7 +33,6 @@ type Account struct {
 	CodeHash     []byte       // hash of the smart contract byte-code for contract account
 	IsCandidate  bool
 	VotingWeight *big.Int
-	Votee        string
 }
 
 // ToProto converts to protobuf's Account
@@ -51,7 +50,6 @@ func (st *Account) ToProto() *accountpb.Account {
 	if st.VotingWeight != nil {
 		acPb.VotingWeight = st.VotingWeight.Bytes()
 	}
-	acPb.Votee = st.Votee
 	return acPb
 }
 
@@ -78,7 +76,6 @@ func (st *Account) FromProto(acPb *accountpb.Account) {
 	if acPb.VotingWeight != nil {
 		st.VotingWeight.SetBytes(acPb.VotingWeight)
 	}
-	st.Votee = acPb.Votee
 }
 
 // Deserialize deserializes bytes into account state
