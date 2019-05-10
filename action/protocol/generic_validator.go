@@ -8,6 +8,7 @@ package protocol
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -53,6 +54,8 @@ func (v *GenericValidator) Validate(ctx context.Context, act action.SealedEnvelo
 	}
 
 	pendingNonce := confirmedNonce + 1
+	fmt.Println(act.Nonce())
+	fmt.Println(pendingNonce)
 	if act.Nonce() > 0 && pendingNonce > act.Nonce() {
 		return errors.Wrap(action.ErrNonce, "nonce is too low")
 	}
