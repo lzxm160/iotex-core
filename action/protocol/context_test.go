@@ -34,7 +34,7 @@ func TestGetRunActionsCtx(t *testing.T) {
 	require.NotNil(ctx)
 	ret, ok := GetRunActionsCtx(ctx)
 	require.True(ok)
-	require.Equal(1111, ret.BlockHeight)
+	require.Equal(uint64(1111), ret.BlockHeight)
 }
 func TestMustGetRunActionsCtx(t *testing.T) {
 	require := require.New(t)
@@ -45,7 +45,7 @@ func TestMustGetRunActionsCtx(t *testing.T) {
 	require.NotNil(ctx)
 	// Case I: Normal
 	ret := MustGetRunActionsCtx(ctx)
-	require.Equal(1111, ret.BlockHeight)
+	require.Equal(uint64(1111), ret.BlockHeight)
 	// Case II: Panic
 	require.Panics(func() { MustGetRunActionsCtx(context.Background()) }, "Miss run actions context")
 }
