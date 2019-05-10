@@ -83,6 +83,10 @@ func TestActionProto(t *testing.T) {
 	}
 	// Case IV: Call cm Nonce err
 	{
+		caller, err := address.FromString("io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl6")
+		require.NoError(err)
+		ctx := ValidateActionsCtx{1, "io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl6", caller}
+		c := WithValidateActionsCtx(context.Background(), ctx)
 		v, err := action.NewExecution("", 0, big.NewInt(10), uint64(10), big.NewInt(10), data)
 		require.NoError(err)
 		bd := &action.EnvelopeBuilder{}
@@ -96,14 +100,10 @@ func TestActionProto(t *testing.T) {
 		err = valid.Validate(c, nselp)
 		require.Error(err)
 		fmt.Println(err)
-		require.True(strings.Contains(err.Error(), "invalid nonce value of account"))
+		require.True(strings.Contains(err.Error(), "Insufficient balance for gas"))
 	}
 	// Case V: Call Nonce err
 	{
-		caller, err := address.FromString("io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl6")
-		require.NoError(err)
-		ctx := ValidateActionsCtx{1, "io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl6", caller}
-		c := WithValidateActionsCtx(context.Background(), ctx)
 		v, err := action.NewExecution("", 0, big.NewInt(10), uint64(10), big.NewInt(10), data)
 		require.NoError(err)
 		bd := &action.EnvelopeBuilder{}
