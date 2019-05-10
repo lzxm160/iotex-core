@@ -7,10 +7,10 @@
 package protocol
 
 import (
+	"context"
 	"testing"
 
-	"github.com/iotexproject/iotex-core/action/protocol/execution"
-
+	"github.com/iotexproject/iotex-core/action"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,8 +25,7 @@ func TestRegister(t *testing.T) {
 func TestFind(t *testing.T) {
 	require := require.New(t)
 	reg := &Registry{}
-	cm := &MockChainManager{}
-	p := execution.NewProtocol(cm, 1)
+	p := &MockProtocol{}
 	require.NoError(reg.Register("1", p))
 	// Case I: Normal
 	_, ok := reg.Find("1")
@@ -38,4 +37,22 @@ func TestFind(t *testing.T) {
 	require.NoError(reg.Register("2", nil))
 	reg.Find("2")
 	require.True(ok)
+}
+
+type MockProtocol struct {
+}
+
+// Handle handles an execution
+func (p *MockProtocol) Handle(ctx context.Context, act action.Action, sm StateManager) (*action.Receipt, error) {
+	return nil, nil
+}
+
+// Validate validates an execution
+func (p *MockProtocol) Validate(_ context.Context, act action.Action) error {
+	return nil
+}
+
+// ReadState read the state on blockchain via protocol
+func (p *MockProtocol) ReadState(context.Context, StateManager, []byte, ...[]byte) ([]byte, error) {
+	return nil, nil
 }
