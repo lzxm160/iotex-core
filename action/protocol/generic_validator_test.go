@@ -9,13 +9,11 @@ package protocol
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"strings"
 	"testing"
 
 	"github.com/pkg/errors"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/go-pkgs/hash"
@@ -116,7 +114,6 @@ func TestActionProto(t *testing.T) {
 		require.NoError(nselp.LoadProto(selp.Proto()))
 		err = valid.Validate(c, nselp)
 		require.Error(err)
-		fmt.Println(err)
 		require.True(strings.Contains(err.Error(), "nonce is too low"))
 	}
 }
