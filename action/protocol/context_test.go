@@ -31,7 +31,7 @@ func TestGetRunActionsCtx(t *testing.T) {
 	require.NoError(err)
 	actionCtx := RunActionsCtx{1111, time.Now(), 1, addr, addr, hash.ZeroHash256, 0, nil, 0, 0, nil}
 	ctx := WithRunActionsCtx(context.Background(), actionCtx)
-	require.NotNil()
+	require.NotNil(ctx)
 	ret, ok := GetRunActionsCtx(ctx)
 	require.True(ok)
 	require.Equal(1111, ret.BlockHeight)
