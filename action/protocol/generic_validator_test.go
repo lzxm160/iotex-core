@@ -99,8 +99,7 @@ func TestActionProto(t *testing.T) {
 		require.NoError(nselp.LoadProto(selp.Proto()))
 		err = valid.Validate(c, nselp)
 		require.Error(err)
-		fmt.Println(err)
-		require.True(strings.Contains(err.Error(), "Insufficient balance for gas"))
+		require.True(strings.Contains(err.Error(), "invalid nonce value of account"))
 	}
 	// Case V: Call Nonce err
 	{
@@ -116,6 +115,7 @@ func TestActionProto(t *testing.T) {
 		require.NoError(nselp.LoadProto(selp.Proto()))
 		err = valid.Validate(c, nselp)
 		require.Error(err)
+		fmt.Println(err)
 		require.True(strings.Contains(err.Error(), "nonce is too low"))
 	}
 }
