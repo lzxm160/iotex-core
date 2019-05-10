@@ -13,12 +13,10 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
-	"github.com/iotexproject/iotex-core/test/mock/mock_chainmanager"
 	"github.com/iotexproject/iotex-core/test/testaddress"
 )
 
@@ -28,10 +26,7 @@ func TestActionProto(t *testing.T) {
 	require.NoError(err)
 	ctx := ValidateActionsCtx{1, "io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl6", caller}
 	c := WithValidateActionsCtx(context.Background(), ctx)
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mcm := mock_chainmanager.NewMockChainManager(ctrl)
-	valid := NewGenericValidator(mcm, 100000)
+	valid := NewGenericValidator(nil, 100000)
 	data, err := hex.DecodeString("")
 	require.NoError(err)
 	v, err := action.NewExecution("", 0, big.NewInt(10), uint64(10), big.NewInt(10), data)
