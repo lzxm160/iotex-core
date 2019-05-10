@@ -32,22 +32,40 @@ func TestActionProto(t *testing.T) {
 	valid := NewGenericValidator(cm, 100000)
 	data, err := hex.DecodeString("")
 	require.NoError(err)
-	v, err := action.NewExecution("", 0, big.NewInt(10), uint64(10), big.NewInt(10), data)
-	require.NoError(err)
-	fmt.Println(v)
+	// Case I: Normal
+	{
+		v, err := action.NewExecution("", 0, big.NewInt(10), uint64(10), big.NewInt(10), data)
+		require.NoError(err)
+		fmt.Println(v)
 
-	bd := &action.EnvelopeBuilder{}
-	elp := bd.SetGasPrice(big.NewInt(10)).
-		SetGasLimit(uint64(100000)).
-		SetAction(v).Build()
+		bd := &action.EnvelopeBuilder{}
+		elp := bd.SetGasPrice(big.NewInt(10)).
+			SetGasLimit(uint64(100000)).
+			SetAction(v).Build()
+		selp, err := action.Sign(elp, testaddress.Keyinfo["alfa"].PriKey)
+		require.NoError(err)
+		nselp := action.SealedEnvelope{}
+		require.NoError(nselp.LoadProto(selp.Proto()))
+		require.NoError(valid.Validate(c, nselp))
+	}
+	// Case II: GasLimit higher
+	{
+		v, err := action.NewExecution("", 0, big.NewInt(10), uint64(10), big.NewInt(10), data)
+		require.NoError(err)
+		fmt.Println(v)
 
-	selp, err := action.Sign(elp, testaddress.Keyinfo["alfa"].PriKey)
-	require.NoError(err)
-
-	nselp := action.SealedEnvelope{}
-	require.NoError(nselp.LoadProto(selp.Proto()))
-
-	require.NoError(valid.Validate(c, nselp))
+		bd := &action.EnvelopeBuilder{}
+		elp := bd.SetGasPrice(big.NewInt(10)).
+			SetGasLimit(uint64(1000000)).
+			SetAction(v).Build()
+		selp, err := action.Sign(elp, testaddress.Keyinfo["alfa"].PriKey)
+		require.NoError(err)
+		nselp := action.SealedEnvelope{}
+		require.NoError(nselp.LoadProto(selp.Proto()))
+		require.NoError(valid.Validate(c, nselp))
+	}
+	// Case III: Invalid recipient address
+	// Case IV: Negative gas fee
 }
 
 type MockChainManager struct {
