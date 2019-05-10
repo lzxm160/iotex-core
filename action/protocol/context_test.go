@@ -36,3 +36,16 @@ func TestGetRunActionsCtx(t *testing.T) {
 	require.True(ok)
 	require.Equal(1111, ret.BlockHeight)
 }
+func TestMustGetRunActionsCtx(t *testing.T) {
+	require := require.New(t)
+	addr, err := address.FromString("io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms")
+	require.NoError(err)
+	actionCtx := RunActionsCtx{1111, time.Now(), 1, addr, addr, hash.ZeroHash256, 0, nil, 0, 0, nil}
+	ctx := WithRunActionsCtx(context.Background(), actionCtx)
+	require.NotNil(ctx)
+	// Case I: Normal
+	ret := MustGetRunActionsCtx(ctx)
+	require.Equal(1111, ret.BlockHeight)
+	// Case II: Panic
+	require.Panics(func() { MustGetRunActionsCtx(context.Background()) }, "Miss run actions context")
+}
