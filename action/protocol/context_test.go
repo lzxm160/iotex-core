@@ -1,0 +1,30 @@
+// Copyright (c) 2018 IoTeX
+// This is an alpha (internal) release and is not suitable for production. This source code is provided 'as is' and no
+// warranties are given as to title or non-infringement, merchantability or fitness for purpose and, to the extent
+// permitted by law, all liability for your use of the code is disclaimed. This source code is governed by Apache
+// License 2.0 that can be found in the LICENSE file.
+
+package protocol
+
+import (
+	"context"
+	"testing"
+	"time"
+
+	"github.com/iotexproject/go-pkgs/hash"
+
+	"github.com/iotexproject/iotex-address/address"
+
+	"github.com/stretchr/testify/require"
+)
+
+func TestWithRunActionsCtx(t *testing.T) {
+	require := require.New(t)
+	addr, err := address.FromString("io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms")
+	require.NoError(err)
+	actionCtx := RunActionsCtx{1, time.Now(), 1, addr, addr, hash.ZeroHash256, 0, nil, 0, 0, nil}
+	// Case I: Normal
+	require.NotNil(WithRunActionsCtx(context.Background(), actionCtx))
+	// Case II: Protocol with ID is already registered
+	require.NotNil(WithRunActionsCtx(context.Background(), RunActionsCtx{}))
+}
