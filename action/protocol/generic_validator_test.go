@@ -103,7 +103,7 @@ func TestActionProto(t *testing.T) {
 	}
 	// Case V: Call Nonce err
 	{
-		v, err := action.NewExecution("", 0, big.NewInt(10), uint64(10), big.NewInt(10), data)
+		v, err := action.NewExecution("", 1, big.NewInt(10), uint64(10), big.NewInt(10), data)
 		require.NoError(err)
 		bd := &action.EnvelopeBuilder{}
 		elp := bd.SetGasPrice(big.NewInt(10)).
