@@ -49,3 +49,35 @@ func TestMustGetRunActionsCtx(t *testing.T) {
 	// Case II: Panic
 	require.Panics(func() { MustGetRunActionsCtx(context.Background()) }, "Miss run actions context")
 }
+
+func TestWithValidateActionsCtx(t *testing.T) {
+	require := require.New(t)
+	addr, err := address.FromString("io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms")
+	require.NoError(err)
+	validateCtx := ValidateActionsCtx{1, "io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms", addr}
+	require.NotNil(WithValidateActionsCtx(context.Background(), validateCtx))
+}
+func TestGetValidateActionsCtx(t *testing.T) {
+	require := require.New(t)
+	addr, err := address.FromString("io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms")
+	require.NoError(err)
+	validateCtx := ValidateActionsCtx{1111, "io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms", addr}
+	ctx := WithValidateActionsCtx(context.Background(), validateCtx)
+	require.NotNil(ctx)
+	ret, ok := GetValidateActionsCtx(ctx)
+	require.True(ok)
+	require.Equal(uint64(1111), ret.BlockHeight)
+}
+func TestMustGetValidateActionsCtx(t *testing.T) {
+	require := require.New(t)
+	addr, err := address.FromString("io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms")
+	require.NoError(err)
+	validateCtx := ValidateActionsCtx{1111, "io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms", addr}
+	ctx := WithValidateActionsCtx(context.Background(), validateCtx)
+	require.NotNil(ctx)
+	// Case I: Normal
+	ret := MustGetValidateActionsCtx(ctx)
+	require.Equal(uint64(1111), ret.BlockHeight)
+	// Case II: Panic
+	require.Panics(func() { MustGetValidateActionsCtx(context.Background()) }, "Miss run actions context")
+}
