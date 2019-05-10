@@ -16,22 +16,7 @@ func TestRegister(t *testing.T) {
 	require := require.New(t)
 	reg := &Registry{}
 	// Case I: Normal
-	{
-		require.NoError(reg.Register("1", nil))
-	}
+	require.NoError(reg.Register("1", nil))
 	// Case II: GasLimit higher
-	{
-		require.Error(reg.Register("1", nil))
-	}
-	// Case III: GasLimit lower
-	{
-	}
-	// Case IV: Call cm Nonce err
-	{
-
-	}
-	// Case V: Call Nonce err
-	{
-
-	}
+	require.Error(reg.Register("1", nil))
 }
