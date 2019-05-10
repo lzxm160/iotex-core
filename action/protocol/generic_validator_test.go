@@ -9,7 +9,6 @@ package protocol
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -36,8 +35,6 @@ func TestActionProto(t *testing.T) {
 	{
 		v, err := action.NewExecution("", 0, big.NewInt(10), uint64(10), big.NewInt(10), data)
 		require.NoError(err)
-		fmt.Println(v)
-
 		bd := &action.EnvelopeBuilder{}
 		elp := bd.SetGasPrice(big.NewInt(10)).
 			SetGasLimit(uint64(100000)).
@@ -52,8 +49,6 @@ func TestActionProto(t *testing.T) {
 	{
 		v, err := action.NewExecution("", 0, big.NewInt(10), uint64(10), big.NewInt(10), data)
 		require.NoError(err)
-		fmt.Println(v)
-
 		bd := &action.EnvelopeBuilder{}
 		elp := bd.SetGasPrice(big.NewInt(10)).
 			SetGasLimit(uint64(1000000)).
@@ -64,7 +59,20 @@ func TestActionProto(t *testing.T) {
 		require.NoError(nselp.LoadProto(selp.Proto()))
 		require.Error(valid.Validate(c, nselp))
 	}
-	// Case III: Invalid recipient address
+	// Case III: GasLimit lower
+	{
+		v, err := action.NewExecution("", 0, big.NewInt(10), uint64(10), big.NewInt(10), data)
+		require.NoError(err)
+		bd := &action.EnvelopeBuilder{}
+		elp := bd.SetGasPrice(big.NewInt(10)).
+			SetGasLimit(uint64(10)).
+			SetAction(v).Build()
+		selp, err := action.Sign(elp, testaddress.Keyinfo["alfa"].PriKey)
+		require.NoError(err)
+		nselp := action.SealedEnvelope{}
+		require.NoError(nselp.LoadProto(selp.Proto()))
+		require.Error(valid.Validate(c, nselp))
+	}
 	// Case IV: Negative gas fee
 }
 
