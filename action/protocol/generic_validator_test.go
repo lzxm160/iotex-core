@@ -26,7 +26,7 @@ import (
 
 func TestActionProto(t *testing.T) {
 	require := require.New(t)
-	caller, err := address.FromString("io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl7")
+	caller, err := address.FromString("io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms")
 	require.NoError(err)
 	ctx := ValidateActionsCtx{1, "io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl6", caller}
 	c := WithValidateActionsCtx(context.Background(), ctx)
