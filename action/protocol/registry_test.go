@@ -17,6 +17,21 @@ func TestRegister(t *testing.T) {
 	reg := &Registry{}
 	// Case I: Normal
 	require.NoError(reg.Register("1", nil))
-	// Case II: GasLimit higher
+	// Case II: Protocol with ID is already registered
 	require.Error(reg.Register("1", nil))
+}
+func TestFind(t *testing.T) {
+	require := require.New(t)
+	reg := &Registry{}
+	require.NoError(reg.Register("1", nil))
+	// Case I: Normal
+	_, ok := reg.Find("1")
+	require.True(ok)
+	// Case II: Not exist
+	_, ok = reg.Find("0")
+	require.False(ok)
+	// Case III: Registry stores the item which is not a protocol
+	require.NoError(reg.Register("2", nil))
+	reg.Find("2")
+	require.True(ok)
 }
