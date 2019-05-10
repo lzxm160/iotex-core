@@ -107,7 +107,7 @@ func TestActionProto(t *testing.T) {
 		require.NoError(err)
 		bd := &action.EnvelopeBuilder{}
 		elp := bd.SetGasPrice(big.NewInt(10)).
-			SetGasLimit(uint64(10)).
+			SetGasLimit(uint64(100000)).
 			SetAction(v).Build()
 		selp, err := action.Sign(elp, testaddress.Keyinfo["alfa"].PriKey)
 		require.NoError(err)
