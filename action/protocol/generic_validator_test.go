@@ -15,8 +15,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
+	"github.com/iotexproject/iotex-core/state"
 	"github.com/iotexproject/iotex-core/test/testaddress"
 )
 
@@ -26,7 +28,8 @@ func TestActionProto(t *testing.T) {
 	require.NoError(err)
 	ctx := ValidateActionsCtx{1, "io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl6", caller}
 	c := WithValidateActionsCtx(context.Background(), ctx)
-	valid := NewGenericValidator(nil, 100000)
+	cm := &MockChainManager{}
+	valid := NewGenericValidator(cm, 100000)
 	data, err := hex.DecodeString("")
 	require.NoError(err)
 	v, err := action.NewExecution("", 0, big.NewInt(10), uint64(10), big.NewInt(10), data)
@@ -45,4 +48,31 @@ func TestActionProto(t *testing.T) {
 	require.NoError(nselp.LoadProto(selp.Proto()))
 
 	require.NoError(valid.Validate(c, nselp))
+}
+
+type MockChainManager struct {
+}
+
+// Nonce mocks base method
+func (m *MockChainManager) Nonce(addr string) (uint64, error) {
+	return 1, nil
+}
+func (m *MockChainManager) ChainID() uint32 {
+	return 0
+}
+
+// GetHashByHeight returns Block's hash by height
+func (m *MockChainManager) GetHashByHeight(height uint64) (hash.Hash256, error) {
+}
+
+// StateByAddr returns account of a given address
+func (m *MockChainManager) StateByAddr(address string) (*state.Account, error) {
+}
+
+// CandidatesByHeight returns the candidate list by a given height
+func (m *MockChainManager) CandidatesByHeight(height uint64) ([]*state.Candidate, error) {
+}
+
+// ProductivityByEpoch returns the number of produced blocks per delegate in an epoch
+func (m *MockChainManager) ProductivityByEpoch(epochNum uint64) (uint64, map[string]uint64, error) {
 }
