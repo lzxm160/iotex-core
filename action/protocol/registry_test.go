@@ -35,8 +35,7 @@ func TestFind(t *testing.T) {
 	require.False(ok)
 	// Case III: Registry stores the item which is not a protocol
 	require.NoError(reg.Register("2", nil))
-	reg.Find("2")
-	require.True(ok)
+	require.Panics(func() { reg.Find("2") }, "Registry stores the item which is not a protocol")
 }
 
 type MockProtocol struct {
