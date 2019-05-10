@@ -62,7 +62,7 @@ func TestActionProto(t *testing.T) {
 		require.NoError(err)
 		nselp := action.SealedEnvelope{}
 		require.NoError(nselp.LoadProto(selp.Proto()))
-		require.NoError(valid.Validate(c, nselp))
+		require.Error(valid.Validate(c, nselp))
 	}
 	// Case III: Invalid recipient address
 	// Case IV: Negative gas fee
