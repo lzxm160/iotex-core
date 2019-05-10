@@ -61,6 +61,7 @@ func TestActionProto(t *testing.T) {
 		nselp := action.SealedEnvelope{}
 		require.NoError(nselp.LoadProto(selp.Proto()))
 		err = valid.Validate(c, nselp)
+		require.Error(err)
 		require.True(strings.Contains(err.Error(), "gas is higher than gas limit"))
 	}
 	// Case III: GasLimit lower
@@ -76,6 +77,7 @@ func TestActionProto(t *testing.T) {
 		nselp := action.SealedEnvelope{}
 		require.NoError(nselp.LoadProto(selp.Proto()))
 		err = valid.Validate(c, nselp)
+		require.Error(err)
 		require.True(strings.Contains(err.Error(), "insufficient gas"))
 	}
 	// Case IV: Call cm Nonce err
@@ -91,6 +93,7 @@ func TestActionProto(t *testing.T) {
 		nselp := action.SealedEnvelope{}
 		require.NoError(nselp.LoadProto(selp.Proto()))
 		err = valid.Validate(c, nselp)
+		require.Error(err)
 		require.True(strings.Contains(err.Error(), "invalid nonce value of account"))
 	}
 	// Case V: Call Nonce err
@@ -110,6 +113,7 @@ func TestActionProto(t *testing.T) {
 		nselp := action.SealedEnvelope{}
 		require.NoError(nselp.LoadProto(selp.Proto()))
 		err = valid.Validate(c, nselp)
+		require.Error(err)
 		require.True(strings.Contains(err.Error(), "nonce is too low"))
 	}
 }
