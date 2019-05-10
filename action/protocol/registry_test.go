@@ -9,6 +9,8 @@ package protocol
 import (
 	"testing"
 
+	"github.com/iotexproject/iotex-core/action/protocol/execution"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,7 +25,9 @@ func TestRegister(t *testing.T) {
 func TestFind(t *testing.T) {
 	require := require.New(t)
 	reg := &Registry{}
-	require.NoError(reg.Register("1", nil))
+	cm := &MockChainManager{}
+	p := execution.NewProtocol(cm, 1)
+	require.NoError(reg.Register("1", p))
 	// Case I: Normal
 	_, ok := reg.Find("1")
 	require.True(ok)
