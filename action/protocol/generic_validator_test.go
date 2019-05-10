@@ -10,7 +10,10 @@ import (
 	"context"
 	"encoding/hex"
 	"math/big"
+	"strings"
 	"testing"
+
+	"github.com/pkg/errors"
 
 	"github.com/stretchr/testify/require"
 
@@ -57,7 +60,8 @@ func TestActionProto(t *testing.T) {
 		require.NoError(err)
 		nselp := action.SealedEnvelope{}
 		require.NoError(nselp.LoadProto(selp.Proto()))
-		require.Error(valid.Validate(c, nselp))
+		err = valid.Validate(c, nselp)
+		require.True(strings.Contains(err.Error(), "gas is higher than gas limit"))
 	}
 	// Case III: GasLimit lower
 	{
@@ -71,9 +75,43 @@ func TestActionProto(t *testing.T) {
 		require.NoError(err)
 		nselp := action.SealedEnvelope{}
 		require.NoError(nselp.LoadProto(selp.Proto()))
-		require.Error(valid.Validate(c, nselp))
+		err = valid.Validate(c, nselp)
+		require.True(strings.Contains(err.Error(), "insufficient gas"))
 	}
-	// Case IV: Negative gas fee
+	// Case IV: Call cm Nonce err
+	{
+		v, err := action.NewExecution("", 0, big.NewInt(10), uint64(10), big.NewInt(10), data)
+		require.NoError(err)
+		bd := &action.EnvelopeBuilder{}
+		elp := bd.SetGasPrice(big.NewInt(10)).
+			SetGasLimit(uint64(10)).
+			SetAction(v).Build()
+		selp, err := action.Sign(elp, testaddress.Keyinfo["alfa"].PriKey)
+		require.NoError(err)
+		nselp := action.SealedEnvelope{}
+		require.NoError(nselp.LoadProto(selp.Proto()))
+		err = valid.Validate(c, nselp)
+		require.True(strings.Contains(err.Error(), "invalid nonce value of account"))
+	}
+	// Case V: Call Nonce err
+	{
+		caller, err := address.FromString("io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl7")
+		require.NoError(err)
+		ctx := ValidateActionsCtx{1, "io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl6", caller}
+		c := WithValidateActionsCtx(context.Background(), ctx)
+		v, err := action.NewExecution("", 0, big.NewInt(10), uint64(10), big.NewInt(10), data)
+		require.NoError(err)
+		bd := &action.EnvelopeBuilder{}
+		elp := bd.SetGasPrice(big.NewInt(10)).
+			SetGasLimit(uint64(10)).
+			SetAction(v).Build()
+		selp, err := action.Sign(elp, testaddress.Keyinfo["alfa"].PriKey)
+		require.NoError(err)
+		nselp := action.SealedEnvelope{}
+		require.NoError(nselp.LoadProto(selp.Proto()))
+		err = valid.Validate(c, nselp)
+		require.True(strings.Contains(err.Error(), "nonce is too low"))
+	}
 }
 
 type MockChainManager struct {
@@ -81,7 +119,10 @@ type MockChainManager struct {
 
 // Nonce mocks base method
 func (m *MockChainManager) Nonce(addr string) (uint64, error) {
-	return 1, nil
+	if strings.EqualFold("io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl6", addr) {
+		return 0, errors.New("MockChainManager nonce error")
+	}
+	return 2, nil
 }
 func (m *MockChainManager) ChainID() uint32 {
 	return 0
