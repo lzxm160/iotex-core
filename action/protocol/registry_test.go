@@ -21,7 +21,6 @@ func TestRegister(t *testing.T) {
 	}
 	// Case II: GasLimit higher
 	{
-		require.NoError(reg.Register("1", nil))
 		require.Error(reg.Register("1", nil))
 	}
 	// Case III: GasLimit lower
