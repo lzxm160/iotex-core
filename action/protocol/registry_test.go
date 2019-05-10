@@ -37,6 +37,17 @@ func TestFind(t *testing.T) {
 	require.NoError(reg.Register("2", nil))
 	require.Panics(func() { reg.Find("2") }, "Registry stores the item which is not a protocol")
 }
+func TestAll(t *testing.T) {
+	require := require.New(t)
+	reg := &Registry{}
+	p := &MockProtocol{}
+	require.NoError(reg.Register("1", p))
+	// Case I: Normal
+	require.Equal(1, len(reg.All()))
+	// Case II: Registry stores the item which is not a protocol
+	require.NoError(reg.Register("2", nil))
+	require.Panics(func() { reg.All() }, "Registry stores the item which is not a protocol")
+}
 
 type MockProtocol struct {
 }
