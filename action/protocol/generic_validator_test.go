@@ -63,16 +63,20 @@ func (m *MockChainManager) ChainID() uint32 {
 
 // GetHashByHeight returns Block's hash by height
 func (m *MockChainManager) GetHashByHeight(height uint64) (hash.Hash256, error) {
+	return hash.ZeroHash256, nil
 }
 
 // StateByAddr returns account of a given address
 func (m *MockChainManager) StateByAddr(address string) (*state.Account, error) {
+	return nil, nil
 }
 
 // CandidatesByHeight returns the candidate list by a given height
 func (m *MockChainManager) CandidatesByHeight(height uint64) ([]*state.Candidate, error) {
+	return nil, nil
 }
 
 // ProductivityByEpoch returns the number of produced blocks per delegate in an epoch
 func (m *MockChainManager) ProductivityByEpoch(epochNum uint64) (uint64, map[string]uint64, error) {
+	return 0, nil, nil
 }
