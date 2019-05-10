@@ -26,7 +26,7 @@ import (
 
 func TestActionProto(t *testing.T) {
 	require := require.New(t)
-	caller, err := address.FromString("io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl6")
+	caller, err := address.FromString("io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl7")
 	require.NoError(err)
 	ctx := ValidateActionsCtx{1, "io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl6", caller}
 	c := WithValidateActionsCtx(context.Background(), ctx)
@@ -98,7 +98,7 @@ func TestActionProto(t *testing.T) {
 	}
 	// Case V: Call Nonce err
 	{
-		caller, err := address.FromString("io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl7")
+		caller, err := address.FromString("io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl6")
 		require.NoError(err)
 		ctx := ValidateActionsCtx{1, "io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl6", caller}
 		c := WithValidateActionsCtx(context.Background(), ctx)
