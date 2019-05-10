@@ -23,8 +23,16 @@ func TestWithRunActionsCtx(t *testing.T) {
 	addr, err := address.FromString("io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms")
 	require.NoError(err)
 	actionCtx := RunActionsCtx{1, time.Now(), 1, addr, addr, hash.ZeroHash256, 0, nil, 0, 0, nil}
-	// Case I: Normal
 	require.NotNil(WithRunActionsCtx(context.Background(), actionCtx))
-	// Case II: Protocol with ID is already registered
-	require.NotNil(WithRunActionsCtx(context.Background(), RunActionsCtx{}))
+}
+func TestGetRunActionsCtx(t *testing.T) {
+	require := require.New(t)
+	addr, err := address.FromString("io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms")
+	require.NoError(err)
+	actionCtx := RunActionsCtx{1111, time.Now(), 1, addr, addr, hash.ZeroHash256, 0, nil, 0, 0, nil}
+	ctx := WithRunActionsCtx(context.Background(), actionCtx)
+	require.NotNil()
+	ret, ok := GetRunActionsCtx(ctx)
+	require.True(ok)
+	require.Equal(1111, ret.BlockHeight)
 }
