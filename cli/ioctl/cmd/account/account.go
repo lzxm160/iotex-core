@@ -73,12 +73,6 @@ func Sign(signer, password, message string) (signedMessage string, err error) {
 	if err != nil {
 		return
 	}
-	{
-		rets, _ := ethcrypto.Sign(mes, pri.EcdsaPrivateKey())
-
-		fmt.Printf("%x\n", rets)
-	}
-
 	signedMessage = hex.EncodeToString(ret)
 	return
 }
