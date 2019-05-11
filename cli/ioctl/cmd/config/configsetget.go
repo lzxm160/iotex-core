@@ -101,7 +101,7 @@ func set(args []string) (string, error) {
 		return "", ErrConfigNotMatch
 	case "endpoint":
 		if !isMatch(args[1]) {
-			return "", fmt.Errorf("endpoint %s match error", args[1])
+			return "", fmt.Errorf("Endpoint %s is not valid", args[1])
 		}
 		ReadConfig.Endpoint = args[1]
 		ReadConfig.SecureConnect = !Insecure
