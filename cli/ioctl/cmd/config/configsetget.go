@@ -15,8 +15,15 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	ipPattern       = `^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$`
+	domainPattern   = `^[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+\.?$`
+	endpointPattern = "(" + ipPattern + "|(" + domainPattern + "))" + `(:\d{1,5})?`
+)
+
 var (
-	validArgs = []string{"endpoint", "wallet"}
+	validArgs       = []string{"endpoint", "wallet"}
+	endpointCompile = regexp.MustCompile("^" + endpointPattern + "$")
 )
 
 // configGetCmd represents the config get command
@@ -83,27 +90,19 @@ func Get(arg string) (string, error) {
 		return ReadConfig.Wallet, nil
 	}
 }
-func isMatch(endpoint string)bool{
+func isMatch(endpoint string) bool {
 	fmt.Println(endpoint)
-	const(
-		ipPattern = `^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$`
-		domainPattern = `[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+\.?`
-		endpointPattern ="(" + ipPattern + "|(" + domainPattern + "))" +`(:\d{1,5})?`
-	)
-	endpointCompile,err:= regexp.Compile(endpointPattern)
-	if err!=nil{
-		return false
-	}
 	return endpointCompile.MatchString(endpoint)
 }
+
 // set sets config variable
 func set(args []string) (string, error) {
 	switch args[0] {
 	default:
 		return "", ErrConfigNotMatch
 	case "endpoint":
-		if !isMatch(args[1]){
-			return "",fmt.Errorf("endpoint %s match error", args[1])
+		if !isMatch(args[1]) {
+			return "", fmt.Errorf("endpoint %s match error", args[1])
 		}
 		ReadConfig.Endpoint = args[1]
 		ReadConfig.SecureConnect = !Insecure
