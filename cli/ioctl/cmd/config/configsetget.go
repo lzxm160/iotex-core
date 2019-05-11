@@ -84,6 +84,7 @@ func Get(arg string) (string, error) {
 	}
 }
 func isMatch(endpoint string)bool{
+	fmt.Println(endpoint)
 	const(
 		ip4Pattern = `((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)`
 		ip6Pattern = `(([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|` +
