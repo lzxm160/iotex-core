@@ -91,7 +91,6 @@ func Get(arg string) (string, error) {
 	}
 }
 func isMatch(endpoint string) bool {
-	fmt.Println(endpoint)
 	return endpointCompile.MatchString(endpoint)
 }
 
