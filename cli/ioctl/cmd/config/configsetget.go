@@ -19,7 +19,7 @@ const (
 	ipPattern       = `((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)`
 	domainPattern   = `[a-zA-Z0-9][a-zA-Z0-9_-]{0,62}(\.[a-zA-Z0-9][a-zA-Z0-9_-]{0,62})*(\.[a-zA-Z][a-zA-Z0-9]{0,10}){1}`
 	localPattern    = "localhost"
-	endpointPattern = "(" + ipPattern + "|(" + domainPattern + ")" + "|(" + localPattern + ")" + "))" + `(:\d{1,5})?`
+	endpointPattern = "(" + ipPattern + "|(" + domainPattern + ")" + "|(" + localPattern + "))" + `(:\d{1,5})?`
 )
 
 var (
