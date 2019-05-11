@@ -44,5 +44,6 @@ func accountSign(args []string) (string, error) {
 		log.L().Error("failed to get password", zap.Error(err))
 		return "", err
 	}
+	//sign(keccak256("\x19Ethereum Signed Message:\n" + len(message) + message)))
 	return Sign(addr, string(bytePassword), args[1])
 }
