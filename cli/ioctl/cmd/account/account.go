@@ -70,6 +70,7 @@ func Sign(signer, password, message string) (signedMessage string, err error) {
 	if err != nil {
 		return
 	}
+	fmt.Println(ret, ":", err)
 	signedMessage = hex.EncodeToString(ret)
 	return
 }
