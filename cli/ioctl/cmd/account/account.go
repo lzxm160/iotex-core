@@ -47,6 +47,7 @@ func init() {
 	AccountCmd.AddCommand(accountDeleteCmd)
 	AccountCmd.AddCommand(accountEthaddrCmd)
 	AccountCmd.AddCommand(accountExportCmd)
+	AccountCmd.AddCommand(accountExportPublicCmd)
 	AccountCmd.AddCommand(accountImportCmd)
 	AccountCmd.AddCommand(accountListCmd)
 	AccountCmd.AddCommand(accountNonceCmd)
