@@ -18,14 +18,14 @@ import (
 	"github.com/iotexproject/iotex-core/pkg/log"
 )
 
-// accountExportPublicCmd represents the account export public key command
-var accountExportPublicCmd = &cobra.Command{
-	Use:   "exportpublic (ALIAS|ADDRESS)",
-	Short: "Export IoTeX public key from wallet",
-	Args:  cobra.ExactArgs(1),
+// accountSignCmd represents the account sign command
+var accountSignCmd = &cobra.Command{
+	Use:   "sign (ALIAS|ADDRESS) MESSAGE",
+	Short: "Sign message with private key from wallet",
+	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
-		output, err := accountExportPublic(args)
+		output, err := accountSign(args)
 		if err == nil {
 			fmt.Println(output)
 		}
@@ -33,7 +33,7 @@ var accountExportPublicCmd = &cobra.Command{
 	},
 }
 
-func accountExportPublic(args []string) (string, error) {
+func accountSign(args []string) (string, error) {
 	addr, err := alias.Address(args[0])
 	if err != nil {
 		return "", err
@@ -44,10 +44,5 @@ func accountExportPublic(args []string) (string, error) {
 		log.L().Error("failed to get password", zap.Error(err))
 		return "", err
 	}
-	prvKey, err := KsAccountToPrivateKey(addr, string(bytePassword))
-	if err != nil {
-		return "", err
-	}
-	defer prvKey.Zero()
-	return prvKey.PublicKey().HexString(), nil
+	return Sign(addr, string(bytePassword), args[1])
 }

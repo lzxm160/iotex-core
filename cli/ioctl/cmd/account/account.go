@@ -9,6 +9,7 @@ package account
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"fmt"
 	"syscall"
 
@@ -56,6 +57,20 @@ func init() {
 		config.ReadConfig.Endpoint, "set endpoint for once")
 	AccountCmd.PersistentFlags().BoolVar(&config.Insecure, "insecure", config.Insecure,
 		"insecure connection for once")
+}
+
+// Sign sign message with signer
+func Sign(signer, password, message string) (signedMessage string, err error) {
+	pri, err := KsAccountToPrivateKey(signer, password)
+	if err != nil {
+		return
+	}
+	ret, err := pri.Sign([]byte(message))
+	if err != nil {
+		return
+	}
+	signedMessage = hex.EncodeToString(ret)
+	return
 }
 
 // KsAccountToPrivateKey generates our PrivateKey interface from Keystore account
