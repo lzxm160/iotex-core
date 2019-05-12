@@ -11,6 +11,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"strings"
 	"syscall"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -66,7 +67,12 @@ func Sign(signer, password, message string) (signedMessage string, err error) {
 	if err != nil {
 		return
 	}
-	b, err := hex.DecodeString(message)
+	mes := message
+	head := message[:2]
+	if strings.EqualFold(head, "0x") {
+		mes = message[2:]
+	}
+	b, err := hex.DecodeString(mes)
 	if err != nil {
 		return
 	}
