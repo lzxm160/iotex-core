@@ -21,7 +21,6 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/iotexproject/go-pkgs/crypto"
-	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
@@ -67,9 +66,13 @@ func Sign(signer, password, message string) (signedMessage string, err error) {
 	if err != nil {
 		return
 	}
-	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(message), message)
-	mes := hash.Hash256b([]byte(msg))
-	ret, err := pri.Sign([]byte(mes[:]))
+	b, err := hex.DecodeString(message)
+	if err != nil {
+		return
+	}
+	prefix := fmt.Sprintf("\x19Ethereum Signed Message:\n%d", len(b))
+	msg := append([]byte(prefix), b...)
+	ret, err := pri.Sign([]byte(msg[:]))
 	if err != nil {
 		return
 	}
