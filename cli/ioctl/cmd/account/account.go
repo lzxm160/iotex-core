@@ -78,7 +78,7 @@ func Sign(signer, password, message string) (signedMessage string, err error) {
 	}
 	prefix := fmt.Sprintf("\x19Ethereum Signed Message:\n%d", len(b))
 	msg := append([]byte(prefix), b...)
-	ret, err := pri.Sign([]byte(msg[:]))
+	ret, err := pri.Sign(msg)
 	if err != nil {
 		return
 	}
