@@ -14,6 +14,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/iotexproject/go-pkgs/hash"
+
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -78,7 +80,8 @@ func Sign(signer, password, message string) (signedMessage string, err error) {
 	}
 	prefix := fmt.Sprintf("\x19Ethereum Signed Message:\n%d", len(b))
 	msg := append([]byte(prefix), b...)
-	ret, err := pri.Sign(msg)
+	mesToSign := hash.Hash256b(msg)
+	ret, err := pri.Sign(mesToSign[:])
 	if err != nil {
 		return
 	}
