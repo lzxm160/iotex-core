@@ -9,17 +9,17 @@ package factory
 import (
 	"testing"
 
-	"github.com/iotexproject/go-pkgs/hash"
-
 	"github.com/stretchr/testify/require"
+
+	"github.com/iotexproject/go-pkgs/hash"
 )
 
 func TestGet(t *testing.T) {
 	require := require.New(t)
 	state := newStateTX(1, nil, nil)
-	require.Equal(1, state.Version())
+	require.Equal(uint64(1), state.Version())
 	require.Equal(hash.ZeroHash256, state.RootHash())
-	require.Equal(0, state.Height())
+	require.Equal(uint64(0), state.Height())
 	require.Nil(state.GetDB())
 
 }
