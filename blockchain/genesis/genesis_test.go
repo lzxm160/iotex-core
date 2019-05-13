@@ -9,6 +9,11 @@ package genesis
 import (
 	"testing"
 
+	"github.com/iotexproject/iotex-core/pkg/unit"
+	"github.com/iotexproject/iotex-core/test/identityset"
+
+	"github.com/iotexproject/go-pkgs/hash"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -26,4 +31,20 @@ func TestDefaultConfig(t *testing.T) {
 	assert.Equal(t, Default.BlockReward(), cfg.BlockReward())
 	assert.Equal(t, Default.EpochReward(), cfg.EpochReward())
 	assert.Equal(t, Default.FoundationBonus(), cfg.FoundationBonus())
+}
+func TestHash(t *testing.T) {
+	require := require.New(t)
+	cfg, err := New()
+	require.NoError(err)
+	require.NotEqual(hash.ZeroHash256, cfg.Hash())
+}
+func TestInitBalances(t *testing.T) {
+	require := require.New(t)
+	cfg, err := New()
+	require.NoError(err)
+	addrs, amounts := cfg.InitBalances()
+	for i, addr := range addrs {
+		require.Equal(addr, identityset.Address(i).String())
+		require.Equal(amounts[i].String(), unit.ConvertIotxToRau(100000000).String())
+	}
 }
