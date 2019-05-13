@@ -48,7 +48,7 @@ func TestBroadcast(t *testing.T) {
 	}
 	u := func(_ context.Context, _ uint32, _ peerstore.PeerInfo, _ proto.Message) {}
 	cfg := config.Config{
-		Network: config.Network{Host: "127.0.0.1", Port: testutil.RandomPort()},
+		Network: config.Network{Host: "127.0.0.1", Port: 30000},
 	}
 	bootnode := NewAgent(cfg, b, u)
 	require.NoError(t, bootnode.Start(ctx))
@@ -57,7 +57,7 @@ func TestBroadcast(t *testing.T) {
 		cfg := config.Config{
 			Network: config.Network{
 				Host:           "127.0.0.1",
-				Port:           testutil.RandomPort(),
+				Port:           30001 + i,
 				BootstrapNodes: []string{bootnode.Self()[0].String()},
 			},
 		}
