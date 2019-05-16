@@ -9,6 +9,7 @@ package block
 import (
 	"testing"
 
+	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,4 +28,20 @@ func TestSerDer(t *testing.T) {
 	require.NoError(err)
 	require.NoError(body.Deserialize(ser))
 	require.Equal(0, len(body.Actions))
+}
+
+func TestLoadProto(t *testing.T) {
+	require := require.New(t)
+	body := Body{}
+	blockBody := body.Proto()
+	require.NotNil(blockBody)
+	require.NoError(body.LoadProto(blockBody))
+	require.Equal(0, len(body.Actions))
+}
+
+func TestCalculateTxRoot(t *testing.T) {
+	require := require.New(t)
+	body := Body{}
+	h := body.CalculateTxRoot()
+	require.Equal(h, hash.ZeroHash256)
 }
