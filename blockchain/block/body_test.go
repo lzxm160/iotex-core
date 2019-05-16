@@ -19,3 +19,12 @@ func TestProto(t *testing.T) {
 	require.NotNil(blockBody)
 	require.Equal(0, len(blockBody.Actions))
 }
+
+func TestSerDer(t *testing.T) {
+	require := require.New(t)
+	body := Body{}
+	ser, err := body.Serialize()
+	require.NoError(err)
+	require.NoError(body.Deserialize(ser))
+	require.Equal(0, len(body.Actions))
+}
