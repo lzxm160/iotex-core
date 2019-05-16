@@ -7,7 +7,12 @@
 package block
 
 import (
+	"math/big"
 	"testing"
+
+	"github.com/iotexproject/iotex-core/test/testaddress"
+
+	"github.com/iotexproject/iotex-core/action"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/stretchr/testify/require"
@@ -19,6 +24,12 @@ func TestProto(t *testing.T) {
 	blockBody := body.Proto()
 	require.NotNil(blockBody)
 	require.Equal(0, len(blockBody.Actions))
+
+	body, err := makeBody()
+	require.NoError(err)
+	blockBody = body.Proto()
+	require.NotNil(blockBody)
+	require.Equal(1, len(blockBody.Actions))
 }
 
 func TestSerDer(t *testing.T) {
@@ -44,4 +55,24 @@ func TestCalculateTxRoot(t *testing.T) {
 	body := Body{}
 	h := body.CalculateTxRoot()
 	require.Equal(h, hash.ZeroHash256)
+}
+
+func makeBody() (body Body, err error) {
+	A := make([]action.SealedEnvelope, 0)
+	v, err := action.NewExecution("", 0, big.NewInt(10), uint64(10), big.NewInt(10), []byte("data"))
+	if err != nil {
+		return
+	}
+	bd := &action.EnvelopeBuilder{}
+	elp := bd.SetGasPrice(big.NewInt(10)).
+		SetGasLimit(uint64(100000)).
+		SetAction(v).Build()
+
+	selp, err := action.Sign(elp, testaddress.Keyinfo["alfa"].PriKey)
+	if err != nil {
+		return
+	}
+	A = append(A, selp)
+	body = Body{A}
+	return
 }
