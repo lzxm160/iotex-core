@@ -39,6 +39,13 @@ func TestSerDer(t *testing.T) {
 	require.NoError(err)
 	require.NoError(body.Deserialize(ser))
 	require.Equal(0, len(body.Actions))
+
+	body, err = makeBody()
+	require.NoError(err)
+	ser, err = body.Serialize()
+	require.NoError(err)
+	require.NoError(body.Deserialize(ser))
+	require.Equal(1, len(body.Actions))
 }
 
 func TestLoadProto(t *testing.T) {
@@ -48,6 +55,13 @@ func TestLoadProto(t *testing.T) {
 	require.NotNil(blockBody)
 	require.NoError(body.LoadProto(blockBody))
 	require.Equal(0, len(body.Actions))
+
+	body, err := makeBody()
+	require.NoError(err)
+	blockBody = body.Proto()
+	require.NotNil(blockBody)
+	require.NoError(body.LoadProto(blockBody))
+	require.Equal(1, len(body.Actions))
 }
 
 func TestCalculateTxRoot(t *testing.T) {
