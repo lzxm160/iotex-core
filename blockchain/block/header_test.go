@@ -20,7 +20,8 @@ import (
 
 func TestHeader(t *testing.T) {
 	require := require.New(t)
-	ti := time.Now()
+	ti, err := time.Parse("2006-Jan-02", "2019-Feb-03")
+	require.NoError(err)
 	footer := &Header{
 		version:          1,
 		height:           2,
