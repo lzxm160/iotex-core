@@ -35,11 +35,11 @@ func TestHeader(t *testing.T) {
 	require.Equal(ti, footer.Timestamp())
 	expected := "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
 	require.True(isEqual(expected, footer.PrevHash()))
-	require.Nil(isEqual(expected, footer.TxRoot()))
-	require.Nil(isEqual(expected, footer.DeltaStateDigest()))
+	require.True(isEqual(expected, footer.TxRoot()))
+	require.True(isEqual(expected, footer.DeltaStateDigest()))
 	require.Nil(footer.PublicKey())
-	require.Nil(isEqual(expected, footer.ReceiptRoot()))
-	require.Nil(isEqual(expected, footer.HashBlock()))
+	require.True(isEqual(expected, footer.ReceiptRoot()))
+	require.True(isEqual(expected, footer.HashBlock()))
 	require.NotNil(footer.BlockHeaderProto())
 	require.NotNil(footer.BlockHeaderCoreProto())
 }
