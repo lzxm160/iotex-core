@@ -45,7 +45,7 @@ func TestHeader(t *testing.T) {
 	require.True(isEqual("39f9a57253c8396601394ca504ff0cd648adefbd1d0728e9e77fd211e34c5258", footer.HashBlock()))
 	require.NotNil(footer.BlockHeaderProto())
 	require.NotNil(footer.BlockHeaderCoreProto())
-	require.Equal("", footer.ProducerAddress())
+	require.Equal("io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms", footer.ProducerAddress())
 }
 func isEqual(expected string, hash hash.Hash256) bool {
 	h := fmt.Sprintf("%x", hash[:])
