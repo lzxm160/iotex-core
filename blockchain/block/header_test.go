@@ -44,7 +44,7 @@ func TestSerDesHeadrer(t *testing.T) {
 	require.NoError(err)
 	require.NotNil(ser)
 	header := &Header{}
-	require.NoError(h.Deserialize(ser))
+	require.NoError(header.Deserialize(ser))
 	require.Equal(uint32(1), header.Version())
 	require.Equal(uint64(2), header.Height())
 	ti, err := time.Parse("2006-Jan-02", "2019-Feb-03")
