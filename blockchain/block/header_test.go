@@ -7,6 +7,8 @@
 package block
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -31,7 +33,8 @@ func TestHeader(t *testing.T) {
 	require.Equal(uint32(1), footer.Version())
 	require.Equal(uint64(2), footer.Height())
 	require.Equal(ti, footer.Timestamp())
-	require.Nil(footer.PrevHash())
+	expected := ""
+	require.True(isEqual(expected, footer.PrevHash()))
 	require.Nil(footer.TxRoot())
 	require.Nil(footer.DeltaStateDigest())
 	require.Nil(footer.PublicKey())
@@ -39,4 +42,8 @@ func TestHeader(t *testing.T) {
 	require.Nil(footer.HashBlock())
 	require.NotNil(footer.BlockHeaderProto())
 	require.NotNil(footer.BlockHeaderCoreProto())
+}
+func isEqual(expected string, hash hash.Hash256) bool {
+	h := fmt.Sprintf("%x", hash[:])
+	return strings.EqualFold(expected, h)
 }
