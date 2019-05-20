@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-core/test/testaddress"
+
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +30,7 @@ func TestHeader(t *testing.T) {
 		deltaStateDigest: hash.Hash256b([]byte("")),
 		receiptRoot:      hash.Hash256b([]byte("")),
 		blockSig:         nil,
-		pubkey:           nil,
+		pubkey:           testaddress.Keyinfo["producer"].PubKey,
 	}
 	require.Equal(uint32(1), footer.Version())
 	require.Equal(uint64(2), footer.Height())
