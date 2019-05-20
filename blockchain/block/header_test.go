@@ -33,7 +33,7 @@ func TestHeader(t *testing.T) {
 	require.Equal(uint32(1), footer.Version())
 	require.Equal(uint64(2), footer.Height())
 	require.Equal(ti, footer.Timestamp())
-	expected := ""
+	expected := "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
 	require.True(isEqual(expected, footer.PrevHash()))
 	require.Nil(footer.TxRoot())
 	require.Nil(footer.DeltaStateDigest())
