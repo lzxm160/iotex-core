@@ -58,7 +58,7 @@ func TestSerDesFooter(t *testing.T) {
 
 func makeFooter() (f *Footer) {
 	endors := make([]*endorsement.Endorsement, 0)
-	endor := &endorsement.Endorsement{}
+	endor := &endorsement.Endorsement{time.Now(), nil, nil}
 	endors = append(endors, endor)
 	f = &Footer{endors, time.Now()}
 	return
