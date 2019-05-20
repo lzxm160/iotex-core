@@ -81,7 +81,5 @@ func getHeader() *Header {
 }
 func isEqual(expected string, hash hash.Hash256) bool {
 	h := fmt.Sprintf("%x", hash[:])
-	fmt.Println("expected:", expected)
-	fmt.Println("hash:", h)
 	return strings.EqualFold(expected, h)
 }
