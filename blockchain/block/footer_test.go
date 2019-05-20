@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-core/test/testaddress"
+
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 	"github.com/stretchr/testify/require"
@@ -58,7 +60,7 @@ func TestSerDesFooter(t *testing.T) {
 
 func makeFooter() (f *Footer) {
 	endors := make([]*endorsement.Endorsement, 0)
-	endor := endorsement.NewEndorsement(time.Now(), nil, nil)
+	endor := endorsement.NewEndorsement(time.Now(), testaddress.Keyinfo["producer"].PubKey, nil)
 	endors = append(endors, endor)
 	f = &Footer{endors, time.Now()}
 	return
