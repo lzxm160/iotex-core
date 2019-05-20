@@ -68,6 +68,11 @@ func TestCalculateTxRoot(t *testing.T) {
 	body := Body{}
 	h := body.CalculateTxRoot()
 	require.Equal(h, hash.ZeroHash256)
+
+	body, err := makeBody()
+	require.NoError(err)
+	h = body.CalculateTxRoot()
+	require.NotEqual(h, hash.ZeroHash256)
 }
 
 func makeBody() (body Body, err error) {
