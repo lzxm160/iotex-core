@@ -41,7 +41,7 @@ func TestHeader(t *testing.T) {
 	require.True(isEqual(expected, footer.DeltaStateDigest()))
 	require.Equal("04755ce6d8903f6b3793bddb4ea5d3589d637de2d209ae0ea930815c82db564ee8cc448886f639e8a0c7e94e99a5c1335b583c0bc76ef30dd6a1038ed9da8daf33", footer.PublicKey().HexString())
 	require.True(isEqual(expected, footer.ReceiptRoot()))
-	require.True(isEqual(expected, footer.HashBlock()))
+	require.True(isEqual("a54b657fd0413963018c87cf01f2911349081a954b165a8d3a59f1b68c5d8e85", footer.HashBlock()))
 	require.NotNil(footer.BlockHeaderProto())
 	require.NotNil(footer.BlockHeaderCoreProto())
 }
