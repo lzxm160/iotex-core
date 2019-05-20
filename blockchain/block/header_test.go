@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,10 +21,10 @@ func TestHeader(t *testing.T) {
 		version:          1,
 		height:           2,
 		timestamp:        ti,
-		prevBlockHash:    nil,
-		txRoot:           nil,
-		deltaStateDigest: nil,
-		receiptRoot:      nil,
+		prevBlockHash:    hash.Hash256b([]byte("")),
+		txRoot:           hash.Hash256b([]byte("")),
+		deltaStateDigest: hash.Hash256b([]byte("")),
+		receiptRoot:      hash.Hash256b([]byte("")),
 		blockSig:         nil,
 		pubkey:           nil,
 	}
