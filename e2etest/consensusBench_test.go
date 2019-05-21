@@ -54,7 +54,16 @@ func runOnce() {
 	}
 	// Create mini-cluster
 	svrs := make([]*itx.Server, numNodes)
-	for i := 0; i < numNodes; i++ {
+	svr, err := itx.NewServer(configs[0])
+	if err != nil {
+		log.L().Fatal("Failed to create server.", zap.Error(err))
+	}
+	svrs[0] = svr
+	// Create a probe server
+	probeSvr := probe.New(7788)
+	go itx.StartServer(context.Background(), svrs[0], probeSvr, configs[0])
+
+	for i := 1; i < numNodes; i++ {
 		if i != 0 {
 			configs[i].Network.BootstrapNodes = []string{svrs[0].P2PAgent().Self()[0].String()}
 		}
@@ -64,11 +73,9 @@ func runOnce() {
 		}
 		svrs[i] = svr
 	}
-	// Create a probe server
-	probeSvr := probe.New(7788)
 
 	// Start mini-cluster
-	for i := 0; i < numNodes; i++ {
+	for i := 1; i < numNodes; i++ {
 		go itx.StartServer(context.Background(), svrs[i], probeSvr, configs[i])
 	}
 	for i := 0; i < numNodes; i++ {
