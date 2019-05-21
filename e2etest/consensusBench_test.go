@@ -36,7 +36,7 @@ func runOnce() {
 	numNodes := 36
 	configs := make([]config.Config, numNodes)
 
-	for i := 1; i < numNodes; i++ {
+	for i := 0; i < numNodes; i++ {
 		testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
 		testTriePath := testTrieFile.Name()
 		testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
