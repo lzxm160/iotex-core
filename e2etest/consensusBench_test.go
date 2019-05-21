@@ -13,17 +13,16 @@ import (
 	"testing"
 	"time"
 
+	"go.uber.org/zap"
+	_ "go.uber.org/automaxprocs"
+
 	"github.com/iotexproject/iotex-core/pkg/probe"
 	"github.com/iotexproject/iotex-core/testutil"
-
 	"github.com/iotexproject/iotex-core/test/identityset"
-
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/server/itx"
-	"go.uber.org/zap"
 
-	_ "go.uber.org/automaxprocs"
 )
 
 func BenchmarkConsensus(b *testing.B) {
