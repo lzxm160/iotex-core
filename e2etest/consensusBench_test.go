@@ -8,6 +8,7 @@ package e2etest
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -40,6 +41,8 @@ func runOnce() {
 		testTriePath := testTrieFile.Name()
 		testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
 		testDBPath := testDBFile.Name()
+		fmt.Println(testTriePath)
+		fmt.Println(testDBPath)
 		networkPort := 4689 + i
 		apiPort := 14014 + i
 		config := makeConfig(testDBPath, testTriePath, identityset.PrivateKey(1).HexString(),networkPort, apiPort)
