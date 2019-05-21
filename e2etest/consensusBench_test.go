@@ -8,7 +8,6 @@ package e2etest
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -40,8 +39,6 @@ func runOnce() {
 		testTriePath := testTrieFile.Name()
 		testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
 		testDBPath := testDBFile.Name()
-		fmt.Println(testTriePath)
-		fmt.Println(testDBPath)
 		networkPort := 4689 + i
 		apiPort := 14014 + i
 		HTTPAdminPort := 9009 + i
@@ -84,11 +81,6 @@ func runOnce() {
 		testutil.WaitUntil(100*time.Millisecond, 20*time.Second, func() (b bool, e error) {
 			return svrs[i].ChainService(1).Blockchain().TipHeight() >= 5, nil
 		})
-		defer func() {
-			if svrs[i] != nil {
-				svrs[i].Stop(context.Background())
-			}
-		}()
 	}
 }
 func makeConfig(
