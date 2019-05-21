@@ -61,7 +61,7 @@ func runOnce() {
 	svrs[0] = svr
 	// Create a probe server
 	probeSvr := probe.New(7788)
-	go itx.StartServer(context.Background(), svrs[0], probeSvr, configs[0])
+	itx.StartServer(context.Background(), svrs[0], probeSvr, configs[0])
 
 	for i := 1; i < numNodes; i++ {
 		if i != 0 {
