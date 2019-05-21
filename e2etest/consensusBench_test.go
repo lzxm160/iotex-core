@@ -97,7 +97,7 @@ func makeConfig(
 	cfg.Consensus.Scheme = config.RollDPoSScheme
 	cfg.Consensus.RollDPoS.Delay = 6 * time.Second
 
-	cfg.Genesis.BlockInterval = 1 * time.Second
+	cfg.Genesis.BlockInterval = 10 * time.Second
 	cfg.Genesis.Blockchain.NumDelegates = 24
 	return cfg
 }
