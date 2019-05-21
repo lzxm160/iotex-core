@@ -42,8 +42,7 @@ func runOnce() {
 		testDBPath := testDBFile.Name()
 		networkPort := 4689 + i
 		apiPort := 14014 + i
-		config := newConfig(testDBPath, testTriePath, identityset.PrivateKey(1).HexString(),
-			networkPort, apiPort)
+		config := makeConfig(testDBPath, testTriePath, identityset.PrivateKey(1).HexString(),networkPort, apiPort)
 		if i == 0 {
 			config.Network.BootstrapNodes = []string{}
 			config.Network.MasterKey = "bootnode"
@@ -78,7 +77,7 @@ func runOnce() {
 		}()
 	}
 }
-func newConfig(
+func makeConfig(
 	chainDBPath,
 	trieDBPath string,
 	producerPriKey string,
