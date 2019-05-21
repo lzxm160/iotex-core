@@ -14,16 +14,15 @@ import (
 	"testing"
 	"time"
 
-	"go.uber.org/zap"
 	_ "go.uber.org/automaxprocs"
+	"go.uber.org/zap"
 
-	"github.com/iotexproject/iotex-core/pkg/probe"
-	"github.com/iotexproject/iotex-core/testutil"
-	"github.com/iotexproject/iotex-core/test/identityset"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/pkg/log"
+	"github.com/iotexproject/iotex-core/pkg/probe"
 	"github.com/iotexproject/iotex-core/server/itx"
-
+	"github.com/iotexproject/iotex-core/test/identityset"
+	"github.com/iotexproject/iotex-core/testutil"
 )
 
 func BenchmarkConsensus(b *testing.B) {
@@ -45,7 +44,7 @@ func runOnce() {
 		fmt.Println(testDBPath)
 		networkPort := 4689 + i
 		apiPort := 14014 + i
-		config := makeConfig(testDBPath, testTriePath, identityset.PrivateKey(i%26).HexString(),networkPort, apiPort)
+		config := makeConfig(testDBPath, testTriePath, identityset.PrivateKey(i%26).HexString(), networkPort, apiPort)
 		if i == 0 {
 			config.Network.BootstrapNodes = []string{}
 			config.Network.MasterKey = "bootnode"
@@ -61,7 +60,8 @@ func runOnce() {
 	svrs[0] = svr
 	// Create a probe server
 	probeSvr := probe.New(7788)
-	itx.StartServer(context.Background(), svrs[0], probeSvr, configs[0])
+	go itx.StartServer(context.Background(), svrs[0], probeSvr, configs[0])
+	time.Sleep(1 * time.Second)
 
 	for i := 1; i < numNodes; i++ {
 		if i != 0 {
