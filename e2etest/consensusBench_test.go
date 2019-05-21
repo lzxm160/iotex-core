@@ -44,7 +44,9 @@ func runOnce() {
 		fmt.Println(testDBPath)
 		networkPort := 4689 + i
 		apiPort := 14014 + i
-		config := makeConfig(testDBPath, testTriePath, identityset.PrivateKey(i%26).HexString(), networkPort, apiPort)
+		HTTPAdminPort := 9009 + i
+		HTTPStatsPort := 8080 + i
+		config := makeConfig(testDBPath, testTriePath, identityset.PrivateKey(i%26).HexString(), networkPort, apiPort, HTTPAdminPort, HTTPStatsPort)
 		if i == 0 {
 			config.Network.BootstrapNodes = []string{}
 			config.Network.MasterKey = "bootnode"
@@ -79,10 +81,10 @@ func runOnce() {
 		go itx.StartServer(context.Background(), svrs[i], probeSvr, configs[i])
 	}
 	for i := 0; i < numNodes; i++ {
+		testutil.WaitUntil(100*time.Millisecond, 20*time.Second, func() (b bool, e error) {
+			return svrs[i].ChainService(1).Blockchain().TipHeight() >= 10, nil
+		})
 		defer func() {
-			testutil.WaitUntil(100*time.Millisecond, 20*time.Second, func() (b bool, e error) {
-				return svrs[i].ChainService(1).Blockchain().TipHeight() >= 10, nil
-			})
 			svrs[i].Stop(context.Background())
 		}()
 	}
@@ -92,7 +94,9 @@ func makeConfig(
 	trieDBPath string,
 	producerPriKey string,
 	networkPort,
-	apiPort int,
+	apiPort,
+	HTTPAdminPort,
+	HTTPStatsPort int,
 ) config.Config {
 	cfg := config.Default
 	cfg.Network.Port = networkPort
@@ -100,7 +104,8 @@ func makeConfig(
 	cfg.Chain.TrieDBPath = trieDBPath
 	cfg.Chain.ProducerPrivKey = producerPriKey
 	cfg.API.Port = apiPort
-
+	cfg.System.HTTPAdminPort = HTTPAdminPort
+	cfg.System.HTTPStatsPort = HTTPStatsPort
 	cfg.Consensus.Scheme = config.RollDPoSScheme
 	cfg.Consensus.RollDPoS.Delay = 6 * time.Second
 
