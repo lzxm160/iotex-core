@@ -82,10 +82,12 @@ func runOnce() {
 	}
 	for i := 0; i < numNodes; i++ {
 		testutil.WaitUntil(100*time.Millisecond, 20*time.Second, func() (b bool, e error) {
-			return svrs[i].ChainService(1).Blockchain().TipHeight() >= 10, nil
+			return svrs[i].ChainService(1).Blockchain().TipHeight() >= 5, nil
 		})
 		defer func() {
-			svrs[i].Stop(context.Background())
+			if svrs[i] != nil {
+				svrs[i].Stop(context.Background())
+			}
 		}()
 	}
 }
