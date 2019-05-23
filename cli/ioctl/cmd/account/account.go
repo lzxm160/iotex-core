@@ -9,7 +9,6 @@ package account
 import (
 	"bytes"
 	"context"
-	cryptos "crypto"
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
@@ -18,6 +17,7 @@ import (
 	"syscall"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
+	ethereumcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
@@ -222,5 +222,5 @@ func newAccountByKeyStore(alias, passwordOfKeyStore, keyStorePath string, wallet
 	if err != nil {
 		return "", err
 	}
-	return newAccountByKey(alias, hex.EncodeToString(cryptos.FromECDSA(key.PrivateKey)), walletDir)
+	return newAccountByKey(alias, hex.EncodeToString(ethereumcrypto.FromECDSA(key.PrivateKey)), walletDir)
 }
