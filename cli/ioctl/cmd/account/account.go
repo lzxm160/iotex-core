@@ -181,17 +181,21 @@ func newAccountByKey(alias string, privateKey string, walletDir string) (string,
 	if password != string(bytePassword) {
 		return "", ErrPasswdNotMatch
 	}
+
+	fmt.Println("here:186")
 	ks := keystore.NewKeyStore(walletDir, keystore.StandardScryptN, keystore.StandardScryptP)
 	priKey, err := crypto.HexStringToPrivateKey(privateKey)
 	if err != nil {
 		return "", err
 	}
+	fmt.Println("here:191")
 	defer priKey.Zero()
 	account, err := ks.ImportECDSA(priKey.EcdsaPrivateKey(), password)
 	priKey.Zero()
 	if err != nil {
 		return "", err
 	}
+	fmt.Println("here:198")
 	addr, err := address.FromBytes(account.Address.Bytes())
 	if err != nil {
 		log.L().Error("failed to convert bytes into address", zap.Error(err))
@@ -205,7 +209,6 @@ func newAccountByKeyStore(alias, passwordOfKeyStore, keyStorePath string, wallet
 	if err != nil {
 		return "", fmt.Errorf("keystore file \"%s\" read error", keyStorePath)
 	}
-	fmt.Println("here:", passwordOfKeyStore)
 	key, err := keystore.DecryptKey(keyJSON, passwordOfKeyStore)
 	if key != nil && key.PrivateKey != nil {
 		defer func(k *ecdsa.PrivateKey) {
