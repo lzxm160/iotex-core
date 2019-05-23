@@ -25,7 +25,7 @@ import (
 
 // accountImportKeyStoreCmd represents the account import keystore command
 var accountImportKeyStoreCmd = &cobra.Command{
-	Use:   "import ALIAS PATH",
+	Use:   "importkeystore ALIAS PATH",
 	Short: "Import IoTeX keystore into wallet",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
