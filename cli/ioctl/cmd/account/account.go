@@ -205,6 +205,7 @@ func newAccountByKeyStore(alias, passwordOfKeyStore, keyStorePath string, wallet
 	if err != nil {
 		return "", fmt.Errorf("keystore file \"%s\" read error", keyStorePath)
 	}
+	fmt.Println("here:", passwordOfKeyStore)
 	key, err := keystore.DecryptKey(keyJSON, passwordOfKeyStore)
 	if key != nil && key.PrivateKey != nil {
 		defer func(k *ecdsa.PrivateKey) {
