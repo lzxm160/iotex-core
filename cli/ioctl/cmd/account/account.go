@@ -9,6 +9,7 @@ package account
 import (
 	"bytes"
 	"context"
+	cryptos "crypto"
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
@@ -221,5 +222,5 @@ func newAccountByKeyStore(alias, passwordOfKeyStore, keyStorePath string, wallet
 	if err != nil {
 		return "", err
 	}
-	return newAccountByKey(alias, key.PrivateKey.D.Text(16), walletDir)
+	return newAccountByKey(alias, hex.EncodeToString(cryptos.FromECDSA(key.PrivateKey)), walletDir)
 }
