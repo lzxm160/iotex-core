@@ -182,8 +182,8 @@ func newAccountByKey(alias string, privateKey string, walletDir string) (string,
 		return "", ErrPasswdNotMatch
 	}
 
-	fmt.Println("here:186")
 	ks := keystore.NewKeyStore(walletDir, keystore.StandardScryptN, keystore.StandardScryptP)
+	fmt.Println("here:", privateKey)
 	priKey, err := crypto.HexStringToPrivateKey(privateKey)
 	if err != nil {
 		return "", err
@@ -221,5 +221,5 @@ func newAccountByKeyStore(alias, passwordOfKeyStore, keyStorePath string, wallet
 	if err != nil {
 		return "", err
 	}
-	return newAccountByKey(alias, key.PrivateKey.D.String(), walletDir)
+	return newAccountByKey(alias, key.PrivateKey.D.Text(16), walletDir)
 }
