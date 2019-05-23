@@ -8,6 +8,7 @@ package validator
 
 import (
 	"errors"
+	"os"
 
 	"github.com/iotexproject/iotex-address/address"
 )
@@ -49,4 +50,16 @@ func ValidatePositiveNumber(number int64) error {
 		return ErrNonPositiveNumber
 	}
 	return nil
+}
+
+// ValidateExist validates file if exist
+func ValidateExist(path string) bool {
+	_, err := os.Stat(path)
+	if err != nil {
+		if os.IsExist(err) {
+			return true
+		}
+		return false
+	}
+	return true
 }
