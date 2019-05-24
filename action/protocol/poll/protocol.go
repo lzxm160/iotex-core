@@ -8,7 +8,6 @@ package poll
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -195,7 +194,7 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 	ctx context.Context,
 	sm protocol.StateManager,
 ) (err error) {
-	fmt.Println("///////////////////////////////////198")
+	log.L().Info("///////////////////////////////////198")
 	log.L().Info("Initialize poll protocol", zap.Uint64("height", p.initGravityChainHeight))
 	var ds state.CandidateList
 	if ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight); err != nil {
@@ -218,7 +217,7 @@ func (p *governanceChainCommitteeProtocol) Validate(ctx context.Context, act act
 }
 
 func (p *governanceChainCommitteeProtocol) delegatesByGravityChainHeight(height uint64) (state.CandidateList, error) {
-	fmt.Println("/////////////////height:", height)
+	log.L().Info("/////////////////height:", height)
 	r, err := p.electionCommittee.ResultByHeight(height)
 	if err != nil {
 		return nil, err
