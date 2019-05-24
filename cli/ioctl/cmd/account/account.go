@@ -60,7 +60,6 @@ func init() {
 	AccountCmd.AddCommand(accountExportCmd)
 	AccountCmd.AddCommand(accountExportPublicCmd)
 	AccountCmd.AddCommand(accountImportCmd)
-	AccountCmd.AddCommand(accountImportKeyStoreCmd)
 	AccountCmd.AddCommand(accountListCmd)
 	AccountCmd.AddCommand(accountNonceCmd)
 	AccountCmd.AddCommand(accountUpdateCmd)
