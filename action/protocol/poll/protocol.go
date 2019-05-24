@@ -195,6 +195,7 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 	ctx context.Context,
 	sm protocol.StateManager,
 ) (err error) {
+	fmt.Println("///////////////////////////////////198")
 	log.L().Info("Initialize poll protocol", zap.Uint64("height", p.initGravityChainHeight))
 	var ds state.CandidateList
 	if ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight); err != nil {
