@@ -12,12 +12,17 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 	"syscall"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/ethereum/go-ethereum/accounts/keystore"
-	ethereumcrypto "github.com/ethereum/go-ethereum/crypto"
+	ecrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
@@ -218,5 +223,55 @@ func newAccountByKeyStore(alias, passwordOfKeyStore, keyStorePath string, wallet
 	if err != nil {
 		return "", err
 	}
-	return newAccountByKey(alias, hex.EncodeToString(ethereumcrypto.FromECDSA(key.PrivateKey)), walletDir)
+
+	fmt.Printf("#%s: Set password\n", alias)
+	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		log.L().Error("failed to get password", zap.Error(err))
+		return "", err
+	}
+	password := string(bytePassword)
+	fmt.Printf("#%s: Enter password again\n", alias)
+	bytePassword, err = terminal.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		log.L().Error("failed to get password", zap.Error(err))
+		return "", err
+	}
+	if password != string(bytePassword) {
+		return "", ErrPasswdNotMatch
+	}
+
+	pubBytes := ecrypto.FromECDSAPub(&key.PrivateKey.PublicKey)
+	addBytes := common.BytesToAddress(ecrypto.Keccak256(pubBytes[1:])[12:])
+	addr, err := address.FromBytes(addBytes[:])
+	if err != nil {
+		log.L().Error("failed to convert bytes into address", zap.Error(err))
+		return "", err
+	}
+	copyFile(keyStorePath, walletDir)
+	return addr.String(), nil
+}
+func copyFile(srcFile, dstDir string) error {
+	sourceFileStat, err := os.Stat(srcFile)
+	if err != nil {
+		return err
+	}
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", srcFile)
+	}
+
+	source, err := os.Open(srcFile)
+	if err != nil {
+		return err
+	}
+	defer source.Close()
+	_, fileName := filepath.Split(srcFile)
+	destination, err := os.Create(dstDir + "/" + fileName)
+	if err != nil {
+		return err
+	}
+	defer destination.Close()
+	_, err = io.Copy(destination, source)
+	return err
 }
