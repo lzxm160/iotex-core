@@ -429,6 +429,7 @@ func validate(ctx context.Context, p Protocol, act action.Action) error {
 	if err := validateDelegates(proposedDelegates); err != nil {
 		return err
 	}
+
 	ds, err := p.DelegatesByHeight(vaCtx.BlockHeight)
 	if err != nil {
 		return err
