@@ -1359,13 +1359,10 @@ func (bc *blockchain) createPollGenesisStates(ctx context.Context, ws factory.Wo
 		if !ok {
 			return errors.Errorf("error when casting poll protocol")
 		}
-		err := pp.Initialize(
+		return pp.Initialize(
 			ctx,
 			ws,
 		)
-		if err != nil {
-			log.L().Error("Failed to Initialize:", zap.Error(err))
-		}
 	}
 	return nil
 }

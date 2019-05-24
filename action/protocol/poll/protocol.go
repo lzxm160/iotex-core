@@ -220,7 +220,8 @@ func (p *governanceChainCommitteeProtocol) delegatesByGravityChainHeight(height 
 	log.L().Info("/////////////////", zap.Uint64("hei:", height))
 	r, err := p.electionCommittee.ResultByHeight(height)
 	if err != nil {
-		return nil, err
+		//return nil, err
+		log.L().Error("Failed to Initialize:", zap.Error(err))
 	}
 	l := state.CandidateList{}
 	for _, c := range r.Delegates() {
