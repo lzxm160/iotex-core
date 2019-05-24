@@ -44,7 +44,7 @@ var (
 	accountImportKeyStoreCmd = &cobra.Command{
 		Use:   "keystore ALIAS FILEPATH",
 		Short: "Import IoTeX keystore into wallet",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SilenceUsage = true
 			output, err := accountImportKeyStore(args)
