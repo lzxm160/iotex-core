@@ -57,8 +57,8 @@ var (
 )
 
 func init() {
-	AccountCmd.AddCommand(accountImportKeyCmd)
-	AccountCmd.AddCommand(accountImportKeyStoreCmd)
+	accountImportCmd.AddCommand(accountImportKeyCmd)
+	accountImportCmd.AddCommand(accountImportKeyStoreCmd)
 }
 func accountImportKey(args []string) (string, error) {
 	// Validate inputs
