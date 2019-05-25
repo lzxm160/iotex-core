@@ -81,8 +81,8 @@ func TestExecuteContractFailure(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := protocol.WithRunActionsCtx(context.Background(), protocol.RunActionsCtx{
-		Caller:   identityset.Addrinfo["producer"],
-		Producer: identityset.Addrinfo["producer"],
+		Caller:   identityset.Address(0),
+		Producer: identityset.Address(0),
 		GasLimit: testutil.TestGasLimit,
 	})
 

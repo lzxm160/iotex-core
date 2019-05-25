@@ -36,17 +36,17 @@ const (
 )
 
 var (
-	addr1   = identityset.Addrinfo["alfa"].String()
+	addr1   = identityset.Address(1).String()
 	pubKey1 = identityset.Keyinfo["alfa"].PubKey
-	priKey1 = identityset.Keyinfo["alfa"].PriKey
-	addr2   = identityset.Addrinfo["bravo"].String()
-	priKey2 = identityset.Keyinfo["bravo"].PriKey
-	addr3   = identityset.Addrinfo["charlie"].String()
-	priKey3 = identityset.Keyinfo["charlie"].PriKey
-	addr4   = identityset.Addrinfo["delta"].String()
-	priKey4 = identityset.Keyinfo["delta"].PriKey
-	addr5   = identityset.Addrinfo["echo"].String()
-	priKey5 = identityset.Keyinfo["echo"].PriKey
+	priKey1 = identityset.PrivateKey(1)
+	addr2   = identityset.Address(2).String()
+	priKey2 = identityset.PrivateKey(2)
+	addr3   = identityset.Address(3).String()
+	priKey3 = identityset.PrivateKey(3)
+	addr4   = identityset.Address(4).String()
+	priKey4 = identityset.PrivateKey(4)
+	addr5   = identityset.Address(5).String()
+	priKey5 = identityset.Address(5).PriKey
 	addr6   = identityset.Addrinfo["foxtrot"].String()
 	priKey6 = identityset.Keyinfo["foxtrot"].PriKey
 )
@@ -105,7 +105,7 @@ func TestActPool_validateGenericAction(t *testing.T) {
 	gasLimit := testutil.TestGasLimit
 	ctx = protocol.WithRunActionsCtx(context.Background(),
 		protocol.RunActionsCtx{
-			Producer: identityset.Addrinfo["producer"],
+			Producer: identityset.Address(0),
 			GasLimit: gasLimit,
 		})
 	_, err = ws.RunActions(ctx, 0, []action.SealedEnvelope{prevTsf})
@@ -115,7 +115,7 @@ func TestActPool_validateGenericAction(t *testing.T) {
 	nTsf, err := testutil.SignedTransfer(addr1, priKey1, uint64(1), big.NewInt(60), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
 	ctx = protocol.WithValidateActionsCtx(context.Background(), protocol.ValidateActionsCtx{
-		Caller: identityset.Addrinfo["alfa"],
+		Caller: identityset.Address(0),
 	})
 	err = validator.Validate(ctx, nTsf)
 	require.Equal(action.ErrNonce, errors.Cause(err))
@@ -447,7 +447,7 @@ func TestActPool_removeConfirmedActs(t *testing.T) {
 	gasLimit := uint64(1000000)
 	ctx := protocol.WithRunActionsCtx(context.Background(),
 		protocol.RunActionsCtx{
-			Producer: identityset.Addrinfo["producer"],
+			Producer: identityset.Address(0),
 			GasLimit: gasLimit,
 		})
 	_, err = ws.RunActions(ctx, 0, []action.SealedEnvelope{tsf1, tsf2, tsf3, tsf4})
@@ -599,7 +599,7 @@ func TestActPool_Reset(t *testing.T) {
 	gasLimit := uint64(1000000)
 	ctx := protocol.WithRunActionsCtx(context.Background(),
 		protocol.RunActionsCtx{
-			Producer: identityset.Addrinfo["producer"],
+			Producer: identityset.Address(0),
 			GasLimit: gasLimit,
 		})
 	_, err = ws.RunActions(ctx, 0, actionMap2Slice(pickedActs))
@@ -709,7 +709,7 @@ func TestActPool_Reset(t *testing.T) {
 	require.NoError(err)
 	ctx = protocol.WithRunActionsCtx(context.Background(),
 		protocol.RunActionsCtx{
-			Producer: identityset.Addrinfo["producer"],
+			Producer: identityset.Address(0),
 			GasLimit: gasLimit,
 		})
 	_, err = ws.RunActions(ctx, 0, actionMap2Slice(pickedActs))
@@ -817,7 +817,7 @@ func TestActPool_Reset(t *testing.T) {
 
 	ctx = protocol.WithRunActionsCtx(context.Background(),
 		protocol.RunActionsCtx{
-			Producer: identityset.Addrinfo["producer"],
+			Producer: identityset.Address(0),
 			GasLimit: gasLimit,
 		})
 	_, err = ws.RunActions(ctx, 0, actionMap2Slice(pickedActs))
@@ -1072,7 +1072,7 @@ func TestActPool_GetSize(t *testing.T) {
 
 	ctx := protocol.WithRunActionsCtx(context.Background(),
 		protocol.RunActionsCtx{
-			Producer: identityset.Addrinfo["producer"],
+			Producer: identityset.Address(0),
 			GasLimit: gasLimit,
 		})
 	_, err = ws.RunActions(ctx, 0, []action.SealedEnvelope{tsf1, tsf2, tsf3, tsf4})

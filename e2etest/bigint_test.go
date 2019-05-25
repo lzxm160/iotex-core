@@ -107,7 +107,7 @@ func prepareBlockchain(
 
 	ctx = protocol.WithRunActionsCtx(ctx,
 		protocol.RunActionsCtx{
-			Producer: identityset.Addrinfo["producer"],
+			Producer: identityset.Address(0),
 			GasLimit: uint64(10000000),
 		})
 	_, err = ws.RunActions(ctx, 0, nil)

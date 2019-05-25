@@ -86,7 +86,7 @@ func makeBody() (body Body, err error) {
 		SetGasLimit(uint64(100000)).
 		SetAction(v).Build()
 
-	selp, err := action.Sign(elp, identityset.Keyinfo["alfa"].PriKey)
+	selp, err := action.Sign(elp, identityset.PrivateKey(1))
 	if err != nil {
 		return
 	}

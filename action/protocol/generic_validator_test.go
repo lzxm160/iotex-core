@@ -41,7 +41,7 @@ func TestActionProto(t *testing.T) {
 		elp := bd.SetGasPrice(big.NewInt(10)).
 			SetGasLimit(uint64(100000)).
 			SetAction(v).Build()
-		selp, err := action.Sign(elp, identityset.Keyinfo["alfa"].PriKey)
+		selp, err := action.Sign(elp, identityset.PrivateKey(1))
 		require.NoError(err)
 		nselp := action.SealedEnvelope{}
 		require.NoError(nselp.LoadProto(selp.Proto()))
@@ -55,7 +55,7 @@ func TestActionProto(t *testing.T) {
 		elp := bd.SetGasPrice(big.NewInt(10)).
 			SetGasLimit(uint64(1000000)).
 			SetAction(v).Build()
-		selp, err := action.Sign(elp, identityset.Keyinfo["alfa"].PriKey)
+		selp, err := action.Sign(elp, identityset.PrivateKey(1))
 		require.NoError(err)
 		nselp := action.SealedEnvelope{}
 		require.NoError(nselp.LoadProto(selp.Proto()))
@@ -71,7 +71,7 @@ func TestActionProto(t *testing.T) {
 		elp := bd.SetGasPrice(big.NewInt(10)).
 			SetGasLimit(uint64(10)).
 			SetAction(v).Build()
-		selp, err := action.Sign(elp, identityset.Keyinfo["alfa"].PriKey)
+		selp, err := action.Sign(elp, identityset.PrivateKey(1))
 		require.NoError(err)
 		nselp := action.SealedEnvelope{}
 		require.NoError(nselp.LoadProto(selp.Proto()))
@@ -91,7 +91,7 @@ func TestActionProto(t *testing.T) {
 		elp := bd.SetGasPrice(big.NewInt(10)).
 			SetGasLimit(uint64(100000)).
 			SetAction(v).Build()
-		selp, err := action.Sign(elp, identityset.Keyinfo["alfa"].PriKey)
+		selp, err := action.Sign(elp, identityset.PrivateKey(1))
 		require.NoError(err)
 		nselp := action.SealedEnvelope{}
 		require.NoError(nselp.LoadProto(selp.Proto()))
@@ -108,7 +108,7 @@ func TestActionProto(t *testing.T) {
 			SetNonce(1).
 			SetGasLimit(uint64(100000)).
 			SetAction(v).Build()
-		selp, err := action.Sign(elp, identityset.Keyinfo["alfa"].PriKey)
+		selp, err := action.Sign(elp, identityset.PrivateKey(1))
 		require.NoError(err)
 		nselp := action.SealedEnvelope{}
 		require.NoError(nselp.LoadProto(selp.Proto()))

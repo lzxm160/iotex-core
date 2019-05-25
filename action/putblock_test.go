@@ -19,7 +19,7 @@ import (
 )
 
 func TestPutBlock(t *testing.T) {
-	addr2 := identityset.Addrinfo["echo"]
+	addr2 := identityset.Address(5)
 	assertPB := func(pb *PutBlock) {
 		assert.Equal(t, uint32(version.ProtocolVersion), pb.version)
 		assert.Equal(t, uint64(1), pb.Nonce())
@@ -44,7 +44,7 @@ func TestPutBlock(t *testing.T) {
 }
 
 func TestPutBlockProto(t *testing.T) {
-	addr2 := identityset.Addrinfo["echo"]
+	addr2 := identityset.Address(5)
 	roots := make(map[string]hash.Hash256)
 	roots["10002"] = hash.BytesToHash256([]byte("10002"))
 	pb := &PutBlock{
@@ -66,7 +66,7 @@ func TestPutBlockProto(t *testing.T) {
 }
 
 func TestPutBlockByteStream(t *testing.T) {
-	addr := identityset.Addrinfo["producer"]
+	addr := identityset.Address(0)
 	roots := make(map[string]hash.Hash256)
 	roots["10002"] = hash.BytesToHash256([]byte("10002"))
 	roots["10003"] = hash.BytesToHash256([]byte("10003"))

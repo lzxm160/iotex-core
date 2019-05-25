@@ -75,7 +75,7 @@ func getHeader() *Header {
 		deltaStateDigest: hash.Hash256b([]byte("")),
 		receiptRoot:      hash.Hash256b([]byte("")),
 		blockSig:         nil,
-		pubkey:           identityset.Keyinfo["producer"].PubKey,
+		pubkey:           identityset.PrivateKey(0).PublicKey(),
 	}
 	return h
 }

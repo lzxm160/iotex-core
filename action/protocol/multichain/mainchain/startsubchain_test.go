@@ -72,7 +72,7 @@ func TestProtocolValidateSubChainStart(t *testing.T) {
 		0,
 		big.NewInt(0),
 	)
-	account, subChainsInOp, err := p.validateStartSubChain(identityset.Addrinfo["producer"], start, nil)
+	account, subChainsInOp, err := p.validateStartSubChain(identityset.Address(0), start, nil)
 	assert.NotNil(t, account)
 	assert.NoError(t, err)
 	require.NotNil(t, subChainsInOp)
@@ -88,7 +88,7 @@ func TestProtocolValidateSubChainStart(t *testing.T) {
 		0,
 		big.NewInt(0),
 	)
-	account, subChainsInOp, err = p.validateStartSubChain(identityset.Addrinfo["producer"], start, nil)
+	account, subChainsInOp, err = p.validateStartSubChain(identityset.Address(0), start, nil)
 	assert.Nil(t, subChainsInOp)
 	assert.Nil(t, account)
 	require.Error(t, err)
@@ -105,7 +105,7 @@ func TestProtocolValidateSubChainStart(t *testing.T) {
 		0,
 		big.NewInt(0),
 	)
-	account, subChainsInOp, err = p.validateStartSubChain(identityset.Addrinfo["producer"], start, nil)
+	account, subChainsInOp, err = p.validateStartSubChain(identityset.Address(0), start, nil)
 	assert.Nil(t, account)
 	assert.Nil(t, subChainsInOp)
 	require.Error(t, err)
@@ -122,7 +122,7 @@ func TestProtocolValidateSubChainStart(t *testing.T) {
 		0,
 		big.NewInt(0),
 	)
-	account, subChainsInOp, err = p.validateStartSubChain(identityset.Addrinfo["producer"], start, nil)
+	account, subChainsInOp, err = p.validateStartSubChain(identityset.Address(0), start, nil)
 	assert.Nil(t, account)
 	assert.Nil(t, subChainsInOp)
 	require.Error(t, err)
@@ -139,7 +139,7 @@ func TestProtocolValidateSubChainStart(t *testing.T) {
 		0,
 		big.NewInt(0),
 	)
-	account, subChainsInOp, err = p.validateStartSubChain(identityset.Addrinfo["producer"], start, nil)
+	account, subChainsInOp, err = p.validateStartSubChain(identityset.Address(0), start, nil)
 	assert.Nil(t, account)
 	assert.Nil(t, subChainsInOp)
 	require.Error(t, err)
@@ -156,7 +156,7 @@ func TestProtocolValidateSubChainStart(t *testing.T) {
 		0,
 		big.NewInt(0),
 	)
-	account, subChainsInOp, err = p.validateStartSubChain(identityset.Addrinfo["producer"], start, nil)
+	account, subChainsInOp, err = p.validateStartSubChain(identityset.Address(0), start, nil)
 	assert.Nil(t, account)
 	assert.Nil(t, subChainsInOp)
 	require.Error(t, err)
@@ -194,7 +194,7 @@ func TestProtocolValidateSubChainStart(t *testing.T) {
 		0,
 		big.NewInt(0),
 	)
-	account, subChainsInOp, err = p.validateStartSubChain(identityset.Addrinfo["producer"], start, ws)
+	account, subChainsInOp, err = p.validateStartSubChain(identityset.Address(0), start, ws)
 	assert.Nil(t, account)
 	assert.Nil(t, subChainsInOp)
 	require.Error(t, err)
@@ -211,7 +211,7 @@ func TestProtocolValidateSubChainStart(t *testing.T) {
 			}
 			return state.Deserialize(s, data)
 		}).Times(1)
-	account, subChainsInOp, err = p.validateStartSubChain(identityset.Addrinfo["producer"], start, ws)
+	account, subChainsInOp, err = p.validateStartSubChain(identityset.Address(0), start, ws)
 	assert.Nil(t, account)
 	assert.Nil(t, subChainsInOp)
 	require.Error(t, err)
@@ -221,13 +221,13 @@ func TestProtocolValidateSubChainStart(t *testing.T) {
 func TestCreateSubChainAddress(t *testing.T) {
 	t.Parallel()
 
-	addr1, err := createSubChainAddress(identityset.Addrinfo["producer"].String(), 1)
+	addr1, err := createSubChainAddress(identityset.Address(0).String(), 1)
 	assert.NoError(t, err)
-	addr2, err := createSubChainAddress(identityset.Addrinfo["producer"].String(), 2)
+	addr2, err := createSubChainAddress(identityset.Address(0).String(), 2)
 	assert.NoError(t, err)
 	// Same owner address but different nonce
 	assert.NotEqual(t, addr1, addr2)
-	addr3, err := createSubChainAddress(identityset.Addrinfo["alfa"].String(), 1)
+	addr3, err := createSubChainAddress(identityset.Address(1).String(), 1)
 	assert.NoError(t, err)
 	// Same nonce but different owner address
 	assert.NotEqual(t, addr1, addr3)
@@ -257,15 +257,15 @@ func TestHandleStartSubChain(t *testing.T) {
 	require.NoError(t, err)
 	_, err = accountutil.LoadOrCreateAccount(
 		ws,
-		identityset.Addrinfo["producer"].String(),
+		identityset.Address(0).String(),
 		big.NewInt(0).Mul(big.NewInt(2000000), big.NewInt(unit.Iotx)),
 	)
 	require.NoError(t, err)
 	gasLimit := testutil.TestGasLimit
 	ctx = protocol.WithRunActionsCtx(ctx,
 		protocol.RunActionsCtx{
-			Producer: identityset.Addrinfo["producer"],
-			Caller:   identityset.Addrinfo["producer"],
+			Producer: identityset.Address(0),
+			Caller:   identityset.Address(0),
 			GasLimit: gasLimit,
 		})
 	_, err = ws.RunActions(ctx, 0, nil)
@@ -288,7 +288,7 @@ func TestHandleStartSubChain(t *testing.T) {
 	)
 	bd := &action.EnvelopeBuilder{}
 	elp := bd.SetNonce(1).SetGasLimit(10).SetAction(start).Build()
-	_, err = action.Sign(elp, identityset.Keyinfo["producer"].PriKey)
+	_, err = action.Sign(elp, identityset.PrivateKey(0))
 	require.NoError(t, err)
 
 	// Handle the action
@@ -297,13 +297,13 @@ func TestHandleStartSubChain(t *testing.T) {
 	require.NoError(t, sf.Commit(ws))
 
 	// Check the owner state
-	account, err := sf.AccountState(identityset.Addrinfo["producer"].String())
+	account, err := sf.AccountState(identityset.Address(0).String())
 	require.NoError(t, err)
 	assert.Equal(t, uint64(1), account.Nonce)
 	assert.Equal(t, big.NewInt(0), account.Balance)
 
 	// Check the sub-chain state
-	addr, err := createSubChainAddress(identityset.Addrinfo["producer"].String(), 1)
+	addr, err := createSubChainAddress(identityset.Address(0).String(), 1)
 	require.NoError(t, err)
 	var sc SubChain
 	err = sf.State(addr, &sc)
@@ -311,7 +311,7 @@ func TestHandleStartSubChain(t *testing.T) {
 	assert.Equal(t, uint32(2), sc.ChainID)
 	assert.Equal(t, MinSecurityDeposit, sc.SecurityDeposit)
 	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(1000000), big.NewInt(unit.Iotx)), sc.OperationDeposit)
-	assert.Equal(t, identityset.Keyinfo["producer"].PubKey, sc.OwnerPublicKey)
+	assert.Equal(t, identityset.PrivateKey(0).PublicKey(), sc.OwnerPublicKey)
 	assert.Equal(t, uint64(110), sc.StartHeight)
 	assert.Equal(t, uint64(10), sc.ParentHeightOffset)
 	assert.Equal(t, uint64(0), sc.CurrentHeight)

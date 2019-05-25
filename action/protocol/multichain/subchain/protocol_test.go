@@ -61,17 +61,17 @@ func TestMutateDeposit(t *testing.T) {
 	}()
 
 	ctx = protocol.WithRunActionsCtx(context.Background(), protocol.RunActionsCtx{
-		Caller: identityset.Addrinfo["producer"],
+		Caller: identityset.Address(0),
 	})
 	ws, err := bc.GetFactory().NewWorkingSet()
 	require.NoError(t, err)
 	require.NoError(t, bc.GetFactory().Commit(ws))
 
-	account1, err := bc.GetFactory().AccountState(identityset.Addrinfo["producer"].String())
+	account1, err := bc.GetFactory().AccountState(identityset.Address(0).String())
 	require.NoError(t, err)
 	assert.Equal(t, uint64(1), account1.Nonce)
 
-	account2, err := bc.GetFactory().AccountState(identityset.Addrinfo["alfa"].String())
+	account2, err := bc.GetFactory().AccountState(identityset.Address(1).String())
 	require.NoError(t, err)
 	assert.Equal(t, big.NewInt(1000), account2.Balance)
 

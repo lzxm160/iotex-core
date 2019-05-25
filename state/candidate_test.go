@@ -22,15 +22,15 @@ func TestCandidate(t *testing.T) {
 	require := require.New(t)
 
 	cand1 := &Candidate{
-		Address: identityset.Addrinfo["alfa"].String(),
+		Address: identityset.Address(1).String(),
 		Votes:   big.NewInt(1),
 	}
 	cand2 := &Candidate{
-		Address: identityset.Addrinfo["bravo"].String(),
+		Address: identityset.Address(2).String(),
 		Votes:   big.NewInt(2),
 	}
 	cand3 := &Candidate{
-		Address: identityset.Addrinfo["charlie"].String(),
+		Address: identityset.Address(3).String(),
 		Votes:   big.NewInt(3),
 	}
 
@@ -56,9 +56,9 @@ func TestCandidate(t *testing.T) {
 	require.Equal(3, len(candidateList))
 	sort.Sort(candidateList)
 
-	require.Equal(identityset.Addrinfo["charlie"].String(), candidateList[0].Address)
-	require.Equal(identityset.Addrinfo["bravo"].String(), candidateList[1].Address)
-	require.Equal(identityset.Addrinfo["alfa"].String(), candidateList[2].Address)
+	require.Equal(identityset.Address(3).String(), candidateList[0].Address)
+	require.Equal(identityset.Address(2).String(), candidateList[1].Address)
+	require.Equal(identityset.Address(1).String(), candidateList[2].Address)
 
 	candidatesBytes, err := candidateList.Serialize()
 	require.NoError(err)
@@ -66,9 +66,9 @@ func TestCandidate(t *testing.T) {
 	err = candidates.Deserialize(candidatesBytes)
 	require.NoError(err)
 	require.Equal(3, len(candidates))
-	require.Equal(identityset.Addrinfo["charlie"].String(), candidates[0].Address)
-	require.Equal(identityset.Addrinfo["bravo"].String(), candidates[1].Address)
-	require.Equal(identityset.Addrinfo["alfa"].String(), candidates[2].Address)
+	require.Equal(identityset.Address(3).String(), candidates[0].Address)
+	require.Equal(identityset.Address(2).String(), candidates[1].Address)
+	require.Equal(identityset.Address(1).String(), candidates[2].Address)
 
 	candidateMap, err = CandidatesToMap(candidateList)
 	require.NoError(err)

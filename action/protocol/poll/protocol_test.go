@@ -103,7 +103,7 @@ func TestHandle(t *testing.T) {
 	require.NoError(p.Initialize(ctx, ws))
 
 	// wrong action
-	recipientAddr := identityset.Addrinfo["alfa"]
+	recipientAddr := identityset.Address(0)
 	senderKey := identityset.Keyinfo["producer"]
 	tsf, err := action.NewTransfer(0, big.NewInt(10), recipientAddr.String(), []byte{}, uint64(100000), big.NewInt(10))
 	require.NoError(err)
@@ -157,7 +157,7 @@ func TestProtocol_Validate(t *testing.T) {
 	require.NoError(p.Initialize(ctx, ws))
 
 	// wrong action
-	recipientAddr := identityset.Addrinfo["alfa"]
+	recipientAddr := identityset.Address(0)
 	senderKey := identityset.Keyinfo["producer"]
 	tsf, err := action.NewTransfer(0, big.NewInt(10), recipientAddr.String(), []byte{}, uint64(100000), big.NewInt(10))
 	require.NoError(err)
@@ -212,7 +212,7 @@ func TestProtocol_Validate(t *testing.T) {
 		context.Background(),
 		protocol.ValidateActionsCtx{
 			BlockHeight:  1,
-			ProducerAddr: identityset.Addrinfo["producer"].String(),
+			ProducerAddr: identityset.Address(0).String(),
 			Caller:       caller,
 		},
 	)
@@ -237,7 +237,7 @@ func TestProtocol_Validate(t *testing.T) {
 		context.Background(),
 		protocol.ValidateActionsCtx{
 			BlockHeight:  1,
-			ProducerAddr: identityset.Addrinfo["producer"].String(),
+			ProducerAddr: identityset.Address(0).String(),
 			Caller:       caller,
 		},
 	)
@@ -261,7 +261,7 @@ func TestProtocol_Validate(t *testing.T) {
 		context.Background(),
 		protocol.ValidateActionsCtx{
 			BlockHeight:  1,
-			ProducerAddr: identityset.Addrinfo["producer"].String(),
+			ProducerAddr: identityset.Address(0).String(),
 			Caller:       caller,
 		},
 	)
@@ -286,7 +286,7 @@ func TestProtocol_Validate(t *testing.T) {
 		context.Background(),
 		protocol.ValidateActionsCtx{
 			BlockHeight:  1,
-			ProducerAddr: identityset.Addrinfo["producer"].String(),
+			ProducerAddr: identityset.Address(0).String(),
 			Caller:       caller6,
 		},
 	)

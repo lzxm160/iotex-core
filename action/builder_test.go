@@ -17,7 +17,7 @@ import (
 )
 
 func TestActionBuilder(t *testing.T) {
-	srcPubKey := identityset.Keyinfo["producer"].PubKey
+	srcPubKey := identityset.PrivateKey(0).PublicKey()
 	bd := &Builder{}
 	act := bd.SetVersion(version.ProtocolVersion).
 		SetNonce(2).

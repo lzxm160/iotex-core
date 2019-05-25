@@ -35,7 +35,7 @@ func TestLoadOrCreateAccountState(t *testing.T) {
 	require.NoError(sf.Start(context.Background()))
 	ws, err := sf.NewWorkingSet()
 	require.NoError(err)
-	addrv1 := identityset.Addrinfo["producer"]
+	addrv1 := identityset.Address(0)
 	s, err := accountutil.LoadAccount(ws, hash.BytesToHash160(addrv1.Bytes()))
 	require.NoError(err)
 	require.Equal(s.Balance, state.EmptyAccount().Balance)
@@ -49,7 +49,7 @@ func TestLoadOrCreateAccountState(t *testing.T) {
 	gasLimit := testutil.TestGasLimit
 	ctx := protocol.WithRunActionsCtx(context.Background(),
 		protocol.RunActionsCtx{
-			Producer: identityset.Addrinfo["producer"],
+			Producer: identityset.Address(0),
 			GasLimit: gasLimit,
 		})
 	_, err = ws.RunActions(ctx, 0, nil)

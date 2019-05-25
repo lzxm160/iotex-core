@@ -19,7 +19,7 @@ import (
 func TestSettleDeposit(t *testing.T) {
 	t.Parallel()
 
-	addr2 := identityset.Addrinfo["alfa"].String()
+	addr2 := identityset.Address(1).String()
 
 	assertDeposit := func(deposit *SettleDeposit) {
 		require.NotNil(t, deposit)
@@ -45,7 +45,7 @@ func TestSettleDeposit(t *testing.T) {
 func TestSettleDepositProto(t *testing.T) {
 	t.Parallel()
 
-	addr2 := identityset.Addrinfo["alfa"].String()
+	addr2 := identityset.Address(1).String()
 
 	assertDeposit := func(deposit *SettleDeposit) {
 		require.NotNil(t, deposit)

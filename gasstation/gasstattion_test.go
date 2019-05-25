@@ -136,7 +136,7 @@ func TestEstimateGasForAction(t *testing.T) {
 }
 func getAction() (act *iotextypes.Action) {
 	pubKey1 := identityset.Keyinfo["alfa"].PubKey
-	addr2 := identityset.Addrinfo["bravo"].String()
+	addr2 := identityset.Address(2).String()
 
 	act = &iotextypes.Action{
 		Core: &iotextypes.ActionCore{
@@ -152,7 +152,7 @@ func getAction() (act *iotextypes.Action) {
 }
 func getActionWithPayload() (act *iotextypes.Action) {
 	pubKey1 := identityset.Keyinfo["alfa"].PubKey
-	addr2 := identityset.Addrinfo["bravo"].String()
+	addr2 := identityset.Address(2).String()
 
 	act = &iotextypes.Action{
 		Core: &iotextypes.ActionCore{

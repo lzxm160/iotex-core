@@ -39,7 +39,7 @@ func TestAddSubChainActions(t *testing.T) {
 	)
 	require.NoError(t, bc.Start(ctx))
 	_, err := bc.CreateState(
-		identityset.Addrinfo["producer"].String(),
+		identityset.Address(0).String(),
 		big.NewInt(0).Mul(big.NewInt(10000000000), big.NewInt(unit.Iotx)),
 	)
 	require.NoError(t, err)
@@ -68,7 +68,7 @@ func TestAddSubChainActions(t *testing.T) {
 		SetAction(startSubChain).
 		SetGasPrice(testutil.TestGasPrice).
 		Build()
-	selp, err := action.Sign(elp, identityset.Keyinfo["producer"].PriKey)
+	selp, err := action.Sign(elp, identityset.PrivateKey(0))
 	require.NoError(t, err)
 	require.NoError(t, ap.Add(selp))
 
@@ -76,7 +76,7 @@ func TestAddSubChainActions(t *testing.T) {
 	roots["10002"] = hash.BytesToHash256([]byte("10002"))
 	putBlock := action.NewPutBlock(
 		2,
-		identityset.Addrinfo["producer"].String(),
+		identityset.Address(0).String(),
 		10001,
 		roots,
 		10003,
@@ -87,13 +87,13 @@ func TestAddSubChainActions(t *testing.T) {
 		SetGasPrice(testutil.TestGasPrice).
 		SetAction(putBlock).
 		SetGasLimit(10003).Build()
-	pbselp, err := action.Sign(pbelp, identityset.Keyinfo["producer"].PriKey)
+	pbselp, err := action.Sign(pbelp, identityset.PrivateKey(0))
 	require.NoError(t, err)
 	require.NoError(t, ap.Add(pbselp))
 
 	stopSubChain := action.NewStopSubChain(
 		3,
-		identityset.Addrinfo["alfa"].String(),
+		identityset.Address(1).String(),
 		10003,
 		10005,
 		testutil.TestGasPrice,
@@ -103,7 +103,7 @@ func TestAddSubChainActions(t *testing.T) {
 		SetGasPrice(testutil.TestGasPrice).
 		SetAction(stopSubChain).
 		SetGasLimit(10005).Build()
-	sscselp, err := action.Sign(sscelp, identityset.Keyinfo["producer"].PriKey)
+	sscselp, err := action.Sign(sscelp, identityset.PrivateKey(0))
 	require.NoError(t, err)
 	require.NoError(t, ap.Add(sscselp))
 

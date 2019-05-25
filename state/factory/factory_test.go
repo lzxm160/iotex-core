@@ -88,10 +88,10 @@ func TestSDBSnapshot(t *testing.T) {
 
 func testSnapshot(ws WorkingSet, t *testing.T) {
 	require := require.New(t)
-	addr := identityset.Addrinfo["alfa"].String()
+	addr := identityset.Address(1).String()
 	_, err := accountutil.LoadOrCreateAccount(ws, addr, big.NewInt(5))
 	require.NoError(err)
-	sHash := hash.BytesToHash160(identityset.Addrinfo["alfa"].Bytes())
+	sHash := hash.BytesToHash160(identityset.Address(0).Bytes())
 
 	s, err := accountutil.LoadAccount(ws, sHash)
 	require.NoError(err)
@@ -107,10 +107,10 @@ func testSnapshot(ws WorkingSet, t *testing.T) {
 	require.Equal(big.NewInt(15), s.Balance)
 	require.NoError(ws.PutState(sHash, s))
 	// add another account
-	addr = identityset.Addrinfo["bravo"].String()
+	addr = identityset.Address(2).String()
 	_, err = accountutil.LoadOrCreateAccount(ws, addr, big.NewInt(7))
 	require.NoError(err)
-	tHash := hash.BytesToHash160(identityset.Addrinfo["bravo"].Bytes())
+	tHash := hash.BytesToHash160(identityset.Address(0).Bytes())
 
 	s, err = accountutil.LoadAccount(ws, tHash)
 	require.NoError(err)
@@ -193,8 +193,8 @@ func TestSDBState(t *testing.T) {
 
 func testState(sf Factory, t *testing.T) {
 	// Create a dummy iotex address
-	a := identityset.Addrinfo["alfa"].String()
-	priKeyA := identityset.Keyinfo["alfa"].PriKey
+	a := identityset.Address(1).String()
+	priKeyA := identityset.PrivateKey(1)
 	sf.AddActionHandlers(account.NewProtocol(0))
 	require.NoError(t, sf.Start(context.Background()))
 	defer func() {
@@ -205,7 +205,7 @@ func testState(sf Factory, t *testing.T) {
 	_, err = accountutil.LoadOrCreateAccount(ws, a, big.NewInt(100))
 	require.NoError(t, err)
 
-	tsf, err := action.NewTransfer(1, big.NewInt(10), identityset.Addrinfo["delta"].String(), nil, uint64(20000), big.NewInt(0))
+	tsf, err := action.NewTransfer(1, big.NewInt(10), identityset.Address(4).String(), nil, uint64(20000), big.NewInt(0))
 	require.NoError(t, err)
 	bd := &action.EnvelopeBuilder{}
 	elp := bd.SetAction(tsf).SetGasLimit(20000).Build()
@@ -213,7 +213,7 @@ func testState(sf Factory, t *testing.T) {
 	require.NoError(t, err)
 	gasLimit := uint64(1000000)
 	raCtx := protocol.RunActionsCtx{
-		Producer: identityset.Addrinfo["producer"],
+		Producer: identityset.Address(0),
 		GasLimit: gasLimit,
 	}
 
@@ -226,7 +226,7 @@ func testState(sf Factory, t *testing.T) {
 	var testAccount state.Account
 	accountA, err := sf.AccountState(a)
 	require.NoError(t, err)
-	sHash := hash.BytesToHash160(identityset.Addrinfo["alfa"].Bytes())
+	sHash := hash.BytesToHash160(identityset.Address(0).Bytes())
 	err = sf.State(sHash, &testAccount)
 	require.NoError(t, err)
 	require.Equal(t, accountA, &testAccount)
@@ -257,9 +257,9 @@ func TestSDBNonce(t *testing.T) {
 
 func testNonce(sf Factory, t *testing.T) {
 	// Create two dummy iotex address
-	a := identityset.Addrinfo["alfa"].String()
-	priKeyA := identityset.Keyinfo["alfa"].PriKey
-	b := identityset.Addrinfo["bravo"].String()
+	a := identityset.Address(1).String()
+	priKeyA := identityset.PrivateKey(1)
+	b := identityset.Address(2).String()
 
 	sf.AddActionHandlers(account.NewProtocol(0), account.NewProtocol(0))
 	require.NoError(t, sf.Start(context.Background()))
@@ -279,7 +279,7 @@ func testNonce(sf Factory, t *testing.T) {
 	require.NoError(t, err)
 	gasLimit := uint64(1000000)
 	raCtx := protocol.RunActionsCtx{
-		Producer: identityset.Addrinfo["producer"],
+		Producer: identityset.Address(0),
 		GasLimit: gasLimit,
 	}
 
@@ -414,10 +414,10 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 	require := require.New(t)
 	require.Equal(uint64(0), ws.Version())
 	require.NoError(ws.GetDB().Start(context.Background()))
-	a := identityset.Addrinfo["alfa"].String()
-	priKeyA := identityset.Keyinfo["alfa"].PriKey
-	b := identityset.Addrinfo["bravo"].String()
-	priKeyB := identityset.Keyinfo["bravo"].PriKey
+	a := identityset.Address(1).String()
+	priKeyA := identityset.PrivateKey(1)
+	b := identityset.Address(2).String()
+	priKeyB := identityset.PrivateKey(2)
 	_, err := accountutil.LoadOrCreateAccount(ws, a, big.NewInt(100))
 	require.NoError(err)
 	_, err = accountutil.LoadOrCreateAccount(ws, b, big.NewInt(200))
@@ -440,7 +440,7 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 	gasLimit := uint64(1000000)
 	ctx := protocol.WithRunActionsCtx(context.Background(),
 		protocol.RunActionsCtx{
-			Producer: identityset.Addrinfo["producer"],
+			Producer: identityset.Address(0),
 			GasLimit: gasLimit,
 		})
 	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp1, selp2})
@@ -475,7 +475,7 @@ func testCachedBatch(ws WorkingSet, t *testing.T, chechCachedBatchHash bool) {
 	}
 
 	// test PutState()
-	hashA := hash.BytesToHash160(identityset.Addrinfo["alfa"].Bytes())
+	hashA := hash.BytesToHash160(identityset.Address(0).Bytes())
 	accountA := state.EmptyAccount()
 	accountA.Balance = big.NewInt(70)
 	err := ws.PutState(hashA, accountA)
@@ -606,11 +606,11 @@ func BenchmarkSDBRunAction(b *testing.B) {
 func benchRunAction(sf Factory, b *testing.B) {
 	// set up
 	accounts := []string{
-		identityset.Addrinfo["alfa"].String(),
-		identityset.Addrinfo["bravo"].String(),
-		identityset.Addrinfo["charlie"].String(),
-		identityset.Addrinfo["delta"].String(),
-		identityset.Addrinfo["echo"].String(),
+		identityset.Address(1).String(),
+		identityset.Address(2).String(),
+		identityset.Address(3).String(),
+		identityset.Address(4).String(),
+		identityset.Address(5).String(),
 		identityset.Addrinfo["foxtrot"].String(),
 	}
 	pubKeys := []crypto.PublicKey{
@@ -618,7 +618,7 @@ func benchRunAction(sf Factory, b *testing.B) {
 		identityset.Keyinfo["bravo"].PubKey,
 		identityset.Keyinfo["charlie"].PubKey,
 		identityset.Keyinfo["delta"].PubKey,
-		identityset.Keyinfo["echo"].PubKey,
+		identityset.Address(5).PubKey,
 		identityset.Keyinfo["foxtrot"].PubKey,
 	}
 	nonces := make([]uint64, len(accounts))
@@ -685,7 +685,7 @@ func benchRunAction(sf Factory, b *testing.B) {
 		b.StartTimer()
 		zctx := protocol.WithRunActionsCtx(context.Background(),
 			protocol.RunActionsCtx{
-				Producer: identityset.Addrinfo["producer"],
+				Producer: identityset.Address(0),
 				GasLimit: gasLimit,
 			})
 		_, err = ws.RunActions(zctx, uint64(n), acts)

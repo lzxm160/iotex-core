@@ -23,9 +23,9 @@ import (
 
 func TestClient(t *testing.T) {
 	require := require.New(t)
-	a := identityset.Addrinfo["alfa"].String()
-	priKeyA := identityset.Keyinfo["alfa"].PriKey
-	b := identityset.Addrinfo["bravo"].String()
+	a := identityset.Address(1).String()
+	priKeyA := identityset.PrivateKey(1)
+	b := identityset.Address(2).String()
 
 	cfg := config.Default
 	cfg.API.Port = testutil.RandomPort()

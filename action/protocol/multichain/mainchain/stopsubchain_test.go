@@ -30,7 +30,7 @@ func TestHandleStopSubChain(t *testing.T) {
 	require := require.New(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	sender := identityset.Addrinfo["producer"]
+	sender := identityset.Address(0)
 	factory := mock_factory.NewMockFactory(ctrl)
 	chain := mock_blockchain.NewMockBlockchain(ctrl)
 	chain.EXPECT().GetFactory().Return(factory).AnyTimes()
@@ -73,7 +73,7 @@ func TestHandleStopSubChain(t *testing.T) {
 		OperationDeposit:   big.NewInt(200000),
 		StartHeight:        3,
 		ParentHeightOffset: 1,
-		OwnerPublicKey:     identityset.Keyinfo["producer"].PubKey,
+		OwnerPublicKey:     identityset.PrivateKey(0).PublicKey(),
 		CurrentHeight:      0,
 		DepositCount:       0,
 	}
@@ -98,7 +98,7 @@ func TestHandleStopSubChain(t *testing.T) {
 		big.NewInt(0),
 	)
 	ctx := protocol.WithRunActionsCtx(context.Background(), protocol.RunActionsCtx{
-		Caller:      identityset.Addrinfo["alfa"],
+		Caller:      identityset.Address(0),
 		BlockHeight: 2,
 	})
 	// wrong owner

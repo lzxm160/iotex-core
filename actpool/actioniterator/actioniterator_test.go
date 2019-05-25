@@ -19,12 +19,12 @@ import (
 func TestActionIterator(t *testing.T) {
 	require := require.New(t)
 
-	a := identityset.Addrinfo["alfa"]
-	priKeyA := identityset.Keyinfo["alfa"].PriKey
-	b := identityset.Addrinfo["bravo"]
-	priKeyB := identityset.Keyinfo["bravo"].PriKey
-	c := identityset.Addrinfo["charlie"]
-	priKeyC := identityset.Keyinfo["charlie"].PriKey
+	a := identityset.Address(0)
+	priKeyA := identityset.PrivateKey(1)
+	b := identityset.Address(0)
+	priKeyB := identityset.PrivateKey(2)
+	c := identityset.Address(0)
+	priKeyC := identityset.PrivateKey(3)
 	accMap := make(map[string][]action.SealedEnvelope)
 	tsf1, err := action.NewTransfer(uint64(1), big.NewInt(100), b.String(), nil, uint64(0), big.NewInt(13))
 	require.Nil(err)

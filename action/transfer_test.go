@@ -17,7 +17,7 @@ import (
 
 func TestTransferSignVerify(t *testing.T) {
 	require := require.New(t)
-	recipientAddr := identityset.Addrinfo["alfa"]
+	recipientAddr := identityset.Address(0)
 	senderKey := identityset.Keyinfo["producer"]
 
 	tsf, err := NewTransfer(0, big.NewInt(10), recipientAddr.String(), []byte{}, uint64(100000), big.NewInt(10))

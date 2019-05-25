@@ -49,7 +49,7 @@ func TestValidateDeposit(t *testing.T) {
 
 	p := NewProtocol(chain)
 
-	addr := identityset.Addrinfo["producer"]
+	addr := identityset.Address(0)
 
 	deposit := action.NewCreateDeposit(1, 2, big.NewInt(1000), addr.String(), testutil.TestGasLimit, big.NewInt(0))
 	_, _, err = p.validateDeposit(addr, deposit, nil)
@@ -59,14 +59,14 @@ func TestValidateDeposit(t *testing.T) {
 	require.NoError(t, err)
 	_, err = accountutil.LoadOrCreateAccount(
 		ws,
-		identityset.Addrinfo["producer"].String(),
+		identityset.Address(0).String(),
 		big.NewInt(1000),
 	)
 	require.NoError(t, err)
 	gasLimit := testutil.TestGasLimit
 	ctx = protocol.WithRunActionsCtx(ctx,
 		protocol.RunActionsCtx{
-			Producer: identityset.Addrinfo["producer"],
+			Producer: identityset.Address(0),
 			GasLimit: gasLimit,
 		})
 	_, err = ws.RunActions(ctx, 0, nil)
@@ -116,7 +116,7 @@ func TestMutateDeposit(t *testing.T) {
 		ctrl.Finish()
 	}()
 
-	addr := identityset.Addrinfo["producer"]
+	addr := identityset.Address(0)
 	subChainAddr, err := createSubChainAddress(addr.String(), 0)
 	require.NoError(t, err)
 	addrSubChain, err := address.FromBytes(subChainAddr[:])
@@ -132,7 +132,7 @@ func TestMutateDeposit(t *testing.T) {
 			OperationDeposit:   big.NewInt(2),
 			StartHeight:        100,
 			ParentHeightOffset: 10,
-			OwnerPublicKey:     identityset.Keyinfo["producer"].PubKey,
+			OwnerPublicKey:     identityset.PrivateKey(0).PublicKey(),
 			CurrentHeight:      200,
 			DepositCount:       300,
 		},

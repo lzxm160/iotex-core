@@ -59,7 +59,7 @@ func TestSerDesFooter(t *testing.T) {
 
 func makeFooter() (f *Footer) {
 	endors := make([]*endorsement.Endorsement, 0)
-	endor := endorsement.NewEndorsement(time.Now(), identityset.Keyinfo["producer"].PubKey, nil)
+	endor := endorsement.NewEndorsement(time.Now(), identityset.PrivateKey(0).PublicKey(), nil)
 	endors = append(endors, endor)
 	f = &Footer{endors, time.Now()}
 	return

@@ -39,8 +39,8 @@ func TestHandlePutBlock(t *testing.T) {
 	chain := mock_blockchain.NewMockBlockchain(ctrl)
 	chain.EXPECT().GetFactory().Return(sf).AnyTimes()
 
-	addr := identityset.Addrinfo["producer"]
-	key2 := identityset.Keyinfo["echo"]
+	addr := identityset.Address(0)
+	key2 := identityset.Address(5)
 
 	ws, err := sf.NewWorkingSet()
 	require.NoError(t, err)
@@ -53,8 +53,8 @@ func TestHandlePutBlock(t *testing.T) {
 	gasLimit := testutil.TestGasLimit
 	ctx = protocol.WithRunActionsCtx(ctx,
 		protocol.RunActionsCtx{
-			Producer: identityset.Addrinfo["producer"],
-			Caller:   identityset.Addrinfo["producer"],
+			Producer: identityset.Address(0),
+			Caller:   identityset.Address(0),
 			GasLimit: gasLimit,
 		})
 	_, err = ws.RunActions(ctx, 0, nil)

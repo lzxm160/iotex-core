@@ -44,44 +44,44 @@ func testProtocol(t *testing.T, test func(*testing.T, context.Context, factory.F
 	chain := mock_chainmanager.NewMockChainManager(ctrl)
 	chain.EXPECT().CandidatesByHeight(gomock.Any()).Return([]*state.Candidate{
 		{
-			Address:       identityset.Addrinfo["producer"].String(),
+			Address:       identityset.Address(0).String(),
 			Votes:         unit.ConvertIotxToRau(4000000),
 			RewardAddress: identityset.Address(0).String(),
 		},
 		{
-			Address:       identityset.Addrinfo["alfa"].String(),
+			Address:       identityset.Address(1).String(),
 			Votes:         unit.ConvertIotxToRau(3000000),
-			RewardAddress: identityset.Addrinfo["alfa"].String(),
+			RewardAddress: identityset.Address(1).String(),
 		},
 		{
-			Address:       identityset.Addrinfo["bravo"].String(),
+			Address:       identityset.Address(2).String(),
 			Votes:         unit.ConvertIotxToRau(2000000),
-			RewardAddress: identityset.Addrinfo["bravo"].String(),
+			RewardAddress: identityset.Address(2).String(),
 		},
 		{
-			Address:       identityset.Addrinfo["charlie"].String(),
+			Address:       identityset.Address(3).String(),
 			Votes:         unit.ConvertIotxToRau(1000000),
-			RewardAddress: identityset.Addrinfo["charlie"].String(),
+			RewardAddress: identityset.Address(3).String(),
 		},
 		{
-			Address:       identityset.Addrinfo["delta"].String(),
+			Address:       identityset.Address(4).String(),
 			Votes:         unit.ConvertIotxToRau(500000),
-			RewardAddress: identityset.Addrinfo["delta"].String(),
+			RewardAddress: identityset.Address(4).String(),
 		},
 		{
-			Address:       identityset.Addrinfo["echo"].String(),
+			Address:       identityset.Address(5).String(),
 			Votes:         unit.ConvertIotxToRau(500000),
-			RewardAddress: identityset.Addrinfo["echo"].String(),
+			RewardAddress: identityset.Address(5).String(),
 		},
 	}, nil).AnyTimes()
 	chain.EXPECT().ProductivityByEpoch(gomock.Any()).Return(
 		uint64(19),
 		map[string]uint64{
-			identityset.Addrinfo["producer"].String(): 3,
-			identityset.Addrinfo["alfa"].String():     7,
-			identityset.Addrinfo["bravo"].String():    1,
-			identityset.Addrinfo["charlie"].String():  6,
-			identityset.Addrinfo["delta"].String():    2,
+			identityset.Address(0).String(): 3,
+			identityset.Address(1).String(): 7,
+			identityset.Address(2).String(): 1,
+			identityset.Address(3).String(): 6,
+			identityset.Address(4).String(): 2,
 		},
 		nil,
 	).AnyTimes()
@@ -111,7 +111,7 @@ func testProtocol(t *testing.T, test func(*testing.T, context.Context, factory.F
 				big.NewInt(100),
 				10,
 				[]address.Address{
-					identityset.Addrinfo["delta"],
+					identityset.Address(0),
 				},
 				big.NewInt(5),
 				5,
@@ -141,8 +141,8 @@ func testProtocol(t *testing.T, test func(*testing.T, context.Context, factory.F
 	ctx = protocol.WithRunActionsCtx(
 		context.Background(),
 		protocol.RunActionsCtx{
-			Producer:    identityset.Addrinfo["producer"],
-			Caller:      identityset.Addrinfo["alfa"],
+			Producer:    identityset.Address(0),
+			Caller:      identityset.Address(0),
 			BlockHeight: genesis.Default.NumDelegates * genesis.Default.NumSubEpochs,
 		},
 	)
@@ -177,7 +177,7 @@ func testProtocol(t *testing.T, test func(*testing.T, context.Context, factory.F
 	// Create a test account with 1000 token
 	ws, err = stateDB.NewWorkingSet()
 	require.NoError(t, err)
-	_, err = accountutil.LoadOrCreateAccount(ws, identityset.Addrinfo["alfa"].String(), big.NewInt(1000))
+	_, err = accountutil.LoadOrCreateAccount(ws, identityset.Address(1).String(), big.NewInt(1000))
 	require.NoError(t, err)
 	require.NoError(t, stateDB.Commit(ws))
 

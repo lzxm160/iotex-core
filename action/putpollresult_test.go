@@ -19,7 +19,7 @@ import (
 
 func TestPutPollResult(t *testing.T) {
 	candidates := state.CandidateList{}
-	pk := identityset.Keyinfo["echo"].PubKey
+	pk := identityset.Address(5).PubKey
 	addr, err := address.FromBytes(pk.Hash())
 	assert.NoError(t, err)
 	candidates = append(candidates, &state.Candidate{

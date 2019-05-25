@@ -414,7 +414,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 				gasLimit := testutil.TestGasLimit
 				wsctx := protocol.WithRunActionsCtx(ctx,
 					protocol.RunActionsCtx{
-						Producer: identityset.Addrinfo["producer"],
+						Producer: identityset.Address(0),
 						GasLimit: gasLimit,
 					})
 				_, err = ws.RunActions(wsctx, 0, nil)

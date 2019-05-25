@@ -18,9 +18,9 @@ import (
 )
 
 var (
-	addr1   = identityset.Addrinfo["producer"].String()
-	priKey1 = identityset.Keyinfo["producer"].PriKey
-	addr2   = identityset.Addrinfo["alfa"].String()
+	addr1   = identityset.Address(0).String()
+	priKey1 = identityset.PrivateKey(0)
+	addr2   = identityset.Address(1).String()
 )
 
 func TestSignedTransfer(t *testing.T) {

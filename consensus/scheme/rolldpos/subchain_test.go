@@ -25,7 +25,7 @@ func TestPutBlockToParentChain(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	pubKey := identityset.Keyinfo["producer"].PubKey
+	pubKey := identityset.PrivateKey(0).PublicKey()
 	blk := block.Block{}
 	blkpb := &iotextypes.Block{
 		Header: &iotextypes.BlockHeader{

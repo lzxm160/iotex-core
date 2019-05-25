@@ -56,8 +56,8 @@ func TestProtocol_HandleTransfer(t *testing.T) {
 			protocol.WithRunActionsCtx(context.Background(),
 				protocol.RunActionsCtx{
 					BlockHeight: 0,
-					Producer:    identityset.Addrinfo["producer"],
-					Caller:      identityset.Addrinfo["alfa"],
+					Producer:    identityset.Address(0),
+					Caller:      identityset.Address(0),
 					GasLimit:    testutil.TestGasLimit,
 					Registry:    &registry,
 				}),
@@ -79,9 +79,9 @@ func TestProtocol_HandleTransfer(t *testing.T) {
 	}
 	accountBravo := state.Account{}
 	accountCharlie := state.Account{}
-	pubKeyAlfa := hash.BytesToHash160(identityset.Addrinfo["alfa"].Bytes())
-	pubKeyBravo := hash.BytesToHash160(identityset.Addrinfo["bravo"].Bytes())
-	pubKeyCharlie := hash.BytesToHash160(identityset.Addrinfo["charlie"].Bytes())
+	pubKeyAlfa := hash.BytesToHash160(identityset.Address(0).Bytes())
+	pubKeyBravo := hash.BytesToHash160(identityset.Address(0).Bytes())
+	pubKeyCharlie := hash.BytesToHash160(identityset.Address(0).Bytes())
 
 	require.NoError(ws.PutState(pubKeyAlfa, &accountAlfa))
 	require.NoError(ws.PutState(pubKeyBravo, &accountBravo))
@@ -90,7 +90,7 @@ func TestProtocol_HandleTransfer(t *testing.T) {
 	transfer, err := action.NewTransfer(
 		uint64(1),
 		big.NewInt(2),
-		identityset.Addrinfo["bravo"].String(),
+		identityset.Address(2).String(),
 		[]byte{},
 		uint64(10000),
 		big.NewInt(1),
@@ -101,8 +101,8 @@ func TestProtocol_HandleTransfer(t *testing.T) {
 	ctx = protocol.WithRunActionsCtx(context.Background(),
 		protocol.RunActionsCtx{
 			BlockHeight:  1,
-			Producer:     identityset.Addrinfo["producer"],
-			Caller:       identityset.Addrinfo["alfa"],
+			Producer:     identityset.Address(0),
+			Caller:       identityset.Address(0),
 			GasLimit:     testutil.TestGasLimit,
 			IntrinsicGas: gas,
 			Registry:     &registry,
@@ -122,12 +122,12 @@ func TestProtocol_HandleTransfer(t *testing.T) {
 	contractAcct := state.Account{
 		CodeHash: []byte("codeHash"),
 	}
-	contractAddr := hash.BytesToHash160(identityset.Addrinfo["echo"].Bytes())
+	contractAddr := hash.BytesToHash160(identityset.Address(5).Bytes())
 	require.NoError(ws.PutState(contractAddr, &contractAcct))
 	transfer, err = action.NewTransfer(
 		uint64(2),
 		big.NewInt(3),
-		identityset.Addrinfo["echo"].String(),
+		identityset.Address(5).String(),
 		[]byte{},
 		uint64(10000),
 		big.NewInt(2),
@@ -164,7 +164,7 @@ func TestProtocol_ValidateTransfer(t *testing.T) {
 	tsf, err = action.NewTransfer(
 		1,
 		big.NewInt(1),
-		identityset.Addrinfo["alfa"].String()+"aaa",
+		identityset.Address(1).String()+"aaa",
 		nil,
 		uint64(100000),
 		big.NewInt(0),
