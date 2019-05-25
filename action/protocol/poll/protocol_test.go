@@ -104,7 +104,7 @@ func TestHandle(t *testing.T) {
 
 	// wrong action
 	recipientAddr := identityset.Address(0)
-	senderKey := identityset.Keyinfo["producer"]
+	senderKey := identityset.PrivateKey(0)
 	tsf, err := action.NewTransfer(0, big.NewInt(10), recipientAddr.String(), []byte{}, uint64(100000), big.NewInt(10))
 	require.NoError(err)
 	bd := &action.EnvelopeBuilder{}
@@ -158,7 +158,7 @@ func TestProtocol_Validate(t *testing.T) {
 
 	// wrong action
 	recipientAddr := identityset.Address(0)
-	senderKey := identityset.Keyinfo["producer"]
+	senderKey := identityset.PrivateKey(0)
 	tsf, err := action.NewTransfer(0, big.NewInt(10), recipientAddr.String(), []byte{}, uint64(100000), big.NewInt(10))
 	require.NoError(err)
 	bd := &action.EnvelopeBuilder{}

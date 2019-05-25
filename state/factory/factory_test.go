@@ -615,11 +615,11 @@ func benchRunAction(sf Factory, b *testing.B) {
 	}
 	pubKeys := []crypto.PublicKey{
 		identityset.PrivateKey(1).PublicKey(),
-		identityset.Keyinfo["bravo"].PubKey,
-		identityset.Keyinfo["charlie"].PubKey,
-		identityset.Keyinfo["delta"].PubKey,
-		identityset.Address(5).PubKey,
-		identityset.Keyinfo["foxtrot"].PubKey,
+		identityset.PrivateKey(2).PublicKey(),
+		identityset.PrivateKey(3).PublicKey(),
+		identityset.PrivateKey(4).PublicKey(),
+		identityset.PrivateKey(5).PublicKey(),
+		identityset.PrivateKey(6).PublicKey(),
 	}
 	nonces := make([]uint64, len(accounts))
 

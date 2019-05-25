@@ -19,7 +19,7 @@ import (
 func TestExecutionSignVerify(t *testing.T) {
 	require := require.New(t)
 	contractAddr := identityset.Address(0)
-	executorKey := identityset.Keyinfo["producer"]
+	executorKey := identityset.PrivateKey(0)
 	data, err := hex.DecodeString("")
 	require.NoError(err)
 	ex, err := NewExecution(contractAddr.String(), 0, big.NewInt(10), uint64(10), big.NewInt(10), data)
