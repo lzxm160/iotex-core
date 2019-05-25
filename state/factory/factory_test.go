@@ -91,7 +91,7 @@ func testSnapshot(ws WorkingSet, t *testing.T) {
 	addr := identityset.Address(1).String()
 	_, err := accountutil.LoadOrCreateAccount(ws, addr, big.NewInt(5))
 	require.NoError(err)
-	sHash := hash.BytesToHash160(identityset.Address(0).Bytes())
+	sHash := hash.BytesToHash160(identityset.Address(1).Bytes())
 
 	s, err := accountutil.LoadAccount(ws, sHash)
 	require.NoError(err)
@@ -110,7 +110,7 @@ func testSnapshot(ws WorkingSet, t *testing.T) {
 	addr = identityset.Address(2).String()
 	_, err = accountutil.LoadOrCreateAccount(ws, addr, big.NewInt(7))
 	require.NoError(err)
-	tHash := hash.BytesToHash160(identityset.Address(0).Bytes())
+	tHash := hash.BytesToHash160(identityset.Address(2).Bytes())
 
 	s, err = accountutil.LoadAccount(ws, tHash)
 	require.NoError(err)
@@ -226,7 +226,7 @@ func testState(sf Factory, t *testing.T) {
 	var testAccount state.Account
 	accountA, err := sf.AccountState(a)
 	require.NoError(t, err)
-	sHash := hash.BytesToHash160(identityset.Address(0).Bytes())
+	sHash := hash.BytesToHash160(identityset.Address(1).Bytes())
 	err = sf.State(sHash, &testAccount)
 	require.NoError(t, err)
 	require.Equal(t, accountA, &testAccount)
@@ -475,7 +475,7 @@ func testCachedBatch(ws WorkingSet, t *testing.T, chechCachedBatchHash bool) {
 	}
 
 	// test PutState()
-	hashA := hash.BytesToHash160(identityset.Address(0).Bytes())
+	hashA := hash.BytesToHash160(identityset.Address(1).Bytes())
 	accountA := state.EmptyAccount()
 	accountA.Balance = big.NewInt(70)
 	err := ws.PutState(hashA, accountA)
