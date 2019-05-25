@@ -269,8 +269,8 @@ func copyFile(srcFile, dstFile string) error {
 	}
 	defer source.Close()
 	_, err = os.Stat(dstFile)
-	if err != nil {
-		return err
+	if err == nil {
+		return fmt.Errorf("%s is exist", dstFile)
 	}
 	destination, err := os.Create(dstFile)
 	if err != nil {
