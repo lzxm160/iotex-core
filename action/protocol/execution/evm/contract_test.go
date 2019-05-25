@@ -41,7 +41,7 @@ func TestCreateContract(t *testing.T) {
 	require.Nil(sf.Start(context.Background()))
 
 	code := []byte("test contract creation")
-	addr := identityset.Address(0)
+	addr := identityset.Address(1)
 	ws, err := sf.NewWorkingSet()
 	require.Nil(err)
 	_, err = accountutil.LoadOrCreateAccount(ws, addr.String(), big.NewInt(0))
@@ -123,7 +123,7 @@ func TestLoadStoreContract(t *testing.T) {
 	require.Nil(sf.Start(context.Background()))
 
 	code := []byte("test contract creation")
-	addr := identityset.Address(0)
+	addr := identityset.Address(1)
 	ws, err := sf.NewWorkingSet()
 	require.Nil(err)
 	_, err = accountutil.LoadOrCreateAccount(ws, addr.String(), big.NewInt(0))
@@ -153,7 +153,7 @@ func TestLoadStoreContract(t *testing.T) {
 	require.Nil(stateDB.setContractState(hash.BytesToHash160(contract), k2, v2))
 
 	code1 := []byte("2nd contract creation")
-	addr1 := identityset.Address(0)
+	addr1 := identityset.Address(2)
 	_, err = accountutil.LoadOrCreateAccount(ws, addr1.String(), big.NewInt(0))
 	require.Nil(err)
 	contract1 := addr1.Bytes()
@@ -236,7 +236,7 @@ func TestSnapshot(t *testing.T) {
 	v2 := hash.Hash256b([]byte("dog"))
 
 	c1, err := newContract(
-		hash.BytesToHash160(identityset.Address(0).Bytes()),
+		hash.BytesToHash160(identityset.Address(1).Bytes()),
 		s,
 		db.NewMemKVStore(),
 		db.NewCachedBatch(),
