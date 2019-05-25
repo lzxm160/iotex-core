@@ -32,11 +32,11 @@ func TestTransferSignVerify(t *testing.T) {
 
 	elp.ByteStream()
 
-	w := AssembleSealedEnvelope(elp, senderKey.PubKey, []byte("lol"))
+	w := AssembleSealedEnvelope(elp, senderKey.PublicKey(), []byte("lol"))
 	require.Error(Verify(w))
 
 	// sign the transfer
-	selp, err := Sign(elp, senderKey.PriKey)
+	selp, err := Sign(elp, senderKey)
 	require.NoError(err)
 	require.NotNil(selp)
 
