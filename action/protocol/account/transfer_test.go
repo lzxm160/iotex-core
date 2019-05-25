@@ -57,7 +57,7 @@ func TestProtocol_HandleTransfer(t *testing.T) {
 				protocol.RunActionsCtx{
 					BlockHeight: 0,
 					Producer:    identityset.Address(0),
-					Caller:      identityset.Address(0),
+					Caller:      identityset.Address(1),
 					GasLimit:    testutil.TestGasLimit,
 					Registry:    &registry,
 				}),
@@ -79,9 +79,9 @@ func TestProtocol_HandleTransfer(t *testing.T) {
 	}
 	accountBravo := state.Account{}
 	accountCharlie := state.Account{}
-	pubKeyAlfa := hash.BytesToHash160(identityset.Address(0).Bytes())
-	pubKeyBravo := hash.BytesToHash160(identityset.Address(0).Bytes())
-	pubKeyCharlie := hash.BytesToHash160(identityset.Address(0).Bytes())
+	pubKeyAlfa := hash.BytesToHash160(identityset.Address(1).Bytes())
+	pubKeyBravo := hash.BytesToHash160(identityset.Address(2).Bytes())
+	pubKeyCharlie := hash.BytesToHash160(identityset.Address(3).Bytes())
 
 	require.NoError(ws.PutState(pubKeyAlfa, &accountAlfa))
 	require.NoError(ws.PutState(pubKeyBravo, &accountBravo))
@@ -102,7 +102,7 @@ func TestProtocol_HandleTransfer(t *testing.T) {
 		protocol.RunActionsCtx{
 			BlockHeight:  1,
 			Producer:     identityset.Address(0),
-			Caller:       identityset.Address(0),
+			Caller:       identityset.Address(1),
 			GasLimit:     testutil.TestGasLimit,
 			IntrinsicGas: gas,
 			Registry:     &registry,
