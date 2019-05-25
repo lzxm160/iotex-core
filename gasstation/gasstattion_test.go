@@ -135,7 +135,7 @@ func TestEstimateGasForAction(t *testing.T) {
 	require.Equal(uint64(10000)+10*action.ExecutionDataGas, ret)
 }
 func getAction() (act *iotextypes.Action) {
-	pubKey1 := identityset.Keyinfo["alfa"].PubKey
+	pubKey1 := identityset.PrivateKey(1).PublicKey()
 	addr2 := identityset.Address(2).String()
 
 	act = &iotextypes.Action{
@@ -151,7 +151,7 @@ func getAction() (act *iotextypes.Action) {
 	return
 }
 func getActionWithPayload() (act *iotextypes.Action) {
-	pubKey1 := identityset.Keyinfo["alfa"].PubKey
+	pubKey1 := identityset.PrivateKey(1).PublicKey()
 	addr2 := identityset.Address(2).String()
 
 	act = &iotextypes.Action{

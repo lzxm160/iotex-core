@@ -611,10 +611,10 @@ func benchRunAction(sf Factory, b *testing.B) {
 		identityset.Address(3).String(),
 		identityset.Address(4).String(),
 		identityset.Address(5).String(),
-		identityset.Addrinfo["foxtrot"].String(),
+		identityset.Address(6).String(),
 	}
 	pubKeys := []crypto.PublicKey{
-		identityset.Keyinfo["alfa"].PubKey,
+		identityset.PrivateKey(1).PublicKey(),
 		identityset.Keyinfo["bravo"].PubKey,
 		identityset.Keyinfo["charlie"].PubKey,
 		identityset.Keyinfo["delta"].PubKey,

@@ -37,7 +37,8 @@ const (
 
 var (
 	addr1   = identityset.Address(1).String()
-	pubKey1 = identityset.Keyinfo["alfa"].PubKey
+	pubKey1 = identityset.PrivateKey(1).PublicKey()
+
 	priKey1 = identityset.PrivateKey(1)
 	addr2   = identityset.Address(2).String()
 	priKey2 = identityset.PrivateKey(2)
@@ -46,9 +47,9 @@ var (
 	addr4   = identityset.Address(4).String()
 	priKey4 = identityset.PrivateKey(4)
 	addr5   = identityset.Address(5).String()
-	priKey5 = identityset.Address(5).PriKey
-	addr6   = identityset.Addrinfo["foxtrot"].String()
-	priKey6 = identityset.Keyinfo["foxtrot"].PriKey
+	priKey5 = identityset.PrivateKey(5)
+	addr6   = identityset.Address(6).String()
+	priKey6 = identityset.PrivateKey(6)
 )
 
 func TestActPool_validateGenericAction(t *testing.T) {
