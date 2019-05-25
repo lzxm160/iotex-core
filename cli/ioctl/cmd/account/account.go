@@ -15,9 +15,9 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -247,10 +247,13 @@ func newAccountByKeyStore(alias, passwordOfKeyStore, keyStorePath string, wallet
 		log.L().Error("failed to convert bytes into address", zap.Error(err))
 		return "", err
 	}
-	copyFile(keyStorePath, walletDir)
+	err = copyFile(keyStorePath, walletDir+"/"+keyFileName(addBytes))
+	if err != nil {
+		return "", err
+	}
 	return addr.String(), nil
 }
-func copyFile(srcFile, dstDir string) error {
+func copyFile(srcFile, dstFile string) error {
 	sourceFileStat, err := os.Stat(srcFile)
 	if err != nil {
 		return err
@@ -265,12 +268,30 @@ func copyFile(srcFile, dstDir string) error {
 		return err
 	}
 	defer source.Close()
-	_, fileName := filepath.Split(srcFile)
-	destination, err := os.Create(dstDir + "/" + fileName)
+	_, err = os.Stat(dstFile)
+	if err != nil {
+		return err
+	}
+	destination, err := os.Create(dstFile)
 	if err != nil {
 		return err
 	}
 	defer destination.Close()
 	_, err = io.Copy(destination, source)
 	return err
+}
+func keyFileName(keyAddr common.Address) string {
+	ts := time.Now().UTC()
+	return fmt.Sprintf("UTC--%s--%s", toISO8601(ts), hex.EncodeToString(keyAddr[:]))
+}
+
+func toISO8601(t time.Time) string {
+	var tz string
+	name, offset := t.Zone()
+	if name == "UTC" {
+		tz = "Z"
+	} else {
+		tz = fmt.Sprintf("%03d00", offset/3600)
+	}
+	return fmt.Sprintf("%04d-%02d-%02dT%02d-%02d-%02d.%09d%s", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), tz)
 }
