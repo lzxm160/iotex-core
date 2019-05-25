@@ -40,7 +40,7 @@ func TestHandlePutBlock(t *testing.T) {
 	chain.EXPECT().GetFactory().Return(sf).AnyTimes()
 
 	addr := identityset.Address(0)
-	key2 := identityset.Address(5)
+	key2 := identityset.PrivateKey(5)
 
 	ws, err := sf.NewWorkingSet()
 	require.NoError(t, err)
