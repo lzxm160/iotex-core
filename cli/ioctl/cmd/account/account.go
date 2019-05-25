@@ -242,6 +242,13 @@ func newAccountByKeyStore(alias, passwordOfKeyStore, keyStorePath string, wallet
 
 	pubBytes := ecrypto.FromECDSAPub(&key.PrivateKey.PublicKey)
 	addBytes := common.BytesToAddress(ecrypto.Keccak256(pubBytes[1:])[12:])
+
+	// check if address is exist
+	ks := keystore.NewKeyStore(walletDir, keystore.StandardScryptN, keystore.StandardScryptP)
+	if ks.HasAddress(addBytes) {
+		return "", fmt.Errorf("account already exists")
+	}
+
 	addr, err := address.FromBytes(addBytes[:])
 	if err != nil {
 		log.L().Error("failed to convert bytes into address", zap.Error(err))
