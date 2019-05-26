@@ -220,11 +220,11 @@ func (p *governanceChainCommitteeProtocol) delegatesByGravityChainHeight(height 
 	r, err := p.electionCommittee.ResultByHeight(height)
 	if err != nil {
 		errMsg := "bucket = electionNS doesn't exist: not exist in DB"
-		for err != nil && strings.Contains(err.Errors(), errMsg) {
+		for err != nil && strings.Contains(err.Error(), errMsg) {
 			select {
 			case <-time.After(time.Second * 15):
 				r, err = p.electionCommittee.ResultByHeight(height)
-				if err != nil && strings.Contains(err.Errors(), errMsg) {
+				if err != nil && strings.Contains(err.Error(), errMsg) {
 					log.L().Error("Failed to call committee,wait for 15 seconds")
 				}
 			}
