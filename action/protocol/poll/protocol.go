@@ -231,7 +231,7 @@ loop:
 			if err == nil || !strings.Contains(err.Error(), errMsg) {
 				break loop
 			}
-			log.L().Error("Failed to call committee,wait for 15 seconds")
+			log.L().Error("calling committee,wait for 15 seconds")
 		}
 	}
 
