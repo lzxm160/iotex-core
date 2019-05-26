@@ -219,10 +219,9 @@ func (p *governanceChainCommitteeProtocol) delegatesByGravityChainHeight(height 
 	log.L().Info("////////////////////////////////", zap.Uint64("hei:", height))
 	r, err := p.electionCommittee.ResultByHeight(height)
 	if err != nil {
-		log.L().Error("Failed to call delegatesByGravityChainHeight,wait for 15 seconds:", zap.Error(err))
+		log.L().Error("Failed to call delegatesByGravityChainHeight,wait for 15 seconds:", zap.Uint64("committee latest:", p.electionCommittee.LatestHeight()))
 		time.Sleep(time.Second * 15)
-		p.delegatesByGravityChainHeight(height)
-		return nil, err
+		return p.delegatesByGravityChainHeight(height)
 	}
 	l := state.CandidateList{}
 	for _, c := range r.Delegates() {
