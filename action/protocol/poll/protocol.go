@@ -9,9 +9,8 @@ package poll
 import (
 	"context"
 	"math/big"
+	"strings"
 	"time"
-
-	"golang.org/x/tools/go/ssa/interp/testdata/src/strings"
 
 	"github.com/iotexproject/iotex-election/committee"
 	"github.com/pkg/errors"
