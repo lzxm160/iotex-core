@@ -11,6 +11,8 @@ import (
 	"math/big"
 	"time"
 
+	"golang.org/x/tools/go/ssa/interp/testdata/src/strings"
+
 	"github.com/iotexproject/iotex-election/committee"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -197,9 +199,7 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 	log.L().Info("Initialize poll protocol", zap.Uint64("height", p.initGravityChainHeight))
 	var ds state.CandidateList
 	if ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight); err != nil {
-		log.L().Error("Failed to call Initialize,wait for 15 seconds")
-		time.Sleep(time.Second * 15)
-		return p.Initialize(ctx, sm)
+		return
 	}
 	log.L().Info("Validating delegates from gravity chain", zap.Any("delegates", ds))
 	if err = validateDelegates(ds); err != nil {
@@ -220,6 +220,12 @@ func (p *governanceChainCommitteeProtocol) Validate(ctx context.Context, act act
 func (p *governanceChainCommitteeProtocol) delegatesByGravityChainHeight(height uint64) (state.CandidateList, error) {
 	r, err := p.electionCommittee.ResultByHeight(height)
 	if err != nil {
+		errMsg := "bucket = electionNS doesn't exist: not exist in DB"
+		if strings.Contains(err.Errors(), errMsg) {
+			log.L().Error("Failed to call committee,wait for 15 seconds")
+			time.Sleep(time.Second * 15)
+			return p.delegatesByGravityChainHeight(height)
+		}
 		return nil, err
 	}
 	l := state.CandidateList{}
