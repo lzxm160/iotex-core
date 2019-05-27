@@ -22,12 +22,13 @@ import (
 	"github.com/iotexproject/iotex-core/pkg/log"
 )
 
-// accountImportCmd represents the account import command
 var (
+	// accountImportCmd represents the account import command
 	accountImportCmd = &cobra.Command{
 		Use:   "import",
 		Short: "Import IoTeX private key or keystore into wallet",
 	}
+	// accountImportKeyCmd represents the account import key command
 	accountImportKeyCmd = &cobra.Command{
 		Use:   "key ALIAS",
 		Short: "Import IoTeX private key into wallet",
@@ -41,6 +42,7 @@ var (
 			return err
 		},
 	}
+	// accountImportKeyCmd represents the account import keystore command
 	accountImportKeyStoreCmd = &cobra.Command{
 		Use:   "keystore ALIAS FILEPATH",
 		Short: "Import IoTeX keystore into wallet",
@@ -82,6 +84,18 @@ func writeToFile(alias, addr string) (string, error) {
 		"New account #%s is created. Keep your password, or your will lose your private key.",
 		alias), nil
 }
+func readStdin() (string, error) {
+	passwordBytes, err := terminal.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		log.L().Error("failed to get password", zap.Error(err))
+		return "", err
+	}
+	password := strings.TrimSpace(string(passwordBytes))
+	for i := 0; i < len(passwordBytes); i++ {
+		passwordBytes[i] = 0
+	}
+	return password, nil
+}
 func accountImportKey(args []string) (string, error) {
 	// Validate inputs
 	alias := args[0]
@@ -90,14 +104,9 @@ func accountImportKey(args []string) (string, error) {
 		return "", err
 	}
 	fmt.Printf("#%s: Enter your private key, which will not be exposed on the screen.\n", alias)
-	privateKeyBytes, err := terminal.ReadPassword(int(syscall.Stdin))
+	privateKey, err := readStdin()
 	if err != nil {
-		log.L().Error("failed to get private key", zap.Error(err))
-		return "", err
-	}
-	privateKey := strings.TrimSpace(string(privateKeyBytes))
-	for i := 0; i < len(privateKeyBytes); i++ {
-		privateKeyBytes[i] = 0
+		return "", nil
 	}
 	addr, err := newAccountByKey(alias, privateKey, config.ReadConfig.Wallet)
 	if err != nil {
@@ -113,14 +122,9 @@ func accountImportKeyStore(args []string) (string, error) {
 		return "", err
 	}
 	fmt.Printf("#%s: Enter your password of keystore, which will not be exposed on the screen.\n", alias)
-	passwordBytes, err := terminal.ReadPassword(int(syscall.Stdin))
+	password, err := readStdin()
 	if err != nil {
-		log.L().Error("failed to get password", zap.Error(err))
-		return "", err
-	}
-	password := strings.TrimSpace(string(passwordBytes))
-	for i := 0; i < len(passwordBytes); i++ {
-		passwordBytes[i] = 0
+		return "", nil
 	}
 	addr, err := newAccountByKeyStore(alias, password, args[1], config.ReadConfig.Wallet)
 	if err != nil {
