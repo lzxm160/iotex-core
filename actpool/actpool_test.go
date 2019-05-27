@@ -38,11 +38,11 @@ const (
 var (
 	addr1   = identityset.Address(28).String()
 	pubKey1 = identityset.PrivateKey(28).PublicKey()
-	priKey1 = identityset.PrivateKey(28).PriKey
+	priKey1 = identityset.PrivateKey(28)
 	addr2   = identityset.Address(29).String()
-	priKey2 = identityset.PrivateKey(29).PriKey
+	priKey2 = identityset.PrivateKey(29)
 	addr3   = identityset.Address(30).String()
-	priKey3 = identityset.PrivateKey(30).PriKey
+	priKey3 = identityset.PrivateKey(30)
 	addr4   = identityset.Address(31).String()
 	priKey4 = identityset.PrivateKey(31)
 	addr5   = identityset.Address(32).String()

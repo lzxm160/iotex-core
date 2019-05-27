@@ -24,7 +24,7 @@ import (
 func TestClient(t *testing.T) {
 	require := require.New(t)
 	a := identityset.Address(28).String()
-	priKeyA := identityset.PrivateKey(28).PriKey
+	priKeyA := identityset.PrivateKey(28)
 	b := identityset.Address(29).String()
 
 	cfg := config.Default

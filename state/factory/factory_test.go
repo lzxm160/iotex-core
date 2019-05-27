@@ -194,7 +194,7 @@ func TestSDBState(t *testing.T) {
 func testState(sf Factory, t *testing.T) {
 	// Create a dummy iotex address
 	a := identityset.Address(28).String()
-	priKeyA := identityset.PrivateKey(28).PriKey
+	priKeyA := identityset.PrivateKey(28)
 	sf.AddActionHandlers(account.NewProtocol(0))
 	require.NoError(t, sf.Start(context.Background()))
 	defer func() {
@@ -258,7 +258,7 @@ func TestSDBNonce(t *testing.T) {
 func testNonce(sf Factory, t *testing.T) {
 	// Create two dummy iotex address
 	a := identityset.Address(28).String()
-	priKeyA := identityset.PrivateKey(28).PriKey
+	priKeyA := identityset.PrivateKey(28)
 	b := identityset.Address(29).String()
 
 	sf.AddActionHandlers(account.NewProtocol(0), account.NewProtocol(0))
@@ -415,9 +415,9 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 	require.Equal(uint64(0), ws.Version())
 	require.NoError(ws.GetDB().Start(context.Background()))
 	a := identityset.Address(28).String()
-	priKeyA := identityset.PrivateKey(28).PriKey
+	priKeyA := identityset.PrivateKey(28)
 	b := identityset.Address(29).String()
-	priKeyB := identityset.PrivateKey(29).PriKey
+	priKeyB := identityset.PrivateKey(29)
 	_, err := accountutil.LoadOrCreateAccount(ws, a, big.NewInt(100))
 	require.NoError(err)
 	_, err = accountutil.LoadOrCreateAccount(ws, b, big.NewInt(200))

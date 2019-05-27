@@ -19,7 +19,7 @@ import (
 
 var (
 	addr1   = identityset.Address(27).String()
-	priKey1 = identityset.PrivateKey(27).PriKey
+	priKey1 = identityset.PrivateKey(27)
 	addr2   = identityset.Address(28).String()
 )
 
