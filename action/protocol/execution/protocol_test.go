@@ -713,7 +713,7 @@ func TestProtocol_Validate(t *testing.T) {
 	require.Equal(action.ErrBalance, errors.Cause(err))
 	// Case IV: Invalid contract address
 	ex, err = action.NewExecution(
-		identityset.Address(25).String()+"bbb",
+		identityset.Address(24).String()+"bbb",
 		uint64(1),
 		big.NewInt(0),
 		uint64(0),
