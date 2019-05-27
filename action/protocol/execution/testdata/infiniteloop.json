@@ -25,7 +25,7 @@
         "rawExpectedGasConsumed": 34894,
         "expectedBalances": [{
             "account": "io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms",
-            "rawBalance": "9999999999999768135"
+            "rawBalance": "99999999999999999999768135"
         }],
         "expectedLogs": [{}],
         "comment": "set storedData = 0x1f40"
