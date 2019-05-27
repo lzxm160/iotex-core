@@ -12,8 +12,10 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/iotexproject/iotex-core/test/identityset"
+	
 	"github.com/stretchr/testify/require"
+
+	"github.com/iotexproject/iotex-core/test/identityset"
 )
 
 func TestActionProto(t *testing.T) {
