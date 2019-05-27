@@ -26,7 +26,6 @@ import (
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/pkg/version"
 	"github.com/iotexproject/iotex-core/test/identityset"
-	ta "github.com/iotexproject/iotex-core/test/testaddress"
 	"github.com/iotexproject/iotex-core/testutil"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 )
@@ -63,7 +62,7 @@ func TestSuggestGasPrice(t *testing.T) {
 		tsf, err := action.NewTransfer(
 			uint64(i)+1,
 			big.NewInt(100),
-			ta.Addrinfo["producer"].String(),
+			identityset.Address(27).String(),
 			[]byte{}, uint64(100000),
 			big.NewInt(1).Mul(big.NewInt(int64(i)+10), big.NewInt(unit.Qev)),
 		)
