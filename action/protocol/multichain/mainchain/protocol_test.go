@@ -68,7 +68,7 @@ func TestAddSubChainActions(t *testing.T) {
 		SetAction(startSubChain).
 		SetGasPrice(testutil.TestGasPrice).
 		Build()
-	selp, err := action.Sign(elp, identityset.PrivateKey(27).PriKey)
+	selp, err := action.Sign(elp, identityset.PrivateKey(27))
 	require.NoError(t, err)
 	require.NoError(t, ap.Add(selp))
 
@@ -87,7 +87,7 @@ func TestAddSubChainActions(t *testing.T) {
 		SetGasPrice(testutil.TestGasPrice).
 		SetAction(putBlock).
 		SetGasLimit(10003).Build()
-	pbselp, err := action.Sign(pbelp, identityset.PrivateKey(27).PriKey)
+	pbselp, err := action.Sign(pbelp, identityset.PrivateKey(27))
 	require.NoError(t, err)
 	require.NoError(t, ap.Add(pbselp))
 
@@ -103,7 +103,7 @@ func TestAddSubChainActions(t *testing.T) {
 		SetGasPrice(testutil.TestGasPrice).
 		SetAction(stopSubChain).
 		SetGasLimit(10005).Build()
-	sscselp, err := action.Sign(sscelp, identityset.PrivateKey(27).PriKey)
+	sscselp, err := action.Sign(sscelp, identityset.PrivateKey(27))
 	require.NoError(t, err)
 	require.NoError(t, ap.Add(sscselp))
 

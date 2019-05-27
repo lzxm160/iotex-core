@@ -288,7 +288,7 @@ func TestHandleStartSubChain(t *testing.T) {
 	)
 	bd := &action.EnvelopeBuilder{}
 	elp := bd.SetNonce(1).SetGasLimit(10).SetAction(start).Build()
-	_, err = action.Sign(elp, identityset.PrivateKey(27).PriKey)
+	_, err = action.Sign(elp, identityset.PrivateKey(27))
 	require.NoError(t, err)
 
 	// Handle the action

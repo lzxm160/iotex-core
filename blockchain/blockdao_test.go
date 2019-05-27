@@ -38,30 +38,30 @@ func TestBlockDAO(t *testing.T) {
 
 	getBlocks := func() []*block.Block {
 		amount := uint64(50 << 22)
-		tsf1, err := testutil.SignedTransfer(identityset.Address(28).String(), identityset.PrivateKey(28).PriKey, 1, big.NewInt(int64(amount)), nil, genesis.Default.ActionGasLimit, big.NewInt(0))
+		tsf1, err := testutil.SignedTransfer(identityset.Address(28).String(), identityset.PrivateKey(28), 1, big.NewInt(int64(amount)), nil, genesis.Default.ActionGasLimit, big.NewInt(0))
 		require.NoError(t, err)
 
-		tsf2, err := testutil.SignedTransfer(identityset.Address(29).String(), identityset.PrivateKey(29).PriKey, 2, big.NewInt(int64(amount)), nil, genesis.Default.ActionGasLimit, big.NewInt(0))
+		tsf2, err := testutil.SignedTransfer(identityset.Address(29).String(), identityset.PrivateKey(29), 2, big.NewInt(int64(amount)), nil, genesis.Default.ActionGasLimit, big.NewInt(0))
 		require.NoError(t, err)
 
-		tsf3, err := testutil.SignedTransfer(identityset.Address(30).String(), identityset.PrivateKey(30).PriKey, 3, big.NewInt(int64(amount)), nil, genesis.Default.ActionGasLimit, big.NewInt(0))
+		tsf3, err := testutil.SignedTransfer(identityset.Address(30).String(), identityset.PrivateKey(30), 3, big.NewInt(int64(amount)), nil, genesis.Default.ActionGasLimit, big.NewInt(0))
 		require.NoError(t, err)
 
-		tsf4, err := testutil.SignedTransfer(identityset.Address(28).String(), identityset.PrivateKey(28).PriKey, 2, big.NewInt(int64(amount)), nil, genesis.Default.ActionGasLimit, big.NewInt(0))
+		tsf4, err := testutil.SignedTransfer(identityset.Address(28).String(), identityset.PrivateKey(28), 2, big.NewInt(int64(amount)), nil, genesis.Default.ActionGasLimit, big.NewInt(0))
 		require.NoError(t, err)
 
-		tsf5, err := testutil.SignedTransfer(identityset.Address(29).String(), identityset.PrivateKey(29).PriKey, 3, big.NewInt(int64(amount)), nil, genesis.Default.ActionGasLimit, big.NewInt(0))
+		tsf5, err := testutil.SignedTransfer(identityset.Address(29).String(), identityset.PrivateKey(29), 3, big.NewInt(int64(amount)), nil, genesis.Default.ActionGasLimit, big.NewInt(0))
 		require.NoError(t, err)
 
-		tsf6, err := testutil.SignedTransfer(identityset.Address(30).String(), identityset.PrivateKey(30).PriKey, 4, big.NewInt(int64(amount)), nil, genesis.Default.ActionGasLimit, big.NewInt(0))
+		tsf6, err := testutil.SignedTransfer(identityset.Address(30).String(), identityset.PrivateKey(30), 4, big.NewInt(int64(amount)), nil, genesis.Default.ActionGasLimit, big.NewInt(0))
 		require.NoError(t, err)
 
 		// create testing executions
-		execution1, err := testutil.SignedExecution(identityset.Address(31).String(), identityset.PrivateKey(28).PriKey, 1, big.NewInt(1), 0, big.NewInt(0), nil)
+		execution1, err := testutil.SignedExecution(identityset.Address(31).String(), identityset.PrivateKey(28), 1, big.NewInt(1), 0, big.NewInt(0), nil)
 		require.NoError(t, err)
-		execution2, err := testutil.SignedExecution(identityset.Address(31).String(), identityset.PrivateKey(29).PriKey, 2, big.NewInt(0), 0, big.NewInt(0), nil)
+		execution2, err := testutil.SignedExecution(identityset.Address(31).String(), identityset.PrivateKey(29), 2, big.NewInt(0), 0, big.NewInt(0), nil)
 		require.NoError(t, err)
-		execution3, err := testutil.SignedExecution(identityset.Address(31).String(), identityset.PrivateKey(30).PriKey, 3, big.NewInt(2), 0, big.NewInt(0), nil)
+		execution3, err := testutil.SignedExecution(identityset.Address(31).String(), identityset.PrivateKey(30), 3, big.NewInt(2), 0, big.NewInt(0), nil)
 		require.NoError(t, err)
 
 		// create testing create deposit actions
@@ -77,7 +77,7 @@ func TestBlockDAO(t *testing.T) {
 		elp := bd.SetNonce(4).
 			SetGasLimit(testutil.TestGasLimit).
 			SetAction(deposit1).Build()
-		sdeposit1, err := action.Sign(elp, identityset.PrivateKey(28).PriKey)
+		sdeposit1, err := action.Sign(elp, identityset.PrivateKey(28))
 		require.NoError(t, err)
 
 		deposit2 := action.NewCreateDeposit(
@@ -92,7 +92,7 @@ func TestBlockDAO(t *testing.T) {
 		elp = bd.SetNonce(5).
 			SetGasLimit(testutil.TestGasLimit).
 			SetAction(deposit2).Build()
-		sdeposit2, err := action.Sign(elp, identityset.PrivateKey(29).PriKey)
+		sdeposit2, err := action.Sign(elp, identityset.PrivateKey(29))
 		require.NoError(t, err)
 
 		deposit3 := action.NewCreateDeposit(
@@ -107,7 +107,7 @@ func TestBlockDAO(t *testing.T) {
 		elp = bd.SetNonce(6).
 			SetGasLimit(testutil.TestGasLimit).
 			SetAction(deposit3).Build()
-		sdeposit3, err := action.Sign(elp, identityset.PrivateKey(30).PriKey)
+		sdeposit3, err := action.Sign(elp, identityset.PrivateKey(30))
 		require.NoError(t, err)
 
 		hash1 := hash.Hash256{}
@@ -117,7 +117,7 @@ func TestBlockDAO(t *testing.T) {
 			SetPrevBlockHash(hash1).
 			SetTimeStamp(testutil.TimestampNow()).
 			AddActions(tsf1, tsf4, execution1, sdeposit1).
-			SignAndBuild(identityset.PrivateKey(27).PriKey)
+			SignAndBuild(identityset.PrivateKey(27))
 		require.NoError(t, err)
 
 		hash2 := hash.Hash256{}
@@ -127,7 +127,7 @@ func TestBlockDAO(t *testing.T) {
 			SetPrevBlockHash(hash2).
 			SetTimeStamp(testutil.TimestampNow()).
 			AddActions(tsf2, tsf5, execution2, sdeposit2).
-			SignAndBuild(identityset.PrivateKey(27).PriKey)
+			SignAndBuild(identityset.PrivateKey(27))
 		require.NoError(t, err)
 
 		hash3 := hash.Hash256{}
@@ -137,7 +137,7 @@ func TestBlockDAO(t *testing.T) {
 			SetPrevBlockHash(hash3).
 			SetTimeStamp(testutil.TimestampNow()).
 			AddActions(tsf3, tsf6, execution3, sdeposit3).
-			SignAndBuild(identityset.PrivateKey(27).PriKey)
+			SignAndBuild(identityset.PrivateKey(27))
 		require.NoError(t, err)
 		return []*block.Block{&blk1, &blk2, &blk3}
 	}

@@ -29,7 +29,7 @@ func TestActionProto(t *testing.T) {
 		SetGasLimit(uint64(100000)).
 		SetAction(v).Build()
 
-	selp, err := Sign(elp, identityset.PrivateKey(28).PriKey)
+	selp, err := Sign(elp, identityset.PrivateKey(28))
 	require.NoError(err)
 
 	require.NoError(Verify(selp))
