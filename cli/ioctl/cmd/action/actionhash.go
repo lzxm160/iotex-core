@@ -142,7 +142,6 @@ func printActionProto(action *iotextypes.Action) (string, error) {
 			log.L().Error("failed to convert amount into int", zap.Error(err))
 			return "", err
 		}
-		fmt.Println(".................", amountInt.Text(10))
 		amount := util.RauToString(amountInt, 18)
 		output += "transfer: <\n" +
 			fmt.Sprintf("  recipient: %s %s\n", transfer.Recipient,
