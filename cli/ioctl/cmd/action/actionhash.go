@@ -114,7 +114,15 @@ func printAction(actionInfo *iotexapi.ActionInfo) (string, error) {
 	output += fmt.Sprintf("actHash: %s\n", actionInfo.ActHash)
 	return output, nil
 }
-
+func toIOTX(amount string) (iotx string, err error) {
+	amountInt, err := util.StringToRau(amount, 0)
+	if err != nil {
+		log.L().Error("failed to convert amount into int", zap.Error(err))
+		return "", err
+	}
+	iotx = util.RauToString(amountInt, 18)
+	return
+}
 func printActionProto(action *iotextypes.Action) (string, error) {
 	pubKey, err := crypto.BytesToPublicKey(action.SenderPubKey)
 	if err != nil {
@@ -137,33 +145,29 @@ func printActionProto(action *iotextypes.Action) (string, error) {
 		output += proto.MarshalTextString(action.Core)
 	case action.Core.GetTransfer() != nil:
 		transfer := action.Core.GetTransfer()
-		amountInt, err := util.StringToRau(transfer.Amount, 0)
+		amount, err := toIOTX(transfer.Amount)
 		if err != nil {
-			log.L().Error("failed to convert amount into int", zap.Error(err))
 			return "", err
 		}
-		amount := util.RauToString(amountInt, 18)
 		output += "transfer: <\n" +
 			fmt.Sprintf("  recipient: %s %s\n", transfer.Recipient,
 				Match(transfer.Recipient, "address")) +
-			fmt.Sprintf("  amount: %s Iotx\n", amount)
+			fmt.Sprintf("  amount: %s IOTX\n", amount)
 		if len(transfer.Payload) != 0 {
 			output += fmt.Sprintf("  payload: %s\n", transfer.Payload)
 		}
 		output += ">\n"
 	case action.Core.GetExecution() != nil:
 		execution := action.Core.GetExecution()
-		amountInt, err := util.StringToRau(execution.Amount, 0)
+		amount, err := toIOTX(execution.Amount)
 		if err != nil {
-			log.L().Error("failed to convert amount into int", zap.Error(err))
 			return "", err
 		}
-		amount := util.RauToString(amountInt, 18)
 		output += "execution: <\n" +
 			fmt.Sprintf("  contract: %s %s\n", execution.Contract,
 				Match(execution.Contract, "address"))
 		if execution.Amount != "0" {
-			output += fmt.Sprintf("  amount: %s Iotx\n", amount)
+			output += fmt.Sprintf("  amount: %s IOTX\n", amount)
 		}
 		output += fmt.Sprintf("  data: %x\n", execution.Data) + ">\n"
 	case action.Core.GetPutPollResult() != nil:
