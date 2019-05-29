@@ -137,7 +137,7 @@ func printActionProto(action *iotextypes.Action) (string, error) {
 		output += proto.MarshalTextString(action.Core)
 	case action.Core.GetTransfer() != nil:
 		transfer := action.Core.GetTransfer()
-		amountInt, err := util.StringToRau(transfer.Amount, 18)
+		amountInt, err := util.StringToRau(transfer.Amount, 0)
 		if err != nil {
 			log.L().Error("failed to convert amount into int", zap.Error(err))
 			return "", err
@@ -154,7 +154,7 @@ func printActionProto(action *iotextypes.Action) (string, error) {
 		output += ">\n"
 	case action.Core.GetExecution() != nil:
 		execution := action.Core.GetExecution()
-		amountInt, err := util.StringToRau(execution.Amount, 18)
+		amountInt, err := util.StringToRau(execution.Amount, 0)
 		if err != nil {
 			log.L().Error("failed to convert amount into int", zap.Error(err))
 			return "", err
