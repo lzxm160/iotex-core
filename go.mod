@@ -22,7 +22,7 @@ require (
 	github.com/iotexproject/go-p2p v0.2.10
 	github.com/iotexproject/go-pkgs v0.1.1-0.20190513193226-f065b9342b78
 	github.com/iotexproject/iotex-address v0.2.0
-	github.com/iotexproject/iotex-election v0.1.9
+	github.com/iotexproject/iotex-election v0.1.10
 	github.com/iotexproject/iotex-proto v0.2.1-0.20190520183050-e748b9589841
 	github.com/ipfs/go-datastore v0.0.5 // indirect
 	github.com/libp2p/go-libp2p v0.0.21 // indirect
@@ -42,7 +42,6 @@ require (
 	github.com/prometheus/client_model v0.0.0-20190129233127-fd36f4220a90 // indirect
 	github.com/prometheus/common v0.3.0 // indirect
 	github.com/prometheus/procfs v0.0.0-20190425082905-87a4384529e0 // indirect
-	github.com/rs/cors v1.6.0 // indirect
 	github.com/rs/zerolog v1.14.3
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3 // indirect
@@ -61,7 +60,6 @@ require (
 	golang.org/x/xerrors v0.0.0-20190410155217-1f06c39b4373 // indirect
 	google.golang.org/appengine v1.5.0 // indirect
 	google.golang.org/grpc v1.20.1
-	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v2 v2.2.2
 )
 
