@@ -30,11 +30,18 @@ func TestNewHeartbeatHandler(t *testing.T) {
 	require.NotNil(handler)
 	require.Panics(func() { handler.Log() }, "P2pAgent is nil")
 
+	ctx, cancel := context.WithCancel(context.Background())
+	livenessCtx, livenessCancel := context.WithCancel(context.Background())
 	probeSvr := probe.New(cfg.System.HTTPStatsPort)
-	err = probeSvr.Start(context.Background())
+	err = probeSvr.Start(ctx)
 	require.NoError(err)
-	go StartServer(context.Background(), s, probeSvr, cfg)
+	go StartServer(ctx, s, probeSvr, cfg)
 	time.Sleep(time.Second * 2)
 	go handler.Log()
 	time.Sleep(time.Second * 2)
+
+	cancel()
+	err = probeSvr.Stop(livenessCtx)
+	require.NoError(err)
+	livenessCancel()
 }
