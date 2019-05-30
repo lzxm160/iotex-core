@@ -45,3 +45,29 @@ func TestSerDer(t *testing.T) {
 	hash := receipt.Hash()
 	require.Equal("9b1d77d8b8902e8d4e662e7cd07d8a74179e032f030d92441ca7fba1ca68e0f4", hex.EncodeToString(hash[:]))
 }
+func TestConvertLog(t *testing.T) {
+	require := require.New(t)
+	log := &Log{"1", nil, nil, 1, hash.ZeroHash256, 1}
+	typeLog := log.ConvertToLogPb()
+	require.NotNil(typeLog)
+
+	log2 := &Log{}
+	log2.ConvertFromLogPb(typeLog)
+	require.Equal(log.Address, log2.Address)
+	require.Equal(log.BlockHeight, log2.BlockHeight)
+	require.Equal(log.ActionHash, log2.ActionHash)
+	require.Equal(log.Index, log2.Index)
+}
+func TestSerDerLog(t *testing.T) {
+	require := require.New(t)
+	log := &Log{"1", nil, nil, 1, hash.ZeroHash256, 1}
+	typeLog, err := log.Serialize()
+	require.NoError(err)
+
+	log2 := &Log{}
+	log2.Deserialize(typeLog)
+	require.Equal(log.Address, log2.Address)
+	require.Equal(log.BlockHeight, log2.BlockHeight)
+	require.Equal(log.ActionHash, log2.ActionHash)
+	require.Equal(log.Index, log2.Index)
+}
