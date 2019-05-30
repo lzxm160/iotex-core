@@ -73,7 +73,7 @@ func TestTransfer(t *testing.T) {
 	require.Equal(senderKey.PublicKey().HexString(), tsf.SenderPublicKey().HexString())
 	require.Equal(recipientAddr.String(), tsf.Recipient())
 	require.Equal(recipientAddr.String(), tsf.Destination())
-	require.Equal(uint32(10), tsf.TotalSize())
+	require.Equal(uint32(87), tsf.TotalSize())
 
 	proto := tsf.Proto()
 	tsf2 := &Transfer{}
