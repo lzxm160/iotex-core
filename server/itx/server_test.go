@@ -76,18 +76,22 @@ func TestStartServer(t *testing.T) {
 	s, err := NewServer(config.Default)
 	require.NoError(err)
 	require.NotNil(s)
-
 	require.Panics(func() { StartServer(context.Background(), s, nil, config.Default) }, "Probe server is nil")
 
-	probeSvr := probe.New(config.Default.System.HTTPStatsPort)
 	ctx, cancel := context.WithCancel(context.Background())
+	livenessCtx, livenessCancel := context.WithCancel(context.Background())
+
+	probeSvr := probe.New(config.Default.System.HTTPStatsPort)
+	err = probeSvr.Start(ctx)
+	require.NoError(err)
+
 	go func() {
 		time.Sleep(time.Second * 2)
+		<-livenessCtx.Done()
 		cancel()
-		err = s.Stop(ctx)
+		err = probeSvr.Stop(livenessCtx)
 		require.NoError(err)
-		err = probeSvr.Stop(ctx)
-		require.NoError(err)
+		livenessCancel()
 	}()
 	StartServer(ctx, s, probeSvr, config.Default)
 }
