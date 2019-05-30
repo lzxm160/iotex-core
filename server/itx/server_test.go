@@ -85,6 +85,8 @@ func TestStartServer(t *testing.T) {
 	require.NoError(err)
 	cfg.Consensus.Scheme = config.RollDPoSScheme
 	cfg.Genesis.EnableGravityChainVoting = true
+	cfg.System.HeartbeatInterval = 0
+	cfg.System.HTTPAdminPort = 0
 	ss, err := NewServer(cfg)
 	require.NoError(err)
 	require.NotNil(ss)
