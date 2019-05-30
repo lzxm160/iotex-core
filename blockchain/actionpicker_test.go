@@ -39,7 +39,7 @@ func TestPickAction(t *testing.T) {
 
 	iter := actioniterator.NewActionIterator(actionMap)
 	require.NotNil(iter)
-	acts, err := PickAction(10, iter)
+	acts, err := PickAction(100000, iter)
 	require.NoError(err)
 	require.Equal(len(acts), len(actionMap))
 }
