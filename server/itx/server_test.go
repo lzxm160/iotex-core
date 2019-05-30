@@ -122,7 +122,7 @@ func TestStartServer(t *testing.T) {
 		require.NoError(err)
 	}()
 
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 5)
 	cancel()
 	err = probeSvr.Stop(livenessCtx)
 	require.NoError(err)
