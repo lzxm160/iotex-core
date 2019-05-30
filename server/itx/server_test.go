@@ -42,19 +42,21 @@ func TestNewInMemTestServer(t *testing.T) {
 func TestStartStop(t *testing.T) {
 	require := require.New(t)
 	ctx := context.Background()
-	s, err := NewServer(config.Default)
+	cfg := config.Default
+	cfg.Consensus.Scheme = config.RollDPoSScheme
+	s, err := NewServer(cfg)
 	require.NoError(err)
 	require.NotNil(s)
 	err = s.Start(ctx)
 	require.NoError(err)
 	err = s.Stop(ctx)
 	require.NoError(err)
-	err = s.NewSubChainService(config.Default)
+	err = s.NewSubChainService(cfg)
 	require.NoError(err)
 	err = s.StopChainService(ctx, 0)
 	require.Error(err)
 
-	ss, err := NewServer(config.Default)
+	ss, err := NewServer(cfg)
 	require.NoError(err)
 	require.NotNil(ss)
 	err = ss.StopChainService(ctx, 1)
