@@ -7,7 +7,11 @@
 package itx
 
 import (
+	"context"
 	"testing"
+	"time"
+
+	"github.com/iotexproject/iotex-core/pkg/probe"
 
 	"github.com/iotexproject/iotex-core/config"
 
@@ -26,4 +30,10 @@ func TestNewHeartbeatHandler(t *testing.T) {
 	require.NotNil(handler)
 	require.Panics(func() { handler.Log() }, "P2pAgent is nil")
 
+	probeSvr := probe.New(cfg.System.HTTPStatsPort)
+	err = probeSvr.Start(context.Background())
+	require.NoError(err)
+	go StartServer(context.Background(), s, probeSvr, cfg)
+	time.Sleep(time.Second * 2)
+	handler.Log()
 }
