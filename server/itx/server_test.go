@@ -48,3 +48,24 @@ func TestStartStop(t *testing.T) {
 	err = ss.StopChainService(ctx, 1)
 	require.NoError(err)
 }
+func TestP2PAgent(t *testing.T) {
+	require := require.New(t)
+	s, err := NewServer(config.Default)
+	require.NoError(err)
+	require.NotNil(s)
+	agent := s.P2PAgent()
+	require.NotNil(agent)
+
+	cs := s.ChainService(1)
+	require.NotNil(cs)
+
+	ds := s.Dispatcher()
+	require.NotNil(ds)
+}
+func TestStartServer(t *testing.T) {
+	require := require.New(t)
+	s, err := NewServer(config.Default)
+	require.NoError(err)
+	require.NotNil(s)
+	StartServer(context.Background(), s, nil, config.Default)
+}
