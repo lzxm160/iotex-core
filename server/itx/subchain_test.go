@@ -8,6 +8,8 @@ package itx
 
 import (
 	"context"
+	"github.com/iotexproject/iotex-core/action/protocol/multichain/mainchain"
+	"math/big"
 	"testing"
 	"time"
 
@@ -46,6 +48,10 @@ func TestHandleBlock(t *testing.T) {
 	go StartServer(ctx, ss, probeSvr, cfg)
 	time.Sleep(time.Second * 2)
 
+	subChain := &mainchain.SubChain{10, big.NewInt(10), big.NewInt(10), 10, 12, 1, nil, 5, 3}
+	err=ss.runSubChain(identityset.Address(10), subChain)
+	require.NoError(err)
+	
 	rap := block.RunnableActionsBuilder{}
 	ra := rap.
 		SetHeight(1).
