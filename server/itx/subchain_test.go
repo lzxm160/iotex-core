@@ -11,6 +11,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/go-pkgs/hash"
+	"github.com/iotexproject/iotex-core/blockchain/block"
+	"github.com/iotexproject/iotex-core/test/identityset"
+
 	"github.com/iotexproject/iotex-core/pkg/probe"
 	"github.com/stretchr/testify/require"
 
@@ -42,8 +46,23 @@ func TestHandleBlock(t *testing.T) {
 	require.NoError(err)
 	go StartServer(ctx, ss, probeSvr, cfg)
 
-	err = ss.HandleBlock(nil)
-	require.Error(err)
+	require.Panics(func() { ss.HandleBlock(nil) }, "Server HandleBlock")
+
+	rap := block.RunnableActionsBuilder{}
+	ra := rap.
+		SetHeight(1).
+		SetTimeStamp(time.Now()).
+		Build(identityset.PrivateKey(0).PublicKey())
+	blk, err := block.NewBuilder(ra).
+		SetVersion(1).
+		SetReceiptRoot(hash.Hash256b([]byte("hello, world!"))).
+		SetDeltaStateDigest(hash.Hash256b([]byte("world, hello!"))).
+		SetPrevBlockHash(hash.Hash256b([]byte("hello, block!"))).
+		SignAndBuild(identityset.PrivateKey(0))
+	require.NoError(err)
+
+	err = ss.HandleBlock(&blk)
+	require.NoError(err)
 	time.Sleep(time.Second * 2)
 	cancel()
 	err = probeSvr.Stop(livenessCtx)
