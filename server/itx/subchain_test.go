@@ -33,8 +33,6 @@ func TestHandleBlock(t *testing.T) {
 	require := require.New(t)
 	cfg, err := config.New()
 	require.NoError(err)
-	cfg.Consensus.Scheme = config.RollDPoSScheme
-	cfg.Genesis.EnableGravityChainVoting = true
 	ss, err := NewServer(cfg)
 	require.NoError(err)
 	require.NotNil(ss)
