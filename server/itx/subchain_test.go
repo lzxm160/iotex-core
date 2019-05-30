@@ -31,6 +31,7 @@ func TestGetSubChainDBPath(t *testing.T) {
 	assert.Equal(t, "chain-1-trie.db", trieDBPath)
 }
 func TestHandleBlock(t *testing.T) {
+
 	require := require.New(t)
 	cfg, err := config.New()
 	require.NoError(err)
@@ -67,4 +68,5 @@ func TestHandleBlock(t *testing.T) {
 	err = probeSvr.Stop(livenessCtx)
 	require.NoError(err)
 	livenessCancel()
+	t.SkipNow()
 }
