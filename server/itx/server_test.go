@@ -86,6 +86,8 @@ func TestStartServer(t *testing.T) {
 		cancel()
 		err = s.Stop(ctx)
 		require.NoError(err)
+		err = probeSvr.Stop(ctx)
+		require.NoError(err)
 	}()
 	StartServer(ctx, s, probeSvr, config.Default)
 }
