@@ -9,6 +9,7 @@ package itx
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/iotexproject/iotex-core/pkg/probe"
 
@@ -81,6 +82,7 @@ func TestStartServer(t *testing.T) {
 	probeSvr := probe.New(config.Default.System.HTTPStatsPort)
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
+		time.Sleep(time.Second * 2)
 		cancel()
 		err = s.Stop(ctx)
 		require.NoError(err)
