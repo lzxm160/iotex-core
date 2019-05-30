@@ -81,11 +81,10 @@ func TestStartServer(t *testing.T) {
 	require.NotNil(s)
 	require.Panics(func() { StartServer(context.Background(), s, nil, config.Default) }, "Probe server is nil")
 
-	cfg := config.Default
+	cfg, err := config.New()
+	require.NoError(err)
 	cfg.Consensus.Scheme = config.RollDPoSScheme
 	cfg.Genesis.EnableGravityChainVoting = true
-	cfg.System.HeartbeatInterval = 10
-	cfg.System.HTTPAdminPort = 1000
 	ss, err := NewServer(cfg)
 	require.NoError(err)
 	require.NotNil(ss)
