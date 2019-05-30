@@ -10,6 +10,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/iotexproject/iotex-core/pkg/probe"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/iotex-core/config"
@@ -20,6 +22,12 @@ func TestNewServer(t *testing.T) {
 	s, err := NewServer(config.Default)
 	require.NoError(err)
 	require.NotNil(s)
+
+	cfg := config.Default
+	cfg.Consensus.Scheme = config.RollDPoSScheme
+	ss, err := NewServer(config.Default)
+	require.NoError(err)
+	require.NotNil(ss)
 }
 func TestNewInMemTestServer(t *testing.T) {
 	require := require.New(t)
@@ -69,4 +77,7 @@ func TestStartServer(t *testing.T) {
 	require.NotNil(s)
 
 	require.Panics(func() { StartServer(context.Background(), s, nil, config.Default) }, "Probe server is nil")
+
+	probeSvr := probe.New(config.Default.System.HTTPStatsPort)
+	StartServer(context.Background(), s, probeSvr, config.Default)
 }
