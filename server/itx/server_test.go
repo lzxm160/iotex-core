@@ -117,9 +117,12 @@ func TestStartServer(t *testing.T) {
 		SignAndBuild(identityset.PrivateKey(0))
 	require.NoError(err)
 
-	err = ss.HandleBlock(&blk)
-	require.NoError(err)
+	go func() {
+		err = ss.HandleBlock(&blk)
+		require.NoError(err)
+	}()
 
+	time.Sleep(time.Second * 2)
 	cancel()
 	err = probeSvr.Stop(livenessCtx)
 	require.NoError(err)
