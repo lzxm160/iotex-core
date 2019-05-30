@@ -38,7 +38,8 @@ func TestNewHeartbeatHandler(t *testing.T) {
 	go StartServer(ctx, s, probeSvr, cfg)
 	time.Sleep(time.Second * 2)
 	handler.Log()
-
+	err = s.p2pAgent.Stop(ctx)
+	require.NoError(err)
 	cancel()
 	err = probeSvr.Stop(livenessCtx)
 	require.NoError(err)
