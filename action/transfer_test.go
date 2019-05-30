@@ -79,7 +79,7 @@ func TestTransfer(t *testing.T) {
 	require.Equal(uint64(10000), gas)
 	cs, err := tsf.Cost()
 	require.NoError(err)
-	require.Equal("", cs.Text(10))
+	require.Equal("100010", cs.Text(10))
 
 	proto := tsf.Proto()
 	tsf2 := &Transfer{}
