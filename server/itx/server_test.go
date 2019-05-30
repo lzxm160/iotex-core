@@ -67,5 +67,6 @@ func TestStartServer(t *testing.T) {
 	s, err := NewServer(config.Default)
 	require.NoError(err)
 	require.NotNil(s)
-	StartServer(context.Background(), s, nil, config.Default)
+
+	require.Panics(func() { StartServer(context.Background(), s, nil, config.Default) }, "Probe server is nil")
 }
