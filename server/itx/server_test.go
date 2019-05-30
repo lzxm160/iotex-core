@@ -7,6 +7,7 @@
 package itx
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -19,4 +20,20 @@ func TestNewServer(t *testing.T) {
 	s, err := NewServer(config.Default)
 	require.NoError(err)
 	require.NotNil(s)
+}
+func TestNewInMemTestServer(t *testing.T) {
+	require := require.New(t)
+	s, err := NewInMemTestServer(config.Default)
+	require.NoError(err)
+	require.NotNil(s)
+}
+func TestStartStop(t *testing.T) {
+	require := require.New(t)
+	s, err := NewServer(config.Default)
+	require.NoError(err)
+	require.NotNil(s)
+	err = s.Start(context.Background())
+	require.NoError(err)
+	err = s.Stop(context.Background())
+	require.NoError(err)
 }
