@@ -29,11 +29,22 @@ func TestNewInMemTestServer(t *testing.T) {
 }
 func TestStartStop(t *testing.T) {
 	require := require.New(t)
+	ctx := context.Background()
 	s, err := NewServer(config.Default)
 	require.NoError(err)
 	require.NotNil(s)
-	err = s.Start(context.Background())
+	err = s.Start(ctx)
 	require.NoError(err)
-	err = s.Stop(context.Background())
+	err = s.Stop(ctx)
+	require.NoError(err)
+	err = s.NewSubChainService(config.Default)
+	require.NoError(err)
+	err = s.StopChainService(ctx, 0)
+	require.Error(err)
+
+	ss, err := NewServer(config.Default)
+	require.NoError(err)
+	require.NotNil(ss)
+	err = ss.StopChainService(ctx, 1)
 	require.NoError(err)
 }
