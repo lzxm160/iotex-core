@@ -79,7 +79,11 @@ func TestStartServer(t *testing.T) {
 	require.Panics(func() { StartServer(context.Background(), s, nil, config.Default) }, "Probe server is nil")
 
 	probeSvr := probe.New(config.Default.System.HTTPStatsPort)
-	StartServer(context.Background(), s, probeSvr, config.Default)
-	err = s.Stop(context.Background())
-	require.NoError(err)
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		cancel()
+		err = s.Stop(ctx)
+		require.NoError(err)
+	}()
+	StartServer(ctx, s, probeSvr, config.Default)
 }
