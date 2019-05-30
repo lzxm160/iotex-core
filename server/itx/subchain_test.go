@@ -61,12 +61,13 @@ func TestHandleBlock(t *testing.T) {
 		SetPrevBlockHash(hash.Hash256b([]byte("hello, block!"))).
 		SignAndBuild(identityset.PrivateKey(0))
 	require.NoError(err)
+	go func() {
+		err = ss.HandleBlock(&blk)
+		require.NoError(err)
+	}()
 
-	err = ss.HandleBlock(&blk)
-	require.NoError(err)
 	cancel()
 	err = probeSvr.Stop(livenessCtx)
 	require.NoError(err)
 	livenessCancel()
-	t.SkipNow()
 }
