@@ -65,7 +65,7 @@ func TestHandleBlock(t *testing.T) {
 		err = ss.HandleBlock(&blk)
 		require.NoError(err)
 	}()
-
+	time.Sleep(time.Second * 2)
 	cancel()
 	err = probeSvr.Stop(livenessCtx)
 	require.NoError(err)
