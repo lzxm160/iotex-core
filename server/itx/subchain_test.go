@@ -48,7 +48,7 @@ func TestHandleBlock(t *testing.T) {
 	go StartServer(ctx, ss, probeSvr, cfg)
 	time.Sleep(time.Second * 2)
 	err = ss.HandleBlock(nil)
-	require.Error(err)
+	require.NoError(err)
 
 	rap := block.RunnableActionsBuilder{}
 	ra := rap.
