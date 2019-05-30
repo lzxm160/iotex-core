@@ -42,5 +42,6 @@ func TestSerDer(t *testing.T) {
 	require.Equal(receipt.GasConsumed, receipt2.GasConsumed)
 	require.Equal(receipt.ContractAddress, receipt2.ContractAddress)
 
-	require.Equal("", hex.EncodeToString(receipt.Hash()[:]))
+	hash := receipt.Hash()
+	require.Equal("", hex.EncodeToString(hash[:]))
 }
