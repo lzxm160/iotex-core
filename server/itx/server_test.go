@@ -76,17 +76,18 @@ func TestP2PAgent(t *testing.T) {
 }
 func TestStartServer(t *testing.T) {
 	require := require.New(t)
-	s, err := NewServer(config.Default)
+	cfg := config.Default
+	s, err := NewServer(cfg)
+	cfg.Consensus.Scheme = config.RollDPoSScheme
+	cfg.Genesis.EnableGravityChainVoting = true
 	require.NoError(err)
 	require.NotNil(s)
-	require.Panics(func() { StartServer(context.Background(), s, nil, config.Default) }, "Probe server is nil")
+	require.Panics(func() { StartServer(context.Background(), s, nil, cfg) }, "Probe server is nil")
 
-	cfg, err := config.New()
+	cfg, err = config.New()
 	require.NoError(err)
 	cfg.Consensus.Scheme = config.RollDPoSScheme
 	cfg.Genesis.EnableGravityChainVoting = true
-	cfg.System.HeartbeatInterval = 0
-	cfg.System.HTTPAdminPort = 0
 	ss, err := NewServer(cfg)
 	require.NoError(err)
 	require.NotNil(ss)
