@@ -47,7 +47,8 @@ func TestHandleBlock(t *testing.T) {
 	require.NoError(err)
 	go StartServer(ctx, ss, probeSvr, cfg)
 	time.Sleep(time.Second * 2)
-	require.Panics(func() { ss.HandleBlock(nil) }, "Server HandleBlock")
+	err = ss.HandleBlock(nil)
+	require.Error(err)
 
 	rap := block.RunnableActionsBuilder{}
 	ra := rap.
