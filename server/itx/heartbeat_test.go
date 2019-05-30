@@ -37,8 +37,7 @@ func TestNewHeartbeatHandler(t *testing.T) {
 	require.NoError(err)
 	go StartServer(ctx, s, probeSvr, cfg)
 	time.Sleep(time.Second * 2)
-	go handler.Log()
-	time.Sleep(time.Second * 2)
+	handler.Log()
 
 	cancel()
 	err = probeSvr.Stop(livenessCtx)
