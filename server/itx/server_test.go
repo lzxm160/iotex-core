@@ -26,6 +26,9 @@ func TestNewServer(t *testing.T) {
 
 	cfg := config.Default
 	cfg.Consensus.Scheme = config.RollDPoSScheme
+	cfg.Genesis.EnableGravityChainVoting = true
+	cfg.System.HeartbeatInterval = 10
+	cfg.System.HTTPAdminPort = 1000
 	ss, err := NewServer(config.Default)
 	require.NoError(err)
 	require.NotNil(ss)
