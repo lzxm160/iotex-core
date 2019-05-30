@@ -24,6 +24,6 @@ func TestNewHeartbeatHandler(t *testing.T) {
 	require.NotNil(s)
 	handler := NewHeartbeatHandler(s)
 	require.NotNil(handler)
+	require.Panics(func() { handler.Log() }, "P2pAgent is nil")
 
-	handler.Log()
 }
