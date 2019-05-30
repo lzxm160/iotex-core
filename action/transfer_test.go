@@ -69,11 +69,17 @@ func TestTransfer(t *testing.T) {
 	require.Equal(uint64(100000), tsf.GasLimit())
 	require.Equal("10", tsf.GasPrice().Text(10))
 	require.Equal(uint64(0), tsf.Nonce())
-	require.Equal("10", tsf.Amount().Text(10))
 	require.Equal(senderKey.PublicKey().HexString(), tsf.SenderPublicKey().HexString())
 	require.Equal(recipientAddr.String(), tsf.Recipient())
 	require.Equal(recipientAddr.String(), tsf.Destination())
 	require.Equal(uint32(87), tsf.TotalSize())
+
+	gas, err := tsf.IntrinsicGas()
+	require.NoError(err)
+	require.Equal(uint64(100000), gas)
+	cs, err := tsf.Cost()
+	require.NoError(err)
+	require.Equal("", cs.Text(10))
 
 	proto := tsf.Proto()
 	tsf2 := &Transfer{}
@@ -81,19 +87,6 @@ func TestTransfer(t *testing.T) {
 	require.NoError(err)
 	require.Equal("10", tsf2.Amount().Text(10))
 	require.Equal([]byte{}, tsf2.Payload())
-	require.Equal(uint64(0), tsf2.GasLimit())
-	require.Equal("10", tsf2.GasPrice().Text(10))
-	require.Equal(uint64(0), tsf2.Nonce())
-	require.Equal("10", tsf2.Amount().Text(10))
-	require.Equal(senderKey.PublicKey().HexString(), tsf2.SenderPublicKey().HexString())
 	require.Equal(recipientAddr.String(), tsf2.Recipient())
 	require.Equal(recipientAddr.String(), tsf2.Destination())
-	require.Equal(uint32(10), tsf2.TotalSize())
-
-	gas, err := tsf2.IntrinsicGas()
-	require.NoError(err)
-	require.Equal(uint64(100000), gas)
-	cs, err := tsf2.Cost()
-	require.NoError(err)
-	require.Equal("", cs.Text(10))
 }
