@@ -42,8 +42,8 @@ func TestAccount_InitBalances(t *testing.T) {
 	InitBalanceMap["io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms"] = "2"
 	acc := Account{InitBalanceMap}
 	adds, balances := acc.InitBalances()
-	require.Equal("io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms", adds[0].String())
+	require.Equal("io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl6", adds[0].String())
 	require.Equal("io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms", adds[1].String())
-	require.Equal(InitBalanceMap["1"], balances[0].Text(10))
-	require.Equal(InitBalanceMap["2"], balances[1].Text(10))
+	require.Equal(InitBalanceMap["io1emxf8zzqckhgjde6dqd97ts0y3q496gm3fdrl6"], balances[0].Text(10))
+	require.Equal(InitBalanceMap["io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms"], balances[1].Text(10))
 }
