@@ -87,7 +87,6 @@ func TestStartServer(t *testing.T) {
 
 	go func() {
 		time.Sleep(time.Second * 2)
-		<-livenessCtx.Done()
 		cancel()
 		err = probeSvr.Stop(livenessCtx)
 		require.NoError(err)
