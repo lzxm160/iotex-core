@@ -76,7 +76,7 @@ func TestTransfer(t *testing.T) {
 
 	gas, err := tsf.IntrinsicGas()
 	require.NoError(err)
-	require.Equal(uint64(100000), gas)
+	require.Equal(uint64(10000), gas)
 	cs, err := tsf.Cost()
 	require.NoError(err)
 	require.Equal("", cs.Text(10))
