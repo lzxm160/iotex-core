@@ -7,6 +7,7 @@
 package genesis
 
 import (
+	"encoding/hex"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,4 +27,11 @@ func TestDefaultConfig(t *testing.T) {
 	assert.Equal(t, Default.BlockReward(), cfg.BlockReward())
 	assert.Equal(t, Default.EpochReward(), cfg.EpochReward())
 	assert.Equal(t, Default.FoundationBonus(), cfg.FoundationBonus())
+}
+func TestHash(t *testing.T) {
+	require := require.New(t)
+	cfg, err := New()
+	require.NoError(err)
+	hash := cfg.Hash()
+	require.Equal("", hex.EncodeToString(hash[:]))
 }
