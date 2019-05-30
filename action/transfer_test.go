@@ -81,7 +81,7 @@ func TestTransfer(t *testing.T) {
 	require.NoError(err)
 	require.Equal("10", tsf2.Amount().Text(10))
 	require.Equal([]byte{}, tsf2.Payload())
-	require.Equal(uint64(100000), tsf2.GasLimit())
+	require.Equal(uint64(0), tsf2.GasLimit())
 	require.Equal("10", tsf2.GasPrice().Text(10))
 	require.Equal(uint64(0), tsf2.Nonce())
 	require.Equal("10", tsf2.Amount().Text(10))
