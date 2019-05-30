@@ -80,4 +80,6 @@ func TestStartServer(t *testing.T) {
 
 	probeSvr := probe.New(config.Default.System.HTTPStatsPort)
 	StartServer(context.Background(), s, probeSvr, config.Default)
+	err = s.Stop(context.Background())
+	require.NoError(err)
 }
