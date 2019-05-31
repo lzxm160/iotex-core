@@ -161,9 +161,9 @@ func (api *Server) GetAccount(ctx context.Context, in *iotexapi.GetAccountReques
 
 // GetActions returns actions
 func (api *Server) GetActions(ctx context.Context, in *iotexapi.GetActionsRequest) (*iotexapi.GetActionsResponse, error) {
-	if !api.hasPlugin {
-		return nil, errors.New("plugin not running")
-	}
+	//if !api.hasPlugin {
+	//	return nil, errors.New("plugin not running")
+	//}
 	switch {
 	case in.GetByIndex() != nil:
 		request := in.GetByIndex()
