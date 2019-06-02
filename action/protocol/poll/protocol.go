@@ -212,11 +212,12 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 			log.L().Error("calling committee,waiting for a while", zap.Int("duration", interval), zap.String("unit", " seconds"))
 			time.Sleep(time.Second * time.Duration(interval))
 			ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight)
-			if err != nil {
-				fmt.Println("///////////////////", err.Error())
+			if err == nil {
+				break
 			}
 		}
 	}
+	fmt.Println("///////////////////221")
 	if err != nil {
 		return
 	}
