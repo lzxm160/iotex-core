@@ -8,14 +8,11 @@ package poll
 
 import (
 	"context"
-	"fmt"
-	"go.etcd.io/bbolt"
 	"math/big"
 	"time"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-election/committee"
-	"github.com/iotexproject/iotex-election/db"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
