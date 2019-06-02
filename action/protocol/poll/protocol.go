@@ -8,6 +8,7 @@ package poll
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -198,6 +199,7 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 	log.L().Info("Initialize poll protocol", zap.Uint64("height", p.initGravityChainHeight))
 	var ds state.CandidateList
 	if ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight); err != nil {
+		fmt.Println("/////////////////////:",err.Error())
 		for err.Error()==db.ErrNotExist.Error() {
 			log.L().Error("calling committee,wait for 15 seconds")
 			time.Sleep(time.Second * 15)
