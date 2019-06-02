@@ -11,11 +11,12 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-election/committee"
+	"github.com/iotexproject/iotex-election/db"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
-	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
@@ -197,6 +198,13 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 	log.L().Info("Initialize poll protocol", zap.Uint64("height", p.initGravityChainHeight))
 	var ds state.CandidateList
 	if ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight); err != nil {
+		for err.Error()==db.ErrNotExist.Error() {
+			log.L().Error("calling committee,wait for 15 seconds")
+			time.Sleep(time.Second * 15)
+			ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight)
+		}
+	}
+	if err != nil {
 		return
 	}
 	log.L().Info("Validating delegates from gravity chain", zap.Any("delegates", ds))
