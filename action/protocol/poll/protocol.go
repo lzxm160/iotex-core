@@ -8,7 +8,6 @@ package poll
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -208,9 +207,6 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 				time.Sleep(time.Second * time.Duration(interval))
 			}
 			ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight)
-			if err != nil {
-				fmt.Println("///////////////////", err.Error())
-			}
 		}
 	}
 	if err != nil {
