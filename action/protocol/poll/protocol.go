@@ -200,7 +200,7 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 		for err.Error() == "bucket = electionNS doesn't exist: not exist in DB" {
 			InitTryInterval := ctx.Value("InitTryInterval")
 			if interval, ok := InitTryInterval.(int); ok {
-				log.L().Error("calling committee,wait for ", zap.Int("duration", interval), zap.String("", " seconds"))
+				log.L().Error("calling committee,waiting for a while", zap.Int("duration", interval), zap.String("unit", " seconds"))
 				time.Sleep(time.Second * time.Duration(interval))
 			}
 			ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight)
