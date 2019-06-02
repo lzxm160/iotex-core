@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"strings"
 	"time"
 
 	"github.com/iotexproject/go-pkgs/hash"
@@ -206,7 +207,8 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 	log.L().Info("Initialize poll protocol", zap.Uint64("height", p.initGravityChainHeight))
 	var ds state.CandidateList
 	if ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight); err != nil {
-		for err.Error() == "bucket = electionNS doesn't exist: not exist in DB" {
+		errMsg := "bucket = electionNS doesn't exist: not exist in DB"
+		for strings.Contains(err.Error(), errMsg) {
 			log.L().Error("calling committee,waiting for a while", zap.Int("duration", interval), zap.String("unit", " seconds"))
 			time.Sleep(time.Second * time.Duration(interval))
 			ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight)
