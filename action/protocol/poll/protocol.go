@@ -227,6 +227,7 @@ func (p *governanceChainCommitteeProtocol) Validate(ctx context.Context, act act
 
 func (p *governanceChainCommitteeProtocol) delegatesByGravityChainHeight(height uint64) (state.CandidateList, error) {
 	r, err := p.electionCommittee.ResultByHeight(height)
+	fmt.Println("///////////////////////",err.Error())
 	if err != nil {
 		return nil, err
 	}
