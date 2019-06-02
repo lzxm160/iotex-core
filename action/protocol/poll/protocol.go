@@ -198,15 +198,19 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 	ctx context.Context,
 	sm protocol.StateManager,
 ) (err error) {
+	InitTryInterval := ctx.Value(InitTryIntervalCtxKey{})
+	interval, ok := InitTryInterval.(int)
+	if !ok {
+		return errors.New("interval error")
+	}
 	log.L().Info("Initialize poll protocol", zap.Uint64("height", p.initGravityChainHeight))
 	var ds state.CandidateList
 	if ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight); err != nil {
 		for err.Error() == "bucket = electionNS doesn't exist: not exist in DB" {
-			InitTryInterval := ctx.Value(InitTryIntervalCtxKey{})
-			if interval, ok := InitTryInterval.(int); ok {
-				log.L().Error("calling committee,waiting for a while", zap.Int("duration", interval), zap.String("unit", " seconds"))
-				time.Sleep(time.Second * time.Duration(interval))
-			}
+
+			log.L().Error("calling committee,waiting for a while", zap.Int("duration", interval), zap.String("unit", " seconds"))
+			time.Sleep(time.Second * time.Duration(interval))
+
 			ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight)
 			if err != nil {
 				fmt.Println("///////////////////", err.Error())
