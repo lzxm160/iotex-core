@@ -197,9 +197,12 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 	log.L().Info("Initialize poll protocol", zap.Uint64("height", p.initGravityChainHeight))
 	var ds state.CandidateList
 	if ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight); err != nil {
-		for err.Error()=="bucket = electionNS doesn't exist: not exist in DB" {
-			log.L().Error("calling committee,wait for 15 seconds")
-			time.Sleep(time.Second * 15)
+		for err.Error() == "bucket = electionNS doesn't exist: not exist in DB" {
+			InitTryInterval := ctx.Value("InitTryInterval")
+			if interval, ok := InitTryInterval.(int); ok {
+				log.L().Error("calling committee,wait for ", zap.Int("duration", interval), zap.String("", " seconds"))
+				time.Sleep(time.Second * time.Duration(interval))
+			}
 			ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight)
 		}
 	}
