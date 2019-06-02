@@ -9,6 +9,7 @@ package poll
 import (
 	"context"
 	"fmt"
+	"go.etcd.io/bbolt"
 	"math/big"
 	"time"
 
@@ -199,8 +200,7 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 	log.L().Info("Initialize poll protocol", zap.Uint64("height", p.initGravityChainHeight))
 	var ds state.CandidateList
 	if ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight); err != nil {
-		fmt.Println("/////////////////////:",err.Error())
-		for err.Error()==db.ErrNotExist.Error() {
+		for err.Error()=="bucket = electionNS doesn't exist: not exist in DB" {
 			log.L().Error("calling committee,wait for 15 seconds")
 			time.Sleep(time.Second * 15)
 			ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight)
@@ -227,7 +227,6 @@ func (p *governanceChainCommitteeProtocol) Validate(ctx context.Context, act act
 
 func (p *governanceChainCommitteeProtocol) delegatesByGravityChainHeight(height uint64) (state.CandidateList, error) {
 	r, err := p.electionCommittee.ResultByHeight(height)
-	fmt.Println("///////////////////////",err.Error())
 	if err != nil {
 		return nil, err
 	}
