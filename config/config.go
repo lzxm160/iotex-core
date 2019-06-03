@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/iotexproject/go-p2p"
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/iotex-election/committee"
 	"github.com/pkg/errors"
@@ -126,6 +125,7 @@ var (
 				},
 				ToleratedOvertime: 2 * time.Second,
 				Delay:             5 * time.Second,
+				InitTryInterval:   3 * time.Second,
 			},
 		},
 		BlockSync: BlockSync{
@@ -163,7 +163,6 @@ var (
 			SQLITE3: SQLITE3{
 				SQLite3File: "./explorer.db",
 			},
-			InitTryInterval: 15,
 		},
 		Genesis: genesis.Default,
 	}
@@ -245,6 +244,8 @@ type (
 		FSM               consensusfsm.Config `yaml:"fsm"`
 		ToleratedOvertime time.Duration       `yaml:"toleratedOvertime"`
 		Delay             time.Duration       `yaml:"delay"`
+		// InitTryInterval is the config for committee init db
+		InitTryInterval time.Duration `yaml:"initTryInterval"`
 	}
 
 	// Dispatcher is the dispatcher config
@@ -312,9 +313,6 @@ type (
 
 		// SQLite3 is the config for SQLITE3
 		SQLITE3 SQLITE3 `yaml:"SQLITE3"`
-
-		// InitTryInterval is the config for committee init db
-		InitTryInterval int `yaml:"initTryInterval"`
 	}
 
 	// RDS is the cloud rds config
