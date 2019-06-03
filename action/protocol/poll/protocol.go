@@ -9,7 +9,6 @@ package poll
 import (
 	"context"
 	"math/big"
-	"strings"
 	"time"
 
 	"github.com/iotexproject/go-pkgs/hash"
@@ -199,18 +198,17 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 	sm protocol.StateManager,
 ) (err error) {
 	InitTryInterval := ctx.Value(InitTryIntervalCtxKey{})
-	interval, ok := InitTryInterval.(int)
+	interval, ok := InitTryInterval.(time.Duration)
 	if !ok {
 		log.L().Error("Interval read from config error")
-		interval = 15
+		interval = time.Duration(15)
 	}
 	log.L().Info("Initialize poll protocol", zap.Uint64("height", p.initGravityChainHeight))
 	var ds state.CandidateList
 	if ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight); err != nil {
-		errMsg := "bucket = electionNS doesn't exist: not exist in DB"
-		for strings.Contains(err.Error(), errMsg) {
-			log.L().Error("calling committee,waiting for a while", zap.Int("duration", interval), zap.String("unit", " seconds"))
-			time.Sleep(time.Second * time.Duration(interval))
+		for _, ok := errors.Cause(err).(committee.ErrNotExist); ok; {
+			log.L().Error("calling committee,waiting for a while", zap.Int64("duration", int64(interval)), zap.String("unit", " seconds"))
+			time.Sleep(time.Second * interval))
 			ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight)
 			if err == nil {
 				break
