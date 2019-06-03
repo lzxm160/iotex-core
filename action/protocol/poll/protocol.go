@@ -11,9 +11,9 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/boltdb/bolt"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-election/committee"
+	"github.com/iotexproject/iotex-election/db"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -24,6 +24,7 @@ import (
 	"github.com/iotexproject/iotex-core/action/protocol/vote/candidatesutil"
 	"github.com/iotexproject/iotex-core/blockchain/genesis"
 	"github.com/iotexproject/iotex-core/crypto"
+	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 	"github.com/iotexproject/iotex-core/state"
@@ -207,13 +208,19 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 	log.L().Info("Initialize poll protocol", zap.Uint64("height", p.initGravityChainHeight))
 	var ds state.CandidateList
 	if ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight); err != nil {
-		for _, ok := errors.Cause(err).(bolt.ErrBucketNotFound); ok; {
-			log.L().Error("calling committee,waiting for a while", zap.Int64("duration", int64(interval)), zap.String("unit", " seconds"))
-			time.Sleep(time.Second * interval)
-			ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight)
-			if err == nil {
+		for {
+			switch errors.Cause(err).(type) {
+			case db.ErrNotExist:
+				log.L().Error("calling committee,waiting for a while", zap.Int64("duration", int64(interval)), zap.String("unit", " seconds"))
+				time.Sleep(time.Second * interval)
+				ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight)
+				if err == nil {
+					break
+				}
+			default:
 				break
 			}
+
 		}
 	}
 	if err != nil {
