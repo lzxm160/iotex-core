@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	p2p "github.com/iotexproject/go-p2p"
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/iotex-election/committee"
 	"github.com/pkg/errors"
