@@ -13,6 +13,7 @@ import (
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-election/committee"
+	"github.com/iotexproject/iotex-election/db"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -206,7 +207,7 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 	log.L().Info("Initialize poll protocol", zap.Uint64("height", p.initGravityChainHeight))
 	var ds state.CandidateList
 	if ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight); err != nil {
-		for _, ok := errors.Cause(err).(committee.ErrNotExist); ok; {
+		for _, ok := errors.Cause(err).(db.ErrNotExist); ok; {
 			log.L().Error("calling committee,waiting for a while", zap.Int64("duration", int64(interval)), zap.String("unit", " seconds"))
 			time.Sleep(time.Second * interval)
 			ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight)
