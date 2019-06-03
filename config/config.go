@@ -96,12 +96,13 @@ var (
 			Committee: committee.Config{
 				GravityChainAPIs: []string{},
 			},
-			EnableFallBackToFreshDB: false,
-			EnableTrielessStateDB:   true,
-			EnableAsyncIndexWrite:   true,
-			CompressBlock:           false,
-			AllowedBlockGasResidue:  10000,
-			MaxCacheSize:            0,
+			EnableFallBackToFreshDB:       false,
+			EnableTrielessStateDB:         true,
+			EnableAsyncIndexWrite:         true,
+			CompressBlock:                 false,
+			AllowedBlockGasResidue:        10000,
+			MaxCacheSize:                  0,
+			PollInitialCandidatesInterval: 3 * time.Second,
 		},
 		ActPool: ActPool{
 			MaxNumActsPerPool:  32000,
@@ -125,7 +126,6 @@ var (
 				},
 				ToleratedOvertime: 2 * time.Second,
 				Delay:             5 * time.Second,
-				InitTryInterval:   3 * time.Second,
 			},
 		},
 		BlockSync: BlockSync{
@@ -219,6 +219,8 @@ type (
 		AllowedBlockGasResidue uint64 `yaml:"allowedBlockGasResidue"`
 		// MaxCacheSize is the max number of blocks that will be put into an LRU cache. 0 means disabled
 		MaxCacheSize int `yaml:"maxCacheSize"`
+		// PollInitialCandidatesInterval is the config for committee init db
+		PollInitialCandidatesInterval time.Duration `yaml:"initTryInterval"`
 	}
 
 	// Consensus is the config struct for consensus package
@@ -244,8 +246,6 @@ type (
 		FSM               consensusfsm.Config `yaml:"fsm"`
 		ToleratedOvertime time.Duration       `yaml:"toleratedOvertime"`
 		Delay             time.Duration       `yaml:"delay"`
-		// InitTryInterval is the config for committee init db
-		InitTryInterval time.Duration `yaml:"initTryInterval"`
 	}
 
 	// Dispatcher is the dispatcher config
