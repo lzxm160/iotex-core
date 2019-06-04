@@ -195,7 +195,7 @@ func (v *validator) validateActions(
 						errChan <- err
 						return
 					}
-					log.L().Error("calling committee,waiting for a while", zap.Int64("duration", int64(15)), zap.String("unit", " seconds"))
+					log.L().Error("calling Validate actions,waiting for a while", zap.Int64("duration", int64(15)), zap.String("unit", " seconds"))
 					time.Sleep(15 * time.Second)
 				}
 			}(validator, selp.Action())
