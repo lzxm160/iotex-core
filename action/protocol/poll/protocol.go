@@ -244,7 +244,6 @@ func (p *governanceChainCommitteeProtocol) Validate(ctx context.Context, act act
 		time.Sleep(15 * time.Second)
 		count++
 	}
-	//return validate(ctx, p, act)
 	return err
 }
 
