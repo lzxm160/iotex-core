@@ -209,7 +209,11 @@ func (api *Server) GetChainMeta(ctx context.Context, in *iotexapi.GetChainMetaRe
 			},
 		}, nil
 	}
-	totalActions, err := api.bc.GetTotalActions()
+	totalActions := uint64(0)
+	var err error
+	if api.hasActionIndex {
+		totalActions, err = api.bc.GetTotalActions()
+	}
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
