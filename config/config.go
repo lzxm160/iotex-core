@@ -221,7 +221,7 @@ type (
 		// MaxCacheSize is the max number of blocks that will be put into an LRU cache. 0 means disabled
 		MaxCacheSize int `yaml:"maxCacheSize"`
 		// PollInitialCandidatesInterval is the config for committee init db
-		PollInitialCandidatesInterval time.Duration `yaml:"initTryInterval"`
+		PollInitialCandidatesInterval time.Duration `yaml:"pollInitialCandidatesInterval"`
 	}
 
 	// Consensus is the config struct for consensus package
