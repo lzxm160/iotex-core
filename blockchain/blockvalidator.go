@@ -189,27 +189,6 @@ func (v *validator) validateActions(
 			wg.Add(1)
 			go func(validator protocol.ActionValidator, act action.Action) {
 				defer wg.Done()
-				//if err := validator.Validate(ctx, act); err != nil {
-				//	func() {
-				//		errMsg1 := "the proposed delegate list length,"
-				//		errMsg2 := "delegates are not as expected,"
-				//		errChan := make(chan error, 1)
-				//		err := validator.Validate(ctx, act)
-				//		errChan <- err
-				//	loop:
-				//		for {
-				//			select {
-				//			case <-time.After(time.Second * 15):
-				//				err = validator.Validate(ctx, act)
-				//				errChan <- err
-				//			case err = <-errChan:
-				//				if err == nil || (!strings.Contains(err.Error(), errMsg1) && !strings.Contains(err.Error(), errMsg2)) {
-				//					break loop
-				//				}
-				//				log.L().Error("calling Validate,wait for 15 seconds")
-				//			}
-				//		}
-				//	}()
 				for {
 					err := validator.Validate(ctx, act)
 					if err == nil || (errors.Cause(err) != poll.ErrProposedDelegatesLength && errors.Cause(err) != poll.ErrDelegatesNotAsExpected) {
