@@ -192,12 +192,13 @@ func (v *validator) validateActions(
 				for {
 					err := validator.Validate(ctx, act)
 					if err == nil || (errors.Cause(err) != poll.ErrProposedDelegatesLength && errors.Cause(err) != poll.ErrDelegatesNotAsExpected) {
-						errChan <- err
-						return
+						break
 					}
 					log.L().Error("calling Validate actions,waiting for a while", zap.Int64("duration", int64(15)), zap.String("unit", " seconds"))
 					time.Sleep(15 * time.Second)
 				}
+				errChan <- err
+				return
 			}(validator, selp.Action())
 		}
 	}
