@@ -201,12 +201,6 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 	ctx context.Context,
 	sm protocol.StateManager,
 ) (err error) {
-	InitTryInterval := ctx.Value(InitTryIntervalCtxKey{})
-	interval, ok := InitTryInterval.(time.Duration)
-	if !ok {
-		log.L().Error("Interval read from config error")
-		interval = time.Duration(15)
-	}
 	log.L().Info("Initialize poll protocol", zap.Uint64("height", p.initGravityChainHeight))
 	var ds state.CandidateList
 	if ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight); err != nil {
