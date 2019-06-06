@@ -7,6 +7,7 @@
 package blockchain
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -81,6 +82,7 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 			}
 		}
 	}()
+	fmt.Println("88888888888888888888888888888888")
 	ib.cfg.DB.DbPath = ib.cfg.Chain.ChainDBPath
 	_, gateway := ib.cfg.Plugins[config.GatewayPlugin]
 	dao := newBlockDAO(
@@ -89,11 +91,13 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 		ib.cfg.Chain.CompressBlock,
 		ib.cfg.Chain.MaxCacheSize,
 	)
+	fmt.Println("xxxx93")
 	top, err := dao.getBlockchainHeight()
 	if err != nil {
 		log.L().Error("getBlockchainHeight", zap.Error(err))
 		return
 	}
+	fmt.Println("99999999999999999999")
 	for i := uint64(0); i < top; i++ {
 		hash, errs := dao.getBlockHash(i)
 		if errs != nil {
