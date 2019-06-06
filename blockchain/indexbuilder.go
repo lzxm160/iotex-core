@@ -119,7 +119,9 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 			}
 			batch.Clear()
 		}
-		zap.L().Info("loading", zap.Uint64("height", i))
+		if i%100 == 0 {
+			zap.L().Info("loading", zap.Uint64("height", i))
+		}
 	}
 	// last step save totalActions
 	totalActionsBytes := byteutil.Uint64ToBytes(totalActions)
