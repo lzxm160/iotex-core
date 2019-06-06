@@ -69,13 +69,34 @@ func NewIndexBuilder(chain Blockchain) (*IndexBuilder, error) {
 		dao:          bc.dao,
 	}, nil
 }
+func (ib *IndexBuilder) addToBatch(blk *block.Block, batch db.KVStoreBatch) {
+	hash := blk.HashBlock()
+	for _, elp := range blk.Actions {
+		actHash := elp.Hash()
+		batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], hash[:], "failed to put action hash %x", actHash)
+	}
+
+	err := putActions(ib.store, blk, batch)
+	if err != nil {
+		log.L().Info(
+			"Error when indexing the block",
+			zap.Uint64("height", blk.Height()),
+			zap.Error(err),
+		)
+	}
+	// index receipts
+	putReceipts(blk.Height(), blk.Receipts, batch)
+	batchSizeMtc.WithLabelValues().Set(float64(batch.Size()))
+}
 func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 	top, err := ib.dao.getBlockchainHeight()
 	if err != nil {
 		log.L().Error("getBlockchainHeight", zap.Error(err))
 		return
 	}
-	for i := uint64(1); i < top; i++ {
+	var totalActions uint64
+	batch := db.NewBatch()
+	for i := uint64(1); i <= top; i++ {
 		hash, errs := ib.dao.getBlockHash(i)
 		if errs != nil {
 			log.L().Error("getBlockHash", zap.Error(errs))
@@ -86,33 +107,31 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 			log.L().Error("getBlock", zap.Error(errs))
 			return errs
 		}
-		ib.sync(blk)
+		ib.addToBatch(blk, batch)
+		totalActions += uint64(len(blk.Actions))
+		if i%10000 == 0 {
+			if err := ib.store.Commit(batch); err != nil {
+				log.L().Info(
+					"Error when indexing the block",
+					zap.Uint64("height", blk.Height()),
+					zap.Error(err),
+				)
+			}
+			batch.Clear()
+		}
 		zap.L().Info("loading", zap.Uint64("height", i))
 	}
-
-	return
-}
-func (ib *IndexBuilder) sync(blk *block.Block) {
-	timer := ib.timerFactory.NewTimer("indexBlock")
-	batch := db.NewBatch()
-	if err := indexBlock(ib.store, blk, batch); err != nil {
-		log.L().Info(
-			"Error when indexing the block",
-			zap.Uint64("height", blk.Height()),
-			zap.Error(err),
-		)
-	}
-	// index receipts
-	putReceipts(blk.Height(), blk.Receipts, batch)
-	batchSizeMtc.WithLabelValues().Set(float64(batch.Size()))
+	// last step save totalActions
+	totalActionsBytes := byteutil.Uint64ToBytes(totalActions)
+	batch.Put(blockNS, totalActionsKey, totalActionsBytes, "failed to put total actions")
 	if err := ib.store.Commit(batch); err != nil {
 		log.L().Info(
 			"Error when indexing the block",
-			zap.Uint64("height", blk.Height()),
+			zap.Uint64("height", top),
 			zap.Error(err),
 		)
 	}
-	timer.End()
+	return
 }
 
 // Start starts the index builder
@@ -128,7 +147,26 @@ func (ib *IndexBuilder) Start(_ context.Context) error {
 			case <-ib.cancelChan:
 				return
 			case blk := <-ib.pendingBlks:
-				ib.sync(blk)
+				timer := ib.timerFactory.NewTimer("indexBlock")
+				batch := db.NewBatch()
+				if err := indexBlock(ib.store, blk, batch); err != nil {
+					log.L().Info(
+						"Error when indexing the block",
+						zap.Uint64("height", blk.Height()),
+						zap.Error(err),
+					)
+				}
+				// index receipts
+				putReceipts(blk.Height(), blk.Receipts, batch)
+				batchSizeMtc.WithLabelValues().Set(float64(batch.Size()))
+				if err := ib.store.Commit(batch); err != nil {
+					log.L().Info(
+						"Error when indexing the block",
+						zap.Uint64("height", blk.Height()),
+						zap.Error(err),
+					)
+				}
+				timer.End()
 			}
 		}
 	}()
