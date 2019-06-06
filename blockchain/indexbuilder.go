@@ -91,15 +91,18 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 	)
 	top, err := dao.getBlockchainHeight()
 	if err != nil {
+		log.L().Error("getBlockchainHeight", zap.Error(err))
 		return
 	}
 	for i := uint64(0); i < top; i++ {
 		hash, errs := dao.getBlockHash(i)
 		if errs != nil {
+			log.L().Error("getBlockHash", zap.Error(errs))
 			return errs
 		}
 		blk, errs := dao.getBlock(hash)
 		if errs != nil {
+			log.L().Error("getBlock", zap.Error(errs))
 			return errs
 		}
 		ib.sync(blk)
