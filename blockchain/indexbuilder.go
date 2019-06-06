@@ -78,7 +78,7 @@ func (ib *IndexBuilder) addToBatch(blk *block.Block, batch db.KVStoreBatch) {
 
 	err := putActions(ib.store, blk, batch)
 	if err != nil {
-		log.L().Info(
+		log.L().Error(
 			"Error when indexing the block",
 			zap.Uint64("height", blk.Height()),
 			zap.Error(err),
@@ -109,7 +109,7 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 		}
 		ib.addToBatch(blk, batch)
 		totalActions += uint64(len(blk.Actions))
-		if i%30000 == 0 {
+		if i%50000 == 0 {
 			if err := ib.store.Commit(batch); err != nil {
 				log.L().Error(
 					"Error when Commit the batch",
