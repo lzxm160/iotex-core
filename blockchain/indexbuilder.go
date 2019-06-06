@@ -67,10 +67,30 @@ func NewIndexBuilder(chain Blockchain) (*IndexBuilder, error) {
 		timerFactory: timerFactory,
 	}, nil
 }
+func (ib *IndexBuilder) loadFromLocalDB() error {
+	//hash := blk.HashBlock()
+	//value, err := store.Get(blockNS, totalActionsKey)
+	//if err != nil {
+	//	return errors.Wrap(err, "failed to get total actions")
+	//}
+	//totalActions := enc.MachineEndian.Uint64(value)
+	//totalActions += uint64(len(blk.Actions))
+	//totalActionsBytes := byteutil.Uint64ToBytes(totalActions)
+	//batch.Put(blockNS, totalActionsKey, totalActionsBytes, "failed to put total actions")
+	//for _, elp := range blk.Actions {
+	//	actHash := elp.Hash()
+	//	batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], hash[:], "failed to put action hash %x", actHash)
+	//}
+
+}
 
 // Start starts the index builder
 func (ib *IndexBuilder) Start(_ context.Context) error {
 	go func() {
+		// load from local db
+		if ib.loadFromLocalDB() != nil {
+			return
+		}
 		for {
 			select {
 			case <-ib.cancelChan:
