@@ -109,7 +109,7 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 		}
 		ib.addToBatch(blk, batch)
 		totalActions += uint64(len(blk.Actions))
-		if i%10000 == 0 {
+		if i%30000 == 0 {
 			if err := ib.store.Commit(batch); err != nil {
 				log.L().Info(
 					"Error when indexing the block",
