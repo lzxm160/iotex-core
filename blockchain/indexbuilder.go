@@ -111,11 +111,12 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 		totalActions += uint64(len(blk.Actions))
 		if i%30000 == 0 {
 			if err := ib.store.Commit(batch); err != nil {
-				log.L().Info(
-					"Error when indexing the block",
+				log.L().Error(
+					"Error when Commit the batch",
 					zap.Uint64("height", blk.Height()),
 					zap.Error(err),
 				)
+				continue
 			}
 			batch.Clear()
 		}
@@ -123,7 +124,7 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 			zap.L().Info("loading", zap.Uint64("height", i))
 		}
 	}
-	// last step save totalActions
+	// last step save totalActions and left batch in for loop
 	totalActionsBytes := byteutil.Uint64ToBytes(totalActions)
 	batch.Put(blockNS, totalActionsKey, totalActionsBytes, "failed to put total actions")
 	if err := ib.store.Commit(batch); err != nil {
