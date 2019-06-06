@@ -7,9 +7,7 @@
 package blockchain
 
 import (
-	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
@@ -72,22 +70,11 @@ func NewIndexBuilder(chain Blockchain) (*IndexBuilder, error) {
 	}, nil
 }
 func (ib *IndexBuilder) loadFromLocalDB() (err error) {
-	go func() {
-		for {
-			select {
-			case <-time.After(3 * time.Second):
-				log.L().Info("index builder block for 3 seconds")
-			}
-		}
-	}()
-
-	fmt.Println("xxxx93")
 	top, err := ib.dao.getBlockchainHeight()
 	if err != nil {
 		log.L().Error("getBlockchainHeight", zap.Error(err))
 		return
 	}
-	fmt.Println("99999999999999999999")
 	for i := uint64(1); i < top; i++ {
 		hash, errs := ib.dao.getBlockHash(i)
 		if errs != nil {
@@ -100,7 +87,7 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 			return errs
 		}
 		ib.sync(blk)
-		fmt.Println("....................", i)
+		zap.L().Info("loading", zap.Uint64("height", i))
 	}
 
 	return
