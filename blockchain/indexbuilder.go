@@ -110,6 +110,7 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 			return errs
 		}
 		ib.sync(blk)
+		fmt.Println("....................", i)
 	}
 
 	return
