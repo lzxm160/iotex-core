@@ -69,22 +69,29 @@ func NewIndexBuilder(chain Blockchain) (*IndexBuilder, error) {
 		dao:          bc.dao,
 	}, nil
 }
-func (ib *IndexBuilder) addToBatch(blk *block.Block, batch db.KVStoreBatch) {
-	hash := blk.HashBlock()
-	for _, elp := range blk.Actions {
+func (ib *IndexBuilder) addToBatch(body *block.Body, height uint64, blockHash hash.Hash256, batch db.KVStoreBatch) {
+	for _, elp := range body.Actions {
 		actHash := elp.Hash()
-		batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], hash[:], "failed to put action hash %x", actHash)
+		batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], blockHash[:], "failed to put action hash %x", actHash)
 	}
-	err := putActions(ib.store, blk, batch)
+	err := putActions(ib.store, body.Actions, batch)
 	if err != nil {
 		log.L().Error(
 			"Error when put Actions",
-			zap.Uint64("height", blk.Height()),
+			zap.Uint64("height", height),
 			zap.Error(err),
 		)
 	}
 	// index receipts
-	putReceipts(blk.Height(), blk.Receipts, batch)
+	receipts, err := ib.dao.getReceipts(height)
+	if err != nil {
+		log.L().Error(
+			"Error when get receipts",
+			zap.Uint64("height", height),
+			zap.Error(err),
+		)
+	}
+	putReceipts(height, receipts, batch)
 }
 func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 	topHeight, err := ib.dao.getBlockchainHeight()
@@ -100,18 +107,18 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 			log.L().Error("Error when get block hash", zap.Error(errs))
 			return errs
 		}
-		blk, errs := ib.dao.getBlock(hash)
+		body, errs := ib.dao.body(hash)
 		if errs != nil {
 			log.L().Error("Error when get block", zap.Error(errs))
 			return errs
 		}
-		ib.addToBatch(blk, batch)
-		totalActions += uint64(len(blk.Actions))
+		ib.addToBatch(body, i, hash, batch)
+		totalActions += uint64(len(body.Actions))
 		if i%50000 == 0 {
 			if err := ib.store.Commit(batch); err != nil {
 				log.L().Error(
 					"Error when commit the batch",
-					zap.Uint64("height", blk.Height()),
+					zap.Uint64("height", i),
 					zap.Error(err),
 				)
 				continue
@@ -201,14 +208,14 @@ func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 		batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], hash[:], "failed to put action hash %x", actHash)
 	}
 
-	return putActions(store, blk, batch)
+	return putActions(store, blk.Actions, batch)
 }
 
-func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
+func putActions(store db.KVStore, actions []action.SealedEnvelope, batch db.KVStoreBatch) error {
 	senderDelta := make(map[hash.Hash160]uint64)
 	recipientDelta := make(map[hash.Hash160]uint64)
 
-	for _, selp := range blk.Actions {
+	for _, selp := range actions {
 		actHash := selp.Hash()
 		callerAddrBytes := hash.BytesToHash160(selp.SrcPubkey().Hash())
 
