@@ -11,8 +11,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/iotexproject/iotex-core/config"
-
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
@@ -47,7 +45,7 @@ type IndexBuilder struct {
 	pendingBlks  chan *block.Block
 	cancelChan   chan interface{}
 	timerFactory *prometheustimer.TimerFactory
-	cfg          config.Config
+	dao          *blockDAO
 }
 
 // NewIndexBuilder instantiates an index builder
@@ -70,7 +68,7 @@ func NewIndexBuilder(chain Blockchain) (*IndexBuilder, error) {
 		pendingBlks:  make(chan *block.Block, 64), // Actually 1 should be enough
 		cancelChan:   make(chan interface{}),
 		timerFactory: timerFactory,
-		cfg:          bc.config,
+		dao:          bc.dao,
 	}, nil
 }
 func (ib *IndexBuilder) loadFromLocalDB() (err error) {
@@ -82,29 +80,21 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 			}
 		}
 	}()
-	fmt.Println("88888888888888888888888888888888")
-	ib.cfg.DB.DbPath = ib.cfg.Chain.ChainDBPath
-	_, gateway := ib.cfg.Plugins[config.GatewayPlugin]
-	dao := newBlockDAO(
-		db.NewOnDiskDB(ib.cfg.DB),
-		gateway && !ib.cfg.Chain.EnableAsyncIndexWrite,
-		ib.cfg.Chain.CompressBlock,
-		ib.cfg.Chain.MaxCacheSize,
-	)
+
 	fmt.Println("xxxx93")
-	top, err := dao.getBlockchainHeight()
+	top, err := ib.dao.getBlockchainHeight()
 	if err != nil {
 		log.L().Error("getBlockchainHeight", zap.Error(err))
 		return
 	}
 	fmt.Println("99999999999999999999")
 	for i := uint64(0); i < top; i++ {
-		hash, errs := dao.getBlockHash(i)
+		hash, errs := ib.dao.getBlockHash(i)
 		if errs != nil {
 			log.L().Error("getBlockHash", zap.Error(errs))
 			return errs
 		}
-		blk, errs := dao.getBlock(hash)
+		blk, errs := ib.dao.getBlock(hash)
 		if errs != nil {
 			log.L().Error("getBlock", zap.Error(errs))
 			return errs
