@@ -75,7 +75,6 @@ func (ib *IndexBuilder) addToBatch(blk *block.Block, batch db.KVStoreBatch) {
 		actHash := elp.Hash()
 		batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], hash[:], "failed to put action hash %x", actHash)
 	}
-
 	err := putActions(ib.store, blk, batch)
 	if err != nil {
 		log.L().Error(
@@ -86,7 +85,6 @@ func (ib *IndexBuilder) addToBatch(blk *block.Block, batch db.KVStoreBatch) {
 	}
 	// index receipts
 	putReceipts(blk.Height(), blk.Receipts, batch)
-	batchSizeMtc.WithLabelValues().Set(float64(batch.Size()))
 }
 func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 	topHeight, err := ib.dao.getBlockchainHeight()
