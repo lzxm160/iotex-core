@@ -70,13 +70,12 @@ func NewIndexBuilder(chain Blockchain) (*IndexBuilder, error) {
 	}, nil
 }
 func (ib *IndexBuilder) loadFromLocalDB() (err error) {
-
 	for {
 		time.Sleep(time.Second * 10)
 		log.L().Info("index builder block for 10 seconds")
-		value, err := ib.store.Get(blockNS, topHeightKey)
-		if err != nil {
-			err = errors.Wrap(err, "failed to get top height")
+		value, errs := ib.store.Get(blockNS, topHeightKey)
+		if errs != nil {
+			err = errors.Wrap(errs, "failed to get top height")
 			return
 		}
 		if len(value) == 0 {
