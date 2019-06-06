@@ -99,7 +99,9 @@ func main() {
 			log.L().Fatal("Failed to new sub chain.", zap.Error(err))
 		}
 	}
-	http.ListenAndServe(":8088", nil)
+	go func() {
+		http.ListenAndServe(":8088", nil)
+	}()
 	itx.StartServer(ctx, svr, probeSvr, cfg)
 	close(stopped)
 	<-livenessCtx.Done()
