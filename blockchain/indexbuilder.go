@@ -7,9 +7,10 @@
 package blockchain
 
 import (
-	"fmt"
 	"strconv"
 	"time"
+
+	"github.com/iotexproject/iotex-core/config"
 
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
@@ -45,6 +46,7 @@ type IndexBuilder struct {
 	pendingBlks  chan *block.Block
 	cancelChan   chan interface{}
 	timerFactory *prometheustimer.TimerFactory
+	cfg          config.Config
 }
 
 // NewIndexBuilder instantiates an index builder
@@ -67,25 +69,65 @@ func NewIndexBuilder(chain Blockchain) (*IndexBuilder, error) {
 		pendingBlks:  make(chan *block.Block, 64), // Actually 1 should be enough
 		cancelChan:   make(chan interface{}),
 		timerFactory: timerFactory,
+		cfg:          bc.config,
 	}, nil
 }
 func (ib *IndexBuilder) loadFromLocalDB() (err error) {
-	for {
-		time.Sleep(time.Second * 10)
-		log.L().Info("index builder block for 10 seconds")
-		value, errs := ib.store.Get(blockNS, topHeightKey)
-		if errs != nil {
-			err = errors.Wrap(errs, "failed to get top height")
+	go func() {
+		for {
+			select {
+			case <-time.After(3 * time.Second):
+				log.L().Info("index builder block for 3 seconds")
+			}
+		}
+	}()
+	ib.cfg.DB.DbPath = ib.cfg.Chain.ChainDBPath
+	_, gateway := ib.cfg.Plugins[config.GatewayPlugin]
+	dao := newBlockDAO(
+		db.NewOnDiskDB(ib.cfg.DB),
+		gateway && !ib.cfg.Chain.EnableAsyncIndexWrite,
+		ib.cfg.Chain.CompressBlock,
+		ib.cfg.Chain.MaxCacheSize,
+	)
+	top, err := dao.getBlockchainHeight()
+	if err != nil {
+		return
+	}
+	for i := uint64(0); i < top; i++ {
+		hash, err := dao.getBlockHash(i)
+		if err != nil {
 			return
 		}
-		if len(value) == 0 {
-			err = errors.Wrap(db.ErrNotExist, "blockchain height missing")
+		blk, err := dao.getBlock(hash)
+		if err != nil {
 			return
 		}
-		fmt.Println("top hei:", enc.MachineEndian.Uint64(value))
+		ib.sync(blk)
 	}
 
 	return
+}
+func (ib *IndexBuilder) sync(blk *block.Block) {
+	timer := ib.timerFactory.NewTimer("indexBlock")
+	batch := db.NewBatch()
+	if err := indexBlock(ib.store, blk, batch); err != nil {
+		log.L().Info(
+			"Error when indexing the block",
+			zap.Uint64("height", blk.Height()),
+			zap.Error(err),
+		)
+	}
+	// index receipts
+	putReceipts(blk.Height(), blk.Receipts, batch)
+	batchSizeMtc.WithLabelValues().Set(float64(batch.Size()))
+	if err := ib.store.Commit(batch); err != nil {
+		log.L().Info(
+			"Error when indexing the block",
+			zap.Uint64("height", blk.Height()),
+			zap.Error(err),
+		)
+	}
+	timer.End()
 }
 
 // Start starts the index builder
@@ -96,32 +138,12 @@ func (ib *IndexBuilder) Start(_ context.Context) error {
 		return err
 	}
 	go func() {
-
 		for {
 			select {
 			case <-ib.cancelChan:
 				return
 			case blk := <-ib.pendingBlks:
-				timer := ib.timerFactory.NewTimer("indexBlock")
-				batch := db.NewBatch()
-				if err := indexBlock(ib.store, blk, batch); err != nil {
-					log.L().Info(
-						"Error when indexing the block",
-						zap.Uint64("height", blk.Height()),
-						zap.Error(err),
-					)
-				}
-				// index receipts
-				putReceipts(blk.Height(), blk.Receipts, batch)
-				batchSizeMtc.WithLabelValues().Set(float64(batch.Size()))
-				if err := ib.store.Commit(batch); err != nil {
-					log.L().Info(
-						"Error when indexing the block",
-						zap.Uint64("height", blk.Height()),
-						zap.Error(err),
-					)
-				}
-				timer.End()
+				ib.sync(blk)
 			}
 		}
 	}()
