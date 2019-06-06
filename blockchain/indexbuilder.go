@@ -88,7 +88,7 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 		return
 	}
 	fmt.Println("99999999999999999999")
-	for i := uint64(0); i < top; i++ {
+	for i := uint64(1); i < top; i++ {
 		hash, errs := ib.dao.getBlockHash(i)
 		if errs != nil {
 			log.L().Error("getBlockHash", zap.Error(errs))
