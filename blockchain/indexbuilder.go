@@ -8,6 +8,7 @@ package blockchain
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
@@ -81,16 +82,23 @@ func (ib *IndexBuilder) loadFromLocalDB() error {
 	//	actHash := elp.Hash()
 	//	batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], hash[:], "failed to put action hash %x", actHash)
 	//}
+	for {
+		time.Sleep(time.Second * 10)
+		log.L().Info("index builder block for 10 seconds")
+	}
 
+	return nil
 }
 
 // Start starts the index builder
 func (ib *IndexBuilder) Start(_ context.Context) error {
+	// load from local db
+	err := ib.loadFromLocalDB()
+	if err != nil {
+		return err
+	}
 	go func() {
-		// load from local db
-		if ib.loadFromLocalDB() != nil {
-			return
-		}
+
 		for {
 			select {
 			case <-ib.cancelChan:
