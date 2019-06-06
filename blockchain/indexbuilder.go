@@ -94,13 +94,13 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 		return
 	}
 	for i := uint64(0); i < top; i++ {
-		hash, err := dao.getBlockHash(i)
-		if err != nil {
-			return
+		hash, errs := dao.getBlockHash(i)
+		if errs != nil {
+			return errs
 		}
-		blk, err := dao.getBlock(hash)
-		if err != nil {
-			return
+		blk, errs := dao.getBlock(hash)
+		if errs != nil {
+			return errs
 		}
 		ib.sync(blk)
 	}
