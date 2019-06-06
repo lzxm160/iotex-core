@@ -79,7 +79,7 @@ func (ib *IndexBuilder) addToBatch(blk *block.Block, batch db.KVStoreBatch) {
 	err := putActions(ib.store, blk, batch)
 	if err != nil {
 		log.L().Error(
-			"Error when indexing the block",
+			"Error when put Actions",
 			zap.Uint64("height", blk.Height()),
 			zap.Error(err),
 		)
@@ -89,22 +89,22 @@ func (ib *IndexBuilder) addToBatch(blk *block.Block, batch db.KVStoreBatch) {
 	batchSizeMtc.WithLabelValues().Set(float64(batch.Size()))
 }
 func (ib *IndexBuilder) loadFromLocalDB() (err error) {
-	top, err := ib.dao.getBlockchainHeight()
+	topHeight, err := ib.dao.getBlockchainHeight()
 	if err != nil {
-		log.L().Error("getBlockchainHeight", zap.Error(err))
+		log.L().Error("Error when get blockchain height", zap.Error(err))
 		return
 	}
 	var totalActions uint64
 	batch := db.NewBatch()
-	for i := uint64(1); i <= top; i++ {
+	for i := uint64(1); i <= topHeight; i++ {
 		hash, errs := ib.dao.getBlockHash(i)
 		if errs != nil {
-			log.L().Error("getBlockHash", zap.Error(errs))
+			log.L().Error("Error when get block hash", zap.Error(errs))
 			return errs
 		}
 		blk, errs := ib.dao.getBlock(hash)
 		if errs != nil {
-			log.L().Error("getBlock", zap.Error(errs))
+			log.L().Error("Error when get block", zap.Error(errs))
 			return errs
 		}
 		ib.addToBatch(blk, batch)
@@ -112,7 +112,7 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 		if i%50000 == 0 {
 			if err := ib.store.Commit(batch); err != nil {
 				log.L().Error(
-					"Error when Commit the batch",
+					"Error when commit the batch",
 					zap.Uint64("height", blk.Height()),
 					zap.Error(err),
 				)
@@ -124,13 +124,13 @@ func (ib *IndexBuilder) loadFromLocalDB() (err error) {
 			zap.L().Info("loading", zap.Uint64("height", i))
 		}
 	}
-	// last step save totalActions and left batch in for loop
+	// Save totalActions and left batch in for loop
 	totalActionsBytes := byteutil.Uint64ToBytes(totalActions)
 	batch.Put(blockNS, totalActionsKey, totalActionsBytes, "failed to put total actions")
 	if err := ib.store.Commit(batch); err != nil {
 		log.L().Info(
-			"Error when indexing the block",
-			zap.Uint64("height", top),
+			"Error when commit the batch",
+			zap.Uint64("height", topHeight),
 			zap.Error(err),
 		)
 	}
