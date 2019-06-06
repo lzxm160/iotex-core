@@ -7,6 +7,7 @@
 package blockchain
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -68,26 +69,24 @@ func NewIndexBuilder(chain Blockchain) (*IndexBuilder, error) {
 		timerFactory: timerFactory,
 	}, nil
 }
-func (ib *IndexBuilder) loadFromLocalDB() error {
-	//hash := blk.HashBlock()
-	//value, err := store.Get(blockNS, totalActionsKey)
-	//if err != nil {
-	//	return errors.Wrap(err, "failed to get total actions")
-	//}
-	//totalActions := enc.MachineEndian.Uint64(value)
-	//totalActions += uint64(len(blk.Actions))
-	//totalActionsBytes := byteutil.Uint64ToBytes(totalActions)
-	//batch.Put(blockNS, totalActionsKey, totalActionsBytes, "failed to put total actions")
-	//for _, elp := range blk.Actions {
-	//	actHash := elp.Hash()
-	//	batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], hash[:], "failed to put action hash %x", actHash)
-	//}
+func (ib *IndexBuilder) loadFromLocalDB() (err error) {
+
 	for {
 		time.Sleep(time.Second * 10)
 		log.L().Info("index builder block for 10 seconds")
+		value, err := ib.store.Get(blockNS, topHeightKey)
+		if err != nil {
+			err = errors.Wrap(err, "failed to get top height")
+			return
+		}
+		if len(value) == 0 {
+			err = errors.Wrap(db.ErrNotExist, "blockchain height missing")
+			return
+		}
+		fmt.Println("top hei:", enc.MachineEndian.Uint64(value))
 	}
 
-	return nil
+	return
 }
 
 // Start starts the index builder
