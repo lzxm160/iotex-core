@@ -11,11 +11,10 @@ import (
 	"os"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/iotexproject/iotex-election/committee"
 	peerstore "github.com/libp2p/go-libp2p-peerstore"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-
-	"github.com/iotexproject/iotex-election/committee"
 
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
@@ -178,6 +177,7 @@ func New(
 		chain,
 		actPool,
 		consensus,
+		electionCommittee,
 		blocksync.WithUnicastOutBound(func(ctx context.Context, peer peerstore.PeerInfo, msg proto.Message) error {
 			ctx = p2p.WitContext(ctx, p2p.Context{ChainID: chain.ChainID()})
 			return p2pAgent.UnicastOutbound(ctx, peer, msg)

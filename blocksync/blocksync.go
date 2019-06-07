@@ -10,6 +10,8 @@ import (
 	"context"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/iotexproject/iotex-election/committee"
+	"github.com/iotexproject/iotex-proto/golang/iotexrpc"
 	peerstore "github.com/libp2p/go-libp2p-peerstore"
 	"go.uber.org/zap"
 
@@ -20,7 +22,6 @@ import (
 	"github.com/iotexproject/iotex-core/consensus"
 	"github.com/iotexproject/iotex-core/pkg/lifecycle"
 	"github.com/iotexproject/iotex-core/pkg/log"
-	"github.com/iotexproject/iotex-proto/golang/iotexrpc"
 )
 
 type (
@@ -67,12 +68,13 @@ type BlockSync interface {
 
 // blockSyncer implements BlockSync interface
 type blockSyncer struct {
-	commitHeight     uint64 // last commit block height
-	buf              *blockBuffer
-	worker           *syncWorker
-	bc               blockchain.Blockchain
-	unicastHandler   UnicastOutbound
-	neighborsHandler Neighbors
+	commitHeight      uint64 // last commit block height
+	buf               *blockBuffer
+	worker            *syncWorker
+	bc                blockchain.Blockchain
+	unicastHandler    UnicastOutbound
+	neighborsHandler  Neighbors
+	electionCommittee committee.Committee
 }
 
 // NewBlockSyncer returns a new block syncer instance
@@ -81,6 +83,7 @@ func NewBlockSyncer(
 	chain blockchain.Blockchain,
 	ap actpool.ActPool,
 	cs consensus.Consensus,
+	electionCommittee committee.Committee,
 	opts ...Option,
 ) (BlockSync, error) {
 	buf := &blockBuffer{
@@ -98,11 +101,12 @@ func NewBlockSyncer(
 		}
 	}
 	bs := &blockSyncer{
-		bc:               chain,
-		buf:              buf,
-		unicastHandler:   bsCfg.unicastHandler,
-		neighborsHandler: bsCfg.neighborsHandler,
-		worker:           newSyncWorker(chain.ChainID(), cfg, bsCfg.unicastHandler, bsCfg.neighborsHandler, buf),
+		bc:                chain,
+		buf:               buf,
+		unicastHandler:    bsCfg.unicastHandler,
+		neighborsHandler:  bsCfg.neighborsHandler,
+		worker:            newSyncWorker(chain.ChainID(), cfg, bsCfg.unicastHandler, bsCfg.neighborsHandler, buf),
+		electionCommittee: electionCommittee,
 	}
 	return bs, nil
 }
@@ -145,6 +149,11 @@ func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
 	}
 
 	if needSync {
+		hei := bs.electionCommittee.LatestHeight()
+		log.L().Info(
+			"height from election committee",
+			zap.Uint64("height", hei),
+		)
 		bs.worker.SetTargetHeight(blk.Height())
 	}
 	return nil
