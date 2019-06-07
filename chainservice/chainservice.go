@@ -221,7 +221,6 @@ func New(
 func (cs *ChainService) Start(ctx context.Context) error {
 	if cs.electionCommittee != nil {
 		if err := cs.electionCommittee.Start(ctx); err != nil {
-			log.L().Info("111111111111")
 			return errors.Wrap(err, "error when starting election committee")
 		}
 	}
@@ -229,9 +228,11 @@ func (cs *ChainService) Start(ctx context.Context) error {
 	if err := cs.chain.Start(ctx); err != nil {
 		return errors.Wrap(err, "error when starting blockchain")
 	}
+	log.L().Info("444444")
 	if err := cs.consensus.Start(ctx); err != nil {
 		return errors.Wrap(err, "error when starting consensus")
 	}
+	log.L().Info("66666")
 	if err := cs.blocksync.Start(ctx); err != nil {
 		return errors.Wrap(err, "error when starting blocksync")
 	}
