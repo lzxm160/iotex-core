@@ -335,7 +335,7 @@ func (bc *blockchain) Start(ctx context.Context) (err error) {
 	bc.mu.Lock()
 	defer bc.mu.Unlock()
 	if err = bc.lifecycle.OnStart(ctx); err != nil {
-		log.L().Panic("what", zap.Error(err))
+		log.L().Error("what", zap.Error(err))
 		return err
 	}
 	// get blockchain tip height
