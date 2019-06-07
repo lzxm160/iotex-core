@@ -332,14 +332,14 @@ func (bc *blockchain) ChainAddress() string {
 
 // Start starts the blockchain
 func (bc *blockchain) Start(ctx context.Context) (err error) {
-	log.L().Panic("33333333333333333333333")
+	log.L().Info("33333333333333333333333")
 	bc.mu.Lock()
 	defer bc.mu.Unlock()
-	log.L().Panic("4444444444444444444444444")
+	log.L().Info("4444444444444444444444444")
 	if err = bc.lifecycle.OnStart(ctx); err != nil {
 		return err
 	}
-	log.L().Panic("555555555555555555555555")
+	log.L().Info("555555555555555555555555")
 	// get blockchain tip height
 	if bc.tipHeight, err = bc.dao.getBlockchainHeight(); err != nil {
 		return err
