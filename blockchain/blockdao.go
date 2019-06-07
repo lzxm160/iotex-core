@@ -124,11 +124,13 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 			return errors.Wrap(err, "failed to write initial value for total actions")
 		}
 	}
-
 	totalActions := enc.MachineEndian.Uint64(value)
 	if totalActions != 0 {
 		return nil
 	}
+	return dao.countActions(totalActions)
+}
+func (dao *blockDAO) countActions(totalActions uint64) error {
 	tipHeight, err := dao.getBlockchainHeight()
 	if err != nil &&
 		errors.Cause(err) == db.ErrNotExist {
@@ -150,7 +152,7 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 			return err
 		}
 		totalActions += uint64(len(body.Actions))
-		if i%1000 == 0 {
+		if i%100 == 0 {
 			zap.L().Info("loading", zap.Uint64("height", i))
 		}
 	}
