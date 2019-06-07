@@ -336,6 +336,7 @@ func (bc *blockchain) Start(ctx context.Context) (err error) {
 	defer bc.mu.Unlock()
 	log.L().Info("33333333333333333333333333")
 	if err = bc.lifecycle.OnStart(ctx); err != nil {
+		log.L().Info("111111111111")
 		log.L().Error("what", zap.Error(err))
 		return err
 	}
