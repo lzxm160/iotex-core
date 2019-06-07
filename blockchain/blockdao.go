@@ -114,39 +114,13 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 	}
 
 	// set init total actions to be 0
-	value, err := dao.kvstore.Get(blockNS, totalActionsKey)
-	if err != nil &&
+	if _, err := dao.kvstore.Get(blockNS, totalActionsKey); err != nil &&
 		errors.Cause(err) == db.ErrNotExist {
 		if err = dao.kvstore.Put(blockNS, totalActionsKey, make([]byte, 8)); err != nil {
 			return errors.Wrap(err, "failed to write initial value for total actions")
 		}
 	}
-	// count total actions and update to db
-	totalActions := enc.MachineEndian.Uint64(value)
-	if totalActions != 0 {
-		return nil
-	}
-	topHeight, err := dao.getBlockchainHeight()
-	if err != nil {
-		return err
-	}
-	batch := db.NewBatch()
-	for i := uint64(1); i <= topHeight; i++ {
-		hash, err := dao.getBlockHash(i)
-		if err != nil {
-			return err
-		}
-		body, err := dao.body(hash)
-		if err != nil {
-			return err
-		}
-		totalActions += uint64(len(body.Actions))
-	}
-	totalActionsBytes := byteutil.Uint64ToBytes(totalActions)
-	batch.Put(blockNS, totalActionsKey, totalActionsBytes, "failed to put total actions")
-	if err = dao.kvstore.Commit(batch); err != nil {
-		return err
-	}
+
 	return nil
 }
 

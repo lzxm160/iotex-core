@@ -37,6 +37,7 @@ import (
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/crypto"
 	"github.com/iotexproject/iotex-core/db"
+	"github.com/iotexproject/iotex-core/pkg/enc"
 	"github.com/iotexproject/iotex-core/pkg/lifecycle"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/prometheustimer"
@@ -348,6 +349,43 @@ func (bc *blockchain) Start(ctx context.Context) (err error) {
 	if bc.tipHash, err = bc.dao.getBlockHash(bc.tipHeight); err != nil {
 		return err
 	}
+
+	value, err := bc.dao.kvstore.Get(blockNS, totalActionsKey)
+	if err != nil {
+		return err
+	}
+	// count total actions and update to db
+	totalActions := enc.MachineEndian.Uint64(value)
+	if totalActions == 0 {
+		batch := db.NewBatch()
+		for i := uint64(1); i <= bc.tipHeight; i++ {
+			hash, err := bc.dao.getBlockHash(i)
+			if err != nil {
+				log.L().Error("Error when get block hash", zap.Error(err))
+				return err
+			}
+			body, err := bc.dao.body(hash)
+			if err != nil {
+				log.L().Error("Error when get block", zap.Error(err))
+				return err
+			}
+			totalActions += uint64(len(body.Actions))
+			if i%1000 == 0 {
+				zap.L().Info("loading", zap.Uint64("height", i))
+			}
+		}
+		totalActionsBytes := byteutil.Uint64ToBytes(totalActions)
+		batch.Put(blockNS, totalActionsKey, totalActionsBytes, "failed to put total actions")
+		if err := bc.dao.kvstore.Commit(batch); err != nil {
+			log.L().Error(
+				"Error when commit the batch",
+				zap.Uint64("height", bc.tipHeight),
+				zap.Error(err),
+			)
+			return err
+		}
+	}
+
 	return bc.startExistingBlockchain()
 }
 
