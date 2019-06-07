@@ -337,17 +337,21 @@ func (bc *blockchain) Start(ctx context.Context) (err error) {
 	if err = bc.lifecycle.OnStart(ctx); err != nil {
 		return err
 	}
+	log.L().Panic("33333333333333333333333")
 	// get blockchain tip height
 	if bc.tipHeight, err = bc.dao.getBlockchainHeight(); err != nil {
 		return err
 	}
+	log.L().Panic("4444444444444444444444444")
 	if bc.tipHeight == 0 {
 		return bc.startEmptyBlockchain()
 	}
+	log.L().Panic("555555555555555555555555555")
 	// get blockchain tip hash
 	if bc.tipHash, err = bc.dao.getBlockHash(bc.tipHeight); err != nil {
 		return err
 	}
+	log.L().Panic("666666666666666666666666666666")
 	return bc.startExistingBlockchain()
 }
 
