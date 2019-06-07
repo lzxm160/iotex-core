@@ -130,12 +130,7 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 	return dao.countActions(totalActions)
 }
 func (dao *blockDAO) countActions(totalActions uint64) error {
-	log.L().Info("133")
 	tipHeight, err := dao.getBlockchainHeight()
-	if err != nil {
-		return err
-	}
-	log.L().Info("139")
 	if err != nil {
 		return err
 	}
