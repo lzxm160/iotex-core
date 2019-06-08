@@ -12,8 +12,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/iotexproject/iotex-core/blocksync"
-
 	"github.com/golang/protobuf/proto"
 	peerstore "github.com/libp2p/go-libp2p-peerstore"
 	"github.com/pkg/errors"
@@ -218,12 +216,7 @@ func (d *IotxDispatcher) handleBlockMsg(m *blockMsg) {
 	if subscriber, ok := d.subscribers[m.ChainID()]; ok {
 		d.updateEventAudit(iotexrpc.MessageType_BLOCK)
 		if err := subscriber.HandleBlock(m.ctx, m.block); err != nil {
-			if errors.Cause(err) == blocksync.ErrLowCommitteeHeight {
-				log.L().Debug("Fail to handle the block.", zap.Error(err))
-			} else {
-				log.L().Error("Fail to handle the block.", zap.Error(err))
-			}
-
+			log.L().Error("Fail to handle the block.", zap.Error(err))
 		}
 	} else {
 		log.L().Info("No subscriber specified in the dispatcher.", zap.Uint32("chainID", m.ChainID()))
