@@ -154,6 +154,8 @@ type Blockchain interface {
 
 	// RemoveSubscriber make you listen to every single produced block
 	RemoveSubscriber(BlockCreationSubscriber) error
+
+	MustGetRollDPoSProtocol() *rolldpos.Protocol
 }
 
 // blockchain implements the Blockchain interface

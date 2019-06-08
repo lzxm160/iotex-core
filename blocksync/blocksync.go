@@ -24,6 +24,7 @@ import (
 	"github.com/iotexproject/iotex-core/consensus"
 	"github.com/iotexproject/iotex-core/pkg/lifecycle"
 	"github.com/iotexproject/iotex-core/pkg/log"
+	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 )
 
 type (
@@ -140,51 +141,40 @@ func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
 		"height from election committee",
 		zap.Uint64("localDbHeight", localDbHeight),
 	)
-	//getBlockTime:=func(height uint64) (time.Time, error) {
-	//	header, err := bs.bc.BlockHeaderByHeight(height)
-	//	if err != nil {
-	//		return time.Now(), errors.Wrapf(
-	//			err, "error when getting the block at height: %d",
-	//			height,
-	//		)
+	//gravityChainStartHeight := 0
+	//if _, ok := api.registry.Find(poll.ProtocolID); ok {
+	//	readStateRequest := &iotexapi.ReadStateRequest{
+	//		ProtocolID: []byte(poll.ProtocolID),
+	//		MethodName: []byte("GetGravityChainStartHeight"),
+	//		Arguments:  [][]byte{byteutil.Uint64ToBytes(epochHeight)},
 	//	}
-	//	return header.Timestamp(), nil
+	//	res, err := api.readState(context.Background(), readStateRequest)
+	//	if err != nil {
+	//		return 0, err
+	//	}
+	//	gravityChainStartHeight = byteutil.BytesToUint64(res.GetData())
 	//}
-	//
-	//epochNumber := bs.bc.getEpochNum(blk.Height())
-	//epochHeight := getEpochHeight(epochNumber)
-	//blkTime, err := getBlockTime(epochHeight)
-	//if err != nil {
-	//	return err
-	//}
-	//log.L().Debug(
-	//	"get gravity chain height by time",
-	//	zap.Time("time", blkTime),
-	//)
-	//cs,ok:=bs.buf.cs.(*consensus.IotxConsensus)
-	//if !ok{
-	//	return errors.New("IotxConsensus convert error")
-	//}
-	//rollDPos,ok:=cs.Scheme().(*rolldpos.RollDPoS)
-	//if !ok{
-	//	return errors.New("RollDPoS convert error")
-	//}
-	//protocal,ok:=rollDPos.(*rolldpos.Protocol)
-	//requestHeight, err := rollDPos.(blkTime)
-	//if err != nil {
-	//	return err
-	//}
-	dpos := bs.bc.MustGetRollDPoSProtocol()
-	epochNumber := dpos.GetEpochNum(blk.Height())
-	epochHeight := dpos.GetEpochHeight(epochNumber)
-	blkTime, err := dpos.GetBlockTime(epochHeight)
+	//return gravityChainStartHeight, nil
+	//func (p *lifeLongDelegatesProtocol) ReadState(
+	//	ctx context.Context,
+	//	sm protocol.StateManager,
+	//	method []byte,
+	//	args ...[]byte,
+	//) ([]byte, error) {
+	//s, err := p.ReadState(ctx, ws, []byte("ActiveBlockProducersByEpoch"),
+	//byteutil.Uint64ToBytes(epochNum))
+	poll := bs.bc.MustGetRollDPoSProtocol()
+	factory := bs.bc.GetFactory()
+	ws, err := factory.NewWorkingSet()
 	if err != nil {
 		return err
 	}
-	requestHeight, err := bs.electionCommittee.HeightByTime(blkTime)
+	res, err := poll.ReadState(context.Background(), ws, []byte("GetGravityChainStartHeight"),
+		byteutil.Uint64ToBytes(blk.Height()))
 	if err != nil {
 		return err
 	}
+	requestHeight := byteutil.BytesToUint64(res)
 	log.L().Info("request hei:", zap.Uint64("requesthei", requestHeight))
 
 	if requestHeight >= localDbHeight {
