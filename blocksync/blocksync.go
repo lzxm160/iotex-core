@@ -8,6 +8,7 @@ package blocksync
 
 import (
 	"context"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -24,7 +25,6 @@ import (
 	"github.com/iotexproject/iotex-core/consensus"
 	"github.com/iotexproject/iotex-core/pkg/lifecycle"
 	"github.com/iotexproject/iotex-core/pkg/log"
-	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 )
 
 type (
@@ -141,40 +141,25 @@ func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
 		"height from election committee",
 		zap.Uint64("localDbHeight", localDbHeight),
 	)
-	//gravityChainStartHeight := 0
-	//if _, ok := api.registry.Find(poll.ProtocolID); ok {
-	//	readStateRequest := &iotexapi.ReadStateRequest{
-	//		ProtocolID: []byte(poll.ProtocolID),
-	//		MethodName: []byte("GetGravityChainStartHeight"),
-	//		Arguments:  [][]byte{byteutil.Uint64ToBytes(epochHeight)},
-	//	}
-	//	res, err := api.readState(context.Background(), readStateRequest)
-	//	if err != nil {
-	//		return 0, err
-	//	}
-	//	gravityChainStartHeight = byteutil.BytesToUint64(res.GetData())
-	//}
-	//return gravityChainStartHeight, nil
-	//func (p *lifeLongDelegatesProtocol) ReadState(
-	//	ctx context.Context,
-	//	sm protocol.StateManager,
-	//	method []byte,
-	//	args ...[]byte,
-	//) ([]byte, error) {
-	//s, err := p.ReadState(ctx, ws, []byte("ActiveBlockProducersByEpoch"),
-	//byteutil.Uint64ToBytes(epochNum))
+
 	poll := bs.bc.MustGetRollDPoSProtocol()
-	factory := bs.bc.GetFactory()
-	ws, err := factory.NewWorkingSet()
+	epochNum := poll.GetEpochNum(blk.Height())
+	epochStartHeight := poll.GetEpochHeight(epochNum)
+	getTime := func(height uint64) (time.Time, error) {
+		header, err := bs.bc.BlockHeaderByHeight(height)
+		if err != nil {
+			return time.Now(), err
+		}
+		return header.Timestamp(), nil
+	}
+	ti, err := getTime(epochStartHeight)
 	if err != nil {
 		return err
 	}
-	res, err := poll.ReadState(context.Background(), ws, []byte("GetGravityChainStartHeight"),
-		byteutil.Uint64ToBytes(blk.Height()))
+	requestHeight, err := bs.electionCommittee.HeightByTime(ti)
 	if err != nil {
 		return err
 	}
-	requestHeight := byteutil.BytesToUint64(res)
 	log.L().Info("request hei:", zap.Uint64("requesthei", requestHeight))
 
 	if requestHeight >= localDbHeight {
