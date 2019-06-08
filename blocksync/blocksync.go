@@ -156,7 +156,7 @@ func (bs *blockSyncer) checkHeight(blk *block.Block) error {
 		return err
 	}
 
-	if requestHeight >= localDbHeight {
+	if requestHeight > localDbHeight {
 		log.L().Error("",
 			//zap.Uint64("epochStartHeight", epochStartHeight),
 			zap.Uint64("requesthei", requestHeight),
