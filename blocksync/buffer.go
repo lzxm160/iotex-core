@@ -60,11 +60,10 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 	}
 
 	if requestHeight >= localDbHeight {
-		log.L().Error("",
-			//zap.Uint64("epochStartHeight", epochStartHeight),
-			zap.Uint64("requesthei", requestHeight),
-			zap.Uint64("localDbHeight", localDbHeight),
-		)
+		//log.L().Error("",
+		//	zap.Uint64("requesthei", requestHeight),
+		//	zap.Uint64("localDbHeight", localDbHeight),
+		//)
 		return false, bCheckinValid
 	}
 
