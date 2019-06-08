@@ -8,8 +8,6 @@ package blocksync
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -136,24 +134,24 @@ func (bs *blockSyncer) Stop(ctx context.Context) error {
 }
 func (bs *blockSyncer) checkHeight(blk *block.Block) error {
 	localDbHeight := bs.electionCommittee.LatestHeight()
-	poll := bs.bc.MustGetRollDPoSProtocol()
-	epochNum := poll.GetEpochNum(blk.Height())
-	epochStartHeight := poll.GetEpochHeight(epochNum)
-	tipHeight := bs.bc.TipHeight()
-	fmt.Println(blk.Height(), ":::::::::::", epochNum, "::::::::::::::", epochStartHeight, ":::::::::::::::::", tipHeight)
-
-	getTime := func(height uint64) (time.Time, error) {
-		header, err := bs.bc.BlockHeaderByHeight(height)
-		if err != nil {
-			return time.Now(), err
-		}
-		return header.Timestamp(), nil
-	}
-	ti, err := getTime(epochStartHeight)
-	if err != nil {
-		return err
-	}
-	requestHeight, err := bs.electionCommittee.HeightByTime(ti)
+	//poll := bs.bc.MustGetRollDPoSProtocol()
+	//epochNum := poll.GetEpochNum(blk.Height())
+	//epochStartHeight := poll.GetEpochHeight(epochNum)
+	//tipHeight := bs.bc.TipHeight()
+	//fmt.Println(blk.Height(), ":::::::::::", epochNum, "::::::::::::::", epochStartHeight, ":::::::::::::::::", tipHeight)
+	//
+	//getTime := func(height uint64) (time.Time, error) {
+	//	header, err := bs.bc.BlockHeaderByHeight(height)
+	//	if err != nil {
+	//		return time.Now(), err
+	//	}
+	//	return header.Timestamp(), nil
+	//}
+	//ti, err := getTime(epochStartHeight)
+	//if err != nil {
+	//	return err
+	//}
+	requestHeight, err := bs.electionCommittee.HeightByTime(blk.Header.Timestamp())
 	if err != nil {
 		return err
 	}
