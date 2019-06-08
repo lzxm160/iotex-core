@@ -144,7 +144,12 @@ func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
 
 	poll := bs.bc.MustGetRollDPoSProtocol()
 	epochNum := poll.GetEpochNum(blk.Height())
+
 	epochStartHeight := poll.GetEpochHeight(epochNum)
+	tipHeight := bs.bc.TipHeight()
+	if tipHeight < epochStartHeight {
+		return errors.New("epoch start height is higher than blockchain tip height")
+	}
 	getTime := func(height uint64) (time.Time, error) {
 		header, err := bs.bc.BlockHeaderByHeight(height)
 		if err != nil {
