@@ -9,6 +9,7 @@ package blocksync
 import (
 	"sync"
 
+	"github.com/iotexproject/iotex-election/committee"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -31,14 +32,15 @@ const (
 
 // blockBuffer is used to keep in-coming block in order.
 type blockBuffer struct {
-	mu           sync.RWMutex
-	blocks       map[uint64]*block.Block
-	bc           blockchain.Blockchain
-	ap           actpool.ActPool
-	cs           consensus.Consensus
-	bufferSize   uint64
-	intervalSize uint64
-	commitHeight uint64 // last commit block height
+	mu                sync.RWMutex
+	blocks            map[uint64]*block.Block
+	bc                blockchain.Blockchain
+	ap                actpool.ActPool
+	cs                consensus.Consensus
+	bufferSize        uint64
+	intervalSize      uint64
+	commitHeight      uint64 // last commit block height
+	electionCommittee committee.Committee
 }
 
 // CommitHeight return the last commit block height
@@ -50,6 +52,21 @@ func (b *blockBuffer) CommitHeight() uint64 {
 func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
+	localDbHeight := b.electionCommittee.LatestHeight()
+	requestHeight, err := b.electionCommittee.HeightByTime(blk.Header.Timestamp())
+	if err != nil {
+		return false, bCheckinValid
+	}
+	log.L().Info("",
+		//zap.Uint64("epochStartHeight", epochStartHeight),
+		zap.Uint64("requesthei", requestHeight),
+		zap.Uint64("localDbHeight", localDbHeight),
+	)
+	if requestHeight > localDbHeight {
+		return false, bCheckinValid
+	}
+
 	if blk == nil {
 		return false, bCheckinSkipNil
 	}

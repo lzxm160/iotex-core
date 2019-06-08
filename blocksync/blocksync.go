@@ -8,7 +8,6 @@ package blocksync
 
 import (
 	"context"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -33,9 +32,6 @@ type (
 	// Neighbors returns the neighbors' addresses
 	Neighbors func(ctx context.Context) ([]peerstore.PeerInfo, error)
 )
-
-// ErrInconsistentNonce is the error that the nonce is different from executor's nonce
-var ErrLowCommitteeHeight = errors.New("Request height is higher than committee local db height")
 
 // Config represents the config to setup blocksync
 type Config struct {
@@ -80,7 +76,6 @@ type blockSyncer struct {
 	bc                blockchain.Blockchain
 	unicastHandler    UnicastOutbound
 	neighborsHandler  Neighbors
-	electionCommittee committee.Committee
 }
 
 // NewBlockSyncer returns a new block syncer instance
@@ -93,12 +88,13 @@ func NewBlockSyncer(
 	opts ...Option,
 ) (BlockSync, error) {
 	buf := &blockBuffer{
-		blocks:       make(map[uint64]*block.Block),
-		bc:           chain,
-		ap:           ap,
-		cs:           cs,
-		bufferSize:   cfg.BlockSync.BufferSize,
-		intervalSize: cfg.BlockSync.IntervalSize,
+		blocks:            make(map[uint64]*block.Block),
+		bc:                chain,
+		ap:                ap,
+		cs:                cs,
+		bufferSize:        cfg.BlockSync.BufferSize,
+		intervalSize:      cfg.BlockSync.IntervalSize,
+		electionCommittee: electionCommittee,
 	}
 	bsCfg := Config{}
 	for _, opt := range opts {
@@ -107,12 +103,11 @@ func NewBlockSyncer(
 		}
 	}
 	bs := &blockSyncer{
-		bc:                chain,
-		buf:               buf,
-		unicastHandler:    bsCfg.unicastHandler,
-		neighborsHandler:  bsCfg.neighborsHandler,
-		worker:            newSyncWorker(chain.ChainID(), cfg, bsCfg.unicastHandler, bsCfg.neighborsHandler, buf),
-		electionCommittee: electionCommittee,
+		bc:               chain,
+		buf:              buf,
+		unicastHandler:   bsCfg.unicastHandler,
+		neighborsHandler: bsCfg.neighborsHandler,
+		worker:           newSyncWorker(chain.ChainID(), cfg, bsCfg.unicastHandler, bsCfg.neighborsHandler, buf),
 	}
 	return bs, nil
 }
@@ -136,22 +131,6 @@ func (bs *blockSyncer) Stop(ctx context.Context) error {
 	log.L().Debug("Stopping block syncer.")
 	return bs.worker.Stop(ctx)
 }
-func (bs *blockSyncer) checkHeight(blk *block.Block) error {
-	localDbHeight := bs.electionCommittee.LatestHeight()
-	requestHeight, err := bs.electionCommittee.HeightByTime(blk.Header.Timestamp())
-	if err != nil {
-		return err
-	}
-	log.L().Info("",
-		//zap.Uint64("epochStartHeight", epochStartHeight),
-		zap.Uint64("requesthei", requestHeight),
-		zap.Uint64("localDbHeight", localDbHeight),
-	)
-	if requestHeight >= localDbHeight {
-		return ErrLowCommitteeHeight
-	}
-	return nil
-}
 
 // ProcessBlock processes an incoming latest committed block
 func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
@@ -171,19 +150,6 @@ func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
 	}
 
 	if needSync {
-		var err error
-		for {
-			err = bs.checkHeight(blk)
-			if err != nil && errors.Cause(err) == ErrLowCommitteeHeight {
-				log.L().Info("wait for commit sync")
-				time.Sleep(time.Second * 10)
-			} else {
-				break
-			}
-		}
-		if err != nil {
-			return err
-		}
 		bs.worker.SetTargetHeight(blk.Height())
 	}
 	return nil
