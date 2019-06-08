@@ -141,9 +141,9 @@ func (bs *blockSyncer) checkHeight(blk *block.Block) error {
 	epochStartHeight := poll.GetEpochHeight(epochNum)
 	tipHeight := bs.bc.TipHeight()
 	if tipHeight < epochStartHeight {
+		fmt.Println(epochStartHeight, ":::::::::::::::::", tipHeight)
 		return errors.New("epoch start height is higher than blockchain tip height")
 	}
-	fmt.Println(blk.Height(), ":::::::::::", epochNum, ":::::::::", epochStartHeight, "::::::::::", tipHeight)
 	getTime := func(height uint64) (time.Time, error) {
 		header, err := bs.bc.BlockHeaderByHeight(height)
 		if err != nil {
@@ -159,13 +159,13 @@ func (bs *blockSyncer) checkHeight(blk *block.Block) error {
 	if err != nil {
 		return err
 	}
-	log.L().Info("",
-		zap.Uint64("epochStartHeight", epochStartHeight),
-		zap.Uint64("requesthei", requestHeight),
-		zap.Uint64("localDbHeight", localDbHeight),
-	)
 
 	if requestHeight >= localDbHeight {
+		log.L().Error("",
+			zap.Uint64("epochStartHeight", epochStartHeight),
+			zap.Uint64("requesthei", requestHeight),
+			zap.Uint64("localDbHeight", localDbHeight),
+		)
 		return errors.New("request height is higher than committee local db height")
 	}
 	return nil
