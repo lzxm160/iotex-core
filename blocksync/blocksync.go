@@ -155,19 +155,6 @@ func (bs *blockSyncer) checkHeight(blk *block.Block) error {
 
 // ProcessBlock processes an incoming latest committed block
 func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
-	var err error
-	for {
-		err = bs.checkHeight(blk)
-		if err != nil && errors.Cause(err) == ErrLowCommitteeHeight {
-			log.L().Info("wait for commit sync")
-			time.Sleep(time.Second * 10)
-		} else {
-			break
-		}
-	}
-	if err != nil {
-		return err
-	}
 	var needSync bool
 	moved, re := bs.buf.Flush(blk)
 	switch re {
@@ -184,6 +171,19 @@ func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
 	}
 
 	if needSync {
+		var err error
+		for {
+			err = bs.checkHeight(blk)
+			if err != nil && errors.Cause(err) == ErrLowCommitteeHeight {
+				log.L().Info("wait for commit sync")
+				time.Sleep(time.Second * 10)
+			} else {
+				break
+			}
+		}
+		if err != nil {
+			return err
+		}
 		bs.worker.SetTargetHeight(blk.Height())
 	}
 	return nil
