@@ -9,8 +9,6 @@ package blocksync
 import (
 	"context"
 
-	"github.com/pkg/errors"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/iotex-election/committee"
 	"github.com/iotexproject/iotex-proto/golang/iotexrpc"
@@ -70,12 +68,12 @@ type BlockSync interface {
 
 // blockSyncer implements BlockSync interface
 type blockSyncer struct {
-	commitHeight      uint64 // last commit block height
-	buf               *blockBuffer
-	worker            *syncWorker
-	bc                blockchain.Blockchain
-	unicastHandler    UnicastOutbound
-	neighborsHandler  Neighbors
+	commitHeight     uint64 // last commit block height
+	buf              *blockBuffer
+	worker           *syncWorker
+	bc               blockchain.Blockchain
+	unicastHandler   UnicastOutbound
+	neighborsHandler Neighbors
 }
 
 // NewBlockSyncer returns a new block syncer instance
