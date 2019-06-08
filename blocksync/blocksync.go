@@ -133,18 +133,10 @@ func (bs *blockSyncer) Stop(ctx context.Context) error {
 	log.L().Debug("Stopping block syncer.")
 	return bs.worker.Stop(ctx)
 }
-
-// ProcessBlock processes an incoming latest committed block
-func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
+func (bs *blockSyncer) checkHeight(blk *block.Block) error {
 	localDbHeight := bs.electionCommittee.LatestHeight()
-	log.L().Info(
-		"height from election committee",
-		zap.Uint64("localDbHeight", localDbHeight),
-	)
-
 	poll := bs.bc.MustGetRollDPoSProtocol()
 	epochNum := poll.GetEpochNum(blk.Height())
-
 	epochStartHeight := poll.GetEpochHeight(epochNum)
 	tipHeight := bs.bc.TipHeight()
 	if tipHeight < epochStartHeight {
@@ -165,10 +157,23 @@ func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
 	if err != nil {
 		return err
 	}
-	log.L().Info("request hei:", zap.Uint64("requesthei", requestHeight))
+	log.L().Info("",
+		zap.Uint64("epochStartHeight", epochStartHeight),
+		zap.Uint64("requesthei", requestHeight),
+		zap.Uint64("localDbHeight", localDbHeight),
+	)
 
 	if requestHeight >= localDbHeight {
 		return errors.New("request height is higher than committee local db height")
+	}
+	return nil
+}
+
+// ProcessBlock processes an incoming latest committed block
+func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
+	err := bs.checkHeight(blk)
+	if err != nil {
+		return err
 	}
 	var needSync bool
 	moved, re := bs.buf.Flush(blk)
