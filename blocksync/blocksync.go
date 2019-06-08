@@ -142,6 +142,11 @@ func (bs *blockSyncer) checkHeight(blk *block.Block) error {
 	if err != nil {
 		return err
 	}
+	log.L().Info("",
+		//zap.Uint64("epochStartHeight", epochStartHeight),
+		zap.Uint64("requesthei", requestHeight),
+		zap.Uint64("localDbHeight", localDbHeight),
+	)
 	if requestHeight > localDbHeight {
 		return ErrLowCommitteeHeight
 	}
