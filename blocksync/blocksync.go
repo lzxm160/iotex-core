@@ -138,7 +138,7 @@ func (bs *blockSyncer) Stop(ctx context.Context) error {
 }
 func (bs *blockSyncer) checkHeight(blk *block.Block) error {
 	localDbHeight := bs.electionCommittee.LatestHeight()
-	requestHeight, err := bs.electionCommittee.HeightByTime(blk.Header.Timestamp().Add(time.Minute))
+	requestHeight, err := bs.electionCommittee.HeightByTime(blk.Header.Timestamp())
 	if err != nil {
 		return err
 	}
