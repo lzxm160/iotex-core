@@ -141,7 +141,7 @@ func (bs *blockSyncer) checkHeight(blk *block.Block) error {
 	epochStartHeight := poll.GetEpochHeight(epochNum)
 	tipHeight := bs.bc.TipHeight()
 	if tipHeight < epochStartHeight {
-		fmt.Println(epochStartHeight, ":::::::::::::::::", tipHeight)
+		fmt.Println(epochNum, "::::::::::::::", epochStartHeight, ":::::::::::::::::", tipHeight)
 		return errors.New("epoch start height is higher than blockchain tip height")
 	}
 	getTime := func(height uint64) (time.Time, error) {
