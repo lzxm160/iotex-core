@@ -181,7 +181,10 @@ func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
 	if err != nil {
 		return err
 	}
-	requestHeight := bs.electionCommittee.HeightByTime(blkTime)
+	requestHeight, err := bs.electionCommittee.HeightByTime(blkTime)
+	if err != nil {
+		return err
+	}
 	log.L().Info("request hei:", zap.Uint64("requesthei", requestHeight))
 
 	if requestHeight >= localDbHeight {
