@@ -8,6 +8,7 @@ package blocksync
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -142,6 +143,7 @@ func (bs *blockSyncer) checkHeight(blk *block.Block) error {
 	if tipHeight < epochStartHeight {
 		return errors.New("epoch start height is higher than blockchain tip height")
 	}
+	fmt.Println(blk.Height(), ":::::::::::", epochNum, ":::::::::", epochStartHeight, "::::::::::", tipHeight)
 	getTime := func(height uint64) (time.Time, error) {
 		header, err := bs.bc.BlockHeaderByHeight(height)
 		if err != nil {
