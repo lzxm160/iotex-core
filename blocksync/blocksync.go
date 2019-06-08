@@ -33,6 +33,9 @@ type (
 	Neighbors func(ctx context.Context) ([]peerstore.PeerInfo, error)
 )
 
+// ErrInconsistentNonce is the error that the nonce is different from executor's nonce
+var ErrLowCommitteeHeight = errors.New("Request height is higher than committee local db height")
+
 // Config represents the config to setup blocksync
 type Config struct {
 	unicastHandler   UnicastOutbound
@@ -134,23 +137,6 @@ func (bs *blockSyncer) Stop(ctx context.Context) error {
 }
 func (bs *blockSyncer) checkHeight(blk *block.Block) error {
 	localDbHeight := bs.electionCommittee.LatestHeight()
-	//poll := bs.bc.MustGetRollDPoSProtocol()
-	//epochNum := poll.GetEpochNum(blk.Height())
-	//epochStartHeight := poll.GetEpochHeight(epochNum)
-	//tipHeight := bs.bc.TipHeight()
-	//fmt.Println(blk.Height(), ":::::::::::", epochNum, "::::::::::::::", epochStartHeight, ":::::::::::::::::", tipHeight)
-	//
-	//getTime := func(height uint64) (time.Time, error) {
-	//	header, err := bs.bc.BlockHeaderByHeight(height)
-	//	if err != nil {
-	//		return time.Now(), err
-	//	}
-	//	return header.Timestamp(), nil
-	//}
-	//ti, err := getTime(epochStartHeight)
-	//if err != nil {
-	//	return err
-	//}
 	requestHeight, err := bs.electionCommittee.HeightByTime(blk.Header.Timestamp())
 	if err != nil {
 		return err
@@ -161,7 +147,7 @@ func (bs *blockSyncer) checkHeight(blk *block.Block) error {
 		zap.Uint64("localDbHeight", localDbHeight),
 	)
 	if requestHeight >= localDbHeight {
-		return errors.New("request height is higher than committee local db height")
+		return ErrLowCommitteeHeight
 	}
 	return nil
 }
