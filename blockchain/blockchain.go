@@ -833,7 +833,9 @@ func (bc *blockchain) mustGetRollDPoSProtocol() *rolldpos.Protocol {
 
 	return rp
 }
-
+func (bc *blockchain) MustGetRollDPoSProtocol() *rolldpos.Protocol {
+	return bc.mustGetRollDPoSProtocol()
+}
 func (bc *blockchain) candidatesByHeight(height uint64) (state.CandidateList, error) {
 	if bc.config.Genesis.EnableGravityChainVoting {
 		rp := bc.mustGetRollDPoSProtocol()

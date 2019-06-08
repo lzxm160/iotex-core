@@ -230,12 +230,6 @@ func (p *governanceChainCommitteeProtocol) Validate(ctx context.Context, act act
 }
 
 func (p *governanceChainCommitteeProtocol) delegatesByGravityChainHeight(height uint64) (state.CandidateList, error) {
-	log.L().Info("request hei:", zap.Uint64("requesthei", height))
-	localDbHeight := p.electionCommittee.LatestHeight()
-	log.L().Info("localDbHeight hei:", zap.Uint64("localDbHeight", localDbHeight))
-	if height >= localDbHeight {
-		return nil, errors.New("request height is higher than committee local db height")
-	}
 	r, err := p.electionCommittee.ResultByHeight(height)
 	if err != nil {
 		return nil, err

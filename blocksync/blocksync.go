@@ -9,6 +9,8 @@ package blocksync
 import (
 	"context"
 
+	"github.com/pkg/errors"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/iotex-election/committee"
 	"github.com/iotexproject/iotex-proto/golang/iotexrpc"
@@ -133,6 +135,58 @@ func (bs *blockSyncer) Stop(ctx context.Context) error {
 
 // ProcessBlock processes an incoming latest committed block
 func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
+	localDbHeight := bs.electionCommittee.LatestHeight()
+	log.L().Info(
+		"height from election committee",
+		zap.Uint64("localDbHeight", localDbHeight),
+	)
+	//getBlockTime:=func(height uint64) (time.Time, error) {
+	//	header, err := bs.bc.BlockHeaderByHeight(height)
+	//	if err != nil {
+	//		return time.Now(), errors.Wrapf(
+	//			err, "error when getting the block at height: %d",
+	//			height,
+	//		)
+	//	}
+	//	return header.Timestamp(), nil
+	//}
+	//
+	//epochNumber := bs.bc.getEpochNum(blk.Height())
+	//epochHeight := getEpochHeight(epochNumber)
+	//blkTime, err := getBlockTime(epochHeight)
+	//if err != nil {
+	//	return err
+	//}
+	//log.L().Debug(
+	//	"get gravity chain height by time",
+	//	zap.Time("time", blkTime),
+	//)
+	//cs,ok:=bs.buf.cs.(*consensus.IotxConsensus)
+	//if !ok{
+	//	return errors.New("IotxConsensus convert error")
+	//}
+	//rollDPos,ok:=cs.Scheme().(*rolldpos.RollDPoS)
+	//if !ok{
+	//	return errors.New("RollDPoS convert error")
+	//}
+	//protocal,ok:=rollDPos.(*rolldpos.Protocol)
+	//requestHeight, err := rollDPos.(blkTime)
+	//if err != nil {
+	//	return err
+	//}
+	dpos := bs.bc.MustGetRollDPoSProtocol()
+	epochNumber := dpos.GetEpochNum(blk.Height())
+	epochHeight := dpos.GetEpochHeight(epochNumber)
+	blkTime, err := dpos.GetBlockTime(epochHeight)
+	if err != nil {
+		return err
+	}
+	requestHeight := bs.electionCommittee.HeightByTime(blkTime)
+	log.L().Info("request hei:", zap.Uint64("requesthei", requestHeight))
+
+	if requestHeight >= localDbHeight {
+		return errors.New("request height is higher than committee local db height")
+	}
 	var needSync bool
 	moved, re := bs.buf.Flush(blk)
 	switch re {
@@ -149,11 +203,6 @@ func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
 	}
 
 	if needSync {
-		hei := bs.electionCommittee.LatestHeight()
-		log.L().Info(
-			"height from election committee",
-			zap.Uint64("height", hei),
-		)
 		bs.worker.SetTargetHeight(blk.Height())
 	}
 	return nil
