@@ -202,7 +202,7 @@ func (p *governanceChainCommitteeProtocol) Initialize(
 	var ds state.CandidateList
 
 	for {
-		ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight)
+		ds, err = p.delegatesByGravityChainHeight(p.initGravityChainHeight, time.Unix(1405544146, 0))
 		if err == nil || errors.Cause(err) != db.ErrNotExist {
 			break
 		}
