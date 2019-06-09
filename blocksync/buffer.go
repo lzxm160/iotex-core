@@ -78,7 +78,7 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 	interval := epochStartHeight - blk.Height()
 	requestHeight, err := b.electionCommittee.HeightByTime(blk.Header.Timestamp().Add(time.Second * 10 * time.Duration(interval)))
 	if err != nil {
-		return false, bCheckinValid
+		return false, bCheckinHigher
 	}
 	log.L().Error("",
 		zap.Uint64("block height", blk.Height()),
@@ -89,7 +89,7 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 		zap.Uint64("localDbHeight", localDbHeight),
 	)
 	if requestHeight > localDbHeight {
-		return false, bCheckinValid
+		return false, bCheckinHigher
 	}
 
 	b.blocks[blkHeight] = blk
