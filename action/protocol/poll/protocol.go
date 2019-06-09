@@ -37,6 +37,7 @@ const (
 
 // ErrNoElectionCommittee is an error that the election committee is not specified
 var ErrNoElectionCommittee = errors.New("no election committee specified")
+var ErrDelagates = errors.New("no election committee specified")
 
 // GetBlockTime defines a function to get block creation time
 type GetBlockTime func(uint64) (time.Time, error)
@@ -237,7 +238,7 @@ func (p *governanceChainCommitteeProtocol) delegatesByGravityChainHeight(height 
 	}
 	if blkTime.After(r.MintTime()) {
 		fmt.Println(blkTime, ":::::::::::::::::::", r.MintTime())
-		return nil, errors.New("delegate errors")
+		return nil, ErrDelagates
 	}
 	l := state.CandidateList{}
 	for _, c := range r.Delegates() {
