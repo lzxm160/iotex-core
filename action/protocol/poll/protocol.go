@@ -8,6 +8,7 @@ package poll
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -235,6 +236,7 @@ func (p *governanceChainCommitteeProtocol) delegatesByGravityChainHeight(height 
 		return nil, err
 	}
 	if blkTime.After(r.MintTime()) {
+		fmt.Println(blkTime, ":::::::::::::::::::", r.MintTime())
 		return nil, errors.New("delegate errors")
 	}
 	l := state.CandidateList{}
