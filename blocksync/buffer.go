@@ -55,25 +55,6 @@ func (b *blockBuffer) CommitHeight() uint64 {
 func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	epochNum := (blk.Height()-1)/b.numDelegates/b.numSubEpochs + 1
-	epochStartHeight := (epochNum-1)*b.numDelegates*b.numSubEpochs + 1
-	localDbHeight := b.electionCommittee.LatestHeight()
-	interval := epochStartHeight - blk.Height()
-	requestHeight, err := b.electionCommittee.HeightByTime(blk.Header.Timestamp().Add(time.Second * 10 * time.Duration(interval)))
-	if err != nil {
-		return false, bCheckinValid
-	}
-	log.L().Error("",
-		zap.Uint64("block height", blk.Height()),
-		zap.Uint64("epochNum", epochNum),
-		zap.Uint64("epochStartHeight", epochStartHeight),
-
-		zap.Uint64("requesthei", requestHeight),
-		zap.Uint64("localDbHeight", localDbHeight),
-	)
-	if requestHeight > localDbHeight {
-		return false, bCheckinValid
-	}
 
 	if blk == nil {
 		return false, bCheckinSkipNil
@@ -120,7 +101,30 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 		}
 	}
 
-	return heightToSync > blkHeight, bCheckinValid
+	if heightToSync <= blkHeight {
+		return false, bCheckinValid
+	}
+
+	epochNum := (blk.Height()-1)/b.numDelegates/b.numSubEpochs + 1
+	epochStartHeight := (epochNum-1)*b.numDelegates*b.numSubEpochs + 1
+	localDbHeight := b.electionCommittee.LatestHeight()
+	interval := epochStartHeight - blk.Height()
+	requestHeight, err := b.electionCommittee.HeightByTime(blk.Header.Timestamp().Add(time.Second * 10 * time.Duration(interval)))
+	if err != nil {
+		return false, bCheckinValid
+	}
+	log.L().Error("",
+		zap.Uint64("block height", blk.Height()),
+		zap.Uint64("epochNum", epochNum),
+		zap.Uint64("epochStartHeight", epochStartHeight),
+
+		zap.Uint64("requesthei", requestHeight),
+		zap.Uint64("localDbHeight", localDbHeight),
+	)
+	if requestHeight > localDbHeight {
+		return false, bCheckinValid
+	}
+	return true, bCheckinValid
 }
 
 // GetBlocksIntervalsToSync returns groups of syncBlocksInterval are missing upto targetHeight.
