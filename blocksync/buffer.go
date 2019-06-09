@@ -64,6 +64,7 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 		return false, bCheckinValid
 	}
 	log.L().Error("",
+		zap.Uint64("block height", blk.Height()),
 		zap.Uint64("epochNum", epochNum),
 		zap.Uint64("epochStartHeight", epochStartHeight),
 
