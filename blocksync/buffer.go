@@ -71,6 +71,27 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 	if blkHeight > confirmedHeight+b.bufferSize {
 		return false, bCheckinHigher
 	}
+
+	epochNum := (blk.Height()-1)/b.numDelegates/b.numSubEpochs + 1
+	epochStartHeight := (epochNum-1)*b.numDelegates*b.numSubEpochs + 1
+	localDbHeight := b.electionCommittee.LatestHeight()
+	interval := epochStartHeight - blk.Height()
+	requestHeight, err := b.electionCommittee.HeightByTime(blk.Header.Timestamp().Add(time.Second * 10 * time.Duration(interval)))
+	if err != nil {
+		return false, bCheckinValid
+	}
+	log.L().Error("",
+		zap.Uint64("block height", blk.Height()),
+		zap.Uint64("epochNum", epochNum),
+		zap.Uint64("epochStartHeight", epochStartHeight),
+
+		zap.Uint64("requesthei", requestHeight),
+		zap.Uint64("localDbHeight", localDbHeight),
+	)
+	if requestHeight > localDbHeight {
+		return false, bCheckinValid
+	}
+
 	b.blocks[blkHeight] = blk
 	l := log.L().With(
 		zap.Uint64("recvHeight", blkHeight),
@@ -101,30 +122,7 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 		}
 	}
 
-	if heightToSync <= blkHeight {
-		return false, bCheckinValid
-	}
-
-	epochNum := (blk.Height()-1)/b.numDelegates/b.numSubEpochs + 1
-	epochStartHeight := (epochNum-1)*b.numDelegates*b.numSubEpochs + 1
-	localDbHeight := b.electionCommittee.LatestHeight()
-	interval := epochStartHeight - blk.Height()
-	requestHeight, err := b.electionCommittee.HeightByTime(blk.Header.Timestamp().Add(time.Second * 10 * time.Duration(interval)))
-	if err != nil {
-		return false, bCheckinValid
-	}
-	log.L().Error("",
-		zap.Uint64("block height", blk.Height()),
-		zap.Uint64("epochNum", epochNum),
-		zap.Uint64("epochStartHeight", epochStartHeight),
-
-		zap.Uint64("requesthei", requestHeight),
-		zap.Uint64("localDbHeight", localDbHeight),
-	)
-	if requestHeight > localDbHeight {
-		return false, bCheckinValid
-	}
-	return true, bCheckinValid
+	return heightToSync > blkHeight, bCheckinValid
 }
 
 // GetBlocksIntervalsToSync returns groups of syncBlocksInterval are missing upto targetHeight.
