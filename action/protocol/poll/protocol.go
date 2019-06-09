@@ -229,10 +229,13 @@ func (p *governanceChainCommitteeProtocol) Validate(ctx context.Context, act act
 	return validate(ctx, p, act)
 }
 
-func (p *governanceChainCommitteeProtocol) delegatesByGravityChainHeight(height uint64) (state.CandidateList, error) {
+func (p *governanceChainCommitteeProtocol) delegatesByGravityChainHeight(height uint64, blkTime time.Time) (state.CandidateList, error) {
 	r, err := p.electionCommittee.ResultByHeight(height)
 	if err != nil {
 		return nil, err
+	}
+	if blkTime.After(r.MintTime()) {
+		return nil, errors.New("delegate errors")
 	}
 	l := state.CandidateList{}
 	for _, c := range r.Delegates() {
@@ -266,7 +269,7 @@ func (p *governanceChainCommitteeProtocol) delegatesByGravityChainHeight(height 
 }
 
 func (p *governanceChainCommitteeProtocol) DelegatesByHeight(height uint64) (state.CandidateList, error) {
-	gravityHeight, err := p.getGravityHeight(height)
+	gravityHeight, blkTime, err := p.getGravityHeight(height)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get gravity chain height")
 	}
@@ -274,7 +277,7 @@ func (p *governanceChainCommitteeProtocol) DelegatesByHeight(height uint64) (sta
 		"fetch delegates from gravity chain",
 		zap.Uint64("gravityChainHeight", gravityHeight),
 	)
-	return p.delegatesByGravityChainHeight(gravityHeight)
+	return p.delegatesByGravityChainHeight(gravityHeight, blkTime)
 }
 
 func (p *governanceChainCommitteeProtocol) ReadState(
@@ -374,18 +377,19 @@ func (p *governanceChainCommitteeProtocol) readActiveBlockProducersByEpoch(epoch
 	return activeBlockProducers, nil
 }
 
-func (p *governanceChainCommitteeProtocol) getGravityHeight(height uint64) (uint64, error) {
+func (p *governanceChainCommitteeProtocol) getGravityHeight(height uint64) (uint64, time.Time, error) {
 	epochNumber := p.getEpochNum(height)
 	epochHeight := p.getEpochHeight(epochNumber)
 	blkTime, err := p.getBlockTime(epochHeight)
 	if err != nil {
-		return 0, err
+		return 0, time.Now(), err
 	}
 	log.L().Debug(
 		"get gravity chain height by time",
 		zap.Time("time", blkTime),
 	)
-	return p.electionCommittee.HeightByTime(blkTime)
+	hei, err := p.electionCommittee.HeightByTime(blkTime)
+	return hei, blkTime, err
 }
 
 func validateDelegates(cs state.CandidateList) error {
