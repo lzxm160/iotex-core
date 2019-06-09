@@ -88,7 +88,7 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 		zap.Uint64("requesthei", requestHeight),
 		zap.Uint64("localDbHeight", localDbHeight),
 	)
-	if requestHeight > localDbHeight {
+	if requestHeight >= localDbHeight {
 		return false, bCheckinHigher
 	}
 
