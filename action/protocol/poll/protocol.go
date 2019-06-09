@@ -236,7 +236,7 @@ func (p *governanceChainCommitteeProtocol) delegatesByGravityChainHeight(height 
 	if err != nil {
 		return nil, err
 	}
-	if blkTime.After(r.MintTime()) {
+	if blkTime.Before(r.MintTime()) {
 		fmt.Println(blkTime, ":::::::::::::::::::", r.MintTime())
 		return nil, ErrDelagates
 	}
