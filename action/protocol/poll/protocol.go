@@ -318,7 +318,7 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 		if len(args) != 1 {
 			return nil, errors.Errorf("invalid number of arguments %d", len(args))
 		}
-		gravityStartheight, err := p.getGravityHeight(byteutil.BytesToUint64(args[0]))
+		gravityStartheight, _, err := p.getGravityHeight(byteutil.BytesToUint64(args[0]))
 		if err != nil {
 			return nil, err
 		}
