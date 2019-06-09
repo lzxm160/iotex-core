@@ -93,6 +93,8 @@ func NewBlockSyncer(
 		bufferSize:        cfg.BlockSync.BufferSize,
 		intervalSize:      cfg.BlockSync.IntervalSize,
 		electionCommittee: electionCommittee,
+		numDelegates:      cfg.Genesis.NumDelegates,
+		numSubEpochs:      cfg.Genesis.NumSubEpochs,
 	}
 	bsCfg := Config{}
 	for _, opt := range opts {

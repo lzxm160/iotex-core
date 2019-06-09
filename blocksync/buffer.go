@@ -42,6 +42,8 @@ type blockBuffer struct {
 	intervalSize      uint64
 	commitHeight      uint64 // last commit block height
 	electionCommittee committee.Committee
+	numDelegates      uint64
+	numSubEpochs      uint64
 }
 
 // CommitHeight return the last commit block height
@@ -53,10 +55,8 @@ func (b *blockBuffer) CommitHeight() uint64 {
 func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	numDelegates := uint64(24)
-	numSubEpochs := uint64(15)
-	epochNum := (blk.Height()-1)/numDelegates/numSubEpochs + 1
-	epochStartHeight := (epochNum-1)*numDelegates*numSubEpochs + 1
+	epochNum := (blk.Height()-1)/b.numDelegates/b.numSubEpochs + 1
+	epochStartHeight := (epochNum-1)*b.numDelegates*b.numSubEpochs + 1
 	localDbHeight := b.electionCommittee.LatestHeight()
 	interval := epochStartHeight - blk.Height()
 	requestHeight, err := b.electionCommittee.HeightByTime(blk.Header.Timestamp().Add(time.Second * 10 * time.Duration(interval)))
