@@ -8,6 +8,7 @@ package blocksync
 
 import (
 	"sync"
+	"time"
 
 	"github.com/iotexproject/iotex-election/committee"
 	"github.com/pkg/errors"
@@ -52,18 +53,23 @@ func (b *blockBuffer) CommitHeight() uint64 {
 func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-
+	epochNum := (blk.Height()-1)/24/2 + 1
+	epochStartHeight := (epochNum-1)*24*2 + 1
 	localDbHeight := b.electionCommittee.LatestHeight()
-	requestHeight, err := b.electionCommittee.HeightByTime(blk.Header.Timestamp())
+	interval := epochStartHeight - blk.Height()
+	requestHeight, err := b.electionCommittee.HeightByTime(blk.Header.Timestamp().Add(time.Second * 10 * time.Duration(interval)))
 	if err != nil {
 		return false, bCheckinValid
 	}
+	log.L().Error("",
+		zap.Uint64("epochNum", epochNum),
+		zap.Uint64("epochStartHeight", epochStartHeight),
 
+		zap.Uint64("requesthei", requestHeight),
+		zap.Uint64("localDbHeight", localDbHeight),
+	)
 	if requestHeight >= localDbHeight {
-		//log.L().Error("",
-		//	zap.Uint64("requesthei", requestHeight),
-		//	zap.Uint64("localDbHeight", localDbHeight),
-		//)
+
 		return false, bCheckinValid
 	}
 
