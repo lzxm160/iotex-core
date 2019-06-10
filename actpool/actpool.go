@@ -246,10 +246,11 @@ func (ap *actPool) GetUnconfirmedActs(addr string) []action.SealedEnvelope {
 		ret = queue.AllActs()
 	}
 	for _, action := range ap.allActions {
-		if dst, ok := action.Destination(); ok {
-			if strings.EqualFold(dst, addr) {
-				ret = append(ret, action)
-			}
+		dst, ok := action.Destination()
+		pubKeyHash := action.SrcPubkey().Hash()
+		srcAddr, _ := address.FromBytes(pubKeyHash)
+		if ok && strings.EqualFold(dst, addr) && !strings.EqualFold(srcAddr.String(), addr) {
+			ret = append(ret, action)
 		}
 	}
 	if len(ret) == 0 {
