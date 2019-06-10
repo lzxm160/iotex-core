@@ -961,8 +961,6 @@ func TestActPool_GetUnconfirmedActs(t *testing.T) {
 	require.NoError(err)
 	tsf5, err := testutil.SignedTransfer(addr1, priKey2, uint64(1), big.NewInt(30), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
-	tsf6, err := testutil.SignedTransfer(addr1, priKey5, uint64(1), big.NewInt(10), []byte{}, uint64(100000), big.NewInt(0))
-	require.NoError(err)
 	err = ap.Add(tsf1)
 	require.NoError(err)
 	err = ap.Add(tsf3)
@@ -971,14 +969,12 @@ func TestActPool_GetUnconfirmedActs(t *testing.T) {
 	require.NoError(err)
 	err = ap.Add(tsf5)
 	require.NoError(err)
-	err = ap.Add(tsf6)
-	require.NoError(err)
 
 	acts := ap.GetUnconfirmedActs(addr2)
 	require.Equal([]action.SealedEnvelope{}, acts)
 
 	acts = ap.GetUnconfirmedActs(addr1)
-	require.Equal([]action.SealedEnvelope{tsf1, tsf3, tsf4, tsf5, tsf6}, acts)
+	require.Equal([]action.SealedEnvelope{tsf1, tsf3, tsf4, tsf5}, acts)
 }
 
 func TestActPool_GetActionByHash(t *testing.T) {
