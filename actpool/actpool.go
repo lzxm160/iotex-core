@@ -8,6 +8,7 @@ package actpool
 
 import (
 	"context"
+	"strings"
 	"sync"
 
 	"github.com/iotexproject/iotex-core/pkg/prometheustimer"
@@ -240,11 +241,21 @@ func (ap *actPool) GetPendingNonce(addr string) (uint64, error) {
 func (ap *actPool) GetUnconfirmedActs(addr string) []action.SealedEnvelope {
 	ap.mutex.RLock()
 	defer ap.mutex.RUnlock()
-
+	var ret []action.SealedEnvelope
 	if queue, ok := ap.accountActs[addr]; ok {
-		return queue.AllActs()
+		ret = queue.AllActs()
 	}
-	return make([]action.SealedEnvelope, 0)
+	for _, action := range ap.allActions {
+		if dst, ok := action.Destination(); ok {
+			if strings.EqualFold(dst, addr) {
+				ret = append(ret, action)
+			}
+		}
+	}
+	if len(ret) == 0 {
+		return make([]action.SealedEnvelope, 0)
+	}
+	return ret
 }
 
 // GetActionByHash returns the pending action in pool given action's hash
