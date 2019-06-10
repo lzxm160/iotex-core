@@ -970,7 +970,7 @@ func TestActPool_GetUnconfirmedActs(t *testing.T) {
 	err = ap.Add(tsf5)
 	require.NoError(err)
 
-	acts := ap.GetUnconfirmedActs(addr2)
+	acts := ap.GetUnconfirmedActs(addr3)
 	require.Equal([]action.SealedEnvelope{}, acts)
 
 	acts = ap.GetUnconfirmedActs(addr1)
