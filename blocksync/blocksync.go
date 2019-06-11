@@ -8,8 +8,15 @@ package blocksync
 
 import (
 	"context"
+	"fmt"
+	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/iotexproject/iotex-election/committee"
+	"github.com/iotexproject/iotex-election/db"
+	"github.com/iotexproject/iotex-proto/golang/iotexrpc"
 	peerstore "github.com/libp2p/go-libp2p-peerstore"
 	"go.uber.org/zap"
 
@@ -20,8 +27,6 @@ import (
 	"github.com/iotexproject/iotex-core/consensus"
 	"github.com/iotexproject/iotex-core/pkg/lifecycle"
 	"github.com/iotexproject/iotex-core/pkg/log"
-	"github.com/iotexproject/iotex-election/committee"
-	"github.com/iotexproject/iotex-proto/golang/iotexrpc"
 )
 
 type (
@@ -75,6 +80,8 @@ type blockSyncer struct {
 	unicastHandler   UnicastOutbound
 	neighborsHandler Neighbors
 	ec               committee.Committee
+	numDelegates     uint64
+	numSubEpochs     uint64
 }
 
 // NewBlockSyncer returns a new block syncer instance
@@ -93,9 +100,6 @@ func NewBlockSyncer(
 		cs:           cs,
 		bufferSize:   cfg.BlockSync.BufferSize,
 		intervalSize: cfg.BlockSync.IntervalSize,
-		ec:           ec,
-		numDelegates: cfg.Genesis.NumDelegates,
-		numSubEpochs: cfg.Genesis.NumSubEpochs,
 	}
 	bsCfg := Config{}
 	for _, opt := range opts {
@@ -109,6 +113,9 @@ func NewBlockSyncer(
 		unicastHandler:   bsCfg.unicastHandler,
 		neighborsHandler: bsCfg.neighborsHandler,
 		worker:           newSyncWorker(chain.ChainID(), cfg, bsCfg.unicastHandler, bsCfg.neighborsHandler, buf),
+		ec:               ec,
+		numDelegates:     cfg.Genesis.NumDelegates,
+		numSubEpochs:     cfg.Genesis.NumSubEpochs,
 	}
 	return bs, nil
 }
@@ -135,6 +142,30 @@ func (bs *blockSyncer) Stop(ctx context.Context) error {
 
 // ProcessBlock processes an incoming latest committed block
 func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
+	blkHeight := blk.Height()
+	epochNumber := (blkHeight-1)/bs.numDelegates/bs.numSubEpochs + 1
+	epochHeight := (epochNumber-1)*bs.numDelegates*bs.numSubEpochs + 1
+	getTime := func(height uint64) (time.Time, error) {
+		header, err := bs.bc.BlockHeaderByHeight(height)
+		if err != nil {
+			return time.Now(), err
+		}
+		return header.Timestamp(), nil
+	}
+	blkTime, err := getTime(epochHeight)
+	if err != nil && epochHeight != 1 {
+		fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", blkTime)
+		return err
+	}
+	hei, err := bs.ec.HeightByTime(blkTime)
+	if err != nil && errors.Cause(err) == db.ErrNotExist {
+		log.L().Error(
+			"get gravity chain height by time",
+			zap.Error(err),
+		)
+		fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", hei)
+		return err
+	}
 	var needSync bool
 	moved, re := bs.buf.Flush(blk)
 	switch re {

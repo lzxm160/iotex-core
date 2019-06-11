@@ -7,11 +7,8 @@
 package blocksync
 
 import (
-	"fmt"
 	"sync"
-	"time"
 
-	"github.com/iotexproject/iotex-election/db"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -20,7 +17,6 @@ import (
 	"github.com/iotexproject/iotex-core/blockchain/block"
 	"github.com/iotexproject/iotex-core/consensus"
 	"github.com/iotexproject/iotex-core/pkg/log"
-	"github.com/iotexproject/iotex-election/committee"
 )
 
 type bCheckinResult int
@@ -43,9 +39,6 @@ type blockBuffer struct {
 	bufferSize   uint64
 	intervalSize uint64
 	commitHeight uint64 // last commit block height
-	ec           committee.Committee
-	numDelegates uint64
-	numSubEpochs uint64
 }
 
 // CommitHeight return the last commit block height
@@ -73,30 +66,6 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 		return false, bCheckinHigher
 	}
 
-	epochNumber := (blkHeight-1)/b.numDelegates/b.numSubEpochs + 1
-	epochHeight := (epochNumber-1)*b.numDelegates*b.numSubEpochs + 1
-	getTime := func(height uint64) (time.Time, error) {
-		header, err := b.bc.BlockHeaderByHeight(height)
-		if err != nil {
-			return time.Now(), err
-		}
-		return header.Timestamp(), nil
-	}
-	blkTime, err := getTime(epochHeight)
-	if err != nil && epochHeight != 1 {
-		fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", blkTime)
-		//return false, bCheckinValid
-	}
-
-	hei, err := b.ec.HeightByTime(blkTime)
-	if err != nil && errors.Cause(err) == db.ErrNotExist {
-		log.L().Error(
-			"get gravity chain height by time",
-			zap.Error(err),
-		)
-		fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", hei)
-		//return false, bCheckinValid
-	}
 	b.blocks[blkHeight] = blk
 	l := log.L().With(
 		zap.Uint64("recvHeight", blkHeight),
