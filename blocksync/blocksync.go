@@ -155,7 +155,7 @@ func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
 	blkTime, err := getTime(epochHeight)
 	if err != nil && epochHeight != 1 {
 		fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", blkTime)
-		return err
+		//return err
 	}
 	hei, err := bs.ec.HeightByTime(blkTime)
 	if err != nil && errors.Cause(err) == db.ErrNotExist {
