@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/iotexproject/iotex-election/db"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -86,7 +87,7 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 	}
 
 	_, err = b.ec.HeightByTime(blkTime)
-	if err != nil {
+	if err != nil && errors.Cause(err) == db.ErrNotExist {
 		log.L().Error(
 			"get gravity chain height by time",
 			zap.Error(err),
