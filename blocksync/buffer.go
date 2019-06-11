@@ -7,6 +7,7 @@
 package blocksync
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -86,13 +87,14 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 		return false, bCheckinValid
 	}
 
-	_, err = b.ec.HeightByTime(blkTime)
+	hei, err := b.ec.HeightByTime(blkTime)
 	if err != nil && errors.Cause(err) == db.ErrNotExist {
 		log.L().Error(
 			"get gravity chain height by time",
 			zap.Error(err),
 		)
 		//return false, bCheckinValid
+		fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", hei)
 	}
 	b.blocks[blkHeight] = blk
 	l := log.L().With(
