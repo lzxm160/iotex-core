@@ -89,7 +89,7 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 	if err != nil {
 		log.L().Error(
 			"get gravity chain height by time",
-			zap.Error("HeightByTime", err),
+			zap.Error(err),
 		)
 		return false, bCheckinValid
 	}
