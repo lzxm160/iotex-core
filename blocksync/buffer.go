@@ -93,8 +93,9 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 			"get gravity chain height by time",
 			zap.Error(err),
 		)
-		//return false, bCheckinValid
 		fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", hei)
+		return false, bCheckinValid
+
 	}
 	b.blocks[blkHeight] = blk
 	l := log.L().With(
