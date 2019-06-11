@@ -84,6 +84,7 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 	}
 	blkTime, err := getTime(epochHeight)
 	if err != nil {
+		fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", blkTime)
 		return false, bCheckinValid
 	}
 
