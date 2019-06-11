@@ -95,7 +95,6 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 		)
 		fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", hei)
 		return false, bCheckinValid
-
 	}
 	b.blocks[blkHeight] = blk
 	l := log.L().With(
