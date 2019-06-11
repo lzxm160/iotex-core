@@ -84,12 +84,12 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 	}
 	blkTime, err := getTime(epochHeight)
 	if err != nil && epochHeight != 1 {
-		fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", blkTime)
+		//fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", blkTime)
 		return false, bCheckinValid
 	}
 
 	hei, err := b.ec.HeightByTime(blkTime)
-	if err != nil && errors.Cause(err) == db.ErrNotExist && epochHeight != 1 {
+	if err != nil && errors.Cause(err) == db.ErrNotExist {
 		log.L().Error(
 			"get gravity chain height by time",
 			zap.Error(err),
