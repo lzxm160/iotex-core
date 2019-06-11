@@ -82,7 +82,7 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 		}
 		return header.Timestamp(), nil
 	}
-	blkTime, _ := getTime(epochHeight)
+	blkTime, err := getTime(epochHeight)
 	if err != nil && epochHeight != 1 {
 		fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", blkTime)
 		//return false, bCheckinValid
