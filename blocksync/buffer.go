@@ -82,11 +82,11 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 		}
 		return header.Timestamp(), nil
 	}
-	blkTime, err := getTime(epochHeight)
-	if err != nil && epochHeight != 1 {
-		//fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", blkTime)
-		return false, bCheckinValid
-	}
+	blkTime, _ := getTime(epochHeight)
+	//if err != nil && epochHeight != 1 {
+	//fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", blkTime)
+	//return false, bCheckinValid
+	//}
 
 	hei, err := b.ec.HeightByTime(blkTime)
 	if err != nil && errors.Cause(err) == db.ErrNotExist {
