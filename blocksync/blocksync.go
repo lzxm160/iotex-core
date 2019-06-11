@@ -8,7 +8,6 @@ package blocksync
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -174,13 +173,13 @@ func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
 			//fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", blkTime)
 			//return err
 		}
-		hei, err := bs.ec.HeightByTime(blkTime)
+		_, err = bs.ec.HeightByTime(blkTime)
 		if err != nil && errors.Cause(err) == db.ErrNotExist {
 			//log.L().Error(
 			//	"get gravity chain height by time",
 			//	zap.Error(err),
 			//)
-			fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", hei)
+			//fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", hei)
 			return err
 		}
 		bs.worker.SetTargetHeight(blk.Height())
