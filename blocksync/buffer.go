@@ -83,10 +83,10 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 		return header.Timestamp(), nil
 	}
 	blkTime, _ := getTime(epochHeight)
-	//if err != nil && epochHeight != 1 {
-	//fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", blkTime)
-	//return false, bCheckinValid
-	//}
+	if err != nil && epochHeight != 1 {
+		fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", blkTime)
+		//return false, bCheckinValid
+	}
 
 	hei, err := b.ec.HeightByTime(blkTime)
 	if err != nil && errors.Cause(err) == db.ErrNotExist {
@@ -95,7 +95,7 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 			zap.Error(err),
 		)
 		fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", hei)
-		return false, bCheckinValid
+		//return false, bCheckinValid
 	}
 	b.blocks[blkHeight] = blk
 	l := log.L().With(
