@@ -142,30 +142,7 @@ func (bs *blockSyncer) Stop(ctx context.Context) error {
 
 // ProcessBlock processes an incoming latest committed block
 func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
-	blkHeight := blk.Height()
-	epochNumber := (blkHeight-1)/bs.numDelegates/bs.numSubEpochs + 1
-	epochHeight := (epochNumber-1)*bs.numDelegates*bs.numSubEpochs + 1
-	getTime := func(height uint64) (time.Time, error) {
-		header, err := bs.bc.BlockHeaderByHeight(height)
-		if err != nil {
-			return time.Now(), err
-		}
-		return header.Timestamp(), nil
-	}
-	blkTime, err := getTime(epochHeight)
-	if err != nil && epochHeight != 1 {
-		//fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", blkTime)
-		//return err
-	}
-	hei, err := bs.ec.HeightByTime(blkTime)
-	if err != nil && errors.Cause(err) == db.ErrNotExist {
-		//log.L().Error(
-		//	"get gravity chain height by time",
-		//	zap.Error(err),
-		//)
-		fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", hei)
-		return err
-	}
+
 	var needSync bool
 	moved, re := bs.buf.Flush(blk)
 	switch re {
@@ -182,6 +159,30 @@ func (bs *blockSyncer) ProcessBlock(_ context.Context, blk *block.Block) error {
 	}
 
 	if needSync {
+		blkHeight := blk.Height()
+		epochNumber := (blkHeight-1)/bs.numDelegates/bs.numSubEpochs + 1
+		epochHeight := (epochNumber-1)*bs.numDelegates*bs.numSubEpochs + 1
+		getTime := func(height uint64) (time.Time, error) {
+			header, err := bs.bc.BlockHeaderByHeight(height)
+			if err != nil {
+				return time.Now(), err
+			}
+			return header.Timestamp(), nil
+		}
+		blkTime, err := getTime(epochHeight)
+		if err != nil && epochHeight != 1 {
+			//fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", blkTime)
+			//return err
+		}
+		hei, err := bs.ec.HeightByTime(blkTime)
+		if err != nil && errors.Cause(err) == db.ErrNotExist {
+			//log.L().Error(
+			//	"get gravity chain height by time",
+			//	zap.Error(err),
+			//)
+			fmt.Println(blkHeight, ":::::::::::", epochNumber, "::::::::::::::", epochHeight, ":::::::::::::::::", hei)
+			return err
+		}
 		bs.worker.SetTargetHeight(blk.Height())
 	}
 	return nil
