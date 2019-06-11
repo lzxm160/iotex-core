@@ -20,6 +20,7 @@ import (
 	"github.com/iotexproject/iotex-core/consensus"
 	"github.com/iotexproject/iotex-core/pkg/lifecycle"
 	"github.com/iotexproject/iotex-core/pkg/log"
+	"github.com/iotexproject/iotex-election/committee"
 	"github.com/iotexproject/iotex-proto/golang/iotexrpc"
 )
 
@@ -73,6 +74,7 @@ type blockSyncer struct {
 	bc               blockchain.Blockchain
 	unicastHandler   UnicastOutbound
 	neighborsHandler Neighbors
+	ec               committee.Committee
 }
 
 // NewBlockSyncer returns a new block syncer instance
@@ -81,6 +83,7 @@ func NewBlockSyncer(
 	chain blockchain.Blockchain,
 	ap actpool.ActPool,
 	cs consensus.Consensus,
+	ec committee.Committee,
 	opts ...Option,
 ) (BlockSync, error) {
 	buf := &blockBuffer{
@@ -90,6 +93,9 @@ func NewBlockSyncer(
 		cs:           cs,
 		bufferSize:   cfg.BlockSync.BufferSize,
 		intervalSize: cfg.BlockSync.IntervalSize,
+		ec:           ec,
+		numDelegates: cfg.Genesis.NumDelegates,
+		numSubEpochs: cfg.Genesis.NumSubEpochs,
 	}
 	bsCfg := Config{}
 	for _, opt := range opts {

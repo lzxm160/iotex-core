@@ -72,7 +72,7 @@ func TestNewBlockSyncer(t *testing.T) {
 
 	cs := mock_consensus.NewMockConsensus(ctrl)
 
-	bs, err := NewBlockSyncer(cfg, mBc, ap, cs, opts...)
+	bs, err := NewBlockSyncer(cfg, mBc, ap, cs, nil, opts...)
 	assert.Nil(err)
 	assert.NotNil(bs)
 }

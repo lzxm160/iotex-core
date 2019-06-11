@@ -8,8 +8,8 @@ package blocksync
 
 import (
 	"sync"
+	"time"
 
-	"github.com/iotexproject/iotex-election/db"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -18,6 +18,7 @@ import (
 	"github.com/iotexproject/iotex-core/blockchain/block"
 	"github.com/iotexproject/iotex-core/consensus"
 	"github.com/iotexproject/iotex-core/pkg/log"
+	"github.com/iotexproject/iotex-election/committee"
 )
 
 type bCheckinResult int
@@ -40,6 +41,9 @@ type blockBuffer struct {
 	bufferSize   uint64
 	intervalSize uint64
 	commitHeight uint64 // last commit block height
+	ec           committee.Committee
+	numDelegates uint64
+	numSubEpochs uint64
 }
 
 // CommitHeight return the last commit block height
@@ -66,6 +70,29 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 	if blkHeight > confirmedHeight+b.bufferSize {
 		return false, bCheckinHigher
 	}
+
+	epochNumber := (blkHeight-1)/b.numDelegates/b.numSubEpochs + 1
+	epochHeight := (epochNumber-1)*b.numDelegates*b.numSubEpochs + 1
+	getTime := func(height uint64) (time.Time, error) {
+		header, err := b.bc.BlockHeaderByHeight(height)
+		if err != nil {
+			return time.Now(), err
+		}
+		return header.Timestamp(), nil
+	}
+	blkTime, err := getTime(epochHeight)
+	if err != nil {
+		return false, bCheckinValid
+	}
+
+	_, err = b.ec.HeightByTime(blkTime)
+	if err != nil {
+		log.L().Error(
+			"get gravity chain height by time",
+			zap.Error("HeightByTime", err),
+		)
+		return false, bCheckinValid
+	}
 	b.blocks[blkHeight] = blk
 	l := log.L().With(
 		zap.Uint64("recvHeight", blkHeight),
@@ -79,11 +106,11 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 		}
 		delete(b.blocks, heightToSync)
 		if err := commitBlock(b.bc, b.ap, b.cs, blk); err != nil && errors.Cause(err) != blockchain.ErrInvalidTipHeight {
-			if errors.Cause(err) == db.ErrNotExist {
-				l.Debug("Failed to commit the block.", zap.Error(err), zap.Uint64("syncHeight", heightToSync))
-			} else {
-				l.Error("Failed to commit the block.", zap.Error(err), zap.Uint64("syncHeight", heightToSync))
-			}
+			//if errors.Cause(err) == db.ErrNotExist {
+			//	l.Debug("Failed to commit the block.", zap.Error(err), zap.Uint64("syncHeight", heightToSync))
+			//} else {
+			l.Error("Failed to commit the block.", zap.Error(err), zap.Uint64("syncHeight", heightToSync))
+			//}
 			break
 		}
 		b.commitHeight = heightToSync

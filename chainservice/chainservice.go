@@ -178,6 +178,7 @@ func New(
 		chain,
 		actPool,
 		consensus,
+		electionCommittee,
 		blocksync.WithUnicastOutBound(func(ctx context.Context, peer peerstore.PeerInfo, msg proto.Message) error {
 			ctx = p2p.WitContext(ctx, p2p.Context{ChainID: chain.ChainID()})
 			return p2pAgent.UnicastOutbound(ctx, peer, msg)
