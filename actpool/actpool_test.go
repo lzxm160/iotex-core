@@ -8,6 +8,7 @@ package actpool
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"strings"
 	"testing"
@@ -971,6 +972,7 @@ func TestActPool_GetUnconfirmedActs(t *testing.T) {
 	require.NoError(err)
 
 	acts := ap.GetUnconfirmedActs(addr3)
+	fmt.Println(acts)
 	require.EqualValues([]action.SealedEnvelope(nil), acts)
 	//require.EqualValues(nil, acts)
 	require.EqualValues([]action.SealedEnvelope{}, acts)

@@ -8,6 +8,7 @@ package actpool
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/iotexproject/iotex-core/pkg/prometheustimer"
@@ -241,9 +242,11 @@ func (ap *actPool) GetUnconfirmedActs(addr string) []action.SealedEnvelope {
 	ap.mutex.RLock()
 	defer ap.mutex.RUnlock()
 	var ret []action.SealedEnvelope
+	fmt.Println(ret)
 	if queue, ok := ap.accountActs[addr]; ok {
 		ret = queue.AllActs()
 	}
+	fmt.Println(ret)
 	addressAction, err := address.FromString(addr)
 	if err != nil {
 		return nil
@@ -267,6 +270,7 @@ func (ap *actPool) GetUnconfirmedActs(addr string) []action.SealedEnvelope {
 			ret = append(ret, action)
 		}
 	}
+	fmt.Println(ret)
 	return ret
 }
 
