@@ -973,6 +973,9 @@ func TestActPool_GetUnconfirmedActs(t *testing.T) {
 
 	acts := ap.GetUnconfirmedActs(addr3)
 	fmt.Println(acts)
+	fmt.Println([]action.SealedEnvelope(nil))
+	fmt.Println([]action.SealedEnvelope{})
+	fmt.Println(nil)
 	require.EqualValues([]action.SealedEnvelope(nil), acts)
 	//require.EqualValues(nil, acts)
 	require.EqualValues([]action.SealedEnvelope{}, acts)
