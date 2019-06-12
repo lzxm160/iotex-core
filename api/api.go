@@ -161,9 +161,9 @@ func (api *Server) GetAccount(ctx context.Context, in *iotexapi.GetAccountReques
 
 // GetActions returns actions
 func (api *Server) GetActions(ctx context.Context, in *iotexapi.GetActionsRequest) (*iotexapi.GetActionsResponse, error) {
-	if !api.hasActionIndex && in.GetByBlk() == nil {
-		return nil, status.Error(codes.NotFound, "Action index is not available.")
-	}
+	//if !api.hasActionIndex && in.GetByBlk() == nil {
+	//	return nil, status.Error(codes.NotFound, "Action index is not available.")
+	//}
 	switch {
 	case in.GetByIndex() != nil:
 		request := in.GetByIndex()
@@ -308,9 +308,9 @@ func (api *Server) SendAction(ctx context.Context, in *iotexapi.SendActionReques
 
 // GetReceiptByAction gets receipt with corresponding action hash
 func (api *Server) GetReceiptByAction(ctx context.Context, in *iotexapi.GetReceiptByActionRequest) (*iotexapi.GetReceiptByActionResponse, error) {
-	if !api.hasActionIndex {
-		return nil, status.Error(codes.NotFound, "Receipt index is not available")
-	}
+	//if !api.hasActionIndex {
+	//	return nil, status.Error(codes.NotFound, "Receipt index is not available")
+	//}
 	actHash, err := hash.HexStringToHash256(in.ActionHash)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
