@@ -122,7 +122,8 @@ func (ib *IndexBuilder) HandleBlock(blk *block.Block) error {
 }
 
 func (ib *IndexBuilder) initAndLoadActions() error {
-	if _, err := ib.store.Get(blockActionBlockMappingNS, indexActionsKey); err != nil &&
+	_, err := ib.store.Get(blockActionBlockMappingNS, indexActionsKey)
+	if err != nil &&
 		errors.Cause(err) == db.ErrNotExist {
 		zap.L().Info(err.Error())
 		if err = ib.store.Put(blockActionBlockMappingNS, indexActionsKey, make([]byte, 8)); err != nil {
@@ -130,6 +131,10 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 			return errors.Wrap(err, "failed to write initial value for index actions")
 		}
 		zap.L().Info("///////////////////////")
+	}
+	if err != nil {
+		zap.L().Info(err.Error())
+		return err
 	}
 	zap.L().Info("///////////////////////")
 	value, err := ib.store.Get(blockActionBlockMappingNS, indexActionsKey)
