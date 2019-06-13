@@ -125,6 +125,7 @@ func (ib *IndexBuilder) HandleBlock(blk *block.Block) error {
 func (ib *IndexBuilder) initAndLoadActions() error {
 	zap.L().Info("initAndLoadActions")
 	_, err := ib.store.Get(blockActionBlockMappingNS, indexActionsKey)
+	zap.L().Info("///////////////////////")
 	if err != nil && errors.Cause(err) == db.ErrNotExist {
 		zap.L().Info(err.Error())
 		if err = ib.store.Put(blockActionBlockMappingNS, indexActionsKey, make([]byte, 8)); err != nil {
