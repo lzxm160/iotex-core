@@ -135,6 +135,10 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		return err
 	}
 	batch := db.NewBatch()
+	startIndex, err := getTopIndex(ib.store)
+	if err != nil {
+		return err
+	}
 	for i := uint64(1); i <= tipHeight; i++ {
 		hash, err := ib.dao.getBlockHash(i)
 		if err != nil {
@@ -147,10 +151,11 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		blk := &block.Block{
 			Body: *body,
 		}
-		err = indexBlockHash(hash, ib.store, blk, batch)
+		err = indexBlockHash(startIndex, hash, ib.store, blk, batch)
 		if err != nil {
 			return err
 		}
+		startIndex += uint64(len(blk.Actions))
 		if i%10000 == 0 {
 			if err := ib.store.Commit(batch); err != nil {
 				return err
@@ -161,31 +166,38 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 			zap.L().Info("Loading actions", zap.Uint64("height", i))
 		}
 	}
+	indexActionsBytes := byteutil.Uint64ToBytes(startIndex - 1)
+	batch.Put(blockActionBlockMappingNS, indexActionsKey, indexActionsBytes, "failed to put index actions")
 	if err := ib.store.Commit(batch); err != nil {
 		return err
 	}
 	return nil
 }
+func getTopIndex(store db.KVStore) (uint64, error) {
+	value, err := store.Get(blockActionBlockMappingNS, indexActionsKey)
+	if err != nil {
+		return 0, err
+	}
+	startActionNum := enc.MachineEndian.Uint64(value)
+	startActionNum += 1
+	return startActionNum, nil
+}
 func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
 	hash := blk.HashBlock()
-	return indexBlockHash(hash, store, blk, batch)
-}
-func indexBlockHash(blkHash hash.Hash256, store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
-	value, err := store.Get(blockActionBlockMappingNS, indexActionsKey)
+	startIndex, err := getTopIndex(store)
 	if err != nil {
 		return err
 	}
-	tipIndexActions := enc.MachineEndian.Uint64(value)
-	tipIndexActions += 1
-	zap.L().Info("index block hash", zap.Uint64("tipIndexActions", tipIndexActions))
+	return indexBlockHash(startIndex, hash, store, blk, batch)
+}
+func indexBlockHash(startActionsNum uint64, blkHash hash.Hash256, store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
+	zap.L().Info("index block hash", zap.Uint64("tipIndexActions", startActionsNum))
 	for i, elp := range blk.Actions {
 		actHash := elp.Hash()
 		batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], blkHash[:], "failed to put action hash %x", actHash)
-		indexActionsBytes := byteutil.Uint64ToBytes(tipIndexActions + uint64(i))
+		indexActionsBytes := byteutil.Uint64ToBytes(startActionsNum + uint64(i))
 		batch.Put(blockActionBlockMappingNS, indexActionsBytes, actHash[:], "failed to put index of actions %x", actHash)
 	}
-	indexActionsBytes := byteutil.Uint64ToBytes(tipIndexActions + uint64(len(blk.Actions)-1))
-	batch.Put(blockActionBlockMappingNS, indexActionsKey, indexActionsBytes, "failed to put index actions")
 	return putActions(store, blk, batch)
 }
 
