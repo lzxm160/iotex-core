@@ -131,12 +131,6 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 	if err != nil {
 		return err
 	}
-	//value, err := ib.store.Get(blockActionBlockMappingNS, indexActionsKey)
-	//if err != nil {
-	//	return err
-	//}
-	//tipIndexActions := enc.MachineEndian.Uint64(value)
-	//if tipIndexActions == 0 {
 	tipHeight, err := ib.dao.getBlockchainHeight()
 	if err != nil {
 		return err
@@ -171,7 +165,6 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 	if err := ib.store.Commit(batch); err != nil {
 		return err
 	}
-	//}
 	return nil
 }
 func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
