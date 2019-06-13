@@ -163,7 +163,8 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 			batch.Clear()
 		}
 		if i%1000 == 0 {
-			zap.L().Info("Loading actions", zap.Uint64("height", i))
+
+			zap.L().Info("Loading actions", zap.Uint64("height", i), zap.Uint64("startIndex", startIndex))
 		}
 	}
 	indexActionsBytes := byteutil.Uint64ToBytes(startIndex - 1)
