@@ -191,7 +191,6 @@ func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 	return indexBlockHash(startIndex, hash, store, blk, batch)
 }
 func indexBlockHash(startActionsNum uint64, blkHash hash.Hash256, store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
-	zap.L().Info("index block hash", zap.Uint64("tipIndexActions", startActionsNum))
 	for i, elp := range blk.Actions {
 		actHash := elp.Hash()
 		batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], blkHash[:], "failed to put action hash %x", actHash)
