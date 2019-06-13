@@ -512,7 +512,7 @@ func (bc *blockchain) GetActionsFromIndex(index uint64) (hash.Hash256, error) {
 	}
 	tipIndexActions := enc.MachineEndian.Uint64(value)
 	if index > tipIndexActions {
-		return hash, errors.New("index is greater than top index")
+		return hash, errors.Errorf("index is greater than top index:%d", tipIndexActions)
 	}
 	indexActionsBytes := byteutil.Uint64ToBytes(index)
 	value, err = bc.dao.kvstore.Get(blockActionBlockMappingNS, indexActionsBytes)
