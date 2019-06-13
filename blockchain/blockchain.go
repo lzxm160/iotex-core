@@ -16,14 +16,14 @@ import (
 	"time"
 
 	"github.com/facebookgo/clock"
+	"github.com/iotexproject/go-pkgs/hash"
+	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/iotexproject/go-pkgs/hash"
-	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
@@ -37,6 +37,7 @@ import (
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/crypto"
 	"github.com/iotexproject/iotex-core/db"
+	"github.com/iotexproject/iotex-core/pkg/enc"
 	"github.com/iotexproject/iotex-core/pkg/lifecycle"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/prometheustimer"
@@ -154,6 +155,8 @@ type Blockchain interface {
 
 	// RemoveSubscriber make you listen to every single produced block
 	RemoveSubscriber(BlockCreationSubscriber) error
+	// GetActionsFromIndex returns actions from index
+	GetActionsFromIndex(index uint64) (hash.Hash256, error)
 }
 
 // blockchain implements the Blockchain interface
@@ -497,6 +500,29 @@ func (bc *blockchain) GetActionsFromAddress(addrStr string) ([]hash.Hash256, err
 		return nil, err
 	}
 	return getActionsBySenderAddress(bc.dao.kvstore, hash.BytesToHash160(addr.Bytes()))
+}
+
+// GetActionsFromIndex returns actions from index
+func (bc *blockchain) GetActionsFromIndex(index uint64) (hash.Hash256, error) {
+	hash := hash.ZeroHash256
+	value, err := bc.dao.kvstore.Get(blockActionBlockMappingNS, indexActionsKey)
+	if err != nil {
+		return hash, err
+	}
+	tipIndexActions := enc.MachineEndian.Uint64(value)
+	if index > tipIndexActions {
+		return hash, errors.Errorf("index is greater than top index:%d", tipIndexActions)
+	}
+	indexActionsBytes := byteutil.Uint64ToBytes(index)
+	value, err = bc.dao.kvstore.Get(blockActionBlockMappingNS, indexActionsBytes)
+	if err != nil {
+		return hash, errors.Wrap(err, "failed to get action hash")
+	}
+	if len(hash) != len(value) {
+		return hash, errors.Wrap(err, "action hash is broken")
+	}
+	copy(hash[:], value)
+	return hash, nil
 }
 
 // GetActionToAddress returns action to address
