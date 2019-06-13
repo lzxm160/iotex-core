@@ -29,7 +29,7 @@ import (
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
@@ -156,6 +156,7 @@ type Blockchain interface {
 
 	// RemoveSubscriber make you listen to every single produced block
 	RemoveSubscriber(BlockCreationSubscriber) error
+	// GetActionsFromIndex returns actions from index
 	GetActionsFromIndex(index uint64) (hash.Hash256, error)
 }
 
@@ -504,15 +505,17 @@ func (bc *blockchain) GetActionsFromAddress(addrStr string) ([]hash.Hash256, err
 
 // GetActionsFromIndex returns actions from index
 func (bc *blockchain) GetActionsFromIndex(index uint64) (hash.Hash256, error) {
-	value, _ := bc.dao.kvstore.Get(blockActionBlockMappingNS, indexActionsKey)
-	tipIndexActions := enc.MachineEndian.Uint64(value)
 	hash := hash.ZeroHash256
+	value, err := bc.dao.kvstore.Get(blockActionBlockMappingNS, indexActionsKey)
+	if err != nil {
+		return hash, err
+	}
+	tipIndexActions := enc.MachineEndian.Uint64(value)
 	if index > tipIndexActions {
 		return hash, errors.New("index is greater than top index")
 	}
 	indexActionsBytes := byteutil.Uint64ToBytes(index)
-	value, err := bc.dao.kvstore.Get(blockActionBlockMappingNS, indexActionsBytes)
-
+	value, err = bc.dao.kvstore.Get(blockActionBlockMappingNS, indexActionsBytes)
 	if err != nil {
 		return hash, errors.Wrap(err, "failed to get action hash")
 	}

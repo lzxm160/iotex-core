@@ -43,6 +43,7 @@ type IndexBuilder struct {
 	pendingBlks  chan *block.Block
 	cancelChan   chan interface{}
 	timerFactory *prometheustimer.TimerFactory
+	dao          *blockDAO
 }
 
 // NewIndexBuilder instantiates an index builder
@@ -65,16 +66,15 @@ func NewIndexBuilder(chain Blockchain) (*IndexBuilder, error) {
 		pendingBlks:  make(chan *block.Block, 64), // Actually 1 should be enough
 		cancelChan:   make(chan interface{}),
 		timerFactory: timerFactory,
+		dao:          bc.dao,
 	}, nil
 }
 
 // Start starts the index builder
 func (ib *IndexBuilder) Start(_ context.Context) error {
-	if _, err := ib.store.Get(blockActionBlockMappingNS, indexActionsKey); err != nil &&
-		errors.Cause(err) == db.ErrNotExist {
-		if err = ib.store.Put(blockActionBlockMappingNS, indexActionsKey, make([]byte, 8)); err != nil {
-			return errors.Wrap(err, "failed to write initial value for index actions")
-		}
+	err := ib.initAndLoadActions()
+	if err != nil {
+		return err
 	}
 	go func() {
 		for {
@@ -120,18 +120,66 @@ func (ib *IndexBuilder) HandleBlock(blk *block.Block) error {
 	return nil
 }
 
+func (ib *IndexBuilder) initAndLoadActions() error {
+	if _, err := ib.store.Get(blockActionBlockMappingNS, indexActionsKey); err != nil &&
+		errors.Cause(err) == db.ErrNotExist {
+		if err = ib.store.Put(blockActionBlockMappingNS, indexActionsKey, make([]byte, 8)); err != nil {
+			return errors.Wrap(err, "failed to write initial value for index actions")
+		}
+	}
+	value, _ := ib.store.Get(blockActionBlockMappingNS, indexActionsKey)
+	tipIndexActions := enc.MachineEndian.Uint64(value)
+
+	if tipIndexActions == 0 {
+		tipHeight, err := ib.dao.getBlockchainHeight()
+		if err != nil {
+			return err
+		}
+		batch := db.NewBatch()
+		for i := uint64(1); i <= tipHeight; i++ {
+			hash, err := ib.dao.getBlockHash(i)
+			if err != nil {
+				return err
+			}
+			blk, err := ib.dao.getBlock(hash)
+			if err != nil {
+				return err
+			}
+			err = indexBlock(ib.store, blk, batch)
+			if err != nil {
+				return err
+			}
+			if i%10000 == 0 {
+				if err := ib.store.Commit(batch); err != nil {
+					return err
+				}
+				batch.Clear()
+			}
+			if i%1000 == 0 {
+				zap.L().Info("Loading actions", zap.Uint64("height", i))
+			}
+		}
+		if err := ib.store.Commit(batch); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
 	hash := blk.HashBlock()
-	value, _ := store.Get(blockActionBlockMappingNS, indexActionsKey)
+	value, err := store.Get(blockActionBlockMappingNS, indexActionsKey)
+	if err != nil {
+		return err
+	}
 	tipIndexActions := enc.MachineEndian.Uint64(value)
-	tipIndexActions+=1
+	tipIndexActions += 1
 	for i, elp := range blk.Actions {
 		actHash := elp.Hash()
 		batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], hash[:], "failed to put action hash %x", actHash)
-		indexActionsBytes := byteutil.Uint64ToBytes(tipIndexActions+uint64(i))
-		batch.Put(blockActionBlockMappingNS,indexActionsBytes, actHash[:], "failed to put index of actions %x", actHash)
+		indexActionsBytes := byteutil.Uint64ToBytes(tipIndexActions + uint64(i))
+		batch.Put(blockActionBlockMappingNS, indexActionsBytes, actHash[:], "failed to put index of actions %x", actHash)
 	}
-	indexActionsBytes := byteutil.Uint64ToBytes(tipIndexActions+uint64(len(blk.Actions)-1))
+	indexActionsBytes := byteutil.Uint64ToBytes(tipIndexActions + uint64(len(blk.Actions)-1))
 	batch.Put(blockActionBlockMappingNS, indexActionsKey, indexActionsBytes, "failed to put index actions")
 	return putActions(store, blk, batch)
 }
