@@ -188,7 +188,13 @@ func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 	if err != nil {
 		return err
 	}
-	return indexBlockHash(startIndex, hash, store, blk, batch)
+	err = indexBlockHash(startIndex, hash, store, blk, batch)
+	if err != nil {
+		return err
+	}
+	indexActionsBytes := byteutil.Uint64ToBytes(startIndex + uint64(len(blk.Actions)) - 1)
+	batch.Put(blockActionBlockMappingNS, indexActionsKey, indexActionsBytes, "failed to put index actions")
+	return nil
 }
 func indexBlockHash(startActionsNum uint64, blkHash hash.Hash256, store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
 	for i, elp := range blk.Actions {
