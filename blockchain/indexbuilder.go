@@ -139,42 +139,42 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		return err
 	}
 	tipIndexActions := enc.MachineEndian.Uint64(value)
-	if tipIndexActions == 0 {
-		tipHeight, err := ib.dao.getBlockchainHeight()
+	//if tipIndexActions == 0 {
+	tipHeight, err := ib.dao.getBlockchainHeight()
+	if err != nil {
+		return err
+	}
+	batch := db.NewBatch()
+	for i := uint64(1); i <= tipHeight; i++ {
+		hash, err := ib.dao.getBlockHash(i)
 		if err != nil {
 			return err
 		}
-		batch := db.NewBatch()
-		for i := uint64(1); i <= tipHeight; i++ {
-			hash, err := ib.dao.getBlockHash(i)
-			if err != nil {
-				return err
-			}
-			body, err := ib.dao.body(hash)
-			if err != nil {
-				return err
-			}
-			blk := &block.Block{
-				Body: *body,
-			}
-			err = indexBlockHash(hash, ib.store, blk, batch)
-			if err != nil {
-				return err
-			}
-			if i%10000 == 0 {
-				if err := ib.store.Commit(batch); err != nil {
-					return err
-				}
-				batch.Clear()
-			}
-			if i%1000 == 0 {
-				zap.L().Info("Loading actions", zap.Uint64("height", i))
-			}
-		}
-		if err := ib.store.Commit(batch); err != nil {
+		body, err := ib.dao.body(hash)
+		if err != nil {
 			return err
 		}
+		blk := &block.Block{
+			Body: *body,
+		}
+		err = indexBlockHash(hash, ib.store, blk, batch)
+		if err != nil {
+			return err
+		}
+		if i%10000 == 0 {
+			if err := ib.store.Commit(batch); err != nil {
+				return err
+			}
+			batch.Clear()
+		}
+		if i%1000 == 0 {
+			zap.L().Info("Loading actions", zap.Uint64("height", i))
+		}
 	}
+	if err := ib.store.Commit(batch); err != nil {
+		return err
+	}
+	//}
 	return nil
 }
 func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
