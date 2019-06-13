@@ -177,6 +177,7 @@ func indexBlockHash(blkHash hash.Hash256, store db.KVStore, blk *block.Block, ba
 	}
 	tipIndexActions := enc.MachineEndian.Uint64(value)
 	tipIndexActions += 1
+	zap.L().Info("index block hash", zap.Uint64("tipIndexActions", tipIndexActions))
 	for i, elp := range blk.Actions {
 		actHash := elp.Hash()
 		batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], blkHash[:], "failed to put action hash %x", actHash)
