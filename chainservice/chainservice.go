@@ -224,16 +224,16 @@ func (cs *ChainService) Start(ctx context.Context) error {
 			return errors.Wrap(err, "error when starting election committee")
 		}
 	}
-	if cs.indexBuilder != nil {
-		if err := cs.indexBuilder.Start(ctx); err != nil {
-			return errors.Wrap(err, "error when starting index builder")
-		}
-	}
 	if err := cs.chain.Start(ctx); err != nil {
 		return errors.Wrap(err, "error when starting blockchain")
 	}
 	if err := cs.consensus.Start(ctx); err != nil {
 		return errors.Wrap(err, "error when starting consensus")
+	}
+	if cs.indexBuilder != nil {
+		if err := cs.indexBuilder.Start(ctx); err != nil {
+			return errors.Wrap(err, "error when starting index builder")
+		}
 	}
 	if err := cs.blocksync.Start(ctx); err != nil {
 		return errors.Wrap(err, "error when starting blocksync")
