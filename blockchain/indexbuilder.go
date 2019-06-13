@@ -72,6 +72,7 @@ func NewIndexBuilder(chain Blockchain) (*IndexBuilder, error) {
 
 // Start starts the index builder
 func (ib *IndexBuilder) Start(_ context.Context) error {
+	zap.L().Info("start")
 	err := ib.initAndLoadActions()
 	if err != nil {
 		zap.L().Info(err.Error())
@@ -122,9 +123,9 @@ func (ib *IndexBuilder) HandleBlock(blk *block.Block) error {
 }
 
 func (ib *IndexBuilder) initAndLoadActions() error {
+	zap.L().Info("initAndLoadActions")
 	_, err := ib.store.Get(blockActionBlockMappingNS, indexActionsKey)
-	if err != nil &&
-		errors.Cause(err) == db.ErrNotExist {
+	if err != nil && errors.Cause(err) == db.ErrNotExist {
 		zap.L().Info(err.Error())
 		if err = ib.store.Put(blockActionBlockMappingNS, indexActionsKey, make([]byte, 8)); err != nil {
 			zap.L().Info(err.Error())
