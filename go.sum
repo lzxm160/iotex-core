@@ -400,6 +400,7 @@ github.com/lzxm160/iotex-election v0.3.14/go.mod h1:Etsvfae9fCJya1EsKKEhx86GTGGb
 github.com/lzxm160/iotex-election v0.3.15/go.mod h1:CjEPkMdEgjI14HKX+GJ6lZ7K2rpzTm1xr16NkGBs0kg=
 github.com/lzxm160/iotex-election v0.3.16/go.mod h1:FpIVajBfw2stwodSil/u2Y/TuFw0LzdzOCjFhC2okR0=
 github.com/lzxm160/iotex-election v0.3.17/go.mod h1:nIFQTh32ZlIWlY8rJ9WyJmLqsbMIVyic/SYpJ68oBSA=
+github.com/lzxm160/iotex-election v0.3.18/go.mod h1:/UT0eouMI3yZUgv2hoR5w/+sOzcOoJra2A62otxPwsY=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/magiconair/properties v1.8.1/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/mattn/go-colorable v0.1.1 h1:G1f5SKeVxmagw/IyvzvtZE4Gybcc4Tr1tf7I8z0XgOg=
