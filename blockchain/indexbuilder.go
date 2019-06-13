@@ -135,10 +135,7 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		return err
 	}
 	batch := db.NewBatch()
-	startIndex, err := getTopIndex(ib.store)
-	if err != nil {
-		return err
-	}
+	startIndex := uint64(1)
 	for i := uint64(1); i <= tipHeight; i++ {
 		hash, err := ib.dao.getBlockHash(i)
 		if err != nil {
