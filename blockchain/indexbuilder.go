@@ -152,6 +152,12 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		if err != nil {
 			return err
 		}
+
+		receipts, err := ib.dao.getReceipts(i)
+		if err != nil {
+			return err
+		}
+		putReceipts(i, receipts, batch)
 		startIndex += uint64(len(blk.Actions))
 		if i%10000 == 0 {
 			if err := ib.store.Commit(batch); err != nil {
@@ -160,7 +166,6 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 			batch.Clear()
 		}
 		if i%1000 == 0 {
-
 			zap.L().Info("Loading actions", zap.Uint64("height", i), zap.Uint64("startIndex", startIndex))
 		}
 	}

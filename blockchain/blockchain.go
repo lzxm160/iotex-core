@@ -8,7 +8,6 @@ package blockchain
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"os"
 	"strconv"
@@ -28,7 +27,7 @@ import (
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
@@ -511,7 +510,6 @@ func (bc *blockchain) GetActionsFromIndex(index uint64) (hash.Hash256, error) {
 		return hash, err
 	}
 	tipIndexActions := enc.MachineEndian.Uint64(value)
-	fmt.Println("//////////////////////////////", tipIndexActions)
 	if index > tipIndexActions {
 		return hash, errors.Errorf("index is greater than top index:%d", tipIndexActions)
 	}
