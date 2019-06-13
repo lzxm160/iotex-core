@@ -7,6 +7,7 @@
 package blockchain
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -72,6 +73,7 @@ func NewIndexBuilder(chain Blockchain) (*IndexBuilder, error) {
 
 // Start starts the index builder
 func (ib *IndexBuilder) Start(_ context.Context) error {
+	fmt.Println("///////////////////////")
 	err := ib.initAndLoadActions()
 	if err != nil {
 		return err
@@ -121,20 +123,26 @@ func (ib *IndexBuilder) HandleBlock(blk *block.Block) error {
 }
 
 func (ib *IndexBuilder) initAndLoadActions() error {
+	fmt.Println("///////////////////////")
 	if _, err := ib.store.Get(blockActionBlockMappingNS, indexActionsKey); err != nil &&
 		errors.Cause(err) == db.ErrNotExist {
 		if err = ib.store.Put(blockActionBlockMappingNS, indexActionsKey, make([]byte, 8)); err != nil {
 			return errors.Wrap(err, "failed to write initial value for index actions")
 		}
 	}
-	value, _ := ib.store.Get(blockActionBlockMappingNS, indexActionsKey)
+	fmt.Println("///////////////////////")
+	value, err := ib.store.Get(blockActionBlockMappingNS, indexActionsKey)
+	if err != nil {
+		return err
+	}
 	tipIndexActions := enc.MachineEndian.Uint64(value)
-
+	fmt.Println("///////////////////////")
 	if tipIndexActions == 0 {
 		tipHeight, err := ib.dao.getBlockchainHeight()
 		if err != nil {
 			return err
 		}
+		fmt.Println("///////////////////////")
 		batch := db.NewBatch()
 		for i := uint64(1); i <= tipHeight; i++ {
 			hash, err := ib.dao.getBlockHash(i)
@@ -163,6 +171,7 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 			return err
 		}
 	}
+	fmt.Println("///////////////////////")
 	return nil
 }
 func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
