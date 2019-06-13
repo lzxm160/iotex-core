@@ -15,6 +15,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/iotexproject/iotex-core/pkg/enc"
+
 	"github.com/facebookgo/clock"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
@@ -154,6 +156,7 @@ type Blockchain interface {
 
 	// RemoveSubscriber make you listen to every single produced block
 	RemoveSubscriber(BlockCreationSubscriber) error
+	GetActionsFromIndex(index uint64) (hash.Hash256, error)
 }
 
 // blockchain implements the Blockchain interface
@@ -497,6 +500,27 @@ func (bc *blockchain) GetActionsFromAddress(addrStr string) ([]hash.Hash256, err
 		return nil, err
 	}
 	return getActionsBySenderAddress(bc.dao.kvstore, hash.BytesToHash160(addr.Bytes()))
+}
+
+// GetActionsFromIndex returns actions from index
+func (bc *blockchain) GetActionsFromIndex(index uint64) (hash.Hash256, error) {
+	value, _ := bc.dao.kvstore.Get(blockActionBlockMappingNS, indexActionsKey)
+	tipIndexActions := enc.MachineEndian.Uint64(value)
+	hash := hash.ZeroHash256
+	if index > tipIndexActions {
+		return hash, errors.New("index is greater than top index")
+	}
+	indexActionsBytes := byteutil.Uint64ToBytes(index)
+	value, err := bc.dao.kvstore.Get(blockActionBlockMappingNS, indexActionsBytes)
+
+	if err != nil {
+		return hash, errors.Wrap(err, "failed to get action hash")
+	}
+	if len(hash) != len(value) {
+		return hash, errors.Wrap(err, "action hash is broken")
+	}
+	copy(hash[:], value)
+	return hash, nil
 }
 
 // GetActionToAddress returns action to address

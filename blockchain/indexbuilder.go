@@ -70,6 +70,12 @@ func NewIndexBuilder(chain Blockchain) (*IndexBuilder, error) {
 
 // Start starts the index builder
 func (ib *IndexBuilder) Start(_ context.Context) error {
+	if _, err := ib.store.Get(blockActionBlockMappingNS, indexActionsKey); err != nil &&
+		errors.Cause(err) == db.ErrNotExist {
+		if err = ib.store.Put(blockActionBlockMappingNS, indexActionsKey, make([]byte, 8)); err != nil {
+			return errors.Wrap(err, "failed to write initial value for index actions")
+		}
+	}
 	go func() {
 		for {
 			select {
@@ -116,11 +122,17 @@ func (ib *IndexBuilder) HandleBlock(blk *block.Block) error {
 
 func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
 	hash := blk.HashBlock()
-	for _, elp := range blk.Actions {
+	value, _ := store.Get(blockActionBlockMappingNS, indexActionsKey)
+	tipIndexActions := enc.MachineEndian.Uint64(value)
+	tipIndexActions+=1
+	for i, elp := range blk.Actions {
 		actHash := elp.Hash()
 		batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], hash[:], "failed to put action hash %x", actHash)
+		indexActionsBytes := byteutil.Uint64ToBytes(tipIndexActions+uint64(i))
+		batch.Put(blockActionBlockMappingNS,indexActionsBytes, actHash[:], "failed to put index of actions %x", actHash)
 	}
-
+	indexActionsBytes := byteutil.Uint64ToBytes(tipIndexActions+uint64(len(blk.Actions)-1))
+	batch.Put(blockActionBlockMappingNS, indexActionsKey, indexActionsBytes, "failed to put index actions")
 	return putActions(store, blk, batch)
 }
 
