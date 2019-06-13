@@ -8,6 +8,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"os"
 	"strconv"
@@ -510,6 +511,7 @@ func (bc *blockchain) GetActionsFromIndex(index uint64) (hash.Hash256, error) {
 		return hash, err
 	}
 	tipIndexActions := enc.MachineEndian.Uint64(value)
+	fmt.Println("//////////////////////////////", tipIndexActions)
 	if index > tipIndexActions {
 		return hash, errors.Errorf("index is greater than top index:%d", tipIndexActions)
 	}
