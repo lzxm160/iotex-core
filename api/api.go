@@ -616,7 +616,7 @@ func (api *Server) getActions(start uint64, count uint64) (*iotexapi.GetActionsR
 		return &iotexapi.GetActionsResponse{}, nil
 	}
 	if start >= totalActions {
-		return nil, status.Error(codes.InvalidArgument, "start exceeds the limit")
+		return nil, status.Error(codes.InvalidArgument, "start exceeds the total actions number")
 	}
 	if api.hasActionIndex {
 		return api.getActionsFromIndex(totalActions, start, count)
