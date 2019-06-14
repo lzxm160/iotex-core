@@ -119,20 +119,19 @@ func (ib *IndexBuilder) HandleBlock(blk *block.Block) error {
 	ib.pendingBlks <- blk
 	return nil
 }
-func (ib *IndexBuilder) initActions() error {
+func (ib *IndexBuilder) initIndexActionsKey() error {
 	_, err := ib.store.Get(blockActionBlockMappingNS, indexActionsKey)
 	if err != nil && errors.Cause(err) == db.ErrNotExist {
 		if err = ib.store.Put(blockActionBlockMappingNS, indexActionsKey, make([]byte, 8)); err != nil {
 			return errors.Wrap(err, "failed to write initial value for index actions")
 		}
+		return nil
 	}
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 func (ib *IndexBuilder) getStartHeightAndIndex(tipHeight uint64) (startHeight, startIndex uint64, err error) {
-	startIndex, err = getTopIndex(ib.store)
+	// get index that already builded
+	startIndex, err = getNextIndex(ib.store)
 	if err != nil {
 		return
 	}
@@ -150,7 +149,9 @@ func (ib *IndexBuilder) getStartHeightAndIndex(tipHeight uint64) (startHeight, s
 			return
 		}
 		currentNumOfActions += uint64(len(body.Actions))
+		// get the block height that needs to build index and reset start index
 		if currentNumOfActions >= startIndex {
+			// reset startIndex to this block's first action
 			startIndex = currentNumOfActions - uint64(len(body.Actions)) + 1
 			startHeight = i
 			break
@@ -171,7 +172,7 @@ func (ib *IndexBuilder) commitBatchAndClear(tipIndex uint64, batch db.KVStoreBat
 	return nil
 }
 func (ib *IndexBuilder) initAndLoadActions() error {
-	err := ib.initActions()
+	err := ib.initIndexActionsKey()
 	if err != nil {
 		return err
 	}
@@ -202,27 +203,30 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 			return err
 		}
 		receipts, err := ib.dao.getReceipts(i)
+		// if receipts are not available,this error will be ignored
 		if err != nil && errors.Cause(err) != db.ErrNotExist {
-
 			return err
 		}
 		putReceipts(i, receipts, batch)
 		startIndex += uint64(len(blk.Actions))
+		// commit once every 10000 heights
 		if i%10000 == 0 {
 			if err := ib.commitBatchAndClear(startIndex-1, batch); err != nil {
 				return err
 			}
 		}
+		// log once every 1000 heights
 		if i%1000 == 0 {
 			zap.L().Info("Loading actions", zap.Uint64("height", i), zap.Uint64("startIndex", startIndex))
 		}
 	}
+	// last commit
 	if err := ib.commitBatchAndClear(startIndex-1, batch); err != nil {
 		return err
 	}
 	return nil
 }
-func getTopIndex(store db.KVStore) (uint64, error) {
+func getNextIndex(store db.KVStore) (uint64, error) {
 	value, err := store.Get(blockActionBlockMappingNS, indexActionsKey)
 	if err != nil {
 		return 0, err
@@ -233,7 +237,7 @@ func getTopIndex(store db.KVStore) (uint64, error) {
 }
 func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
 	hash := blk.HashBlock()
-	startIndex, err := getTopIndex(store)
+	startIndex, err := getNextIndex(store)
 	if err != nil {
 		return err
 	}
