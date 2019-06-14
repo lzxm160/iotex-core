@@ -150,9 +150,9 @@ func (ib *IndexBuilder) getStartHeightAndIndex(tipHeight uint64) (startHeight, s
 		}
 		currentNumOfActions += uint64(len(body.Actions))
 		// get the block height that needs to build index and reset start index
-		if currentNumOfActions >= startIndex {
+		if currentNumOfActions > startIndex {
 			// reset startIndex to this block's first action
-			startIndex = currentNumOfActions - uint64(len(body.Actions)) + 1
+			startIndex = currentNumOfActions - uint64(len(body.Actions))
 			startHeight = i
 			break
 		}
@@ -211,7 +211,7 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		startIndex += uint64(len(blk.Actions))
 		// commit once every 10000 heights
 		if i%10000 == 0 {
-			if err := ib.commitBatchAndClear(startIndex-1, batch); err != nil {
+			if err := ib.commitBatchAndClear(startIndex, batch); err != nil {
 				return err
 			}
 		}
@@ -221,7 +221,7 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		}
 	}
 	// last commit
-	if err := ib.commitBatchAndClear(startIndex-1, batch); err != nil {
+	if err := ib.commitBatchAndClear(startIndex, batch); err != nil {
 		return err
 	}
 	return nil
@@ -232,7 +232,6 @@ func getNextIndex(store db.KVStore) (uint64, error) {
 		return 0, err
 	}
 	startActionNum := enc.MachineEndian.Uint64(value)
-	startActionNum++
 	return startActionNum, nil
 }
 func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
@@ -248,7 +247,7 @@ func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 	if err != nil {
 		return err
 	}
-	indexActionsBytes := byteutil.Uint64ToBytes(startIndex + uint64(len(blk.Actions)) - 1)
+	indexActionsBytes := byteutil.Uint64ToBytes(startIndex + uint64(len(blk.Actions)))
 	batch.Put(blockActionBlockMappingNS, indexActionsKey, indexActionsBytes, "failed to put index actions")
 	return nil
 }
