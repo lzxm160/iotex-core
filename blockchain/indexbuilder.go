@@ -199,6 +199,7 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		}
 		receipts, err := ib.dao.getReceipts(i)
 		if err != nil && errors.Cause(err) != db.ErrNotExist {
+
 			return err
 		}
 		putReceipts(i, receipts, batch)
@@ -322,6 +323,7 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 // putReceipts store receipt into db
 func putReceipts(blkHeight uint64, blkReceipts []*action.Receipt, batch db.KVStoreBatch) {
 	if blkReceipts == nil {
+		zap.L().Info("Receipt empty", zap.Uint64("height", blkHeight))
 		return
 	}
 	var heightBytes [8]byte
