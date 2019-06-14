@@ -158,6 +158,15 @@ func (ib *IndexBuilder) getStartHeightAndIndex(tipHeight uint64) (startHeight, s
 	}
 	return
 }
+func (ib *IndexBuilder) commitBatchAndClear(tipIndex uint64, batch db.KVStoreBatch) error {
+	indexActionsBytes := byteutil.Uint64ToBytes(tipIndex)
+	batch.Put(blockActionBlockMappingNS, indexActionsKey, indexActionsBytes, "failed to put index actions")
+	if err := ib.store.Commit(batch); err != nil {
+		return err
+	}
+	batch.Clear()
+	return nil
+}
 func (ib *IndexBuilder) initAndLoadActions() error {
 	err := ib.initActions()
 	if err != nil {
@@ -195,18 +204,15 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		putReceipts(i, receipts, batch)
 		startIndex += uint64(len(blk.Actions))
 		if i%10000 == 0 {
-			if err := ib.store.Commit(batch); err != nil {
+			if err := ib.commitBatchAndClear(startIndex-1, batch); err != nil {
 				return err
 			}
-			batch.Clear()
 		}
 		if i%1000 == 0 {
 			zap.L().Info("Loading actions", zap.Uint64("height", i), zap.Uint64("startIndex", startIndex))
 		}
 	}
-	indexActionsBytes := byteutil.Uint64ToBytes(startIndex - 1)
-	batch.Put(blockActionBlockMappingNS, indexActionsKey, indexActionsBytes, "failed to put index actions")
-	if err := ib.store.Commit(batch); err != nil {
+	if err := ib.commitBatchAndClear(startIndex-1, batch); err != nil {
 		return err
 	}
 	return nil
