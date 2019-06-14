@@ -139,12 +139,14 @@ func (ib *IndexBuilder) getStartHeightAndIndex(tipHeight uint64) (startHeight, s
 	currentNumOfActions := uint64(0)
 	startHeight = uint64(1)
 	for i := uint64(1); i <= tipHeight; i++ {
-		hash, err := ib.dao.getBlockHash(i)
-		if err != nil {
+		hash, errs := ib.dao.getBlockHash(i)
+		if errs != nil {
+			err = errs
 			return
 		}
-		body, err := ib.dao.body(hash)
-		if err != nil {
+		body, errs := ib.dao.body(hash)
+		if errs != nil {
+			err = errs
 			return
 		}
 		currentNumOfActions += uint64(len(body.Actions))
