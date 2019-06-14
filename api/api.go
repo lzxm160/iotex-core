@@ -587,7 +587,7 @@ func (api *Server) getActionsFromIndex(totalActions, start, count uint64) (*iote
 	for i := start + 1; i <= start+count; i++ {
 		hash, err := api.bc.GetActionHashFromIndex(i)
 		if err != nil {
-			return nil, err
+			continue
 		}
 		act, err := api.getAction(hash, false)
 		if err != nil {
