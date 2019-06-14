@@ -119,8 +119,7 @@ func (ib *IndexBuilder) HandleBlock(blk *block.Block) error {
 	ib.pendingBlks <- blk
 	return nil
 }
-
-func (ib *IndexBuilder) initAndLoadActions() error {
+func (ib *IndexBuilder) initActions() error {
 	_, err := ib.store.Get(blockActionBlockMappingNS, indexActionsKey)
 	if err != nil && errors.Cause(err) == db.ErrNotExist {
 		if err = ib.store.Put(blockActionBlockMappingNS, indexActionsKey, make([]byte, 8)); err != nil {
@@ -130,13 +129,48 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+func (ib *IndexBuilder) getStartHeightAndIndex(tipHeight uint64) (startHeight, startIndex uint64, err error) {
+	startIndex, err = getTopIndex(ib.store)
+	if err != nil {
+		return
+	}
+	currentNumOfActions := uint64(0)
+	startHeight = uint64(1)
+	for i := uint64(1); i <= tipHeight; i++ {
+		hash, err := ib.dao.getBlockHash(i)
+		if err != nil {
+			return
+		}
+		body, err := ib.dao.body(hash)
+		if err != nil {
+			return
+		}
+		currentNumOfActions += uint64(len(body.Actions))
+		if currentNumOfActions >= startIndex {
+			startIndex = currentNumOfActions - uint64(len(body.Actions)) + 1
+			startHeight = i
+			break
+		}
+	}
+	return
+}
+func (ib *IndexBuilder) initAndLoadActions() error {
+	err := ib.initActions()
+	if err != nil {
+		return err
+	}
 	tipHeight, err := ib.dao.getBlockchainHeight()
 	if err != nil {
 		return err
 	}
+	startHeight, startIndex, err := ib.getStartHeightAndIndex(tipHeight)
+	if err != nil {
+		return err
+	}
 	batch := db.NewBatch()
-	startIndex := uint64(1)
-	for i := uint64(1); i <= tipHeight; i++ {
+	for i := startHeight; i <= tipHeight; i++ {
 		hash, err := ib.dao.getBlockHash(i)
 		if err != nil {
 			return err
@@ -152,7 +186,6 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		if err != nil {
 			return err
 		}
-
 		receipts, err := ib.dao.getReceipts(i)
 		if err != nil {
 			return err
