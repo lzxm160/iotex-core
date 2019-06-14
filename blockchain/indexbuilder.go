@@ -155,6 +155,9 @@ func (ib *IndexBuilder) getStartHeightAndIndex(tipHeight uint64) (startHeight, s
 			startHeight = i
 			break
 		}
+		if i == tipHeight {
+			startHeight = tipHeight + 1
+		}
 	}
 	return
 }
