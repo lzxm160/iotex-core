@@ -198,7 +198,7 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 			return err
 		}
 		receipts, err := ib.dao.getReceipts(i)
-		if err != nil {
+		if err != nil && errors.Cause(err) != db.ErrNotExist {
 			return err
 		}
 		putReceipts(i, receipts, batch)
