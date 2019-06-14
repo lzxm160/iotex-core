@@ -584,7 +584,7 @@ func (api *Server) readState(ctx context.Context, in *iotexapi.ReadStateRequest)
 
 func (api *Server) getActionsFromIndex(totalActions, start, count uint64) (*iotexapi.GetActionsResponse, error) {
 	var actionInfo []*iotexapi.ActionInfo
-	for i := start + 1; i <= start+count; i++ {
+	for i := start; i < start+count-1; i++ {
 		hash, err := api.bc.GetActionHashFromIndex(i)
 		if err != nil {
 			continue
