@@ -177,6 +177,9 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		return err
 	}
 	tipHeight, err := ib.dao.getBlockchainHeight()
+	if errors.Cause(err) == db.ErrNotExist {
+		return nil
+	}
 	if err != nil {
 		return err
 	}
