@@ -17,7 +17,7 @@ import (
 )
 
 func commitBlock(bc blockchain.Blockchain, ap actpool.ActPool, cs consensus.Consensus, blk *block.Block) error {
-	zap.L().Info("///////////////commitBlock", zap.Uint64("height", blk.Height()), zap.Error(errors.New("for call stack")))
+	zap.L().Error("///////////////commitBlock", zap.Uint64("height", blk.Height()), zap.Error(errors.New("for call stack")))
 	if err := cs.ValidateBlockFooter(blk); err != nil {
 		return err
 	}
