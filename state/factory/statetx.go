@@ -69,11 +69,11 @@ func (stx *stateTX) RunActions(
 	if len(elps) > 0 {
 		raCtx = protocol.MustGetRunActionsCtx(ctx)
 	}
-	zap.L().Error("///////////////RunActions",
-		zap.Uint64("height", blockHeight),
-		zap.Int("len(elps)", len(elps)),
-		zap.Error(errors.New("for call stack")),
-	)
+	//zap.L().Error("///////////////RunActions",
+	//	zap.Uint64("height", blockHeight),
+	//	zap.Int("len(elps)", len(elps)),
+	//	zap.Error(errors.New("for call stack")),
+	//)
 	for _, elp := range elps {
 
 		receipt, err := stx.RunAction(raCtx, elp)
@@ -109,7 +109,10 @@ func (stx *stateTX) RunAction(
 	raCtx.IntrinsicGas = intrinsicGas
 	raCtx.Nonce = elp.Nonce()
 	ctx := protocol.WithRunActionsCtx(context.Background(), raCtx)
-
+	zap.L().Error("///////////////RunActions",
+		zap.Uint64("height", raCtx.BlockHeight),
+		zap.Error(errors.New("for call stack")),
+	)
 	for _, actionHandler := range stx.actionHandlers {
 		receipt, err := actionHandler.Handle(ctx, elp.Action(), stx)
 		if err != nil {
