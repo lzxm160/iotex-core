@@ -486,14 +486,19 @@ func setCandidates(
 		if err := accountutil.StoreAccount(sm, candidate.Address, delegate); err != nil {
 			return errors.Wrap(err, "failed to update pending account changes to trie")
 		}
-		log.L().Debug(
-			"add candidate",
-			zap.Uint64("height", height),
-			zap.String("address", candidate.Address),
-			zap.String("rewardAddress", candidate.RewardAddress),
-			zap.String("score", candidate.Votes.String()),
-			zap.Error(errors.New("for call stack")),
-		)
+		//log.L().Debug(
+		//	"add candidate",
+		//	zap.Uint64("height", height),
+		//	zap.String("address", candidate.Address),
+		//	zap.String("rewardAddress", candidate.RewardAddress),
+		//	zap.String("score", candidate.Votes.String()),
+		//	zap.Error(errors.New("for call stack")),
+		//)
 	}
+	log.L().Debug(
+		"add candidate",
+		zap.Uint64("height", height),
+		zap.Error(errors.New("for call stack")),
+	)
 	return sm.PutState(candidatesutil.ConstructKey(height), &candidates)
 }
