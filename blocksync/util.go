@@ -11,9 +11,11 @@ import (
 	"github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/blockchain/block"
 	"github.com/iotexproject/iotex-core/consensus"
+	"go.uber.org/zap"
 )
 
 func commitBlock(bc blockchain.Blockchain, ap actpool.ActPool, cs consensus.Consensus, blk *block.Block) error {
+	zap.L().Info("///////////////commitBlock", zap.Uint64("height", blk.Height()))
 	if err := cs.ValidateBlockFooter(blk); err != nil {
 		return err
 	}

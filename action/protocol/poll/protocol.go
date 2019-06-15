@@ -420,7 +420,7 @@ func handle(ctx context.Context, act action.Action, sm protocol.StateManager, pr
 	if !ok {
 		return nil, nil
 	}
-	zap.L().Debug("Handle PutPollResult Action", zap.Uint64("height", r.Height()), zap.Int("can length", len(r.Candidates())), zap.Error(errors.New("for call stack")))
+	zap.L().Info("Handle PutPollResult Action", zap.Uint64("height", r.Height()), zap.Int("can length", len(r.Candidates())), zap.Error(errors.New("for call stack")))
 
 	if err := setCandidates(sm, r.Candidates(), r.Height()); err != nil {
 		return nil, errors.Wrap(err, "failed to set candidates")
@@ -486,18 +486,14 @@ func setCandidates(
 		if err := accountutil.StoreAccount(sm, candidate.Address, delegate); err != nil {
 			return errors.Wrap(err, "failed to update pending account changes to trie")
 		}
-		//log.L().Debug(
-		//	"add candidate",
-		//	zap.Uint64("height", height),
-		//	zap.String("address", candidate.Address),
-		//	zap.String("rewardAddress", candidate.RewardAddress),
-		//	zap.String("score", candidate.Votes.String()),
-		//	zap.Error(errors.New("for call stack")),
-		//)
+
 	}
 	log.L().Debug(
 		"add candidate",
 		zap.Uint64("height", height),
+		zap.String("address", candidate.Address),
+		zap.String("rewardAddress", candidate.RewardAddress),
+		zap.String("score", candidate.Votes.String()),
 		zap.Error(errors.New("for call stack")),
 	)
 	return sm.PutState(candidatesutil.ConstructKey(height), &candidates)
