@@ -214,11 +214,17 @@ func (c *roundCalculator) newRound(
 	if height != 0 {
 		epochNum = c.rp.GetEpochNum(height)
 		epochStartHeight := c.rp.GetEpochHeight(epochNum)
-		zap.L().Error("///////////////ValidateBlockFooter", zap.Uint64("epochStartHeight", epochStartHeight), zap.Error(errors.New("for call stack")))
+		zap.L().Error("///////////////ValidateBlockFooter",
+			zap.Uint64("height", height), zap.Uint64("epochStartHeight", epochStartHeight), zap.Error(errors.New("for call stack")))
 		if delegates, err = c.Delegates(epochStartHeight); err != nil {
 			return
 		}
-		zap.L().Error("///////////////ValidateBlockFooter", zap.Int("delegates len", len(delegates)), zap.Error(errors.New("for call stack")))
+		zap.L().Error("///////////////ValidateBlockFooter",
+			zap.Int("delegates len", len(delegates)),
+			zap.Uint64("height", height),
+			zap.Uint64("epochStartHeight", epochStartHeight),
+			zap.Error(errors.New("for call stack")),
+		)
 		if roundNum, roundStartTime, err = c.roundInfo(height, now, withToleration); err != nil {
 			return
 		}
