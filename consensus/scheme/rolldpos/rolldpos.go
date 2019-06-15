@@ -10,6 +10,7 @@ import (
 	"context"
 
 	"github.com/facebookgo/clock"
+	fsm "github.com/iotexproject/go-fsm"
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 	"github.com/pkg/errors"
