@@ -111,6 +111,7 @@ func (stx *stateTX) RunAction(
 	ctx := protocol.WithRunActionsCtx(context.Background(), raCtx)
 	zap.L().Error("///////////////RunActions",
 		zap.Uint64("height", raCtx.BlockHeight),
+		zap.Int("len(elps)", len(stx.actionHandlers)),
 		zap.Error(errors.New("for call stack")),
 	)
 	for _, actionHandler := range stx.actionHandlers {
