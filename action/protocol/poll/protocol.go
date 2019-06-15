@@ -420,7 +420,7 @@ func handle(ctx context.Context, act action.Action, sm protocol.StateManager, pr
 	if !ok {
 		return nil, nil
 	}
-	zap.L().Debug("Handle PutPollResult Action", zap.Uint64("height", r.Height()))
+	zap.L().Debug("Handle PutPollResult Action", zap.Uint64("height", r.Height()), zap.Int("can length", len(r.Candidates())), zap.Error(errors.New("for call stack")))
 
 	if err := setCandidates(sm, r.Candidates(), r.Height()); err != nil {
 		return nil, errors.Wrap(err, "failed to set candidates")
