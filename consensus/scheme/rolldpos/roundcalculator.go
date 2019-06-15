@@ -9,6 +9,8 @@ package rolldpos
 import (
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/pkg/errors"
 
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
@@ -158,12 +160,12 @@ func (c *roundCalculator) Delegates(height uint64) ([]string, error) {
 	epochStartHeight := c.rp.GetEpochHeight(c.rp.GetEpochNum(height))
 	numDelegates := c.rp.NumDelegates()
 	candidates, err := c.candidatesByHeightFunc(epochStartHeight)
-	//zap.L().Error("///////////////ValidateBlockFooter",
-	//	zap.Int("delegates len", len(candidates)),
-	//	zap.Uint64("height", height),
-	//	zap.Uint64("epochStartHeight", epochStartHeight),
-	//	zap.Error(errors.New("for call stack")),
-	//)
+	zap.L().Error("///////////////ValidateBlockFooter",
+		zap.Int("delegates len", len(candidates)),
+		zap.Uint64("height", height),
+		zap.Uint64("epochStartHeight", epochStartHeight),
+		zap.Error(errors.New("for call stack")),
+	)
 	if err != nil {
 		return nil, errors.Wrapf(
 			err,
