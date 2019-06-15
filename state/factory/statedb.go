@@ -205,7 +205,7 @@ func (sdb *stateDB) CandidatesByHeight(height uint64) ([]*state.Candidate, error
 			zap.Any("candidates", candidates),
 			zap.Error(errors.New("for call stack")),
 		)
-	}else{
+	} else {
 		log.L().Debug(
 			"CandidatesByHeight",
 			zap.Uint64("height", height),

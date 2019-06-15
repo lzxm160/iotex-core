@@ -491,6 +491,7 @@ func setCandidates(
 			zap.String("address", candidate.Address),
 			zap.String("rewardAddress", candidate.RewardAddress),
 			zap.String("score", candidate.Votes.String()),
+			zap.Error(errors.New("for call stack")),
 		)
 	}
 	return sm.PutState(candidatesutil.ConstructKey(height), &candidates)
