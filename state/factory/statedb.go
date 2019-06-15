@@ -199,14 +199,14 @@ func (sdb *stateDB) CandidatesByHeight(height uint64) ([]*state.Candidate, error
 	candidatesKey := candidatesutil.ConstructKey(height)
 	err := sdb.state(candidatesKey, &candidates)
 	if err == nil {
-		log.L().Debug(
+		log.L().Error(
 			"CandidatesByHeight",
 			zap.Uint64("height", height),
 			zap.Any("candidates", candidates),
 			zap.Error(errors.New("for call stack")),
 		)
 	} else {
-		log.L().Debug(
+		log.L().Error(
 			"CandidatesByHeight",
 			zap.Uint64("height", height),
 			zap.Any("candidates", candidates),

@@ -124,7 +124,6 @@ func (r *RollDPoS) Calibrate(height uint64) {
 
 // ValidateBlockFooter validates the signatures in the block footer
 func (r *RollDPoS) ValidateBlockFooter(blk *block.Block) error {
-	zap.L().Error("///////////////ValidateBlockFooter", zap.Uint64("height", blk.Height()), zap.Error(errors.New("for call stack")))
 	round, err := r.ctx.RoundCalc().NewRound(blk.Height(), blk.Timestamp())
 	if err != nil {
 		return err

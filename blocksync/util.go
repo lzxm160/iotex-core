@@ -7,17 +7,13 @@
 package blocksync
 
 import (
-	"errors"
-
 	"github.com/iotexproject/iotex-core/actpool"
 	"github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/blockchain/block"
 	"github.com/iotexproject/iotex-core/consensus"
-	"go.uber.org/zap"
 )
 
 func commitBlock(bc blockchain.Blockchain, ap actpool.ActPool, cs consensus.Consensus, blk *block.Block) error {
-	zap.L().Error("///////////////commitBlock", zap.Uint64("height", blk.Height()), zap.Error(errors.New("for call stack")))
 	if err := cs.ValidateBlockFooter(blk); err != nil {
 		return err
 	}
