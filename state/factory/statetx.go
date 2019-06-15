@@ -9,6 +9,8 @@ package factory
 import (
 	"context"
 
+	"go.uber.org/zap"
+
 	"github.com/pkg/errors"
 
 	"github.com/iotexproject/go-pkgs/hash"
@@ -67,7 +69,13 @@ func (stx *stateTX) RunActions(
 	if len(elps) > 0 {
 		raCtx = protocol.MustGetRunActionsCtx(ctx)
 	}
+	zap.L().Error("///////////////RunActions",
+		zap.Uint64("height", blockHeight),
+		zap.Int("len(elps)", len(elps)),
+		zap.Error(errors.New("for call stack")),
+	)
 	for _, elp := range elps {
+
 		receipt, err := stx.RunAction(raCtx, elp)
 		if err != nil {
 			return nil, errors.Wrap(err, "error when run action")
@@ -101,6 +109,7 @@ func (stx *stateTX) RunAction(
 	raCtx.IntrinsicGas = intrinsicGas
 	raCtx.Nonce = elp.Nonce()
 	ctx := protocol.WithRunActionsCtx(context.Background(), raCtx)
+
 	for _, actionHandler := range stx.actionHandlers {
 		receipt, err := actionHandler.Handle(ctx, elp.Action(), stx)
 		if err != nil {
