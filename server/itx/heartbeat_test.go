@@ -38,6 +38,7 @@ func TestNewHeartbeatHandler(t *testing.T) {
 	cfg := config.Default
 	cfg.Consensus.Scheme = config.RollDPoSScheme
 	cfg.Genesis.EnableGravityChainVoting = true
+	cfg.System.HeartbeatInterval = 0
 	s, err := NewServer(cfg)
 	require.NoError(err)
 	require.NotNil(s)
