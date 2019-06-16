@@ -20,9 +20,10 @@ import (
 func TestNewHeartbeatHandlerNil(t *testing.T) {
 	require := require.New(t)
 	cfg := config.Default
-	s, err := NewServer(cfg)
 	cfg.Consensus.Scheme = config.RollDPoSScheme
 	cfg.Genesis.EnableGravityChainVoting = true
+	s, err := NewServer(cfg)
+
 	require.NoError(err)
 	require.NotNil(s)
 	handler := NewHeartbeatHandler(s)
