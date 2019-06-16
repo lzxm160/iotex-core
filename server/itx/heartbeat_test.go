@@ -17,6 +17,18 @@ import (
 	"github.com/iotexproject/iotex-core/pkg/probe"
 )
 
+func TestNewHeartbeatHandlerNil(t *testing.T) {
+	require := require.New(t)
+	cfg := config.Default
+	s, err := NewServer(cfg)
+	cfg.Consensus.Scheme = config.RollDPoSScheme
+	cfg.Genesis.EnableGravityChainVoting = true
+	require.NoError(err)
+	require.NotNil(s)
+	handler := NewHeartbeatHandler(s)
+	require.NotNil(handler)
+	require.Panics(func() { handler.Log() }, "P2pAgent is nil")
+}
 func TestNewHeartbeatHandler(t *testing.T) {
 	// TODO: enable if after fix data race
 	//t.Skip()
@@ -28,12 +40,9 @@ func TestNewHeartbeatHandler(t *testing.T) {
 	cfg.Genesis.EnableGravityChainVoting = true
 	require.NoError(err)
 	require.NotNil(s)
+
 	handler := NewHeartbeatHandler(s)
 	require.NotNil(handler)
-	require.Panics(func() { handler.Log() }, "P2pAgent is nil")
-
-	handler2 := NewHeartbeatHandler(s)
-	require.NotNil(handler2)
 	ctx, cancel := context.WithCancel(context.Background())
 	livenessCtx, livenessCancel := context.WithCancel(context.Background())
 	probeSvr := probe.New(cfg.System.HTTPStatsPort)
@@ -41,7 +50,7 @@ func TestNewHeartbeatHandler(t *testing.T) {
 	require.NoError(err)
 	go StartServer(ctx, s, probeSvr, cfg)
 	time.Sleep(time.Second * 2)
-	handler2.Log()
+	handler.Log()
 	cancel()
 	err = probeSvr.Stop(livenessCtx)
 	require.NoError(err)
