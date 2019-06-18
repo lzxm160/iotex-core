@@ -206,7 +206,7 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		}
 	}
 	// last commit
-	zap.L().Info("last committing actions", zap.Uint64("height", i), zap.Uint64("index", startIndex))
+	zap.L().Info("last committing actions", zap.Uint64("height", i-1), zap.Uint64("index", startIndex))
 	if err := ib.commitBatchAndClear(startIndex, i-1, batch); err != nil {
 		return err
 	}
