@@ -35,8 +35,9 @@ func TestBasicProbe(t *testing.T) {
 	s := New(7788)
 	ctx := context.Background()
 	require.NoError(t, s.Start(ctx))
-	require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 20*time.Second, func() (b bool, e error) {
-		return s.ready == 1, nil
+	require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 2*time.Second, func() (b bool, e error) {
+		_, err := http.Get("http://localhost:7788/liveness")
+		return err == nil, nil
 	}))
 	test1 := []testCase{
 		{
