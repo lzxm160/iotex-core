@@ -199,7 +199,7 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		putReceipts(i, receipts, batch)
 		startIndex += uint64(len(blk.Actions))
 		// commit once every 1000 heights
-		if i%2000 == 0 {
+		if i%1000 == 0 {
 			zap.L().Info("committing actions", zap.Uint64("height", i), zap.Uint64("index", startIndex))
 			if err := ib.commitBatchAndClear(startIndex, i, batch); err != nil {
 				return err
