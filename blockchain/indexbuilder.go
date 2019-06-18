@@ -207,7 +207,7 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		}
 	}
 	// last commit
-	if err := ib.commitBatchAndClear(startIndex, i, batch); err != nil {
+	if err := ib.commitBatchAndClear(startIndex, i-1, batch); err != nil {
 		return err
 	}
 	return nil
