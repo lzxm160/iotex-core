@@ -226,6 +226,7 @@ func getNextHeight(store db.KVStore) (uint64, error) {
 		return 0, err
 	}
 	NextHeight := enc.MachineEndian.Uint64(value)
+	NextHeight++
 	return NextHeight, nil
 }
 func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
