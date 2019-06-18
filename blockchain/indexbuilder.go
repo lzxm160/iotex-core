@@ -200,7 +200,7 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		startIndex += uint64(len(blk.Actions))
 		// commit once every 1000 heights
 		if i%1000 == 0 {
-			zap.L().Info("committing actions", zap.Uint64("height", i), zap.Uint64("startIndex", startIndex))
+			zap.L().Info("committing actions", zap.Uint64("height", i), zap.Uint64("index", startIndex))
 			if err := ib.commitBatchAndClear(startIndex, i, batch); err != nil {
 				return err
 			}
