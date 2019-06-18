@@ -156,7 +156,6 @@ func (ib *IndexBuilder) commitBatchAndClear(tipIndex, tipHeight uint64, batch db
 	if err := ib.store.Commit(batch); err != nil {
 		return err
 	}
-	batch.Clear()
 	return nil
 }
 func (ib *IndexBuilder) initAndLoadActions() error {
