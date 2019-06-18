@@ -35,7 +35,7 @@ func TestBasicProbe(t *testing.T) {
 	s := New(7788)
 	ctx := context.Background()
 	require.NoError(t, s.Start(ctx))
-	require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 2*time.Second, func() (b bool, e error) {
+	require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 3*time.Second, func() (b bool, e error) {
 		return s.ready == 1, nil
 	}))
 	test1 := []testCase{
