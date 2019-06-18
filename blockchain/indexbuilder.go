@@ -246,7 +246,7 @@ func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 	}
 	tipIndexBytes := byteutil.Uint64ToBytes(startIndex + uint64(len(blk.Actions)))
 	batch.Put(blockActionBlockMappingNS, indexActionsTipIndexKey, tipIndexBytes, "failed to put index actions")
-	tipHeightBytes := byteutil.Uint64ToBytes(startHeight+ uint64(1))
+	tipHeightBytes := byteutil.Uint64ToBytes(startHeight)
 	batch.Put(blockActionBlockMappingNS, indexActionsTipHeightKey, tipHeightBytes, "failed to put tip height")
 	return nil
 }
