@@ -135,7 +135,7 @@ func initIndexActionsKey(store db.KVStore) error {
 	}
 	return err
 }
-func (ib *IndexBuilder) getStartHeightAndIndex(tipHeight uint64) (startHeight, startIndex uint64, err error) {
+func (ib *IndexBuilder) getStartHeightAndIndex() (startHeight, startIndex uint64, err error) {
 	// get index that already builded
 	startIndex, err = getNextIndex(ib.store)
 	if err != nil {
@@ -168,7 +168,7 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 	if err != nil {
 		return err
 	}
-	startHeight, startIndex, err := ib.getStartHeightAndIndex(tipHeight)
+	startHeight, startIndex, err := ib.getStartHeightAndIndex()
 	if err != nil {
 		return err
 	}
@@ -242,7 +242,7 @@ func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 		return err
 	}
 	indexActionsBytes := byteutil.Uint64ToBytes(startIndex + uint64(len(blk.Actions)))
-	batch.Put(blockActionBlockMappingNS, indexActionsKey, indexActionsBytes, "failed to put index actions")
+	batch.Put(blockActionBlockMappingNS, indexActionsTipIndexKey, indexActionsBytes, "failed to put index actions")
 	return nil
 }
 func indexBlockHash(startActionsNum uint64, blkHash hash.Hash256, store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
