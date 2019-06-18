@@ -231,19 +231,23 @@ func getNextHeight(store db.KVStore) (uint64, error) {
 }
 func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
 	hash := blk.HashBlock()
+	// get index that already builded
 	startIndex, err := getNextIndex(store)
-	if err != nil && errors.Cause(err) == db.ErrNotExist {
-		err = initIndexActionsKey(store)
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
 	}
-
+	// get height that already builded
+	startHeight, err := getNextHeight(store)
+	if err != nil {
+		return err
+	}
 	if err = indexBlockHash(startIndex, hash, store, blk, batch); err != nil {
 		return err
 	}
-	indexActionsBytes := byteutil.Uint64ToBytes(startIndex + uint64(len(blk.Actions)))
-	batch.Put(blockActionBlockMappingNS, indexActionsTipIndexKey, indexActionsBytes, "failed to put index actions")
+	tipIndexBytes := byteutil.Uint64ToBytes(startIndex + uint64(len(blk.Actions)))
+	batch.Put(blockActionBlockMappingNS, indexActionsTipIndexKey, tipIndexBytes, "failed to put index actions")
+	tipHeightBytes := byteutil.Uint64ToBytes(startHeight+ uint64(1))
+	batch.Put(blockActionBlockMappingNS, indexActionsTipHeightKey, tipHeightBytes, "failed to put tip height")
 	return nil
 }
 func indexBlockHash(startActionsNum uint64, blkHash hash.Hash256, store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
