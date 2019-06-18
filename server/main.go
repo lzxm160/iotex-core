@@ -43,7 +43,9 @@ func init() {
 }
 
 func main() {
-	http.ListenAndServe(":8088", nil)
+	go func() {
+		http.ListenAndServe(":8088", nil)
+	}()
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	signal.Notify(stop, syscall.SIGTERM)
