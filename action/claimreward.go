@@ -38,7 +38,7 @@ func (c *ClaimFromRewardingFund) Amount() *big.Int { return c.amount }
 // Data returns the additional data
 func (c *ClaimFromRewardingFund) Data() []byte { return c.data }
 
-// ByteStream returns a raw byte stream of a claim action
+// Serialize returns a raw byte stream of a claim action
 func (c *ClaimFromRewardingFund) Serialize() []byte {
 	return byteutil.Must(proto.Marshal(c.Proto()))
 }

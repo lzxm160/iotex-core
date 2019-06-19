@@ -77,7 +77,7 @@ func (r *PutPollResult) Candidates() state.CandidateList { return r.candidates }
 // ProducerPublicKey return producer public key.
 func (r *PutPollResult) ProducerPublicKey() crypto.PublicKey { return r.SrcPubkey() }
 
-// ByteStream returns the byte representation of put poll result action.
+// Serialize returns the byte representation of put poll result action.
 func (r *PutPollResult) Serialize() []byte {
 	return byteutil.Must(proto.Marshal(r.Proto()))
 }

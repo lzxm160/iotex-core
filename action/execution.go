@@ -88,7 +88,7 @@ func (ex *Execution) TotalSize() uint32 {
 	return size + uint32(len(ex.data))
 }
 
-// ByteStream returns a raw byte stream of this Transfer
+// Serialize returns a raw byte stream of this Transfer
 func (ex *Execution) Serialize() []byte {
 	return byteutil.Must(proto.Marshal(ex.Proto()))
 }

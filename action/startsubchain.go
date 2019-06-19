@@ -98,7 +98,7 @@ func (start *StartSubChain) ParentHeightOffset() uint64 { return start.parentHei
 // OwnerPublicKey returns the owner public key, which is the wrapper of SrcPubkey
 func (start *StartSubChain) OwnerPublicKey() crypto.PublicKey { return start.SrcPubkey() }
 
-// ByteStream returns the byte representation of sub-chain action
+// Serialize returns the byte representation of sub-chain action
 func (start *StartSubChain) Serialize() []byte {
 	return byteutil.Must(proto.Marshal(start.Proto()))
 }

@@ -233,7 +233,7 @@ func (elp *Envelope) LoadProto(pbAct *iotextypes.ActionCore) error {
 	return nil
 }
 
-// ByteStream returns encoded binary.
+// Serialize returns encoded binary.
 func (elp *Envelope) Serialize() []byte {
 	return byteutil.Must(proto.Marshal(elp.Proto()))
 }

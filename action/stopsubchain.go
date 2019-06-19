@@ -67,7 +67,7 @@ func (ssc *StopSubChain) TotalSize() uint32 {
 	return ssc.BasicActionSize() + 4 + 8 // chain id size + stop height size
 }
 
-// ByteStream returns a raw byte stream of this instance
+// Serialize returns a raw byte stream of this instance
 func (ssc *StopSubChain) Serialize() []byte {
 	return byteutil.Must(proto.Marshal(ssc.Proto()))
 }

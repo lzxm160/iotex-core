@@ -36,7 +36,7 @@ func (g *GrantReward) RewardType() int { return g.rewardType }
 // Height returns the block height to grant reward
 func (g *GrantReward) Height() uint64 { return g.height }
 
-// ByteStream returns a raw byte stream of a grant reward action
+// Serialize returns a raw byte stream of a grant reward action
 func (g *GrantReward) Serialize() []byte {
 	return byteutil.Must(proto.Marshal(g.Proto()))
 }
