@@ -131,7 +131,7 @@ func (h *Header) loadFromBlockHeaderCoreProto(pb *iotextypes.BlockHeaderCore) er
 }
 
 // CoreByteStream returns byte stream for header core.
-func (h *Header) CoreByteStream() []byte {
+func (h *Header) SerializeCore() []byte {
 	return byteutil.Must(proto.Marshal(h.BlockHeaderCoreProto()))
 }
 
@@ -157,7 +157,7 @@ func (h *Header) HashHeader() hash.Hash256 {
 
 // HashHeaderCore hahes the header core.
 func (h *Header) HashHeaderCore() hash.Hash256 {
-	return hash.Hash256b(h.CoreByteStream())
+	return hash.Hash256b(h.SerializeCore())
 }
 
 // VerifySignature verifies the signature saved in block header
