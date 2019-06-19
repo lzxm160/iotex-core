@@ -130,7 +130,7 @@ func (h *Header) loadFromBlockHeaderCoreProto(pb *iotextypes.BlockHeaderCore) er
 	return err
 }
 
-// CoreByteStream returns byte stream for header core.
+// SerializeCore returns byte stream for header core.
 func (h *Header) SerializeCore() []byte {
 	return byteutil.Must(proto.Marshal(h.BlockHeaderCoreProto()))
 }
