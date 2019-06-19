@@ -250,11 +250,6 @@ func (cs *ChainService) Start(ctx context.Context) error {
 
 // Stop stops the server
 func (cs *ChainService) Stop(ctx context.Context) error {
-	if cs.indexBuilder != nil {
-		if err := cs.indexBuilder.Stop(ctx); err != nil {
-			return errors.Wrap(err, "error when stopping index builder")
-		}
-	}
 	// TODO: explorer dependency deleted at #1085, need to revive by migrating to api
 	if cs.api != nil {
 		if err := cs.api.Stop(); err != nil {
@@ -263,6 +258,11 @@ func (cs *ChainService) Stop(ctx context.Context) error {
 	}
 	if err := cs.consensus.Stop(ctx); err != nil {
 		return errors.Wrap(err, "error when stopping consensus")
+	}
+	if cs.indexBuilder != nil {
+		if err := cs.indexBuilder.Stop(ctx); err != nil {
+			return errors.Wrap(err, "error when stopping index builder")
+		}
 	}
 	if err := cs.blocksync.Stop(ctx); err != nil {
 		return errors.Wrap(err, "error when stopping blocksync")
