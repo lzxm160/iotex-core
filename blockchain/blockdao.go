@@ -335,14 +335,6 @@ func (dao *blockDAO) footer(h hash.Hash256) (*block.Footer, error) {
 // getActionHashFromIndex returns the action from index
 func (dao *blockDAO) getActionHashFromIndex(index uint64) (hash.Hash256, error) {
 	hash := hash.ZeroHash256
-	//value, err := dao.kvstore.Get(blockActionBlockMappingNS, indexActionsTipIndexKey)
-	//if err != nil {
-	//	return hash, err
-	//}
-	//tipIndexActions := enc.MachineEndian.Uint64(value)
-	//if index > tipIndexActions {
-	//	return hash, errors.Errorf("index is greater than top index:%d", tipIndexActions)
-	//}
 	indexActionsBytes := byteutil.Uint64ToBytes(index)
 	value, err := dao.kvstore.Get(blockActionBlockMappingNS, indexActionsBytes)
 	if err != nil {
