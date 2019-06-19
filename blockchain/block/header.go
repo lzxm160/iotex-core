@@ -151,7 +151,8 @@ func (h *Header) Deserialize(buf []byte) error {
 
 // HashHeader hashes the header
 func (h *Header) HashHeader() hash.Hash256 {
-	return hash.Hash256b(h.Serialize())
+	s, _ := h.Serialize()
+	return hash.Hash256b(s)
 }
 
 // HashHeaderCore hahes the header core.
