@@ -70,7 +70,7 @@ func (sd *SettleDeposit) Recipient() string { return sd.recipient }
 func (sd *SettleDeposit) Destination() string { return sd.Recipient() }
 
 // ByteStream returns a raw byte stream of the settle deposit action
-func (sd *SettleDeposit) ByteStream() []byte {
+func (sd *SettleDeposit) Serialize() []byte {
 	return byteutil.Must(proto.Marshal(sd.Proto()))
 }
 

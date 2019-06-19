@@ -119,7 +119,7 @@ func (pb *PutBlock) Roots() map[string]hash.Hash256 { return pb.roots }
 func (pb *PutBlock) ProducerPublicKey() crypto.PublicKey { return pb.SrcPubkey() }
 
 // ByteStream returns the byte representation of put block action.
-func (pb *PutBlock) ByteStream() []byte {
+func (pb *PutBlock) Serialize() []byte {
 	return byteutil.Must(proto.Marshal(pb.Proto()))
 }
 

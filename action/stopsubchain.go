@@ -68,7 +68,7 @@ func (ssc *StopSubChain) TotalSize() uint32 {
 }
 
 // ByteStream returns a raw byte stream of this instance
-func (ssc *StopSubChain) ByteStream() []byte {
+func (ssc *StopSubChain) Serialize() []byte {
 	return byteutil.Must(proto.Marshal(ssc.Proto()))
 }
 

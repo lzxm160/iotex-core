@@ -73,7 +73,7 @@ func (d *CreateDeposit) Recipient() string { return d.recipient }
 func (d *CreateDeposit) Destination() string { return d.Recipient() }
 
 // ByteStream returns a raw byte stream of the deposit action
-func (d *CreateDeposit) ByteStream() []byte {
+func (d *CreateDeposit) Serialize() []byte {
 	return byteutil.Must(proto.Marshal(d.Proto()))
 }
 
