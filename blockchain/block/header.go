@@ -9,6 +9,8 @@ package block
 import (
 	"time"
 
+	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/iotexproject/go-pkgs/bloom"
@@ -20,7 +22,6 @@ import (
 
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/pkg/log"
-	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 )
 
 // Header defines the struct of block header
@@ -134,11 +135,6 @@ func (h *Header) CoreByteStream() []byte {
 	return byteutil.Must(proto.Marshal(h.BlockHeaderCoreProto()))
 }
 
-// ByteStream returns byte stream for header.
-func (h *Header) ByteStream() []byte {
-	return byteutil.Must(proto.Marshal(h.BlockHeaderProto()))
-}
-
 // Serialize returns the serialized byte stream of the block header
 func (h *Header) Serialize() ([]byte, error) {
 	return proto.Marshal(h.BlockHeaderProto())
@@ -155,7 +151,7 @@ func (h *Header) Deserialize(buf []byte) error {
 
 // HashHeader hashes the header
 func (h *Header) HashHeader() hash.Hash256 {
-	return hash.Hash256b(h.ByteStream())
+	return hash.Hash256b(h.Serialize())
 }
 
 // HashHeaderCore hahes the header core.
