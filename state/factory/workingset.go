@@ -10,6 +10,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
+
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -176,6 +178,16 @@ func (ws *workingSet) RunAction(
 	ctx := protocol.WithRunActionsCtx(context.Background(), raCtx)
 
 	for _, actionHandler := range ws.actionHandlers {
+		err := accountutil.IncreaseNonce(ws, raCtx.Caller, raCtx.Nonce)
+		if err != nil {
+			return nil, errors.Wrapf(
+				err,
+				"error when action %x (nonce: %d) from %s mutates states",
+				elp.Hash(),
+				elp.Nonce(),
+				caller.String(),
+			)
+		}
 		receipt, err := actionHandler.Handle(ctx, elp.Action(), ws)
 		if err != nil {
 			return nil, errors.Wrapf(
