@@ -87,3 +87,15 @@ func Recorded(sm protocol.StateManager, addr address.Address) (bool, error) {
 	}
 	return false, err
 }
+
+func IncreaseNonce(sm protocol.StateManager, addr address.Address, nonce uint64) error {
+	acc, err := LoadOrCreateAccount(sm, addr.String(), big.NewInt(0))
+	if err != nil {
+		return err
+	}
+	// TODO: this check shouldn't be necessary
+	if nonce > acc.Nonce {
+		acc.Nonce = nonce
+	}
+	return StoreAccount(sm, addr.String(), acc)
+}

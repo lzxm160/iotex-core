@@ -31,13 +31,9 @@ func (p *Protocol) handlePutBlock(ctx context.Context, pb *action.PutBlock, sm p
 		return err
 	}
 	// Update the block producer's nonce
-	addrHash := hash.BytesToHash160(raCtx.Caller.Bytes())
-	acct, err := accountutil.LoadAccount(sm, addrHash)
-	if err != nil {
+	if err := accountutil.IncreaseNonce(sm, raCtx.Caller, pb.Nonce()); err != nil {
 		return err
 	}
-	accountutil.SetNonce(pb, acct)
-	return accountutil.StoreAccount(sm, raCtx.Caller.String(), acct)
 }
 
 func (p *Protocol) validatePutBlock(pb *action.PutBlock, sm protocol.StateManager) error {

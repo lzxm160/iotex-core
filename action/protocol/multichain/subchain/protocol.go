@@ -88,15 +88,9 @@ func (p *Protocol) mutateDeposit(ctx context.Context, deposit *action.SettleDepo
 	}
 
 	// Update the action owner
-	owner, err := accountutil.LoadOrCreateAccount(sm, raCtx.Caller.String(), big.NewInt(0))
-	if err != nil {
+	if err := accountutil.IncreaseNonce(sm, raCtx.Caller, deposit.Nonce()); err != nil {
 		return err
 	}
-	accountutil.SetNonce(deposit, owner)
-	if err := accountutil.StoreAccount(sm, raCtx.Caller.String(), owner); err != nil {
-		return err
-	}
-
 	// Update the deposit recipient
 	recipient, err := accountutil.LoadOrCreateAccount(sm, deposit.Recipient(), big.NewInt(0))
 	if err != nil {

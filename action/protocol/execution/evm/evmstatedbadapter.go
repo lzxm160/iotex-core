@@ -222,17 +222,10 @@ func (stateDB *StateDBAdapter) SetNonce(evmAddr common.Address, nonce uint64) {
 		log.L().Error("Failed to convert evm address.", zap.Error(err))
 		return
 	}
-	s, err := stateDB.AccountState(addr.String())
-	if err != nil {
-		log.L().Error("Failed to set nonce.", zap.Error(err))
-		// stateDB.logError(err)
-		return
-	}
 	log.L().Debug("Called SetNonce.",
 		zap.String("address", addr.String()),
 		zap.Uint64("nonce", nonce))
-	s.Nonce = nonce
-	if err := accountutil.StoreAccount(stateDB.sm, addr.String(), s); err != nil {
+	if err := accountutil.IncreaseNonce(stateDB.sm, addr, nonce); err != nil {
 		log.L().Error("Failed to set nonce.", zap.Error(err))
 		stateDB.logError(err)
 	}
