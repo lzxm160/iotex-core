@@ -17,6 +17,7 @@ import (
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
+	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/db/trie"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
@@ -176,6 +177,16 @@ func (ws *workingSet) RunAction(
 	ctx := protocol.WithRunActionsCtx(context.Background(), raCtx)
 
 	for _, actionHandler := range ws.actionHandlers {
+		err := accountutil.IncreaseNonce(ws, raCtx.Caller, raCtx.Nonce)
+		if err != nil {
+			return nil, errors.Wrapf(
+				err,
+				"error when action %x (nonce: %d) from %s mutates states",
+				elp.Hash(),
+				elp.Nonce(),
+				caller.String(),
+			)
+		}
 		receipt, err := actionHandler.Handle(ctx, elp.Action(), ws)
 		if err != nil {
 			return nil, errors.Wrapf(

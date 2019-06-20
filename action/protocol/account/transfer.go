@@ -68,12 +68,12 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 	}
 	recipientAcct, err := accountutil.LoadAccount(sm, hash.BytesToHash160(recipientAddr.Bytes()))
 	if err == nil && recipientAcct.IsContract() {
-		// update sender Nonce
-		accountutil.SetNonce(tsf, sender)
-		// put updated sender's state to trie
-		if err := accountutil.StoreAccount(sm, raCtx.Caller.String(), sender); err != nil {
-			return nil, errors.Wrap(err, "failed to update pending account changes to trie")
-		}
+		//// update sender Nonce
+		//accountutil.SetNonce(tsf, sender)
+		//// put updated sender's state to trie
+		//if err := accountutil.StoreAccount(sm, raCtx.Caller.String(), sender); err != nil {
+		//	return nil, errors.Wrap(err, "failed to update pending account changes to trie")
+		//}
 		if raCtx.BlockHeight >= p.pacificHeight {
 			if err := rewarding.DepositGas(ctx, sm, gasFee, raCtx.Registry); err != nil {
 				return nil, err
@@ -92,12 +92,12 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 	if err := sender.SubBalance(tsf.Amount()); err != nil {
 		return nil, errors.Wrapf(err, "failed to update the Balance of sender %s", raCtx.Caller.String())
 	}
-	// update sender Nonce
-	accountutil.SetNonce(tsf, sender)
-	// put updated sender's state to trie
-	if err := accountutil.StoreAccount(sm, raCtx.Caller.String(), sender); err != nil {
-		return nil, errors.Wrap(err, "failed to update pending account changes to trie")
-	}
+	//// update sender Nonce
+	//accountutil.SetNonce(tsf, sender)
+	//// put updated sender's state to trie
+	//if err := accountutil.StoreAccount(sm, raCtx.Caller.String(), sender); err != nil {
+	//	return nil, errors.Wrap(err, "failed to update pending account changes to trie")
+	//}
 	// check recipient
 	recipient, err := accountutil.LoadOrCreateAccount(sm, tsf.Recipient(), big.NewInt(0))
 	if err != nil {
