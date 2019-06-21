@@ -180,8 +180,7 @@ func (ws *workingSet) RunAction(
 	for _, actionHandler := range ws.actionHandlers {
 		ori := uint64(0)
 		switch elp.Action().(type) {
-		//, *action.Execution
-		case *action.Transfer:
+		case *action.Transfer, *action.Execution:
 			ori, err = accountutil.IncreaseNonce(ws, raCtx.Caller, elp.Action().(*action.Transfer))
 			if err != nil {
 				return nil, errors.Wrapf(
