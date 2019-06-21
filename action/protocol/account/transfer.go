@@ -71,9 +71,9 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 		//// update sender Nonce
 		//accountutil.SetNonce(tsf, sender)
 		//// put updated sender's state to trie
-		//if err := accountutil.StoreAccount(sm, raCtx.Caller.String(), sender); err != nil {
-		//	return nil, errors.Wrap(err, "failed to update pending account changes to trie")
-		//}
+		if err := accountutil.StoreAccount(sm, raCtx.Caller.String(), sender); err != nil {
+			return nil, errors.Wrap(err, "failed to update pending account changes to trie")
+		}
 		if raCtx.BlockHeight >= p.pacificHeight {
 			if err := rewarding.DepositGas(ctx, sm, gasFee, raCtx.Registry); err != nil {
 				return nil, err
@@ -95,9 +95,9 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 	//// update sender Nonce
 	//accountutil.SetNonce(tsf, sender)
 	//// put updated sender's state to trie
-	//if err := accountutil.StoreAccount(sm, raCtx.Caller.String(), sender); err != nil {
-	//	return nil, errors.Wrap(err, "failed to update pending account changes to trie")
-	//}
+	if err := accountutil.StoreAccount(sm, raCtx.Caller.String(), sender); err != nil {
+		return nil, errors.Wrap(err, "failed to update pending account changes to trie")
+	}
 	// check recipient
 	recipient, err := accountutil.LoadOrCreateAccount(sm, tsf.Recipient(), big.NewInt(0))
 	if err != nil {

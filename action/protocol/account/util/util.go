@@ -96,8 +96,6 @@ func IncreaseNonce(sm protocol.StateManager, addr address.Address, nonce uint64)
 	// TODO: this check shouldn't be necessary
 	if nonce > acc.Nonce {
 		acc.Nonce = nonce
-	} else {
-		return errors.New("increase nonce")
 	}
 	return StoreAccount(sm, addr.String(), acc)
 }
