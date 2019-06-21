@@ -96,12 +96,12 @@ func IncreaseNonce(sm protocol.StateManager, addr address.Address, i noncer) (ui
 	SetNonce(i, acc)
 	return acc.Nonce, nil
 }
-func DecreaseNonce(sm protocol.StateManager, addr address.Address, i noncer) error {
+func DecreaseNonce(sm protocol.StateManager, addr address.Address, nonce uint64) error {
 	acc, err := LoadOrCreateAccount(sm, addr.String(), big.NewInt(0))
 	if err != nil {
 		return err
 	}
-	SetNonce(i, acc)
+	acc.Nonce = nonce
 	return nil
 }
 func GetNonce(sm protocol.StateManager, addr address.Address) (uint64, error) {
