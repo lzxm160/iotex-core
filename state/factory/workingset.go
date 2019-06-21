@@ -182,15 +182,15 @@ func (ws *workingSet) RunAction(
 		//, *action.Execution
 		case *action.Transfer:
 			//snapshot = ws.Snapshot()
-			if err != nil {
-				return nil, errors.Wrapf(
-					err,
-					"error when action %x (nonce: %d) from %s mutates states",
-					elp.Hash(),
-					elp.Nonce(),
-					caller.String(),
-				)
-			}
+			//if err != nil {
+			//	return nil, errors.Wrapf(
+			//		err,
+			//		"error when action %x (nonce: %d) from %s mutates states",
+			//		elp.Hash(),
+			//		elp.Nonce(),
+			//		caller.String(),
+			//	)
+			//}
 			ori, err = accountutil.IncreaseNonce(ws, raCtx.Caller, raCtx.Nonce)
 			if err != nil {
 				return nil, errors.Wrapf(
