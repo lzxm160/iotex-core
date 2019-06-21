@@ -18,7 +18,6 @@ import (
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/pkg/log"
 )
@@ -190,22 +189,7 @@ func (p *Protocol) settleAction(
 	if err := DepositGas(ctx, sm, gasFee, raCtx.Registry); err != nil {
 		return nil, err
 	}
-	if err := p.increaseNonce(sm, raCtx.Caller, raCtx.Nonce); err != nil {
-		return nil, err
-	}
 	return p.createReceipt(status, raCtx.BlockHeight, raCtx.ActionHash, raCtx.IntrinsicGas, logs...), nil
-}
-
-func (p *Protocol) increaseNonce(sm protocol.StateManager, addr address.Address, nonce uint64) error {
-	acc, err := accountutil.LoadOrCreateAccount(sm, addr.String(), big.NewInt(0))
-	if err != nil {
-		return err
-	}
-	// TODO: this check shouldn't be necessary
-	if nonce > acc.Nonce {
-		acc.Nonce = nonce
-	}
-	return accountutil.StoreAccount(sm, addr.String(), acc)
 }
 
 func (p *Protocol) createReceipt(
