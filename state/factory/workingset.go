@@ -191,7 +191,7 @@ func (ws *workingSet) RunAction(
 			//		caller.String(),
 			//	)
 			//}
-			ori, err = accountutil.IncreaseNonce(ws, raCtx.Caller, raCtx.Nonce)
+			ori, err = accountutil.IncreaseNonce(ws, raCtx.Caller, elp.Action().(*action.Transfer))
 			if err != nil {
 				return nil, errors.Wrapf(
 					err,
@@ -205,7 +205,7 @@ func (ws *workingSet) RunAction(
 
 		receipt, err := actionHandler.Handle(ctx, elp.Action(), ws)
 		if err != nil {
-			accountutil.DecreaseNonce(ws, raCtx.Caller, ori)
+			accountutil.DecreaseNonce(ws, raCtx.Caller, elp.Action().(*action.Transfer))
 			return nil, errors.Wrapf(
 				err,
 				"error when action %x (nonce: %d) from %s mutates states",
