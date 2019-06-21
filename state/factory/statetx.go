@@ -106,7 +106,7 @@ func (stx *stateTX) RunAction(
 	for _, actionHandler := range stx.actionHandlers {
 		ori := uint64(0)
 		switch elp.Action().(type) {
-		case *action.Transfer, *action.Execution:
+		case *action.Transfer:
 			ori, err = accountutil.IncreaseNonce(stx, raCtx.Caller, raCtx.Nonce)
 			if err != nil {
 				return nil, errors.Wrapf(
