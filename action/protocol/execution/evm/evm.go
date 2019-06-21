@@ -131,7 +131,7 @@ func GetHashFn(stateDB *StateDBAdapter) func(n uint64) common.Hash {
 
 func securityDeposit(ps *Params, stateDB vm.StateDB, gasLimit uint64) error {
 	executorNonce := stateDB.GetNonce(ps.context.Origin)
-	if executorNonce > ps.nonce+1 {
+	if executorNonce > ps.nonce {
 		log.S().Errorf("Nonce on %v: %d vs %d", ps.context.Origin, executorNonce, ps.nonce)
 		// TODO ignore inconsistent nonce problem until the actions are executed sequentially
 		// return ErrInconsistentNonce
@@ -241,7 +241,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64) (
 			}
 		}
 	} else {
-		//stateDB.SetNonce(evmParams.context.Origin, stateDB.GetNonce(evmParams.context.Origin)+1)
+		stateDB.SetNonce(evmParams.context.Origin, stateDB.GetNonce(evmParams.context.Origin)+1)
 		// process contract
 		ret, remainingGas, evmErr = evm.Call(executor, *evmParams.contract, evmParams.data, remainingGas, evmParams.amount)
 	}
