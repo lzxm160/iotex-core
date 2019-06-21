@@ -177,7 +177,7 @@ func (ws *workingSet) RunAction(
 	ctx := protocol.WithRunActionsCtx(context.Background(), raCtx)
 
 	for _, actionHandler := range ws.actionHandlers {
-		snapshot := 0
+		snapshot := -1
 		switch elp.Action().(type) {
 		//, *action.Execution
 		case *action.Transfer:
@@ -205,7 +205,7 @@ func (ws *workingSet) RunAction(
 
 		receipt, err := actionHandler.Handle(ctx, elp.Action(), ws)
 		if err != nil {
-			if snapshot != 0 {
+			if snapshot >= 0 {
 				ws.Revert(snapshot)
 			}
 			return nil, errors.Wrapf(
