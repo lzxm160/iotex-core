@@ -17,7 +17,6 @@ import (
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/db/trie"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
@@ -177,35 +176,25 @@ func (ws *workingSet) RunAction(
 	ctx := protocol.WithRunActionsCtx(context.Background(), raCtx)
 
 	for _, actionHandler := range ws.actionHandlers {
-		ori := uint64(0)
-		switch elp.Action().(type) {
-		//, *action.Execution
-		case *action.Transfer:
-			//snapshot = ws.Snapshot()
-			//if err != nil {
-			//	return nil, errors.Wrapf(
-			//		err,
-			//		"error when action %x (nonce: %d) from %s mutates states",
-			//		elp.Hash(),
-			//		elp.Nonce(),
-			//		caller.String(),
-			//	)
-			//}
-			ori, err = accountutil.IncreaseNonce(ws, raCtx.Caller, elp.Action().(*action.Transfer))
-			if err != nil {
-				return nil, errors.Wrapf(
-					err,
-					"error when action %x (nonce: %d) from %s mutates states",
-					elp.Hash(),
-					elp.Nonce(),
-					caller.String(),
-				)
-			}
-		}
+		//ori := uint64(0)
+		//switch elp.Action().(type) {
+		////, *action.Execution
+		//case *action.Transfer:
+		//	ori, err = accountutil.IncreaseNonce(ws, raCtx.Caller, elp.Action().(*action.Transfer))
+		//	if err != nil {
+		//		return nil, errors.Wrapf(
+		//			err,
+		//			"error when action %x (nonce: %d) from %s mutates states",
+		//			elp.Hash(),
+		//			elp.Nonce(),
+		//			caller.String(),
+		//		)
+		//	}
+		//}
 
 		receipt, err := actionHandler.Handle(ctx, elp.Action(), ws)
 		if err != nil {
-			accountutil.DecreaseNonce(ws, raCtx.Caller, ori)
+			//accountutil.DecreaseNonce(ws, raCtx.Caller, ori)
 			return nil, errors.Wrapf(
 				err,
 				"error when action %x (nonce: %d) from %s mutates states",

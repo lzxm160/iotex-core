@@ -69,7 +69,7 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 	recipientAcct, err := accountutil.LoadAccount(sm, hash.BytesToHash160(recipientAddr.Bytes()))
 	if err == nil && recipientAcct.IsContract() {
 		// update sender Nonce
-		//accountutil.SetNonce(tsf, sender)
+		accountutil.SetNonce(tsf, sender)
 		// put updated sender's state to trie
 		if err := accountutil.StoreAccount(sm, raCtx.Caller.String(), sender); err != nil {
 			return nil, errors.Wrap(err, "failed to update pending account changes to trie")
@@ -93,7 +93,7 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 		return nil, errors.Wrapf(err, "failed to update the Balance of sender %s", raCtx.Caller.String())
 	}
 	// update sender Nonce
-	//accountutil.SetNonce(tsf, sender)
+	accountutil.SetNonce(tsf, sender)
 	// put updated sender's state to trie
 	if err := accountutil.StoreAccount(sm, raCtx.Caller.String(), sender); err != nil {
 		return nil, errors.Wrap(err, "failed to update pending account changes to trie")
