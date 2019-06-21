@@ -180,7 +180,7 @@ func (ws *workingSet) RunAction(
 		originNonce := uint64(0)
 		switch elp.Action().(type) {
 		case *action.Transfer:
-			originNonce, err := accountutil.GetNonce(ws, raCtx.Caller)
+			originNonce, err = accountutil.GetNonce(ws, raCtx.Caller)
 			if err != nil {
 				return nil, errors.Wrapf(
 					err,
