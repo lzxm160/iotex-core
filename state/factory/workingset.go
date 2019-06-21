@@ -177,11 +177,11 @@ func (ws *workingSet) RunAction(
 	ctx := protocol.WithRunActionsCtx(context.Background(), raCtx)
 
 	for _, actionHandler := range ws.actionHandlers {
-		originNonce := uint64(0)
+		snapshot := 0
 		switch elp.Action().(type) {
 		//, *action.Execution
 		case *action.Transfer:
-			originNonce, err = accountutil.GetNonce(ws, raCtx.Caller)
+			snapshot = ws.Snapshot()
 			if err != nil {
 				return nil, errors.Wrapf(
 					err,
@@ -205,8 +205,8 @@ func (ws *workingSet) RunAction(
 
 		receipt, err := actionHandler.Handle(ctx, elp.Action(), ws)
 		if err != nil {
-			if originNonce != 0 {
-				accountutil.IncreaseNonce(ws, raCtx.Caller, originNonce)
+			if snapshot != 0 {
+				ws.Revert(snapshot)
 			}
 			return nil, errors.Wrapf(
 				err,
