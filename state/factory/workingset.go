@@ -190,7 +190,7 @@ func (ws *workingSet) RunAction(
 					caller.String(),
 				)
 			}
-			err := accountutil.IncreaseNonce(ws, raCtx.Caller, raCtx.Nonce)
+			err = accountutil.IncreaseNonce(ws, raCtx.Caller, raCtx.Nonce)
 			if err != nil {
 				return nil, errors.Wrapf(
 					err,
