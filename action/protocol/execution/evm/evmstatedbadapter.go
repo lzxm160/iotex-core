@@ -216,27 +216,27 @@ func (stateDB *StateDBAdapter) GetNonce(evmAddr common.Address) uint64 {
 }
 
 // SetNonce sets the nonce of account
-//func (stateDB *StateDBAdapter) SetNonce(evmAddr common.Address, nonce uint64) {
-//	addr, err := address.FromBytes(evmAddr.Bytes())
-//	if err != nil {
-//		log.L().Error("Failed to convert evm address.", zap.Error(err))
-//		return
-//	}
-//	s, err := stateDB.AccountState(addr.String())
-//	if err != nil {
-//		log.L().Error("Failed to set nonce.", zap.Error(err))
-//		// stateDB.logError(err)
-//		return
-//	}
-//	log.L().Debug("Called SetNonce.",
-//		zap.String("address", addr.String()),
-//		zap.Uint64("nonce", nonce))
-//	s.Nonce = nonce
-//	if err := accountutil.StoreAccount(stateDB.sm, addr.String(), s); err != nil {
-//		log.L().Error("Failed to set nonce.", zap.Error(err))
-//		stateDB.logError(err)
-//	}
-//}
+func (stateDB *StateDBAdapter) SetNonce(evmAddr common.Address, nonce uint64) {
+	//	addr, err := address.FromBytes(evmAddr.Bytes())
+	//	if err != nil {
+	//		log.L().Error("Failed to convert evm address.", zap.Error(err))
+	//		return
+	//	}
+	//	s, err := stateDB.AccountState(addr.String())
+	//	if err != nil {
+	//		log.L().Error("Failed to set nonce.", zap.Error(err))
+	//		// stateDB.logError(err)
+	//		return
+	//	}
+	//	log.L().Debug("Called SetNonce.",
+	//		zap.String("address", addr.String()),
+	//		zap.Uint64("nonce", nonce))
+	//	s.Nonce = nonce
+	//	if err := accountutil.StoreAccount(stateDB.sm, addr.String(), s); err != nil {
+	//		log.L().Error("Failed to set nonce.", zap.Error(err))
+	//		stateDB.logError(err)
+	//	}
+}
 
 // AddRefund adds refund
 func (stateDB *StateDBAdapter) AddRefund(gas uint64) {
