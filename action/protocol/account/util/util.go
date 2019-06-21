@@ -94,7 +94,7 @@ func IncreaseNonce(sm protocol.StateManager, addr address.Address, nonce noncer)
 		return 0, err
 	}
 	ori := acc.Nonce
-	SetNonce(nonce, acc)
+	acc.Nonce = nonce.Nonce()
 	return ori, nil
 }
 func DecreaseNonce(sm protocol.StateManager, addr address.Address, nonce uint64) error {
