@@ -181,7 +181,7 @@ func (ws *workingSet) RunAction(
 		ori := uint64(0)
 		switch elp.Action().(type) {
 		case *action.Transfer, *action.Execution:
-			ori, err = accountutil.IncreaseNonce(ws, raCtx.Caller, elp.Action().(*action.Transfer))
+			ori, err = accountutil.IncreaseNonce(ws, raCtx.Caller, raCtx.Nonce)
 			if err != nil {
 				return nil, errors.Wrapf(
 					err,
