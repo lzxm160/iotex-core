@@ -177,8 +177,19 @@ func (ws *workingSet) RunAction(
 	ctx := protocol.WithRunActionsCtx(context.Background(), raCtx)
 
 	for _, actionHandler := range ws.actionHandlers {
+		originNonce := uint64(0)
 		switch elp.Action().(type) {
 		case *action.Transfer:
+			originNonce, err := accountutil.GetNonce(ws, raCtx.Caller)
+			if err != nil {
+				return nil, errors.Wrapf(
+					err,
+					"error when action %x (nonce: %d) from %s mutates states",
+					elp.Hash(),
+					elp.Nonce(),
+					caller.String(),
+				)
+			}
 			err := accountutil.IncreaseNonce(ws, raCtx.Caller, raCtx.Nonce)
 			if err != nil {
 				return nil, errors.Wrapf(
@@ -193,6 +204,9 @@ func (ws *workingSet) RunAction(
 
 		receipt, err := actionHandler.Handle(ctx, elp.Action(), ws)
 		if err != nil {
+			if originNonce != 0 {
+				accountutil.IncreaseNonce(ws, raCtx.Caller, originNonce)
+			}
 			return nil, errors.Wrapf(
 				err,
 				"error when action %x (nonce: %d) from %s mutates states",
