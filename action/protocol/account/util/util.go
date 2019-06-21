@@ -93,10 +93,11 @@ func IncreaseNonce(sm protocol.StateManager, addr address.Address, nonce uint64)
 	if err != nil {
 		return 0, err
 	}
+	ori := acc.Nonce
 	if nonce > acc.Nonce {
 		acc.Nonce = nonce
 	}
-	return acc.Nonce, nil
+	return ori, nil
 }
 func DecreaseNonce(sm protocol.StateManager, addr address.Address, nonce uint64) error {
 	acc, err := LoadOrCreateAccount(sm, addr.String(), big.NewInt(0))
