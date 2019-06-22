@@ -11,8 +11,8 @@ import (
 	"time"
 )
 
-// RandomPort returns a random port number between 30000 and 50000
+// RandomPort returns a random port number between 10000 and 60000
 func RandomPort() int {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	return r.Intn(20000) + 30000
+	return r.Intn(50000) + 10000
 }
