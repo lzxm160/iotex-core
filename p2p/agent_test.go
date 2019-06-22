@@ -63,15 +63,25 @@ func TestBroadcast(t *testing.T) {
 		return err == nil, nil
 	}))
 	for i := 0; i < n; i++ {
+		port := testutil.RandomPort()
 		cfg := config.Config{
 			Network: config.Network{
 				Host:           "127.0.0.1",
-				Port:           testutil.RandomPort(),
+				Port:           port,
 				BootstrapNodes: []string{bootnode.Self()[0].String()},
 			},
 		}
 		agent := NewAgent(cfg, b, u)
 		require.NoError(t, agent.Start(ctx))
+		require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 10*time.Second, func() (b bool, e error) {
+			ip := net.ParseIP("127.0.0.1")
+			tcpAddr := net.TCPAddr{
+				IP:   ip,
+				Port: port,
+			}
+			_, err := net.DialTCP("tcp", nil, &tcpAddr)
+			return err == nil, nil
+		}))
 		agents = append(agents, agent)
 	}
 
