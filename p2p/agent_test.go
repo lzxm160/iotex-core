@@ -8,6 +8,7 @@ package p2p
 
 import (
 	"context"
+	"net/http"
 	"sync"
 	"testing"
 	"time"
@@ -48,11 +49,14 @@ func TestBroadcast(t *testing.T) {
 	}
 	u := func(_ context.Context, _ uint32, _ peerstore.PeerInfo, _ proto.Message) {}
 	cfg := config.Config{
-		Network: config.Network{Host: "127.0.0.1", Port: testutil.RandomPort()},
+		Network: config.Network{Host: "127.0.0.1", Port: 9999},
 	}
 	bootnode := NewAgent(cfg, b, u)
 	require.NoError(t, bootnode.Start(ctx))
-
+	require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 2*time.Second, func() (b bool, e error) {
+		_, err := http.Get("http://localhost:9999")
+		return err == nil, nil
+	}))
 	for i := 0; i < n; i++ {
 		cfg := config.Config{
 			Network: config.Network{
@@ -70,7 +74,7 @@ func TestBroadcast(t *testing.T) {
 		require.NoError(t, agents[i].BroadcastOutbound(WitContext(ctx, Context{ChainID: 1}), &testingpb.TestPayload{
 			MsgBody: []byte{uint8(i)},
 		}))
-		require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 30*time.Second, func() (bool, error) {
+		require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 20*time.Second, func() (bool, error) {
 			mutex.RLock()
 			defer mutex.RUnlock()
 			// Broadcast message will be skipped by the source node
