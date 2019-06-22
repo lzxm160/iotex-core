@@ -53,7 +53,7 @@ func TestBroadcast(t *testing.T) {
 	}
 	bootnode := NewAgent(cfg, b, u)
 	require.NoError(t, bootnode.Start(ctx))
-	require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 2*time.Second, func() (b bool, e error) {
+	require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 10*time.Second, func() (b bool, e error) {
 		_, err := http.Get("http://localhost:9999")
 		return err == nil, nil
 	}))
