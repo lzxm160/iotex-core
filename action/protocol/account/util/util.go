@@ -87,3 +87,28 @@ func Recorded(sm protocol.StateManager, addr address.Address) (bool, error) {
 	}
 	return false, err
 }
+
+func IncreaseNonce(sm protocol.StateManager, addr address.Address, nonce noncer) (uint64, error) {
+	acc, err := LoadOrCreateAccount(sm, addr.String(), big.NewInt(0))
+	if err != nil {
+		return 0, err
+	}
+	ori := acc.Nonce
+	acc.Nonce = nonce.Nonce()
+	return ori, nil
+}
+func DecreaseNonce(sm protocol.StateManager, addr address.Address, nonce uint64) error {
+	acc, err := LoadOrCreateAccount(sm, addr.String(), big.NewInt(0))
+	if err != nil {
+		return err
+	}
+	acc.Nonce = nonce
+	return nil
+}
+func GetNonce(sm protocol.StateManager, addr address.Address) (uint64, error) {
+	acc, err := LoadOrCreateAccount(sm, addr.String(), big.NewInt(0))
+	if err != nil {
+		return 0, err
+	}
+	return acc.Nonce, nil
+}
