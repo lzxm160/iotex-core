@@ -12,7 +12,6 @@ import (
 	"regexp"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -108,6 +107,8 @@ func set(args []string) (string, error) {
 		}
 		ReadConfig.Endpoint = args[1]
 		ReadConfig.SecureConnect = !Insecure
+	case "wallet":
+		ReadConfig.Wallet = args[1]
 	case "wallet":
 		ReadConfig.Wallet = args[1]
 	}
