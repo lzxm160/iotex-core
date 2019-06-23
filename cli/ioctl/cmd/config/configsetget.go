@@ -109,8 +109,8 @@ func set(args []string) (string, error) {
 		ReadConfig.SecureConnect = !Insecure
 	case "wallet":
 		ReadConfig.Wallet = args[1]
-	case "wallet":
-		ReadConfig.Wallet = args[1]
+	case "currentcontext":
+		ReadConfig.CurrentContext = args[1]
 	}
 	out, err := yaml.Marshal(&ReadConfig)
 	if err != nil {
