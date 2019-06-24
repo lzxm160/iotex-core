@@ -23,6 +23,7 @@ import (
 var accountExportPublicCmd = &cobra.Command{
 	Use:   "exportpublic (ALIAS|ADDRESS)",
 	Short: "Export IoTeX public key from wallet",
+Args:  cobra.RangeArgs(0, 1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		output, err := accountExportPublic(args)
