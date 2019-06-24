@@ -21,7 +21,7 @@ import (
 var aliasSetCmd = &cobra.Command{
 	Use:   "set ALIAS ADDRESS",
 	Short: "Set alias for address",
-	Args:  cobra.RangeArgs(1, 2),
+	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		output, err := set(args)
@@ -34,25 +34,11 @@ var aliasSetCmd = &cobra.Command{
 
 // set sets alias
 func set(args []string) (string, error) {
-	var (
-		alias   string
-		address string
-		err     error
-	)
-	if len(args) == 2 {
-		alias = args[0]
-		address = args[1]
-	} else {
-		address = args[0]
-		alias, err = config.GetContext()
-		if err != nil {
-			return "", err
-		}
-	}
-	if err := validator.ValidateAlias(alias); err != nil {
+	if err := validator.ValidateAlias(args[0]); err != nil {
 		return "", err
 	}
-	if err := validator.ValidateAddress(address); err != nil {
+	alias := args[0]
+	if err := validator.ValidateAddress(args[1]); err != nil {
 		return "", err
 	}
 	addr := args[1]
