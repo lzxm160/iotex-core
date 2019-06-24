@@ -9,11 +9,10 @@ package account
 import (
 	"fmt"
 
-	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
-
 	"github.com/spf13/cobra"
 
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
+	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
 )
 
 // accountNonceCmd represents the account nonce command
@@ -46,5 +45,5 @@ func nonce(args []string) (string, error) {
 		return "", err
 	}
 	return fmt.Sprintf("%s:\nNonce: %d, Pending Nonce: %d",
-		address, accountMeta.Nonce, accountMeta.PendingNonce), nil
+		addr, accountMeta.Nonce, accountMeta.PendingNonce), nil
 }
