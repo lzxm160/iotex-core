@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
+	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
 	"github.com/iotexproject/iotex-core/pkg/log"
@@ -25,6 +26,7 @@ import (
 var accountDeleteCmd = &cobra.Command{
 	Use:   "delete (ALIAS|ADDRESS)",
 	Short: "Delete an IoTeX account/address from wallet/config",
+	Args:  cobra.RangeArgs(1, 2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		output, err := accountDelete(args)
@@ -37,18 +39,18 @@ var accountDeleteCmd = &cobra.Command{
 
 func accountDelete(args []string) (string, error) {
 	var (
-		address string
-		err     error
+		addr string
+		err  error
 	)
 	if len(args) == 1 {
-		address = args[0]
+		addr = args[0]
 	} else {
-		address, err = config.GetContext()
+		addr, err = config.GetContext()
 		if err != nil {
 			return "", err
 		}
 	}
-	addr, err := alias.Address(address)
+	addr, err = alias.Address(addr)
 	if err != nil {
 		return "", err
 	}

@@ -37,18 +37,18 @@ var accountUpdateCmd = &cobra.Command{
 
 func accountUpdate(args []string) (string, error) {
 	var (
-		address string
-		err     error
+		addr string
+		err  error
 	)
 	if len(args) == 1 {
-		address = args[0]
+		addr = args[0]
 	} else {
-		address, err = config.GetContext()
+		addr, err = config.GetContext()
 		if err != nil {
 			return "", err
 		}
 	}
-	address, err = address.FromString(address)
+	addr, err = address.FromString(addr)
 	if err != nil {
 		log.L().Error("failed to convert string into address", zap.Error(err))
 		return "", err
