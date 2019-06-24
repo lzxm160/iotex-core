@@ -21,6 +21,7 @@ import (
 var aliasRemoveCmd = &cobra.Command{
 	Use:   "remove ALIAS",
 	Short: "Remove alias",
+Args:  cobra.RangeArgs(0, 1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		var (

@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -24,7 +23,7 @@ const (
 )
 
 var (
-	validArgs       = []string{"endpoint", "wallet"}
+	validArgs       = []string{"endpoint", "wallet", "currentcontext"}
 	endpointCompile = regexp.MustCompile("^" + endpointPattern + "$")
 )
 
@@ -54,7 +53,7 @@ var configGetCmd = &cobra.Command{
 var configSetCmd = &cobra.Command{
 	Use:       "set VARIABLE VALUE",
 	Short:     "Set config for ioctl",
-	ValidArgs: []string{"endpoint", "wallet", "currentcontext"},
+	ValidArgs: validArgs,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 2 {
 			return fmt.Errorf("accepts 2 arg(s), received %d,"+
