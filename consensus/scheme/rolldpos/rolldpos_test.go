@@ -657,7 +657,6 @@ func TestRollDPoSConsensus(t *testing.T) {
 			require.NoError(t, chains[i].Start(ctx))
 			require.NoError(t, p2ps[i].Start(ctx))
 			require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 10*time.Second, func() (b bool, e error) {
-				chains[i].TipHeight()
 				return chains[i].TipHeight() > 1, nil
 			}))
 		}
