@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/facebookgo/clock"
+	"github.com/iotexproject/go-fsm"
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
