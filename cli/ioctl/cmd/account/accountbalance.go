@@ -9,6 +9,7 @@ package account
 import (
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
 
@@ -38,6 +39,9 @@ func balance(args []string) (string, error) {
 	address := config.ReadConfig.CurrentContext
 	if len(args) == 1 {
 		address = args[0]
+	}
+	if strings.EqualFold(address, "") {
+		return "", fmt.Errorf(`use "ioctl config set currentcontext" to config current account first`)
 	}
 	address, err := alias.Address(address)
 	if err != nil {
