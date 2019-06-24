@@ -655,7 +655,6 @@ func TestRollDPoSConsensus(t *testing.T) {
 
 		for i := 0; i < 24; i++ {
 			require.NoError(t, chains[i].Start(ctx))
-
 			require.NoError(t, p2ps[i].Start(ctx))
 		}
 		wg := sync.WaitGroup{}
@@ -666,7 +665,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 				err := cs[idx].Start(ctx)
 				require.NoError(t, err)
 				require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 10*time.Second, func() (b bool, e error) {
-					return chains[i].TipHeight() > 1, nil
+					return chains[idx].TipHeight() > 1, nil
 				}))
 			}(i)
 		}
