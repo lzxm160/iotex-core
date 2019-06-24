@@ -6,6 +6,13 @@
 
 package rolldpos
 
+import (
+	"bytes"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
 func TestConsensusVote(t *testing.T) {
 	require := require.New(t)
 	hash := []byte("abcdefg")
