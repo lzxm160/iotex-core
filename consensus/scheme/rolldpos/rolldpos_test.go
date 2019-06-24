@@ -675,7 +675,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 				require.NoError(t, chains[i].Stop(ctx))
 			}
 		}()
-		time.Sleep(30 * time.Second)
+		time.Sleep(60 * time.Second)
 		for i, chain := range chains {
 			header, err := chain.BlockHeaderByHeight(1)
 			if i == 0 {
