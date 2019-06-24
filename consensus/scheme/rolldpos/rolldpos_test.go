@@ -598,58 +598,16 @@ func TestRollDPoSConsensus(t *testing.T) {
 	//		return true, nil
 	//	}))
 	//})
-
-	t.Run("proposer-network-partition-blocking", func(t *testing.T) {
-		ctx := context.Background()
-		cs, p2ps, chains := newConsensusComponents(24)
-		// 1 should be the block 1's proposer
-		for i, p2p := range p2ps {
-			if i == 1 {
-				p2p.peers = make(map[net.Addr]*RollDPoS)
-			} else {
-				delete(p2p.peers, p2ps[1].addr)
-			}
-		}
-
-		for i := 0; i < 24; i++ {
-			require.NoError(t, chains[i].Start(ctx))
-			require.NoError(t, p2ps[i].Start(ctx))
-		}
-		wg := sync.WaitGroup{}
-		wg.Add(24)
-		for i := 0; i < 24; i++ {
-			go func(idx int) {
-				defer wg.Done()
-				err := cs[idx].Start(ctx)
-				require.NoError(t, err)
-			}(i)
-		}
-		wg.Wait()
-
-		defer func() {
-			for i := 0; i < 24; i++ {
-				require.NoError(t, cs[i].Stop(ctx))
-				require.NoError(t, p2ps[i].Stop(ctx))
-				require.NoError(t, chains[i].Stop(ctx))
-			}
-		}()
-		time.Sleep(5 * time.Second)
-		for _, chain := range chains {
-			header, err := chain.BlockHeaderByHeight(1)
-			assert.Nil(t, header)
-			assert.Error(t, err)
-		}
-	})
-
-	//t.Run("non-proposer-network-partition-blocking", func(t *testing.T) {
+	//
+	//t.Run("proposer-network-partition-blocking", func(t *testing.T) {
 	//	ctx := context.Background()
 	//	cs, p2ps, chains := newConsensusComponents(24)
 	//	// 1 should be the block 1's proposer
 	//	for i, p2p := range p2ps {
-	//		if i == 0 {
+	//		if i == 1 {
 	//			p2p.peers = make(map[net.Addr]*RollDPoS)
 	//		} else {
-	//			delete(p2p.peers, p2ps[0].addr)
+	//			delete(p2p.peers, p2ps[1].addr)
 	//		}
 	//	}
 	//
@@ -676,15 +634,57 @@ func TestRollDPoSConsensus(t *testing.T) {
 	//		}
 	//	}()
 	//	time.Sleep(5 * time.Second)
-	//	for i, chain := range chains {
+	//	for _, chain := range chains {
 	//		header, err := chain.BlockHeaderByHeight(1)
-	//		if i == 0 {
-	//			assert.Nil(t, header)
-	//			assert.Error(t, err)
-	//		} else {
-	//			assert.NotNil(t, header)
-	//			assert.NoError(t, err)
-	//		}
+	//		assert.Nil(t, header)
+	//		assert.Error(t, err)
 	//	}
 	//})
+
+	t.Run("non-proposer-network-partition-blocking", func(t *testing.T) {
+		ctx := context.Background()
+		cs, p2ps, chains := newConsensusComponents(24)
+		// 1 should be the block 1's proposer
+		for i, p2p := range p2ps {
+			if i == 0 {
+				p2p.peers = make(map[net.Addr]*RollDPoS)
+			} else {
+				delete(p2p.peers, p2ps[0].addr)
+			}
+		}
+
+		for i := 0; i < 24; i++ {
+			require.NoError(t, chains[i].Start(ctx))
+			require.NoError(t, p2ps[i].Start(ctx))
+		}
+		wg := sync.WaitGroup{}
+		wg.Add(24)
+		for i := 0; i < 24; i++ {
+			go func(idx int) {
+				defer wg.Done()
+				err := cs[idx].Start(ctx)
+				require.NoError(t, err)
+			}(i)
+		}
+		wg.Wait()
+
+		defer func() {
+			for i := 0; i < 24; i++ {
+				require.NoError(t, cs[i].Stop(ctx))
+				require.NoError(t, p2ps[i].Stop(ctx))
+				require.NoError(t, chains[i].Stop(ctx))
+			}
+		}()
+		time.Sleep(5 * time.Second)
+		for i, chain := range chains {
+			header, err := chain.BlockHeaderByHeight(1)
+			if i == 0 {
+				assert.Nil(t, header)
+				assert.Error(t, err)
+			} else {
+				assert.NotNil(t, header)
+				assert.NoError(t, err)
+			}
+		}
+	})
 }
