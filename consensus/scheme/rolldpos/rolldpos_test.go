@@ -11,8 +11,6 @@ import (
 	"fmt"
 	"math/big"
 	"net"
-	"strconv"
-	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -31,7 +29,7 @@ import (
 
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/actpool"
 	"github.com/iotexproject/iotex-core/blockchain"
@@ -659,15 +657,8 @@ func TestRollDPoSConsensus(t *testing.T) {
 			require.NoError(t, chains[i].Start(ctx))
 			require.NoError(t, p2ps[i].Start(ctx))
 			require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 10*time.Second, func() (b bool, e error) {
-				pr := strings.Split(p2ps[i].addr.String(), ":")
-				ip := net.ParseIP(pr[0])
-				port, _ := strconv.Atoi(pr[1])
-				tcpAddr := net.TCPAddr{
-					IP:   ip,
-					Port: port,
-				}
-				_, err := net.DialTCP("tcp", nil, &tcpAddr)
-				return err == nil, nil
+				chains[i].TipHeight()
+				return chains[i].TipHeight() > 1, nil
 			}))
 		}
 		wg := sync.WaitGroup{}
