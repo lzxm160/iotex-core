@@ -633,17 +633,6 @@ func TestRollDPoSConsensus(t *testing.T) {
 				require.NoError(t, chains[i].Stop(ctx))
 			}
 		}()
-		assert.NoError(t, testutil.WaitUntil(200*time.Millisecond, 60*time.Second, func() (bool, error) {
-			for i, chain := range chains {
-				if i == 1 {
-					continue
-				}
-				if chain.TipHeight() < 1 {
-					return false, nil
-				}
-			}
-			return true, nil
-		}))
 		for _, chain := range chains {
 			header, err := chain.BlockHeaderByHeight(1)
 			assert.Nil(t, header)
@@ -674,9 +663,6 @@ func TestRollDPoSConsensus(t *testing.T) {
 				defer wg.Done()
 				err := cs[idx].Start(ctx)
 				require.NoError(t, err)
-				//require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 10*time.Second, func() (b bool, e error) {
-				//	return chains[idx].TipHeight() >= 1, nil
-				//}))
 			}(i)
 		}
 		wg.Wait()
@@ -688,7 +674,17 @@ func TestRollDPoSConsensus(t *testing.T) {
 				require.NoError(t, chains[i].Stop(ctx))
 			}
 		}()
-		time.Sleep(5 * time.Second)
+		assert.NoError(t, testutil.WaitUntil(200*time.Millisecond, 60*time.Second, func() (bool, error) {
+			for i, chain := range chains {
+				if i == 1 {
+					continue
+				}
+				if chain.TipHeight() < 1 {
+					return false, nil
+				}
+			}
+			return true, nil
+		}))
 		for i, chain := range chains {
 			header, err := chain.BlockHeaderByHeight(1)
 			if i == 0 {
