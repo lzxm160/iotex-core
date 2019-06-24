@@ -509,9 +509,9 @@ func TestRollDPoSConsensus(t *testing.T) {
 	})
 
 	t.Run("1-epoch", func(t *testing.T) {
-		//if testing.Short() {
-		//	t.Skip("Skip the 1-epoch test in short mode.")
-		//}
+		if testing.Short() {
+			t.Skip("Skip the 1-epoch test in short mode.")
+		}
 		ctx := context.Background()
 		cs, p2ps, chains := newConsensusComponents(24)
 
@@ -680,7 +680,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 				if i == 0 {
 					continue
 				}
-				if chain.TipHeight() < 5 {
+				if chain.TipHeight() < 48 {
 					return false, nil
 				}
 			}
