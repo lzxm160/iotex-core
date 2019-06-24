@@ -39,7 +39,7 @@ func balance(args []string) (string, error) {
 	if len(args) == 1 {
 		address = args[0]
 	}
-	address, err := alias.Address(args[0])
+	address, err := alias.Address(address)
 	if err != nil {
 		return "", err
 	}
