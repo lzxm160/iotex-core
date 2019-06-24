@@ -6,5 +6,9 @@
 
 package rolldpos
 
-//func TestRollDPoSCtx(t *testing.T) {
-//}
+import (
+	"testing"
+)
+
+func TestRollDPoSCtx(t *testing.T) {
+}
