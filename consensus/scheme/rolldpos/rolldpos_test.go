@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"math/big"
 	"net"
+	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -657,11 +659,12 @@ func TestRollDPoSConsensus(t *testing.T) {
 			require.NoError(t, chains[i].Start(ctx))
 			require.NoError(t, p2ps[i].Start(ctx))
 			require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 10*time.Second, func() (b bool, e error) {
-				fmt.Println("/////////////////////", chains[i].ChainAddress())
-				ip := net.ParseIP("127.0.0.1")
+				pr := strings.Split(p2ps[i].addr.String(), ":")
+				ip := net.ParseIP(pr[0])
+				port, _ := strconv.Atoi(pr[1])
 				tcpAddr := net.TCPAddr{
 					IP:   ip,
-					Port: 4689,
+					Port: port,
 				}
 				_, err := net.DialTCP("tcp", nil, &tcpAddr)
 				return err == nil, nil
@@ -685,7 +688,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 				require.NoError(t, chains[i].Stop(ctx))
 			}
 		}()
-		time.Sleep(60 * time.Second)
+		time.Sleep(5 * time.Second)
 		for i, chain := range chains {
 			header, err := chain.BlockHeaderByHeight(1)
 			if i == 0 {
