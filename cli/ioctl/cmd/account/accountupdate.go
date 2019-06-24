@@ -38,18 +38,18 @@ var accountUpdateCmd = &cobra.Command{
 
 func accountUpdate(args []string) (string, error) {
 	var (
-		addr string
-		err  error
+		account string
+		err     error
 	)
 	if len(args) == 1 {
-		addr = args[0]
+		account = args[0]
 	} else {
-		addr, err = config.GetContext()
+		account, err = config.GetContext()
 		if err != nil {
 			return "", err
 		}
 	}
-	address, err := address.FromString(addr)
+	address, err := address.FromString(account)
 	if err != nil {
 		log.L().Error("failed to convert string into address", zap.Error(err))
 		return "", err
@@ -59,7 +59,7 @@ func accountUpdate(args []string) (string, error) {
 		keystore.StandardScryptN, keystore.StandardScryptP)
 	for _, v := range ks.Accounts() {
 		if bytes.Equal(address.Bytes(), v.Address.Bytes()) {
-			fmt.Printf("#%s: Enter current password\n", addr)
+			fmt.Printf("#%s: Enter current password\n", account)
 			byteCurrentPassword, err := terminal.ReadPassword(int(syscall.Stdin))
 			if err != nil {
 				log.L().Error("failed to get current password", zap.Error(err))
