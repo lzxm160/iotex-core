@@ -16,7 +16,6 @@ import (
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
-	"gopkg.in/yaml.v2"
 
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
@@ -25,7 +24,7 @@ import (
 
 // accountDeleteCmd represents the account delete command
 var accountDeleteCmd = &cobra.Command{
-	Use:   "delete (ALIAS|ADDRESS)",
+	Use:   "delete [ALIAS|ADDRESS]",
 	Short: "Delete an IoTeX account/address from wallet/config",
 	Args:  cobra.RangeArgs(0, 1),
 	RunE: func(cmd *cobra.Command, args []string) error {

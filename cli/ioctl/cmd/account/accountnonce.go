@@ -17,7 +17,7 @@ import (
 
 // accountNonceCmd represents the account nonce command
 var accountNonceCmd = &cobra.Command{
-	Use:   "nonce (ALIAS|ADDRESS)",
+	Use:   "nonce [ALIAS|ADDRESS]",
 	Short: "Get nonce of an account",
 	Args:  cobra.RangeArgs(0, 1),
 	RunE: func(cmd *cobra.Command, args []string) error {

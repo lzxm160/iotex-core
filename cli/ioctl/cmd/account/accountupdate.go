@@ -25,7 +25,7 @@ import (
 
 // accountUpdateCmd represents the account update command
 var accountUpdateCmd = &cobra.Command{
-	Use:   "update (ALIAS|ADDRESS)",
+	Use:   "update [ALIAS|ADDRESS]",
 	Short: "Update password for IoTeX account",
 	Args:  cobra.RangeArgs(0, 1),
 	RunE: func(cmd *cobra.Command, args []string) error {

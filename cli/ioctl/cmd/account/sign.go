@@ -21,7 +21,7 @@ import (
 
 // accountSignCmd represents the account sign command
 var accountSignCmd = &cobra.Command{
-	Use:   "sign (ALIAS|ADDRESS) MESSAGE",
+	Use:   "sign [ALIAS|ADDRESS] MESSAGE",
 	Short: "Sign message with private key from wallet",
 	Args:  cobra.RangeArgs(1, 2),
 	RunE: func(cmd *cobra.Command, args []string) error {

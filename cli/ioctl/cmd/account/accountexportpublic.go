@@ -21,7 +21,7 @@ import (
 
 // accountExportPublicCmd represents the account export public key command
 var accountExportPublicCmd = &cobra.Command{
-	Use:   "exportpublic (ALIAS|ADDRESS)",
+	Use:   "exportpublic [ALIAS|ADDRESS]",
 	Short: "Export IoTeX public key from wallet",
 	Args:  cobra.RangeArgs(0, 1),
 	RunE: func(cmd *cobra.Command, args []string) error {

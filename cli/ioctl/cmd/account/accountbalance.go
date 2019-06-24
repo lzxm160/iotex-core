@@ -19,7 +19,7 @@ import (
 
 // accountBalanceCmd represents the account balance command
 var accountBalanceCmd = &cobra.Command{
-	Use:   "balance (ALIAS|ADDRESS)",
+	Use:   "balance [ALIAS|ADDRESS]",
 	Short: "Get balance of an account",
 	Args:  cobra.RangeArgs(0, 1),
 	RunE: func(cmd *cobra.Command, args []string) error {

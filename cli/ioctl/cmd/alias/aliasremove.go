@@ -11,7 +11,6 @@ import (
 	"io/ioutil"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
 	"github.com/iotexproject/iotex-core/cli/ioctl/validator"
@@ -19,7 +18,7 @@ import (
 
 // aliasRemoveCmd represents the alias remove command
 var aliasRemoveCmd = &cobra.Command{
-	Use:   "remove ALIAS",
+	Use:   "remove [ALIAS]",
 	Short: "Remove alias",
 	Args:  cobra.RangeArgs(0, 1),
 	RunE: func(cmd *cobra.Command, args []string) error {
