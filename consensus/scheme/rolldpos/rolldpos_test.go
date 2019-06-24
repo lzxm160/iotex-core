@@ -52,7 +52,7 @@ type addrKeyPair struct {
 }
 
 func TestNewRollDPoS(t *testing.T) {
-	t.Parallel()
+	//t.Parallel()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
