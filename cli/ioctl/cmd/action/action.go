@@ -68,17 +68,12 @@ func decodeBytecode() ([]byte, error) {
 	return hex.DecodeString(strings.TrimLeft(bytecodeFlag.Value().(string), "0x"))
 }
 
-func signer() (string, error) {
-	var (
-		address string
-		err     error
-	)
-	if !strings.EqualFold(signerFlag.Value().(string), "") {
-		address = signerFlag.Value().(string)
-	} else {
+func signer() (address string, err error) {
+	address = signerFlag.Value().(string)
+	if strings.EqualFold(address, "") {
 		address, err = config.GetContext()
 		if err != nil {
-			return "", err
+			return
 		}
 	}
 	return alias.Address(address)

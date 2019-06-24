@@ -10,11 +10,10 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
-
 	"github.com/spf13/cobra"
 
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
+	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
 	"github.com/iotexproject/iotex-core/cli/ioctl/util"
 )
 
