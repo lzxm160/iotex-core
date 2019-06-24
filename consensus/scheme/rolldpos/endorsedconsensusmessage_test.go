@@ -6,30 +6,41 @@
 
 package rolldpos
 
-//func TestEndorsedConsensusMessage(t *testing.T) {
-//	require := require.New(t)
-//	hash := []byte("abcdefg")
-//	sig := []byte("signature")
-//	priKey := identityset.PrivateKey(0)
-//	vote := NewConsensusVote(hash, PROPOSAL)
-//	now := time.Now()
-//	en := endorsement.NewEndorsement(
-//		now,
-//		priKey.PublicKey(),
-//		sig,
-//	)
-//	endorsedMessage := NewEndorsedConsensusMessage(10, vote, en)
-//	pb, err := endorsedMessage.Proto()
-//	require.NoError(err)
-//	cem := &EndorsedConsensusMessage{}
-//	require.NoError(cem.LoadProto(pb))
-//	require.Equal(uint64(10), cem.Height())
-//	cvote, ok := cem.Document().(*ConsensusVote)
-//	require.True(ok)
-//	require.Equal(PROPOSAL, cvote.Topic())
-//	require.Equal(0, bytes.Compare(hash, cvote.BlockHash()))
-//	cen := cem.Endorsement()
-//	require.Equal(0, bytes.Compare(sig, cen.Signature()))
-//	require.True(now.Equal(cen.Timestamp()))
-//	require.Equal(priKey.PublicKey().HexString(), en.Endorser().HexString())
-//}
+import (
+	"bytes"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/iotexproject/iotex-core/endorsement"
+	"github.com/iotexproject/iotex-core/test/identityset"
+)
+
+func TestEndorsedConsensusMessage(t *testing.T) {
+	require := require.New(t)
+	hash := []byte("abcdefg")
+	sig := []byte("signature")
+	priKey := identityset.PrivateKey(0)
+	vote := NewConsensusVote(hash, PROPOSAL)
+	now := time.Now()
+	en := endorsement.NewEndorsement(
+		now,
+		priKey.PublicKey(),
+		sig,
+	)
+	endorsedMessage := NewEndorsedConsensusMessage(10, vote, en)
+	pb, err := endorsedMessage.Proto()
+	require.NoError(err)
+	cem := &EndorsedConsensusMessage{}
+	require.NoError(cem.LoadProto(pb))
+	require.Equal(uint64(10), cem.Height())
+	cvote, ok := cem.Document().(*ConsensusVote)
+	require.True(ok)
+	require.Equal(PROPOSAL, cvote.Topic())
+	require.Equal(0, bytes.Compare(hash, cvote.BlockHash()))
+	cen := cem.Endorsement()
+	require.Equal(0, bytes.Compare(sig, cen.Signature()))
+	require.True(now.Equal(cen.Timestamp()))
+	require.Equal(priKey.PublicKey().HexString(), en.Endorser().HexString())
+}
