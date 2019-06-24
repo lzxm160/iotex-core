@@ -600,6 +600,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 	})
 
 	t.Run("proposer-network-partition-blocking", func(t *testing.T) {
+		t.Skip()
 		ctx := context.Background()
 		cs, p2ps, chains := newConsensusComponents(24, 3)
 		// 1 should be the block 1's proposer
