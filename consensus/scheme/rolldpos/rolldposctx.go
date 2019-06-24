@@ -471,6 +471,7 @@ func (ctx *rollDPoSCtx) Broadcast(endorsedMsg interface{}) {
 	defer ctx.mutex.RUnlock()
 	if endorsedMsg == nil {
 		ctx.loggerWithStats().Error("message is nil")
+		return
 	}
 	ecm, ok := endorsedMsg.(*EndorsedConsensusMessage)
 	if !ok {
