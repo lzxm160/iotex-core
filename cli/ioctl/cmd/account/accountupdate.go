@@ -43,7 +43,7 @@ func accountUpdate(args []string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	account, err = alias.Address(addr)
+	account, err := alias.Address(addr)
 	if err != nil {
 		return "", err
 	}
