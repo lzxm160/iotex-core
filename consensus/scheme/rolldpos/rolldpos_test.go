@@ -656,7 +656,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 		for i := 0; i < 24; i++ {
 			require.NoError(t, chains[i].Start(ctx))
 			require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 10*time.Second, func() (b bool, e error) {
-				fmt.Println("/////////////////////chains[i].ChainAddress()")
+				fmt.Println("/////////////////////", chains[i].ChainAddress())
 				ip := net.ParseIP("127.0.0.1")
 				tcpAddr := net.TCPAddr{
 					IP:   ip,
