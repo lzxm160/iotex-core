@@ -13,7 +13,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
-	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
 	"github.com/iotexproject/iotex-core/cli/ioctl/util"
 )
 
@@ -21,6 +20,7 @@ import (
 var accountBalanceCmd = &cobra.Command{
 	Use:   "balance (ALIAS|ADDRESS)",
 	Short: "Get balance of an account",
+	Args:  cobra.RangeArgs(0, 1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		output, err := balance(args)
@@ -33,19 +33,11 @@ var accountBalanceCmd = &cobra.Command{
 
 // balance gets balance of an IoTeX blockchain address
 func balance(args []string) (string, error) {
-	var (
-		address string
-		err     error
-	)
-	if len(args) == 1 {
-		address = args[0]
-	} else {
-		address, err = config.GetContext()
-		if err != nil {
-			return "", err
-		}
+	addr, err := GetAddress(args)
+	if err != nil {
+		return "", err
 	}
-	address, err = alias.Address(address)
+	address, err := alias.Address(addr)
 	if err != nil {
 		return "", err
 	}

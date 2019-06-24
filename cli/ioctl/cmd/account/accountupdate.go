@@ -11,8 +11,6 @@ import (
 	"fmt"
 	"syscall"
 
-	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
-
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
@@ -20,6 +18,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh/terminal"
 
+	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
 	"github.com/iotexproject/iotex-core/pkg/log"
 )
@@ -40,19 +39,11 @@ var accountUpdateCmd = &cobra.Command{
 }
 
 func accountUpdate(args []string) (string, error) {
-	var (
-		account string
-		err     error
-	)
-	if len(args) == 1 {
-		account = args[0]
-	} else {
-		account, err = config.GetContext()
-		if err != nil {
-			return "", err
-		}
+	addr, err := GetAddress(args)
+	if err != nil {
+		return "", err
 	}
-	addr, err := alias.Address(account)
+	addr, err = alias.Address(addr)
 	if err != nil {
 		return "", err
 	}

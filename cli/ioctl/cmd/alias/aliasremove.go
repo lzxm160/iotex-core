@@ -12,7 +12,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
-
+	
+	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/account"
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
 	"github.com/iotexproject/iotex-core/cli/ioctl/validator"
 )
@@ -21,20 +22,12 @@ import (
 var aliasRemoveCmd = &cobra.Command{
 	Use:   "remove ALIAS",
 	Short: "Remove alias",
-Args:  cobra.RangeArgs(0, 1),
+	Args:  cobra.RangeArgs(0, 1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
-		var (
-			removeAlias string
-			err         error
-		)
-		if len(args) == 1 {
-			removeAlias = args[0]
-		} else {
-			removeAlias, err = config.GetContext()
-			if err != nil {
-				return err
-			}
+		removeAlias, err := account.GetAddress(args)
+		if err != nil {
+			return err
 		}
 		output, err := remove(removeAlias)
 		if err == nil {

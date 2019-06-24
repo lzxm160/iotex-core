@@ -220,3 +220,14 @@ func newAccountByKeyStore(alias, passwordOfKeyStore, keyStorePath string, wallet
 	}
 	return newAccountByKey(alias, hex.EncodeToString(ecrypto.FromECDSA(key.PrivateKey)), walletDir)
 }
+func GetAddress(args []string) (address string, err error) {
+	if len(args) == 1 {
+		address = args[0]
+	} else {
+		address, err = config.GetContext()
+		if err != nil {
+			return
+		}
+	}
+	return
+}

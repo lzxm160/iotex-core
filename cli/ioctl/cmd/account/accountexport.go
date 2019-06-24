@@ -15,7 +15,6 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
-	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
 	"github.com/iotexproject/iotex-core/pkg/log"
 )
 
@@ -23,7 +22,7 @@ import (
 var accountExportCmd = &cobra.Command{
 	Use:   "export (ALIAS|ADDRESS)",
 	Short: "Export IoTeX private key from wallet",
-Args:  cobra.RangeArgs(0, 1),
+	Args:  cobra.RangeArgs(0, 1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		output, err := accountExport(args)
@@ -35,23 +34,15 @@ Args:  cobra.RangeArgs(0, 1),
 }
 
 func accountExport(args []string) (string, error) {
-	var (
-		address string
-		err     error
-	)
-	if len(args) == 1 {
-		address = args[0]
-	} else {
-		address, err = config.GetContext()
-		if err != nil {
-			return "", err
-		}
-	}
-	addr, err := alias.Address(address)
+	addr, err := GetAddress(args)
 	if err != nil {
 		return "", err
 	}
-	fmt.Printf("Enter password #%s:\n", address)
+	addr, err = alias.Address(addr)
+	if err != nil {
+		return "", err
+	}
+	fmt.Printf("Enter password #%s:\n", addr)
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		log.L().Error("failed to get password", zap.Error(err))

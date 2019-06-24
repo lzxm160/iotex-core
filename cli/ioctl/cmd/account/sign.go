@@ -54,7 +54,7 @@ func accountSign(args []string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Printf("Enter password #%s:\n", address)
+	fmt.Printf("Enter password #%s:\n", addr)
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		log.L().Error("failed to get password", zap.Error(err))
