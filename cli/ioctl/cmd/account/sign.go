@@ -10,11 +10,12 @@ import (
 	"fmt"
 	"syscall"
 
+	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
+
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh/terminal"
 
-	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
 	"github.com/iotexproject/iotex-core/pkg/log"
 )
 
@@ -22,7 +23,7 @@ import (
 var accountSignCmd = &cobra.Command{
 	Use:   "sign (ALIAS|ADDRESS) MESSAGE",
 	Short: "Sign message with private key from wallet",
-	Args:  cobra.ExactArgs(2),
+	Args:  cobra.ExactArgs(1, 2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		output, err := accountSign(args)
@@ -34,15 +35,26 @@ var accountSignCmd = &cobra.Command{
 }
 
 func accountSign(args []string) (string, error) {
-	addr, err := alias.Address(args[0])
-	if err != nil {
-		return "", err
+	var (
+		address string
+		msg     string
+		err     error
+	)
+	if len(args) == 2 {
+		address = args[0]
+		msg = args[1]
+	} else {
+		msg = args[0]
+		address, err = config.GetContext()
+		if err != nil {
+			return "", err
+		}
 	}
-	fmt.Printf("Enter password #%s:\n", args[0])
+	fmt.Printf("Enter password #%s:\n", address)
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		log.L().Error("failed to get password", zap.Error(err))
 		return "", err
 	}
-	return Sign(addr, string(bytePassword), args[1])
+	return Sign(addr, string(bytePassword), msg)
 }

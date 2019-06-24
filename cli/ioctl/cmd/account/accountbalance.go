@@ -9,7 +9,6 @@ package account
 import (
 	"fmt"
 	"math/big"
-	"strings"
 
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
 
@@ -23,7 +22,6 @@ import (
 var accountBalanceCmd = &cobra.Command{
 	Use:   "balance (ALIAS|ADDRESS)",
 	Short: "Get balance of an account",
-	//Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		output, err := balance(args)
@@ -36,14 +34,19 @@ var accountBalanceCmd = &cobra.Command{
 
 // balance gets balance of an IoTeX blockchain address
 func balance(args []string) (string, error) {
-	address := config.ReadConfig.CurrentContext
+	var (
+		address string
+		err     error
+	)
 	if len(args) == 1 {
 		address = args[0]
+	} else {
+		address, err = config.GetContext()
+		if err != nil {
+			return "", err
+		}
 	}
-	if strings.EqualFold(address, "") {
-		return "", fmt.Errorf(`use "ioctl config set currentcontext" to config current account first`)
-	}
-	address, err := alias.Address(address)
+	address, err = alias.Address(address)
 	if err != nil {
 		return "", err
 	}

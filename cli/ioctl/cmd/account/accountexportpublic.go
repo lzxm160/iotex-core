@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"syscall"
 
+	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
+
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh/terminal"
@@ -22,7 +24,6 @@ import (
 var accountExportPublicCmd = &cobra.Command{
 	Use:   "exportpublic (ALIAS|ADDRESS)",
 	Short: "Export IoTeX public key from wallet",
-	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		output, err := accountExportPublic(args)
@@ -34,11 +35,23 @@ var accountExportPublicCmd = &cobra.Command{
 }
 
 func accountExportPublic(args []string) (string, error) {
-	addr, err := alias.Address(args[0])
+	var (
+		address string
+		err     error
+	)
+	if len(args) == 1 {
+		address = args[0]
+	} else {
+		address, err = config.GetContext()
+		if err != nil {
+			return "", err
+		}
+	}
+	addr, err := alias.Address(address)
 	if err != nil {
 		return "", err
 	}
-	fmt.Printf("Enter password #%s:\n", args[0])
+	fmt.Printf("Enter password #%s:\n", address)
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		log.L().Error("failed to get password", zap.Error(err))

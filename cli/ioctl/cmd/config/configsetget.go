@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"regexp"
+	"strings"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -89,7 +89,18 @@ func Get(arg string) (string, error) {
 			ReadConfig.SecureConnect), nil
 	case "wallet":
 		return ReadConfig.Wallet, nil
+	case "currentcontext":
+		return ReadConfig.CurrentContext, nil
 	}
+}
+
+// GetContext gets current context
+func GetContext() (string, error) {
+	currentcontext := ReadConfig.CurrentContext
+	if strings.EqualFold(currentcontext, "") {
+		return "", fmt.Errorf(`use "ioctl config set currentcontext" to config current account first`)
+	}
+	return currentcontext, nil
 }
 
 // make sure endpoint match pattern

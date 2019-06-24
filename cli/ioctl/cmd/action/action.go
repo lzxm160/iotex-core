@@ -69,7 +69,19 @@ func decodeBytecode() ([]byte, error) {
 }
 
 func signer() (string, error) {
-	return alias.Address(signerFlag.Value().(string))
+	var (
+		address string
+		err     error
+	)
+	if !strings.EqualFold(signerFlag.Value().(string), "") {
+		address = signerFlag.Value().(string)
+	} else {
+		address, err = config.GetContext()
+		if err != nil {
+			return "", err
+		}
+	}
+	return alias.Address(address)
 }
 
 func nonce(executor string) (uint64, error) {
