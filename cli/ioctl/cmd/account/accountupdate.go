@@ -59,7 +59,7 @@ func accountUpdate(args []string) (string, error) {
 		keystore.StandardScryptN, keystore.StandardScryptP)
 	for _, v := range ks.Accounts() {
 		if bytes.Equal(address.Bytes(), v.Address.Bytes()) {
-			fmt.Printf("#%s: Enter current password\n", account)
+			fmt.Printf("#%s: Enter current password\n", addr)
 			byteCurrentPassword, err := terminal.ReadPassword(int(syscall.Stdin))
 			if err != nil {
 				log.L().Error("failed to get current password", zap.Error(err))
