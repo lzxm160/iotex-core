@@ -351,7 +351,7 @@ func (o *directOverlay) GetPeers() []net.Addr {
 }
 
 func TestRollDPoSConsensus(t *testing.T) {
-	newConsensusComponents := func(numNodes int) ([]*RollDPoS, []*directOverlay, []blockchain.Blockchain) {
+	newConsensusComponents := func(numNodes, callerID int) ([]*RollDPoS, []*directOverlay, []blockchain.Blockchain) {
 		cfg := config.Default
 		cfg.Consensus.RollDPoS.Delay = 300 * time.Millisecond
 		cfg.Consensus.RollDPoS.FSM.AcceptBlockTTL = 400 * time.Millisecond
@@ -375,7 +375,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 				priKey:      sk,
 			}
 			chainAddrs = append(chainAddrs, &addr)
-			networkAddrs = append(networkAddrs, node.NewTCPNode(fmt.Sprintf("127.0.0.%d:4689", i+1)))
+			networkAddrs = append(networkAddrs, node.NewTCPNode(fmt.Sprintf("127.0.0.%d:4689", i+callerID*24+1)))
 		}
 
 		chainRawAddrs := make([]string, 0, numNodes)
@@ -474,7 +474,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 		t.Skip()
 
 		ctx := context.Background()
-		cs, p2ps, chains := newConsensusComponents(24)
+		cs, p2ps, chains := newConsensusComponents(24, 0)
 
 		for i := 0; i < 24; i++ {
 			require.NoError(t, chains[i].Start(ctx))
@@ -513,7 +513,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 			t.Skip("Skip the 1-epoch test in short mode.")
 		}
 		ctx := context.Background()
-		cs, p2ps, chains := newConsensusComponents(24)
+		cs, p2ps, chains := newConsensusComponents(24, 1)
 
 		for i := 0; i < 24; i++ {
 			require.NoError(t, chains[i].Start(ctx))
@@ -552,7 +552,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 		t.Skip()
 
 		ctx := context.Background()
-		cs, p2ps, chains := newConsensusComponents(24)
+		cs, p2ps, chains := newConsensusComponents(24, 2)
 		// 1 should be the block 1's proposer
 		for i, p2p := range p2ps {
 			if i == 1 {
@@ -601,7 +601,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 
 	t.Run("proposer-network-partition-blocking", func(t *testing.T) {
 		ctx := context.Background()
-		cs, p2ps, chains := newConsensusComponents(24)
+		cs, p2ps, chains := newConsensusComponents(24, 3)
 		// 1 should be the block 1's proposer
 		for i, p2p := range p2ps {
 			if i == 1 {
@@ -643,7 +643,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 
 	t.Run("non-proposer-network-partition-blocking", func(t *testing.T) {
 		ctx := context.Background()
-		cs, p2ps, chains := newConsensusComponents(24)
+		cs, p2ps, chains := newConsensusComponents(24, 4)
 		// 1 should be the block 1's proposer
 		for i, p2p := range p2ps {
 			if i == 0 {
