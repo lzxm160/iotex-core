@@ -15,13 +15,14 @@ import (
 	"syscall"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/iotexproject/go-pkgs/hash"
+	"github.com/iotexproject/iotex-proto/golang/iotexapi"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh/terminal"
 	"google.golang.org/grpc/status"
 
-	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/account"
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
@@ -30,7 +31,6 @@ import (
 	"github.com/iotexproject/iotex-core/cli/ioctl/util"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
-	"github.com/iotexproject/iotex-proto/golang/iotexapi"
 )
 
 const defaultSigner = "io1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqd39ym7"

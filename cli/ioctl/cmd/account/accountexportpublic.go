@@ -10,13 +10,12 @@ import (
 	"fmt"
 	"syscall"
 
-	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
-
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
+	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
 	"github.com/iotexproject/iotex-core/pkg/log"
 )
 
