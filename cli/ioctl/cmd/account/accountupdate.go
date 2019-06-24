@@ -12,13 +12,12 @@ import (
 	"syscall"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/iotexproject/go-pkgs/hash"
+	"github.com/iotexproject/iotex-address/address"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh/terminal"
-	"github.com/iotexproject/go-pkgs/hash"
-	"github.com/iotexproject/iotex-address/address"
-	
-	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
+
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
 	"github.com/iotexproject/iotex-core/pkg/log"
 )
@@ -50,7 +49,7 @@ func accountUpdate(args []string) (string, error) {
 			return "", err
 		}
 	}
-	addr, err = address.FromString(addr)
+	address, err := address.FromString(addr)
 	if err != nil {
 		log.L().Error("failed to convert string into address", zap.Error(err))
 		return "", err
