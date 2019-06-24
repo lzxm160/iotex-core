@@ -375,7 +375,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 				priKey:      sk,
 			}
 			chainAddrs = append(chainAddrs, &addr)
-			networkAddrs = append(networkAddrs, node.NewTCPNode(fmt.Sprintf("127.0.0.%d:4689", i+callerID*24+1)))
+			networkAddrs = append(networkAddrs, node.NewTCPNode(fmt.Sprintf("127.0.0.1:%d", i+callerID*24+4689)))
 		}
 
 		chainRawAddrs := make([]string, 0, numNodes)
