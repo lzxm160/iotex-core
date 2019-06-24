@@ -9,6 +9,8 @@ package account
 import (
 	"fmt"
 
+	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
+
 	"github.com/spf13/cobra"
 
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
@@ -31,7 +33,7 @@ var accountNonceCmd = &cobra.Command{
 
 // nonce gets nonce and pending nonce of an IoTeX blockchain address
 func nonce(args []string) (string, error) {
-	addr, err := GetAddress(args)
+	addr, err := config.GetAddress(args)
 	if err != nil {
 		return "", err
 	}

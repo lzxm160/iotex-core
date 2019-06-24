@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
+
 	"github.com/spf13/cobra"
 
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
@@ -33,7 +35,7 @@ var accountBalanceCmd = &cobra.Command{
 
 // balance gets balance of an IoTeX blockchain address
 func balance(args []string) (string, error) {
-	addr, err := GetAddress(args)
+	addr, err := config.GetAddress(args)
 	if err != nil {
 		return "", err
 	}

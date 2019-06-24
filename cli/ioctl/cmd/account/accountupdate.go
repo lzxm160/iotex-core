@@ -39,7 +39,7 @@ var accountUpdateCmd = &cobra.Command{
 }
 
 func accountUpdate(args []string) (string, error) {
-	addr, err := GetAddress(args)
+	addr, err := config.GetAddress(args)
 	if err != nil {
 		return "", err
 	}

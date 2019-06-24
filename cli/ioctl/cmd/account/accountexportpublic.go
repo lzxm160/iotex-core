@@ -15,6 +15,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
+	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
 	"github.com/iotexproject/iotex-core/pkg/log"
 )
 
@@ -34,7 +35,7 @@ var accountExportPublicCmd = &cobra.Command{
 }
 
 func accountExportPublic(args []string) (string, error) {
-	addr, err := GetAddress(args)
+	addr, err := config.GetAddress(args)
 	if err != nil {
 		return "", err
 	}

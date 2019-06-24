@@ -38,7 +38,7 @@ var accountDeleteCmd = &cobra.Command{
 }
 
 func accountDelete(args []string) (string, error) {
-	addr, err := GetAddress(args)
+	addr, err := config.GetAddress(args)
 	if err != nil {
 		return "", err
 	}

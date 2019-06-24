@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -102,6 +101,19 @@ func GetContext() (string, error) {
 		return "", fmt.Errorf(`use "ioctl config set currentcontext" to config current account first`)
 	}
 	return currentcontext, nil
+}
+
+// GetAddress gets address from args or context
+func GetAddress(args []string) (address string, err error) {
+	if len(args) == 1 {
+		address = args[0]
+	} else {
+		address, err = GetContext()
+		if err != nil {
+			return
+		}
+	}
+	return
 }
 
 // make sure endpoint match pattern
