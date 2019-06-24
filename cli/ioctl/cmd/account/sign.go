@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"syscall"
 
+	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
+
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
 
 	"github.com/spf13/cobra"
@@ -49,6 +51,10 @@ func accountSign(args []string) (string, error) {
 		if err != nil {
 			return "", err
 		}
+	}
+	addr, err := alias.Address(address)
+	if err != nil {
+		return "", err
 	}
 	fmt.Printf("Enter password #%s:\n", address)
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
