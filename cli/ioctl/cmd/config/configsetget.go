@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -95,8 +94,8 @@ func Get(arg string) (string, error) {
 	}
 }
 
-// GetContext gets current context
-func GetContext() (string, error) {
+// getContext gets current context
+func getContext() (string, error) {
 	currentcontext := ReadConfig.CurrentContext
 	if strings.EqualFold(currentcontext, "") {
 		return "", fmt.Errorf(`use "ioctl config set currentcontext" to config current account first`)
@@ -109,7 +108,7 @@ func GetAddress(args []string) (address string, err error) {
 	if len(args) == 1 {
 		address = args[0]
 	} else {
-		address, err = GetContext()
+		address, err = getContext()
 		if err != nil {
 			return
 		}
