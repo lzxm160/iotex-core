@@ -43,11 +43,11 @@ func accountUpdate(args []string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	addr, err = alias.Address(addr)
+	account, err = alias.Address(addr)
 	if err != nil {
 		return "", err
 	}
-	address, err := address.FromString(addr)
+	address, err := address.FromString(account)
 	if err != nil {
 		log.L().Error("failed to convert string into address", zap.Error(err))
 		return "", err
