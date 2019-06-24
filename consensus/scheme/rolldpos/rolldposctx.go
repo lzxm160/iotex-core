@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/facebookgo/clock"
-	"github.com/iotexproject/go-fsm"
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
@@ -470,10 +469,6 @@ func (ctx *rollDPoSCtx) Commit(msg interface{}) (bool, error) {
 func (ctx *rollDPoSCtx) Broadcast(endorsedMsg interface{}) {
 	ctx.mutex.RLock()
 	defer ctx.mutex.RUnlock()
-	if endorsedMsg == nil {
-		ctx.loggerWithStats().Error("message is nil")
-		return
-	}
 	ecm, ok := endorsedMsg.(*EndorsedConsensusMessage)
 	if !ok {
 		ctx.loggerWithStats().Error("invalid message type", zap.Any("message", ecm))
