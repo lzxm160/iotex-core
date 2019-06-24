@@ -29,7 +29,7 @@ import (
 
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	"github.com/iotexproject/iotex-core/action/protocol/account/util"
+	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/actpool"
 	"github.com/iotexproject/iotex-core/blockchain"
@@ -52,7 +52,7 @@ type addrKeyPair struct {
 }
 
 func TestNewRollDPoS(t *testing.T) {
-	//t.Parallel()
+	t.Parallel()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -375,7 +375,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 				priKey:      sk,
 			}
 			chainAddrs = append(chainAddrs, &addr)
-			networkAddrs = append(networkAddrs, node.NewTCPNode(fmt.Sprintf("127.0.0.1:%d", i+14689)))
+			networkAddrs = append(networkAddrs, node.NewTCPNode(fmt.Sprintf("127.0.0.%d:4689", i+1)))
 		}
 
 		chainRawAddrs := make([]string, 0, numNodes)
@@ -633,6 +633,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 				require.NoError(t, chains[i].Stop(ctx))
 			}
 		}()
+		time.Sleep(5 * time.Second)
 		for _, chain := range chains {
 			header, err := chain.BlockHeaderByHeight(1)
 			assert.Nil(t, header)
@@ -676,10 +677,10 @@ func TestRollDPoSConsensus(t *testing.T) {
 		}()
 		assert.NoError(t, testutil.WaitUntil(200*time.Millisecond, 60*time.Second, func() (bool, error) {
 			for i, chain := range chains {
-				if i == 1 {
+				if i == 0 {
 					continue
 				}
-				if chain.TipHeight() < 1 {
+				if chain.TipHeight() < 48 {
 					return false, nil
 				}
 			}
