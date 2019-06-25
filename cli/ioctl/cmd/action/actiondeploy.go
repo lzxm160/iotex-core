@@ -18,7 +18,7 @@ import (
 var actionDeployCmd = &cobra.Command{
 	Use:   "deploy [AMOUNT_IOTX] -s SIGNER -b BYTE_CODE [-l GAS_LIMIT] [-p GAS_PRICE]",
 	Short: "Deploy smart contract on IoTeX blockchain",
-	Args:  cobra.MaximumNArgs(0),
+	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		bytecode, err := decodeBytecode()
