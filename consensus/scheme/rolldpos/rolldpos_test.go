@@ -362,7 +362,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 		cfg.Consensus.RollDPoS.FSM.UnmatchedEventInterval = 10 * time.Millisecond
 		cfg.Consensus.RollDPoS.ToleratedOvertime = 200 * time.Millisecond
 
-		cfg.Genesis.BlockInterval = time.Second
+		cfg.Genesis.BlockInterval = 1500 * time.Millisecond
 		cfg.Genesis.Blockchain.NumDelegates = uint64(numNodes)
 		cfg.Genesis.Blockchain.NumSubEpochs = 1
 		cfg.Genesis.EnableGravityChainVoting = false
