@@ -33,7 +33,7 @@ var xrc20AllowanceCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		spender, err := alias.EtherAddress(args[1])
+		spender, err := alias.EtherAddress(args[0])
 		if err != nil {
 			return err
 		}
