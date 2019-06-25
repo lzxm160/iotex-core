@@ -680,7 +680,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 				if i == 0 {
 					continue
 				}
-				if chain.TipHeight() < 2 {
+				if chain.TipHeight() < 10 {
 					return false, nil
 				}
 			}
