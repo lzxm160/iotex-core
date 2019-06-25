@@ -353,7 +353,7 @@ func (o *directOverlay) GetPeers() []net.Addr {
 func TestRollDPoSConsensus(t *testing.T) {
 	newConsensusComponents := func(numNodes int) ([]*RollDPoS, []*directOverlay, []blockchain.Blockchain) {
 		cfg := config.Default
-		cfg.Consensus.RollDPoS.Delay = 300 * time.Millisecond
+		cfg.Consensus.RollDPoS.Delay = 500 * time.Millisecond
 		cfg.Consensus.RollDPoS.FSM.AcceptBlockTTL = 400 * time.Millisecond
 		cfg.Consensus.RollDPoS.FSM.AcceptProposalEndorsementTTL = 200 * time.Millisecond
 		cfg.Consensus.RollDPoS.FSM.AcceptLockEndorsementTTL = 200 * time.Millisecond
