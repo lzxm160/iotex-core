@@ -64,7 +64,7 @@ func read(contract address.Address, bytecode []byte) (string, error) {
 	if len(signer) == 0 {
 		signer = defaultSigner
 	}
-	caller, err := alias.Address(signer)
+	caller, err := util.Address(signer)
 	if err != nil {
 		return "", err
 	}
