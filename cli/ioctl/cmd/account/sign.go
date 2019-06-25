@@ -53,10 +53,10 @@ func accountSign(args []string) (string, error) {
 		return "", err
 	}
 	fmt.Printf("Enter password #%s:\n", addr)
-	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	password, err := util.ReadSecretFromStdin()
 	if err != nil {
 		log.L().Error("failed to get password", zap.Error(err))
 		return "", err
 	}
-	return Sign(addr, string(bytePassword), msg)
+	return Sign(addr, password, msg)
 }
