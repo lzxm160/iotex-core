@@ -474,10 +474,10 @@ func (ctx *rollDPoSCtx) Broadcast(endorsedMsg interface{}) {
 	if !ok {
 		ctx.loggerWithStats().Error("invalid message type", zap.Any("message", ecm))
 	}
-	if ecm == nil {
-		ctx.loggerWithStats().Error("EndorsedConsensusMessage is nil")
-		return
-	}
+	//if ecm == nil {
+	//	ctx.loggerWithStats().Error("EndorsedConsensusMessage is nil")
+	//	return
+	//}
 	msg, err := ecm.Proto()
 	if err != nil {
 		ctx.loggerWithStats().Error("failed to generate protobuf message", zap.Error(err))
