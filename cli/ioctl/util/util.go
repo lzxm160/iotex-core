@@ -15,8 +15,6 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
-
 	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh/terminal"
@@ -158,9 +156,24 @@ func GetAddress(args []string) (addr string, err error) {
 	if err != nil {
 		return
 	}
-	addr, err = alias.Address(addr)
+	addr, err = Address(addr)
 	if err != nil {
 		return
 	}
 	return
+}
+
+// Address returns the address corresponding to alias. if 'in' is an IoTeX address, returns 'in'
+func Address(in string) (string, error) {
+	if len(in) >= validator.IoAddrLen {
+		if err := validator.ValidateAddress(in); err != nil {
+			return "", err
+		}
+		return in, nil
+	}
+	addr, ok := config.ReadConfig.Aliases[in]
+	if ok {
+		return addr, nil
+	}
+	return "", fmt.Errorf("cannot find address from " + in)
 }

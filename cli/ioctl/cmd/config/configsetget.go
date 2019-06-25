@@ -12,10 +12,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/iotexproject/iotex-core/cli/ioctl/validator"
-
 	"github.com/spf13/cobra"
 	yaml "gopkg.in/yaml.v2"
+
+	"github.com/iotexproject/iotex-core/cli/ioctl/validator"
 )
 
 const (
