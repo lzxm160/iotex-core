@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	yaml "gopkg.in/yaml.v2"
-
+	"gopkg.in/yaml.v2"
+	
 	"github.com/iotexproject/iotex-core/cli/ioctl/validator"
 )
 
@@ -138,8 +138,10 @@ func set(args []string) (string, error) {
 	case "wallet":
 		ReadConfig.Wallet = args[1]
 	case "currentcontext":
-		if err := validator.ValidateAlias(args[1]); err != nil {
-			return "", err
+		err1 := validator.ValidateAlias(args[1])
+		err2 := validator.ValidateAddress(args[1])
+		if err1 != nil || err2 != nil {
+			return "", fmt.Errorf("failed to validate alias or address")
 		}
 		ReadConfig.CurrentContext.AddressOrAlias = args[1]
 	}
