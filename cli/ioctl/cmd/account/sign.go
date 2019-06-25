@@ -44,7 +44,7 @@ func accountSign(args []string) (string, error) {
 		msg = args[1]
 	} else {
 		msg = args[0]
-		address, err = config.GetContext()
+		address, err = config.GetContextAddress()
 		if err != nil {
 			return "", err
 		}

@@ -12,10 +12,11 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/iotexproject/iotex-core/cli/ioctl/util"
+
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
-	"gopkg.in/yaml.v2"
 
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
@@ -39,11 +40,7 @@ var accountDeleteCmd = &cobra.Command{
 }
 
 func accountDelete(args []string) (string, error) {
-	addr, err := config.GetAddress(args)
-	if err != nil {
-		return "", err
-	}
-	addr, err = alias.Address(addr)
+	addr, err := util.GetAddress(args)
 	if err != nil {
 		return "", err
 	}

@@ -15,6 +15,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/alias"
+
 	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh/terminal"
@@ -148,4 +150,17 @@ func ReadSecretFromStdin() (string, error) {
 		return "", err
 	}
 	return string(bytePass), nil
+}
+
+// GetAddress get address from address or alias
+func GetAddress(args []string) (addr string, err error) {
+	addr, err = config.GetAddressOrAlias(args)
+	if err != nil {
+		return
+	}
+	addr, err = alias.Address(addr)
+	if err != nil {
+		return
+	}
+	return
 }

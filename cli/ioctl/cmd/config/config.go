@@ -12,7 +12,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 
 	"github.com/iotexproject/iotex-core/pkg/log"
 )
@@ -39,13 +38,18 @@ var ConfigCmd = &cobra.Command{
 	Short: "Set or get configuration for ioctl",
 }
 
+// Context represents the current context
+type Context struct {
+	AddressOrAlias string `yaml:"addressOralias"`
+}
+
 // Config defines the config schema
 type Config struct {
 	Wallet         string            `yaml:"wallet"`
 	Endpoint       string            `yaml:"endpoint"`
 	SecureConnect  bool              `yaml:"secureConnect"`
 	Aliases        map[string]string `yaml:"aliases"`
-	CurrentContext string            `yaml:"currentcontext"`
+	CurrentContext Context           `yaml:"currentcontext"`
 }
 
 var (
