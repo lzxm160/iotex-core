@@ -66,8 +66,15 @@ func decodeBytecode() ([]byte, error) {
 	return hex.DecodeString(strings.TrimLeft(bytecodeFlag.Value().(string), "0x"))
 }
 
-func signer() (string, error) {
-	return alias.Address(signerFlag.Value().(string))
+func signer() (address string, err error) {
+	address = signerFlag.Value().(string)
+	if strings.EqualFold(address, "") {
+		address, err = config.GetContext()
+		if err != nil {
+			return
+		}
+	}
+	return alias.Address(address)
 }
 
 func nonce(executor string) (uint64, error) {
@@ -87,7 +94,6 @@ func registerWriteCommand(cmd *cobra.Command) {
 	gasPriceFlag.RegisterCommand(cmd)
 	signerFlag.RegisterCommand(cmd)
 	nonceFlag.RegisterCommand(cmd)
-	signerFlag.MarkFlagRequired(cmd)
 }
 
 // gasPriceInRau returns the suggest gas price
@@ -130,21 +136,6 @@ func execute(contract string, amount *big.Int, bytecode []byte) (err error) {
 		err = errors.Wrap(err, "cannot make a Execution instance")
 		log.L().Error("error when invoke an execution", zap.Error(err))
 		return
-	}
-	accountMeta, err := account.GetAccountMeta(signer)
-	if err != nil {
-		return err
-	}
-	balance, ok := big.NewInt(0).SetString(accountMeta.Balance, 10)
-	if !ok {
-		return fmt.Errorf("failed to convert balance into big int")
-	}
-	cost, err := tx.Cost()
-	if err != nil {
-		return err
-	}
-	if balance.Cmp(cost) < 0 {
-		return fmt.Errorf("balance is not enough")
 	}
 	return sendAction(
 		(&action.EnvelopeBuilder{}).
