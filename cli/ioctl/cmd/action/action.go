@@ -66,8 +66,7 @@ func decodeBytecode() ([]byte, error) {
 }
 
 func signer() (address string, err error) {
-	address = signerFlag.Value().(string)
-	return util.GetAddress([]string{address})
+	return util.GetAddress([]string{signerFlag.Value().(string)})
 }
 
 func nonce(executor string) (uint64, error) {
