@@ -30,8 +30,6 @@ import (
 	"github.com/iotexproject/iotex-proto/golang/iotexapi"
 )
 
-const defaultSigner = "io1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqd39ym7"
-
 // Flags
 var (
 	gasLimitFlag = flag.NewUint64VarP("gas-limit", "l", 300000, "set gas limit")
