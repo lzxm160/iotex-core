@@ -356,10 +356,10 @@ func TestRollDPoSConsensus(t *testing.T) {
 		cfg.Consensus.RollDPoS.Delay = 300 * time.Millisecond
 		cfg.Consensus.RollDPoS.FSM.AcceptBlockTTL = 400 * time.Millisecond
 		cfg.Consensus.RollDPoS.FSM.AcceptProposalEndorsementTTL = 200 * time.Millisecond
-		cfg.Consensus.RollDPoS.FSM.AcceptLockEndorsementTTL = 200 * time.Millisecond
+		cfg.Consensus.RollDPoS.FSM.AcceptLockEndorsementTTL = 300 * time.Millisecond
 		cfg.Consensus.RollDPoS.FSM.CommitTTL = 200 * time.Millisecond
 		cfg.Consensus.RollDPoS.FSM.UnmatchedEventTTL = time.Second
-		cfg.Consensus.RollDPoS.FSM.UnmatchedEventInterval = 100 * time.Millisecond
+		cfg.Consensus.RollDPoS.FSM.UnmatchedEventInterval = 10 * time.Millisecond
 		cfg.Consensus.RollDPoS.ToleratedOvertime = 200 * time.Millisecond
 
 		cfg.Genesis.BlockInterval = time.Second * 2
