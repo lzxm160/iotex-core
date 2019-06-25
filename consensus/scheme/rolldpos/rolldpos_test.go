@@ -354,10 +354,10 @@ func TestRollDPoSConsensus(t *testing.T) {
 	newConsensusComponents := func(numNodes int) ([]*RollDPoS, []*directOverlay, []blockchain.Blockchain) {
 		cfg := config.Default
 		cfg.Consensus.RollDPoS.Delay = 300 * time.Millisecond
-		cfg.Consensus.RollDPoS.FSM.AcceptBlockTTL = 400 * time.Millisecond
-		cfg.Consensus.RollDPoS.FSM.AcceptProposalEndorsementTTL = 200 * time.Millisecond
+		cfg.Consensus.RollDPoS.FSM.AcceptBlockTTL = 600 * time.Millisecond
+		cfg.Consensus.RollDPoS.FSM.AcceptProposalEndorsementTTL = 300 * time.Millisecond
 		cfg.Consensus.RollDPoS.FSM.AcceptLockEndorsementTTL = 300 * time.Millisecond
-		cfg.Consensus.RollDPoS.FSM.CommitTTL = 200 * time.Millisecond
+		cfg.Consensus.RollDPoS.FSM.CommitTTL = 300 * time.Millisecond
 		cfg.Consensus.RollDPoS.FSM.UnmatchedEventTTL = time.Second
 		cfg.Consensus.RollDPoS.FSM.UnmatchedEventInterval = 10 * time.Millisecond
 		cfg.Consensus.RollDPoS.ToleratedOvertime = 200 * time.Millisecond
