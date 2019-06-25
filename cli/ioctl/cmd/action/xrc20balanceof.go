@@ -17,16 +17,12 @@ import (
 
 // xrc20BalanceOfCmd represents balanceOf function
 var xrc20BalanceOfCmd = &cobra.Command{
-	Use:   "balanceOf [-s SIGNER] -c ALIAS|CONTRACT_ADDRESS ",
+	Use:   "balanceOf (ALIAS|OWNER_ADDRESS) -c ALIAS|CONTRACT_ADDRESS ",
 	Short: "Get account balance",
-	Args:  cobra.ExactArgs(0),
+	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
-		caller, err := signer()
-		if err != nil {
-			return err
-		}
-		owner, err := alias.EtherAddress(caller)
+		owner, err := alias.EtherAddress(args[0])
 		if err != nil {
 			return err
 		}
