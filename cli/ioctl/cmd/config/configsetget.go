@@ -14,7 +14,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
-	
 	"github.com/iotexproject/iotex-core/cli/ioctl/validator"
 )
 
@@ -141,7 +140,7 @@ func set(args []string) (string, error) {
 		err1 := validator.ValidateAlias(args[1])
 		err2 := validator.ValidateAddress(args[1])
 		if err1 != nil || err2 != nil {
-			return "", fmt.Errorf("failed to validate alias or address")
+			return "", fmt.Errorf("failed to validate alias or address:%s %s", err1, err2)
 		}
 		ReadConfig.CurrentContext.AddressOrAlias = args[1]
 	}
