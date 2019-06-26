@@ -487,6 +487,17 @@ func TestRunActions(t *testing.T) {
 }
 
 func TestSTXRunActions(t *testing.T) {
+	//require := require.New(t)
+	//testTrieFile, _ := ioutil.TempFile(os.TempDir(), stateDBPath)
+	//testStateDBPath := testTrieFile.Name()
+	//
+	//cfg := config.Default
+	//cfg.Chain.TrieDBPath = testStateDBPath
+	//sdb, err := NewStateDB(cfg, DefaultStateDBOption())
+	//require.NoError(err)
+	//require.NoError(sdb.Start(context.Background()))
+	//ws, err := sdb.NewWorkingSet()
+	//require.NoError(err)
 	ws := newStateTX(0, db.NewMemKVStore(), []protocol.ActionHandler{account.NewProtocol(0)})
 	testSTXRunActions(ws, t)
 }
@@ -585,6 +596,11 @@ func testSTXRunActions(ws WorkingSet, t *testing.T) {
 			Producer: identityset.Address(27),
 			GasLimit: gasLimit,
 		})
+
+	s0 := ws.Snapshot()
+	rootHash0 := ws.RootHash()
+	fmt.Printf("%x\n", rootHash0)
+
 	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp1, selp2})
 	require.NoError(err)
 	rootHash1 := ws.UpdateBlockLevelInfo(1)
@@ -594,6 +610,20 @@ func testSTXRunActions(ws WorkingSet, t *testing.T) {
 	require.Equal(rootHash1, rootHash2)
 	h := ws.Height()
 	require.Equal(uint64(1), h)
+
+	require.NoError(ws.Revert(s0))
+	fmt.Printf("%x\n", ws.RootHash())
+	require.Equal(rootHash0, ws.RootHash())
+
+	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp2, selp1})
+	require.NoError(err)
+	rootHash1 = ws.UpdateBlockLevelInfo(1)
+	require.NoError(ws.Commit())
+	rootHash2 = ws.RootHash()
+	require.Equal(rootHash1, rootHash2)
+	h = ws.Height()
+	require.Equal(uint64(1), h)
+	fmt.Printf("%x\n", rootHash2)
 }
 
 func TestCachedBatch(t *testing.T) {
