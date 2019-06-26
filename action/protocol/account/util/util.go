@@ -7,6 +7,7 @@
 package accountutil
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/pkg/errors"
@@ -42,6 +43,7 @@ func LoadOrCreateAccount(sm protocol.StateManager, encodedAddr string, init *big
 		return &account, nil
 	}
 	if errors.Cause(err) == state.ErrStateNotExist {
+		fmt.Println("/////////////////////////////new account")
 		account.Balance = init
 		account.VotingWeight = big.NewInt(0)
 		if err := sm.PutState(addrHash, account); err != nil {
