@@ -98,7 +98,7 @@ func testRevert(ws WorkingSet, t *testing.T) {
 	require.NoError(err)
 	require.Equal(big.NewInt(5), s.Balance)
 	s0 := ws.Snapshot()
-	require.Zero(s0)
+	require.Equal(1, s0)
 
 	h0 := ws.RootHash()
 	require.NotEqual(h0, hash.ZeroHash256)
