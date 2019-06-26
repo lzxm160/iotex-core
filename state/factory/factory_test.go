@@ -8,7 +8,6 @@ package factory
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
@@ -267,9 +266,6 @@ func testState(sf Factory, t *testing.T) {
 	_, err = accountutil.LoadOrCreateAccount(ws, a, big.NewInt(100))
 	require.NoError(t, err)
 
-	h0 := ws.RootHash()
-	fmt.Printf("%x\n", h0)
-
 	tsf, err := action.NewTransfer(1, big.NewInt(10), identityset.Address(31).String(), nil, uint64(20000), big.NewInt(0))
 	require.NoError(t, err)
 	bd := &action.EnvelopeBuilder{}
@@ -286,9 +282,6 @@ func testState(sf Factory, t *testing.T) {
 	require.NoError(t, err)
 	_ = ws.UpdateBlockLevelInfo(0)
 	require.NoError(t, sf.Commit(ws))
-
-	h1 := ws.RootHash()
-	fmt.Printf("%x\n", h1)
 
 	//test AccountState() & State()
 	var testAccount state.Account
@@ -371,8 +364,6 @@ func testNonce(sf Factory, t *testing.T) {
 	nonce, err = sf.Nonce(a)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), nonce)
-	h0 := ws.RootHash()
-	fmt.Printf("%x\n", h0)
 }
 
 func TestLoadStoreHeight(t *testing.T) {
@@ -502,7 +493,6 @@ func TestSTXRunActions(t *testing.T) {
 	}()
 	ws, err := sdb.NewWorkingSet()
 	require.NoError(err)
-	//ws := newStateTX(0, db.NewMemKVStore(), []protocol.ActionHandler{account.NewProtocol(0)})
 	testSTXRunActions(ws, t)
 }
 
@@ -540,21 +530,16 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 		})
 	s0 := ws.Snapshot()
 	rootHash0 := ws.RootHash()
-	fmt.Printf("%x\n", rootHash0)
-
 	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp1, selp2})
 	require.NoError(err)
 	rootHash1 := ws.UpdateBlockLevelInfo(1)
-	//require.NoError(ws.Commit())
 
 	rootHash2 := ws.RootHash()
 	require.Equal(rootHash1, rootHash2)
 	h := ws.Height()
 	require.Equal(uint64(1), h)
-	fmt.Printf("%x\n", rootHash2)
 
 	require.NoError(ws.Revert(s0))
-	fmt.Printf("%x\n", ws.RootHash())
 	require.Equal(rootHash0, ws.RootHash())
 
 	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp2, selp1})
@@ -565,7 +550,6 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 	require.Equal(rootHash1, rootHash3)
 	h = ws.Height()
 	require.Equal(uint64(1), h)
-	fmt.Printf("%x\n", rootHash2)
 	require.Equal(rootHash3, rootHash2)
 }
 func testSTXRunActions(ws WorkingSet, t *testing.T) {
@@ -603,7 +587,6 @@ func testSTXRunActions(ws WorkingSet, t *testing.T) {
 
 	s0 := ws.Snapshot()
 	rootHash0 := ws.Digest()
-	fmt.Printf("%x\n", rootHash0)
 
 	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp1, selp2})
 	require.NoError(err)
@@ -612,10 +595,8 @@ func testSTXRunActions(ws WorkingSet, t *testing.T) {
 	rootHash2 := ws.Digest()
 	h := ws.Height()
 	require.Equal(uint64(1), h)
-	fmt.Printf("%x\n", rootHash2)
 
 	require.NoError(ws.Revert(s0))
-	fmt.Printf("%x\n", ws.Digest())
 	require.Equal(rootHash0, ws.Digest())
 
 	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp2, selp1})
@@ -625,7 +606,6 @@ func testSTXRunActions(ws WorkingSet, t *testing.T) {
 	rootHash3 := ws.Digest()
 	h = ws.Height()
 	require.Equal(uint64(1), h)
-	fmt.Printf("%x\n", rootHash3)
 	require.NotEqual(rootHash2, rootHash3)
 }
 
@@ -706,14 +686,8 @@ func TestDeleteAndPutSameKey(t *testing.T) {
 		acc := state.Account{
 			Nonce: 1,
 		}
-		fmt.Printf("before put state,Digest: %x\n", ws.Digest())
-		fmt.Printf("before put state,RootHash: %x\n", ws.RootHash())
 		require.NoError(t, ws.PutState(key, acc))
-		fmt.Printf("after put state,Digest: %x\n", ws.Digest())
-		fmt.Printf("after put state,RootHash: %x\n", ws.RootHash())
 		require.NoError(t, ws.DelState(key))
-		fmt.Printf("after delete state,Digest: %x\n", ws.Digest())
-		fmt.Printf("after delete state,RootHash: %x\n", ws.RootHash())
 		require.Equal(t, state.ErrStateNotExist, errors.Cause(ws.State(key, &acc)))
 		require.Equal(t, state.ErrStateNotExist, errors.Cause(ws.State(hash.Hash160b([]byte("other")), &acc)))
 	}
