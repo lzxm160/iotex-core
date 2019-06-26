@@ -27,7 +27,7 @@ import (
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/vote/candidatesutil"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
@@ -103,7 +103,6 @@ func testRevert(ws WorkingSet, t *testing.T) {
 
 	h0 := ws.RootHash()
 	require.NotEqual(h0, hash.ZeroHash256)
-	fmt.Printf("%x\n", h0)
 
 	s.Balance.Add(s.Balance, big.NewInt(5))
 	require.Equal(big.NewInt(10), s.Balance)
@@ -111,7 +110,6 @@ func testRevert(ws WorkingSet, t *testing.T) {
 
 	h1 := ws.RootHash()
 	require.NotEqual(h1, h0)
-	fmt.Printf("%x\n", h1)
 
 	require.NoError(ws.Revert(s0))
 	require.NoError(ws.State(sHash, s))
@@ -119,8 +117,6 @@ func testRevert(ws WorkingSet, t *testing.T) {
 
 	h2 := ws.RootHash()
 	require.Equal(h0, h2)
-	fmt.Printf("%x\n", h2)
-
 }
 func testSDBRevert(ws WorkingSet, t *testing.T) {
 	require := require.New(t)
@@ -137,7 +133,6 @@ func testSDBRevert(ws WorkingSet, t *testing.T) {
 
 	h0 := ws.Digest()
 	require.NotEqual(h0, hash.ZeroHash256)
-	fmt.Printf("%x\n", h0)
 
 	s.Balance.Add(s.Balance, big.NewInt(5))
 	require.Equal(big.NewInt(10), s.Balance)
@@ -145,7 +140,6 @@ func testSDBRevert(ws WorkingSet, t *testing.T) {
 
 	h1 := ws.Digest()
 	require.NotEqual(h1, h0)
-	fmt.Printf("%x\n", h1)
 
 	require.NoError(ws.Revert(s0))
 	require.NoError(ws.State(sHash, s))
@@ -153,8 +147,6 @@ func testSDBRevert(ws WorkingSet, t *testing.T) {
 
 	h2 := ws.Digest()
 	require.Equal(h0, h2)
-	fmt.Printf("%x\n", h2)
-
 }
 func testSnapshot(ws WorkingSet, t *testing.T) {
 	require := require.New(t)
@@ -226,9 +218,16 @@ func testCandidates(sf Factory, t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, candidatesutil.LoadAndAddCandidates(ws, 1, identityset.Address(0).String()))
 	require.NoError(t, candidatesutil.LoadAndUpdateCandidates(ws, 1, identityset.Address(0).String(), big.NewInt(0)))
+
+	h0 := ws.RootHash()
+	fmt.Printf("%x\n", h0)
+
 	require.NoError(t, candidatesutil.LoadAndAddCandidates(ws, 1, identityset.Address(1).String()))
 	require.NoError(t, candidatesutil.LoadAndUpdateCandidates(ws, 1, identityset.Address(1).String(), big.NewInt(1)))
 	require.NoError(t, sf.Commit(ws))
+
+	h1 := ws.RootHash()
+	fmt.Printf("%x\n", h1)
 
 	candidates, err := sf.CandidatesByHeight(1)
 	require.NoError(t, err)
