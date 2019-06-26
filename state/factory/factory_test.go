@@ -8,7 +8,7 @@ package factory
 
 import (
 	"context"
-	"golang.org/x/tools/go/ssa/interp/testdata/src/fmt"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
