@@ -523,7 +523,7 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 			Producer: identityset.Address(27),
 			GasLimit: gasLimit,
 		})
-	//s0 := ws.Snapshot()
+	s0 := ws.Snapshot()
 	rootHash0 := ws.RootHash()
 	fmt.Printf("%x\n", rootHash0)
 
@@ -538,19 +538,19 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 	require.Equal(uint64(1), h)
 	fmt.Printf("%x\n", rootHash2)
 
-	//require.NoError(ws.Revert(s0))
-	//fmt.Printf("%x\n", ws.RootHash())
-	//require.Equal(rootHash0, ws.RootHash())
-	//
-	//_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp2, selp1})
-	//require.NoError(err)
-	//rootHash1 = ws.UpdateBlockLevelInfo(1)
-	//require.NoError(ws.Commit())
-	//rootHash2 = ws.RootHash()
-	//require.Equal(rootHash1, rootHash2)
-	//h = ws.Height()
-	//require.Equal(uint64(1), h)
-	//fmt.Printf("%x\n", rootHash2)
+	require.NoError(ws.Revert(s0))
+	fmt.Printf("%x\n", ws.RootHash())
+	require.Equal(rootHash0, ws.RootHash())
+
+	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp2, selp1})
+	require.NoError(err)
+	rootHash1 = ws.UpdateBlockLevelInfo(1)
+	require.NoError(ws.Commit())
+	rootHash2 = ws.RootHash()
+	require.Equal(rootHash1, rootHash2)
+	h = ws.Height()
+	require.Equal(uint64(1), h)
+	fmt.Printf("%x\n", rootHash2)
 }
 func testSTXRunActions(ws WorkingSet, t *testing.T) {
 	require := require.New(t)
