@@ -339,10 +339,10 @@ func testNonce(sf Factory, t *testing.T) {
 	_, err = accountutil.LoadOrCreateAccount(ws, a, big.NewInt(100))
 	require.NoError(t, err)
 
-	tx, err := action.NewTransfer(1, big.NewInt(2), b, nil, uint64(20000), big.NewInt(0))
+	tx, err := action.NewTransfer(0, big.NewInt(2), b, nil, uint64(20000), big.NewInt(0))
 	require.NoError(t, err)
 	bd := &action.EnvelopeBuilder{}
-	elp := bd.SetAction(tx).SetNonce(1).SetGasLimit(20000).Build()
+	elp := bd.SetAction(tx).SetNonce(0).SetGasLimit(20000).Build()
 	selp, err := action.Sign(elp, priKeyA)
 	require.NoError(t, err)
 	gasLimit := uint64(1000000)
@@ -350,16 +350,6 @@ func testNonce(sf Factory, t *testing.T) {
 		Producer: identityset.Address(27),
 		GasLimit: gasLimit,
 	}
-	_, err = ws.RunAction(raCtx, selp)
-	require.NoError(t, err)
-	_ = ws.UpdateBlockLevelInfo(0)
-
-	tx, err = action.NewTransfer(0, big.NewInt(2), b, nil, uint64(20000), big.NewInt(0))
-	require.NoError(t, err)
-	bd = &action.EnvelopeBuilder{}
-	elp = bd.SetAction(tx).SetNonce(0).SetGasLimit(20000).Build()
-	selp, err = action.Sign(elp, priKeyA)
-	require.NoError(t, err)
 
 	_, err = ws.RunAction(raCtx, selp)
 	require.NoError(t, err)
@@ -367,8 +357,17 @@ func testNonce(sf Factory, t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, uint64(0), nonce)
 
-	require.NoError(t, sf.Commit(ws))
+	tx, err = action.NewTransfer(1, big.NewInt(2), b, nil, uint64(20000), big.NewInt(0))
+	require.NoError(t, err)
+	bd = &action.EnvelopeBuilder{}
+	elp = bd.SetAction(tx).SetNonce(1).SetGasLimit(20000).Build()
+	selp, err = action.Sign(elp, priKeyA)
+	require.NoError(t, err)
 
+	_, err = ws.RunAction(raCtx, selp)
+	require.NoError(t, err)
+	_ = ws.UpdateBlockLevelInfo(0)
+	require.NoError(t, sf.Commit(ws))
 	nonce, err = sf.Nonce(a)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), nonce)
@@ -523,6 +522,7 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 	require.Equal(rootHash1, rootHash2)
 	h := ws.Height()
 	require.Equal(uint64(1), h)
+	fmt.Printf("%d\n", rootHash1)
 }
 
 func TestCachedBatch(t *testing.T) {
