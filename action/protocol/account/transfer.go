@@ -8,8 +8,11 @@ package account
 
 import (
 	"context"
-	"fmt"
 	"math/big"
+
+	"go.uber.org/zap"
+
+	"github.com/iotexproject/iotex-core/pkg/log"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
@@ -53,13 +56,13 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 			big.NewInt(0).Add(tsf.Amount(), gasFee),
 		)
 	}
-	fmt.Println("**********************************:", raCtx.BlockHeight, p.pacificHeight)
+	log.L().Info("*********************************", zap.Uint64("block", raCtx.BlockHeight), zap.Uint64("pacific", p.pacificHeight))
 	if raCtx.BlockHeight < p.pacificHeight {
 		// charge sender gas
 		if err := sender.SubBalance(gasFee); err != nil {
 			return nil, errors.Wrapf(err, "failed to charge the gas for sender %s", raCtx.Caller.String())
 		}
-		fmt.Println("/////////////////////////////<:", raCtx.BlockHeight, p.pacificHeight)
+		log.L().Info("<<<<<<<<<<<<<<<<<<<<<<<<<<<<:", zap.Uint64("block", raCtx.BlockHeight), zap.Uint64("pacific", p.pacificHeight))
 		if err := rewarding.DepositGas(ctx, sm, gasFee, raCtx.Registry); err != nil {
 			return nil, err
 		}
@@ -77,9 +80,9 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 		if err := accountutil.StoreAccount(sm, raCtx.Caller.String(), sender); err != nil {
 			return nil, errors.Wrap(err, "failed to update pending account changes to trie")
 		}
-		fmt.Println("contractttttttttttttttttttttttttttt:", raCtx.BlockHeight, p.pacificHeight)
+		log.L().Info("contractttttttttttttttttttttttttttt:", zap.Uint64("block", raCtx.BlockHeight), zap.Uint64("pacific", p.pacificHeight))
 		if raCtx.BlockHeight >= p.pacificHeight {
-			fmt.Println("/////////////////////////////>=:", raCtx.BlockHeight, p.pacificHeight)
+			log.L().Info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>:", zap.Uint64("block", raCtx.BlockHeight), zap.Uint64("pacific", p.pacificHeight))
 			if err := rewarding.DepositGas(ctx, sm, gasFee, raCtx.Registry); err != nil {
 				return nil, err
 			}
