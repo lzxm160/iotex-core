@@ -625,7 +625,7 @@ func testSTXRunActions(ws WorkingSet, t *testing.T) {
 	rootHash3 := ws.Digest()
 	h = ws.Height()
 	require.Equal(uint64(1), h)
-	fmt.Printf("%x\n", rootHash2)
+	fmt.Printf("%x\n", rootHash3)
 	require.NotEqual(rootHash2, rootHash3)
 }
 
