@@ -8,7 +8,7 @@ package factory
 
 import (
 	"context"
-	"fmt"
+	"golang.org/x/tools/go/ssa/interp/testdata/src/fmt"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
@@ -218,16 +218,9 @@ func testCandidates(sf Factory, t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, candidatesutil.LoadAndAddCandidates(ws, 1, identityset.Address(0).String()))
 	require.NoError(t, candidatesutil.LoadAndUpdateCandidates(ws, 1, identityset.Address(0).String(), big.NewInt(0)))
-
-	h0 := ws.RootHash()
-	fmt.Printf("%x\n", h0)
-
 	require.NoError(t, candidatesutil.LoadAndAddCandidates(ws, 1, identityset.Address(1).String()))
 	require.NoError(t, candidatesutil.LoadAndUpdateCandidates(ws, 1, identityset.Address(1).String(), big.NewInt(1)))
 	require.NoError(t, sf.Commit(ws))
-
-	h1 := ws.RootHash()
-	fmt.Printf("%x\n", h1)
 
 	candidates, err := sf.CandidatesByHeight(1)
 	require.NoError(t, err)
@@ -274,6 +267,9 @@ func testState(sf Factory, t *testing.T) {
 	_, err = accountutil.LoadOrCreateAccount(ws, a, big.NewInt(100))
 	require.NoError(t, err)
 
+	h0 := ws.RootHash()
+	fmt.Printf("%x\n", h0)
+
 	tsf, err := action.NewTransfer(1, big.NewInt(10), identityset.Address(31).String(), nil, uint64(20000), big.NewInt(0))
 	require.NoError(t, err)
 	bd := &action.EnvelopeBuilder{}
@@ -290,6 +286,9 @@ func testState(sf Factory, t *testing.T) {
 	require.NoError(t, err)
 	_ = ws.UpdateBlockLevelInfo(0)
 	require.NoError(t, sf.Commit(ws))
+
+	h1 := ws.RootHash()
+	fmt.Printf("%x\n", h1)
 
 	//test AccountState() & State()
 	var testAccount state.Account
