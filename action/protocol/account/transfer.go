@@ -33,7 +33,7 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 		return nil, nil
 	}
 	// check sender
-	fmt.Println("/////////////////////////////nonce:", raCtx.Nonce)
+
 	sender, err := accountutil.LoadOrCreateAccount(sm, raCtx.Caller.String(), big.NewInt(0))
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load or create the account of sender %s", raCtx.Caller.String())
@@ -53,7 +53,7 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 			big.NewInt(0).Add(tsf.Amount(), gasFee),
 		)
 	}
-
+	fmt.Println("/////////////////////////////nonce:", raCtx.Nonce)
 	if raCtx.BlockHeight < p.pacificHeight {
 		// charge sender gas
 		if err := sender.SubBalance(gasFee); err != nil {
