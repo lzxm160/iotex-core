@@ -70,6 +70,7 @@ func TestSnapshot(t *testing.T) {
 	ws, err := sf.NewWorkingSet()
 	require.NoError(err)
 	testSnapshot(ws, t)
+	testRevert(ws, t)
 }
 
 func TestSDBSnapshot(t *testing.T) {
@@ -86,7 +87,40 @@ func TestSDBSnapshot(t *testing.T) {
 	require.NoError(err)
 	testSnapshot(ws, t)
 }
+func testRevert(ws WorkingSet, t *testing.T) {
+	require := require.New(t)
+	addr := identityset.Address(28).String()
+	_, err := accountutil.LoadOrCreateAccount(ws, addr, big.NewInt(5))
+	require.NoError(err)
+	sHash := hash.BytesToHash160(identityset.Address(28).Bytes())
 
+	s, err := accountutil.LoadAccount(ws, sHash)
+	require.NoError(err)
+	require.Equal(big.NewInt(5), s.Balance)
+	s0 := ws.Snapshot()
+	require.Zero(s0)
+
+	h0 := ws.RootHash()
+	require.NotEqual(h0, hash.ZeroHash256)
+	fmt.Printf("%x\n", h0)
+
+	s.Balance.Add(s.Balance, big.NewInt(5))
+	require.Equal(big.NewInt(10), s.Balance)
+	require.NoError(ws.PutState(sHash, s))
+
+	h1 := ws.RootHash()
+	require.NotEqual(h1, h0)
+	fmt.Printf("%x\n", h1)
+
+	require.NoError(ws.Revert(s0))
+	require.NoError(ws.State(sHash, s))
+	require.Equal(big.NewInt(5), s.Balance)
+
+	h2 := ws.RootHash()
+	require.Equal(h0, h2)
+	fmt.Printf("%x\n", h2)
+
+}
 func testSnapshot(ws WorkingSet, t *testing.T) {
 	require := require.New(t)
 	addr := identityset.Address(28).String()
@@ -99,26 +133,14 @@ func testSnapshot(ws WorkingSet, t *testing.T) {
 	require.Equal(big.NewInt(5), s.Balance)
 	s0 := ws.Snapshot()
 	require.Zero(s0)
-	h0 := ws.RootHash()
-	require.NotEqual(h0, hash.ZeroHash256)
-	fmt.Printf("%x\n", h0)
-
 	s.Balance.Add(s.Balance, big.NewInt(5))
 	require.Equal(big.NewInt(10), s.Balance)
 	require.NoError(ws.PutState(sHash, s))
 	s1 := ws.Snapshot()
 	require.Equal(1, s1)
-	h1 := ws.RootHash()
-	require.NotEqual(h1, hash.ZeroHash256)
-	fmt.Printf("%x\n", h1)
-
 	s.Balance.Add(s.Balance, big.NewInt(5))
 	require.Equal(big.NewInt(15), s.Balance)
 	require.NoError(ws.PutState(sHash, s))
-	h2 := ws.RootHash()
-	require.NotEqual(h2, hash.ZeroHash256)
-	fmt.Printf("%x\n", h2)
-
 	// add another account
 	addr = identityset.Address(29).String()
 	_, err = accountutil.LoadOrCreateAccount(ws, addr, big.NewInt(7))
@@ -129,47 +151,25 @@ func testSnapshot(ws WorkingSet, t *testing.T) {
 	require.NoError(err)
 	require.Equal(big.NewInt(7), s.Balance)
 	s2 := ws.Snapshot()
-
-	h3 := ws.RootHash()
-	require.NotEqual(h3, h2)
-	fmt.Printf("%x\n", h3)
-
 	require.Equal(2, s2)
 	require.NoError(s.AddBalance(big.NewInt(6)))
 	require.Equal(big.NewInt(13), s.Balance)
 	require.NoError(ws.PutState(tHash, s))
-
-	h4 := ws.RootHash()
-	require.NotEqual(h3, h4)
-	fmt.Printf("%x\n", h4)
 
 	require.NoError(ws.Revert(s2))
 	require.NoError(ws.State(sHash, s))
 	require.Equal(big.NewInt(15), s.Balance)
 	require.NoError(ws.State(tHash, s))
 	require.Equal(big.NewInt(7), s.Balance)
-
-	h5 := ws.RootHash()
-	require.Equal(h3, h5)
-	fmt.Printf("%x\n", h5)
-
 	require.NoError(ws.Revert(s1))
 	require.NoError(ws.State(sHash, s))
 	require.Equal(big.NewInt(10), s.Balance)
 	require.Equal(state.ErrStateNotExist, errors.Cause(ws.State(tHash, s)))
-
-	h6 := ws.RootHash()
-	require.Equal(h1, h6)
-	fmt.Printf("%x\n", h6)
-
 	require.NoError(ws.Revert(s0))
 	require.NoError(ws.State(sHash, s))
+
 	require.Equal(big.NewInt(5), s.Balance)
 	require.Equal(state.ErrStateNotExist, errors.Cause(ws.State(tHash, s)))
-
-	h7 := ws.RootHash()
-	require.Equal(h0, h7)
-	fmt.Printf("%x\n", h7)
 }
 
 func TestCandidates(t *testing.T) {
