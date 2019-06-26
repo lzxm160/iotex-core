@@ -59,6 +59,7 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 		if err := sender.SubBalance(gasFee); err != nil {
 			return nil, errors.Wrapf(err, "failed to charge the gas for sender %s", raCtx.Caller.String())
 		}
+		fmt.Println("/////////////////////////////<:", raCtx.BlockHeight, p.pacificHeight)
 		if err := rewarding.DepositGas(ctx, sm, gasFee, raCtx.Registry); err != nil {
 			return nil, err
 		}
@@ -77,6 +78,7 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 			return nil, errors.Wrap(err, "failed to update pending account changes to trie")
 		}
 		if raCtx.BlockHeight >= p.pacificHeight {
+			fmt.Println("/////////////////////////////>=:", raCtx.BlockHeight, p.pacificHeight)
 			if err := rewarding.DepositGas(ctx, sm, gasFee, raCtx.Registry); err != nil {
 				return nil, err
 			}
@@ -119,7 +121,7 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 			return nil, err
 		}
 	}
-	fmt.Println("/////////////////////////////nonce:", raCtx.Nonce)
+
 	return &action.Receipt{
 		Status:          action.SuccessReceiptStatus,
 		BlockHeight:     raCtx.BlockHeight,
