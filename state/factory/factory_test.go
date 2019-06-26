@@ -522,7 +522,7 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 			GasLimit: gasLimit,
 		})
 
-	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp1, selp2})
+	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp2, selp1})
 	require.NoError(err)
 	rootHash1 := ws.UpdateBlockLevelInfo(1)
 	require.NoError(ws.Commit())
