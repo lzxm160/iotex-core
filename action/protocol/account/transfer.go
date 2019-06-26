@@ -53,7 +53,7 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 			big.NewInt(0).Add(tsf.Amount(), gasFee),
 		)
 	}
-
+	fmt.Println("**********************************:", raCtx.BlockHeight, p.pacificHeight)
 	if raCtx.BlockHeight < p.pacificHeight {
 		// charge sender gas
 		if err := sender.SubBalance(gasFee); err != nil {
@@ -77,6 +77,7 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 		if err := accountutil.StoreAccount(sm, raCtx.Caller.String(), sender); err != nil {
 			return nil, errors.Wrap(err, "failed to update pending account changes to trie")
 		}
+		fmt.Println("contractttttttttttttttttttttttttttt:", raCtx.BlockHeight, p.pacificHeight)
 		if raCtx.BlockHeight >= p.pacificHeight {
 			fmt.Println("/////////////////////////////>=:", raCtx.BlockHeight, p.pacificHeight)
 			if err := rewarding.DepositGas(ctx, sm, gasFee, raCtx.Registry); err != nil {
