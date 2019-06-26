@@ -493,21 +493,21 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 	_, err = accountutil.LoadOrCreateAccount(ws, b, big.NewInt(200))
 	require.NoError(err)
 
-	tx1, err := action.NewTransfer(uint64(1), big.NewInt(10), b, nil, uint64(0), big.NewInt(0))
+	tx1, err := action.NewTransfer(uint64(1), big.NewInt(10), b, nil, uint64(100000), big.NewInt(0))
 	require.NoError(err)
 	bd := &action.EnvelopeBuilder{}
 	elp := bd.SetNonce(1).SetAction(tx1).Build()
 	selp1, err := action.Sign(elp, priKeyA)
 	require.NoError(err)
 
-	tx2, err := action.NewTransfer(uint64(1), big.NewInt(20), a, nil, uint64(0), big.NewInt(0))
+	tx2, err := action.NewTransfer(uint64(1), big.NewInt(20), a, nil, uint64(100000), big.NewInt(0))
 	require.NoError(err)
 	bd = &action.EnvelopeBuilder{}
 	elp = bd.SetNonce(1).SetAction(tx2).Build()
 	selp2, err := action.Sign(elp, priKeyB)
 	require.NoError(err)
 
-	tx3, err := action.NewTransfer(uint64(2), big.NewInt(20), a, nil, uint64(0), big.NewInt(0))
+	tx3, err := action.NewTransfer(uint64(2), big.NewInt(20), a, nil, uint64(100000), big.NewInt(0))
 	require.NoError(err)
 	bd = &action.EnvelopeBuilder{}
 	elp = bd.SetNonce(2).SetAction(tx3).Build()
