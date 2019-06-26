@@ -8,6 +8,7 @@ package factory
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/pkg/errors"
@@ -108,6 +109,7 @@ func (stx *stateTX) RunAction(
 		case *action.Transfer:
 			ori, err = accountutil.IncreaseNonce(stx, raCtx.Caller, elp.Action().(*action.Transfer))
 			if err != nil {
+				fmt.Println("/////////////////////////////new account increase nonce error")
 				return nil, errors.Wrapf(
 					err,
 					"error when action %x (nonce: %d) from %s mutates states",
