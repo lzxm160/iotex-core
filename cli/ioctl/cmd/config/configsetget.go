@@ -13,8 +13,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
-	
+
 	"github.com/iotexproject/iotex-core/cli/ioctl/validator"
 )
 
@@ -112,9 +111,6 @@ func GetAddressOrAlias(args []string) (address string, err error) {
 		address = args[0]
 	} else {
 		address, err = GetContextAddressOrAlias()
-		if err != nil {
-			return
-		}
 	}
 	return
 }
