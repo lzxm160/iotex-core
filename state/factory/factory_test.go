@@ -495,8 +495,11 @@ func TestSTXRunActions(t *testing.T) {
 	cfg.Chain.TrieDBPath = testStateDBPath
 	sdb, err := NewStateDB(cfg, DefaultStateDBOption())
 	require.NoError(err)
-	require.NoError(sdb.Start(context.Background()))
 	sdb.AddActionHandlers(account.NewProtocol(0))
+	require.NoError(sdb.Start(context.Background()))
+	defer func() {
+		require.NoError(sdb.Stop(context.Background()))
+	}()
 	ws, err := sdb.NewWorkingSet()
 	require.NoError(err)
 	//ws := newStateTX(0, db.NewMemKVStore(), []protocol.ActionHandler{account.NewProtocol(0)})
