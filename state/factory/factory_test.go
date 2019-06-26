@@ -487,18 +487,19 @@ func TestRunActions(t *testing.T) {
 }
 
 func TestSTXRunActions(t *testing.T) {
-	//require := require.New(t)
-	//testTrieFile, _ := ioutil.TempFile(os.TempDir(), stateDBPath)
-	//testStateDBPath := testTrieFile.Name()
-	//
-	//cfg := config.Default
-	//cfg.Chain.TrieDBPath = testStateDBPath
-	//sdb, err := NewStateDB(cfg, DefaultStateDBOption())
-	//require.NoError(err)
-	//require.NoError(sdb.Start(context.Background()))
-	//ws, err := sdb.NewWorkingSet()
-	//require.NoError(err)
-	ws := newStateTX(0, db.NewMemKVStore(), []protocol.ActionHandler{account.NewProtocol(0)})
+	require := require.New(t)
+	testTrieFile, _ := ioutil.TempFile(os.TempDir(), stateDBPath)
+	testStateDBPath := testTrieFile.Name()
+
+	cfg := config.Default
+	cfg.Chain.TrieDBPath = testStateDBPath
+	sdb, err := NewStateDB(cfg, DefaultStateDBOption())
+	require.NoError(err)
+	require.NoError(sdb.Start(context.Background()))
+	sdb.AddActionHandlers(account.NewProtocol(0))
+	ws, err := sdb.NewWorkingSet()
+	require.NoError(err)
+	//ws := newStateTX(0, db.NewMemKVStore(), []protocol.ActionHandler{account.NewProtocol(0)})
 	testSTXRunActions(ws, t)
 }
 
