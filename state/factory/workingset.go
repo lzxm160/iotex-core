@@ -195,7 +195,10 @@ func (ws *workingSet) RunAction(
 
 		receipt, err := actionHandler.Handle(ctx, elp.Action(), ws)
 		if err != nil {
-			accountutil.DecreaseNonce(ws, raCtx.Caller, ori)
+			switch elp.Action().(type) {
+			case *action.Transfer:
+				accountutil.DecreaseNonce(ws, raCtx.Caller, ori)
+			}
 			return nil, errors.Wrapf(
 				err,
 				"error when action %x (nonce: %d) from %s mutates states",
