@@ -86,6 +86,7 @@ func TestSDBSnapshot(t *testing.T) {
 	ws, err := sdb.NewWorkingSet()
 	require.NoError(err)
 	testSnapshot(ws, t)
+	testSDBRevert(ws, t)
 }
 func testRevert(ws WorkingSet, t *testing.T) {
 	require := require.New(t)
@@ -117,6 +118,40 @@ func testRevert(ws WorkingSet, t *testing.T) {
 	require.Equal(big.NewInt(5), s.Balance)
 
 	h2 := ws.RootHash()
+	require.Equal(h0, h2)
+	fmt.Printf("%x\n", h2)
+
+}
+func testSDBRevert(ws WorkingSet, t *testing.T) {
+	require := require.New(t)
+	addr := identityset.Address(28).String()
+	_, err := accountutil.LoadOrCreateAccount(ws, addr, big.NewInt(5))
+	require.NoError(err)
+	sHash := hash.BytesToHash160(identityset.Address(28).Bytes())
+
+	s, err := accountutil.LoadAccount(ws, sHash)
+	require.NoError(err)
+	require.Equal(big.NewInt(5), s.Balance)
+	s0 := ws.Snapshot()
+	require.Equal(1, s0)
+
+	h0 := ws.Digest()
+	require.NotEqual(h0, hash.ZeroHash256)
+	fmt.Printf("%x\n", h0)
+
+	s.Balance.Add(s.Balance, big.NewInt(5))
+	require.Equal(big.NewInt(10), s.Balance)
+	require.NoError(ws.PutState(sHash, s))
+
+	h1 := ws.Digest()
+	require.NotEqual(h1, h0)
+	fmt.Printf("%x\n", h1)
+
+	require.NoError(ws.Revert(s0))
+	require.NoError(ws.State(sHash, s))
+	require.Equal(big.NewInt(5), s.Balance)
+
+	h2 := ws.Digest()
 	require.Equal(h0, h2)
 	fmt.Printf("%x\n", h2)
 
