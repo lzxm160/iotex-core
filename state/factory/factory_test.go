@@ -570,7 +570,6 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 func testSTXRunActions(ws WorkingSet, t *testing.T) {
 	require := require.New(t)
 	require.Equal(uint64(0), ws.Version())
-	require.NoError(ws.GetDB().Start(context.Background()))
 	a := identityset.Address(28).String()
 	priKeyA := identityset.PrivateKey(28)
 	b := identityset.Address(29).String()
