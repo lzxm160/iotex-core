@@ -607,7 +607,6 @@ func testSTXRunActions(ws WorkingSet, t *testing.T) {
 	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp1, selp2})
 	require.NoError(err)
 	ws.UpdateBlockLevelInfo(1)
-	require.NoError(ws.Commit())
 
 	rootHash2 := ws.Digest()
 	h := ws.Height()
