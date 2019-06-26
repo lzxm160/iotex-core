@@ -8,6 +8,7 @@ package account
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 
 	"github.com/iotexproject/go-pkgs/hash"
@@ -32,6 +33,7 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 		return nil, nil
 	}
 	// check sender
+	fmt.Println("/////////////////////////////nonce:", raCtx.Nonce)
 	sender, err := accountutil.LoadOrCreateAccount(sm, raCtx.Caller.String(), big.NewInt(0))
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load or create the account of sender %s", raCtx.Caller.String())
