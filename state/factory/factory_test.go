@@ -522,7 +522,7 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 	require.Equal(rootHash1, rootHash2)
 	h := ws.Height()
 	require.Equal(uint64(1), h)
-	fmt.Printf("%d\n", rootHash1)
+	fmt.Printf("%x\n", rootHash1)
 }
 
 func TestCachedBatch(t *testing.T) {
