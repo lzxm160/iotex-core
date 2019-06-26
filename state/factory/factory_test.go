@@ -131,7 +131,7 @@ func testSnapshot(ws WorkingSet, t *testing.T) {
 	s2 := ws.Snapshot()
 
 	h3 := ws.RootHash()
-	require.Equal(h3, h2)
+	require.NotEqual(h3, h2)
 	fmt.Printf("%x\n", h3)
 
 	require.Equal(2, s2)
