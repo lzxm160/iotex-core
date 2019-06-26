@@ -476,11 +476,11 @@ func TestRunActions(t *testing.T) {
 	cfg.DB.DbPath = testTriePath
 	sf, err := NewFactory(cfg, PrecreatedTrieDBOption(db.NewOnDiskDB(cfg.DB)))
 	require.NoError(err)
+	sf.AddActionHandlers(account.NewProtocol(0))
 	require.NoError(sf.Start(context.Background()))
 	defer func() {
 		require.NoError(sf.Stop(context.Background()))
 	}()
-	sf.AddActionHandlers(account.NewProtocol(0))
 	ws, err := sf.NewWorkingSet()
 	require.NoError(err)
 	testRunActions(ws, t)
