@@ -508,21 +508,16 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 	selp2, err := action.Sign(elp, priKeyB)
 	require.NoError(err)
 
-	tx3, err := action.NewTransfer(uint64(2), big.NewInt(20), a, nil, uint64(100000), big.NewInt(0))
-	require.NoError(err)
-	bd = &action.EnvelopeBuilder{}
-	elp = bd.SetNonce(2).SetAction(tx3).Build()
-	selp3, err := action.Sign(elp, priKeyB)
-	require.NoError(err)
-
 	gasLimit := uint64(1000000)
 	ctx := protocol.WithRunActionsCtx(context.Background(),
 		protocol.RunActionsCtx{
 			Producer: identityset.Address(27),
 			GasLimit: gasLimit,
 		})
+	s0 := ws.Snapshot()
+	fmt.Printf("%x\n", ws.RootHash())
 
-	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp1, selp2, selp3})
+	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp1, selp2})
 	require.NoError(err)
 	rootHash1 := ws.UpdateBlockLevelInfo(1)
 	require.NoError(ws.Commit())
@@ -530,6 +525,20 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 	rootHash2 := ws.RootHash()
 	require.Equal(rootHash1, rootHash2)
 	h := ws.Height()
+	require.Equal(uint64(1), h)
+	fmt.Printf("%x\n", rootHash2)
+
+	require.NoError(ws.Revert(s0))
+	fmt.Printf("%x\n", ws.RootHash())
+	require.Equal(s0, ws.RootHash())
+
+	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp2, selp1})
+	require.NoError(err)
+	rootHash1 = ws.UpdateBlockLevelInfo(1)
+	require.NoError(ws.Commit())
+	rootHash2 = ws.RootHash()
+	require.Equal(rootHash1, rootHash2)
+	h = ws.Height()
 	require.Equal(uint64(1), h)
 	fmt.Printf("%x\n", rootHash2)
 }
