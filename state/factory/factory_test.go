@@ -468,16 +468,21 @@ func TestFactory_RootHashByHeight(t *testing.T) {
 }
 
 func TestRunActions(t *testing.T) {
+	require := require.New(t)
 	testTrieFile, _ := ioutil.TempFile(os.TempDir(), triePath)
 	testTriePath := testTrieFile.Name()
 
 	cfg := config.Default
 	cfg.DB.DbPath = testTriePath
 	sf, err := NewFactory(cfg, PrecreatedTrieDBOption(db.NewOnDiskDB(cfg.DB)))
-	require.NoError(t, err)
+	require.NoError(err)
+	require.NoError(sf.Start(context.Background()))
+	defer func() {
+		require.NoError(sf.Stop(context.Background()))
+	}()
 	sf.AddActionHandlers(account.NewProtocol(0))
 	ws, err := sf.NewWorkingSet()
-	require.NoError(t, err)
+	require.NoError(err)
 	testRunActions(ws, t)
 }
 
