@@ -561,11 +561,12 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 	require.NoError(err)
 	rootHash1 = ws.UpdateBlockLevelInfo(1)
 	require.NoError(ws.Commit())
-	rootHash2 = ws.RootHash()
-	require.Equal(rootHash1, rootHash2)
+	rootHash3 := ws.RootHash()
+	require.Equal(rootHash1, rootHash3)
 	h = ws.Height()
 	require.Equal(uint64(1), h)
 	fmt.Printf("%x\n", rootHash2)
+	require.Equal(rootHash3, rootHash2)
 }
 func testSTXRunActions(ws WorkingSet, t *testing.T) {
 	require := require.New(t)
@@ -621,10 +622,11 @@ func testSTXRunActions(ws WorkingSet, t *testing.T) {
 	require.NoError(err)
 	ws.UpdateBlockLevelInfo(1)
 	require.NoError(ws.Commit())
-	rootHash2 = ws.Digest()
+	rootHash3 := ws.Digest()
 	h = ws.Height()
 	require.Equal(uint64(1), h)
 	fmt.Printf("%x\n", rootHash2)
+	require.NotEqual(rootHash2, rootHash3)
 }
 
 func TestCachedBatch(t *testing.T) {
