@@ -525,7 +525,8 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 			GasLimit: gasLimit,
 		})
 	s0 := ws.Snapshot()
-	fmt.Printf("%x\n", ws.RootHash())
+	rootHash0 := ws.RootHash()
+	fmt.Printf("%x\n", rootHash0)
 
 	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp1, selp2})
 	require.NoError(err)
@@ -540,7 +541,7 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 
 	require.NoError(ws.Revert(s0))
 	fmt.Printf("%x\n", ws.RootHash())
-	require.Equal(s0, ws.RootHash())
+	require.Equal(rootHash0, ws.RootHash())
 
 	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp2, selp1})
 	require.NoError(err)
