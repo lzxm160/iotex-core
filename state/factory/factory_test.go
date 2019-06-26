@@ -507,13 +507,21 @@ func testRunActions(ws WorkingSet, t *testing.T) {
 	selp2, err := action.Sign(elp, priKeyB)
 	require.NoError(err)
 
+	tx3, err := action.NewTransfer(uint64(2), big.NewInt(20), a, nil, uint64(0), big.NewInt(0))
+	require.NoError(err)
+	bd = &action.EnvelopeBuilder{}
+	elp = bd.SetNonce(2).SetAction(tx3).Build()
+	selp3, err := action.Sign(elp, priKeyB)
+	require.NoError(err)
+
 	gasLimit := uint64(1000000)
 	ctx := protocol.WithRunActionsCtx(context.Background(),
 		protocol.RunActionsCtx{
 			Producer: identityset.Address(27),
 			GasLimit: gasLimit,
 		})
-	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp2, selp1})
+
+	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp2, selp1, selp3})
 	require.NoError(err)
 	rootHash1 := ws.UpdateBlockLevelInfo(1)
 	require.NoError(ws.Commit())
