@@ -706,14 +706,14 @@ func TestDeleteAndPutSameKey(t *testing.T) {
 		acc := state.Account{
 			Nonce: 1,
 		}
-		fmt.Printf("01 %x\n", ws.Digest())
-		fmt.Printf("02 %x\n", ws.RootHash())
+		fmt.Printf("before put state,Digest: %x\n", ws.Digest())
+		fmt.Printf("before put state,RootHash: %x\n", ws.RootHash())
 		require.NoError(t, ws.PutState(key, acc))
-		fmt.Printf("11 %x\n", ws.Digest())
-		fmt.Printf("12 %x\n", ws.RootHash())
+		fmt.Printf("after put state,Digest: %x\n", ws.Digest())
+		fmt.Printf("after put state,RootHash: %x\n", ws.RootHash())
 		require.NoError(t, ws.DelState(key))
-		fmt.Printf("21 %x\n", ws.Digest())
-		fmt.Printf("22 %x\n", ws.RootHash())
+		fmt.Printf("after delete state,Digest: %x\n", ws.Digest())
+		fmt.Printf("after delete state,RootHash: %x\n", ws.RootHash())
 		require.Equal(t, state.ErrStateNotExist, errors.Cause(ws.State(key, &acc)))
 		require.Equal(t, state.ErrStateNotExist, errors.Cause(ws.State(hash.Hash160b([]byte("other")), &acc)))
 	}
