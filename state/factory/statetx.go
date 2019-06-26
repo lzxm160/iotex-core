@@ -9,6 +9,7 @@ package factory
 import (
 	"context"
 
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/pkg/errors"
 
 	"github.com/iotexproject/go-pkgs/hash"
@@ -102,8 +103,26 @@ func (stx *stateTX) RunAction(
 	raCtx.Nonce = elp.Nonce()
 	ctx := protocol.WithRunActionsCtx(context.Background(), raCtx)
 	for _, actionHandler := range stx.actionHandlers {
+		ori := uint64(0)
+		switch elp.Action().(type) {
+		case *action.Transfer:
+			ori, err = accountutil.IncreaseNonce(stx, raCtx.Caller, elp.Action().(*action.Transfer))
+			if err != nil {
+				return nil, errors.Wrapf(
+					err,
+					"error when action %x (nonce: %d) from %s mutates states",
+					elp.Hash(),
+					elp.Nonce(),
+					raCtx.Caller.String(),
+				)
+			}
+		}
 		receipt, err := actionHandler.Handle(ctx, elp.Action(), stx)
 		if err != nil {
+			switch elp.Action().(type) {
+			case *action.Transfer:
+				accountutil.DecreaseNonce(stx, raCtx.Caller, ori)
+			}
 			return nil, errors.Wrapf(
 				err,
 				"error when action %x (nonce: %d) from %s mutates states",
