@@ -371,6 +371,8 @@ func testNonce(sf Factory, t *testing.T) {
 	nonce, err = sf.Nonce(a)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), nonce)
+	h0 := ws.RootHash()
+	fmt.Printf("%x\n", h0)
 }
 
 func TestLoadStoreHeight(t *testing.T) {
