@@ -17,7 +17,7 @@ import (
 
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
 	"github.com/iotexproject/iotex-core/state"
 )
@@ -53,7 +53,7 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 			big.NewInt(0).Add(tsf.Amount(), gasFee),
 		)
 	}
-	fmt.Println("/////////////////////////////nonce:", raCtx.Nonce)
+
 	if raCtx.BlockHeight < p.pacificHeight {
 		// charge sender gas
 		if err := sender.SubBalance(gasFee); err != nil {
@@ -119,6 +119,7 @@ func (p *Protocol) handleTransfer(ctx context.Context, act action.Action, sm pro
 			return nil, err
 		}
 	}
+	fmt.Println("/////////////////////////////nonce:", raCtx.Nonce)
 	return &action.Receipt{
 		Status:          action.SuccessReceiptStatus,
 		BlockHeight:     raCtx.BlockHeight,
