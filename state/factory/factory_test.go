@@ -601,7 +601,7 @@ func testSTXRunActions(ws WorkingSet, t *testing.T) {
 		})
 
 	s0 := ws.Snapshot()
-	rootHash0 := ws.RootHash()
+	rootHash0 := ws.Digest()
 	fmt.Printf("%x\n", rootHash0)
 
 	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp1, selp2})
@@ -609,20 +609,20 @@ func testSTXRunActions(ws WorkingSet, t *testing.T) {
 	rootHash1 := ws.UpdateBlockLevelInfo(1)
 	//require.NoError(ws.Commit())
 
-	rootHash2 := ws.RootHash()
+	rootHash2 := ws.Digest()
 	require.Equal(rootHash1, rootHash2)
 	h := ws.Height()
 	require.Equal(uint64(1), h)
 
 	require.NoError(ws.Revert(s0))
-	fmt.Printf("%x\n", ws.RootHash())
-	require.Equal(rootHash0, ws.RootHash())
+	fmt.Printf("%x\n", ws.Digest())
+	require.Equal(rootHash0, ws.Digest())
 
 	_, err = ws.RunActions(ctx, 1, []action.SealedEnvelope{selp2, selp1})
 	require.NoError(err)
 	rootHash1 = ws.UpdateBlockLevelInfo(1)
 	require.NoError(ws.Commit())
-	rootHash2 = ws.RootHash()
+	rootHash2 = ws.Digest()
 	require.Equal(rootHash1, rootHash2)
 	h = ws.Height()
 	require.Equal(uint64(1), h)
