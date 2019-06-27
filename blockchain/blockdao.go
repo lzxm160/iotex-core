@@ -155,6 +155,10 @@ func (dao *blockDAO) countActions() error {
 				errChan <- err
 				return
 			}
+			if i%1000 == 0 {
+				zap.L().Info("Counting number of actions", zap.Uint64("height", i))
+			}
+
 			atomic.AddUint64(&totalActions, uint64(len(body.Actions)))
 		}(i)
 	}
