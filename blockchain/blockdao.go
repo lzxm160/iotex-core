@@ -138,7 +138,7 @@ func (dao *blockDAO) countActions() error {
 	if err != nil {
 		return err
 	}
-	zap.L().Info("Counting number of actions", zap.Uint64("height", i))
+	zap.L().Info("Counting number of actions")
 	var wg sync.WaitGroup
 	errChan := make(chan error, tipHeight)
 	for i := uint64(1); i <= tipHeight; i++ {
