@@ -150,6 +150,7 @@ func sendRaw(selp *iotextypes.Action) error {
 	}
 	serString := hex.EncodeToString(ser)
 	fmt.Println(serString)
+	return nil
 	conn, err := util.ConnectToEndpoint(config.ReadConfig.SecureConnect && !config.Insecure)
 	if err != nil {
 		return err
