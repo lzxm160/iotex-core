@@ -90,7 +90,7 @@ func registerWriteCommand(cmd *cobra.Command) {
 	gasPriceFlag.RegisterCommand(cmd)
 	signerFlag.RegisterCommand(cmd)
 	nonceFlag.RegisterCommand(cmd)
-	signerFlag.MarkFlagRequired(cmd)
+	//signerFlag.MarkFlagRequired(cmd)
 }
 
 // gasPriceInRau returns the suggest gas price
