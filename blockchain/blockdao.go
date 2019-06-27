@@ -150,7 +150,6 @@ func (dao *blockDAO) countActions() error {
 			zap.L().Info("Counting number of actions", zap.Uint64("height", i))
 		}
 	}
-	zap.L().Info("totalActions", zap.Uint64("totalActions", totalActions))
 	totalActionsBytes := byteutil.Uint64ToBytes(totalActions)
 	batch := db.NewBatch()
 	batch.Put(blockNS, totalActionsKey, totalActionsBytes, "failed to put total actions")

@@ -13,6 +13,8 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/iotexproject/iotex-proto/golang/iotextypes"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -56,6 +58,7 @@ func init() {
 	ActionCmd.AddCommand(actionReadCmd)
 	ActionCmd.AddCommand(actionClaimCmd)
 	ActionCmd.AddCommand(actionDepositCmd)
+	ActionCmd.AddCommand(actionSendRawCmd)
 	ActionCmd.PersistentFlags().StringVar(&config.ReadConfig.Endpoint, "endpoint",
 		config.ReadConfig.Endpoint, "set endpoint for once")
 	ActionCmd.PersistentFlags().BoolVar(&config.Insecure, "insecure", config.Insecure,
@@ -140,7 +143,27 @@ func execute(contract string, amount *big.Int, bytecode []byte) (err error) {
 		signer,
 	)
 }
+func sendRaw(selp *iotextypes.Action) error {
+	conn, err := util.ConnectToEndpoint(config.ReadConfig.SecureConnect && !config.Insecure)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	cli := iotexapi.NewAPIServiceClient(conn)
+	ctx := context.Background()
 
+	request := &iotexapi.SendActionRequest{Action: selp}
+	if _, err = cli.SendAction(ctx, request); err != nil {
+		if sta, ok := status.FromError(err); ok {
+			return fmt.Errorf(sta.Message())
+		}
+		return err
+	}
+	shash := hash.Hash256b(byteutil.Must(proto.Marshal(selp)))
+	fmt.Println("Action has been sent to blockchain.")
+	fmt.Printf("Wait for several seconds and query this action by hash: %s\n", hex.EncodeToString(shash[:]))
+	return nil
+}
 func sendAction(elp action.Envelope, signer string) error {
 	fmt.Printf("Enter password #%s:\n", signer)
 	password, err := util.ReadSecretFromStdin()
@@ -177,26 +200,7 @@ func sendAction(elp action.Envelope, signer string) error {
 		return nil
 	}
 	fmt.Println()
-
-	conn, err := util.ConnectToEndpoint(config.ReadConfig.SecureConnect && !config.Insecure)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-	cli := iotexapi.NewAPIServiceClient(conn)
-	ctx := context.Background()
-
-	request := &iotexapi.SendActionRequest{Action: selp}
-	if _, err = cli.SendAction(ctx, request); err != nil {
-		if sta, ok := status.FromError(err); ok {
-			return fmt.Errorf(sta.Message())
-		}
-		return err
-	}
-	shash := hash.Hash256b(byteutil.Must(proto.Marshal(selp)))
-	fmt.Println("Action has been sent to blockchain.")
-	fmt.Printf("Wait for several seconds and query this action by hash: %s\n", hex.EncodeToString(shash[:]))
-	return nil
+	return sendRaw(selp)
 }
 func isBalanceEnough(address string, act action.SealedEnvelope) (err error) {
 	accountMeta, err := account.GetAccountMeta(address)
