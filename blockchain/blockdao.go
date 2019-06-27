@@ -8,6 +8,8 @@ package blockchain
 
 import (
 	"context"
+	"sync"
+	"sync/atomic"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/hash"
@@ -136,19 +138,30 @@ func (dao *blockDAO) countActions() error {
 	if err != nil {
 		return err
 	}
+	zap.L().Info("Counting number of actions", zap.Uint64("height", i))
+	var wg sync.WaitGroup
+	errChan := make(chan error, tipHeight)
 	for i := uint64(1); i <= tipHeight; i++ {
-		hash, err := dao.getBlockHash(i)
-		if err != nil {
-			return err
-		}
-		body, err := dao.body(hash)
-		if err != nil {
-			return err
-		}
-		totalActions += uint64(len(body.Actions))
-		if i%1000 == 0 {
-			zap.L().Info("Counting number of actions", zap.Uint64("height", i))
-		}
+		wg.Add(1)
+		go func(i uint64) {
+			defer wg.Done()
+			hash, err := dao.getBlockHash(i)
+			if err != nil {
+				errChan <- err
+				return
+			}
+			body, err := dao.body(hash)
+			if err != nil {
+				errChan <- err
+				return
+			}
+			atomic.AddUint64(&totalActions, uint64(len(body.Actions)))
+		}(i)
+	}
+	wg.Wait()
+	close(errChan)
+	for err := range errChan {
+		return errors.Wrap(err, "Counting number of actions")
 	}
 	totalActionsBytes := byteutil.Uint64ToBytes(totalActions)
 	batch := db.NewBatch()
