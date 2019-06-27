@@ -185,7 +185,7 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		blk := &block.Block{
 			Body: *body,
 		}
-		err = indexBlockHash(startIndex, hash, ib.store, blk, batch)
+		err = putActions(startIndex, hash, ib.store, blk, batch)
 		if err != nil {
 			return err
 		}
@@ -237,7 +237,7 @@ func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 	if err != nil {
 		return err
 	}
-	if err = indexBlockHash(startIndex, hash, store, blk, batch); err != nil {
+	if err = putActions(startIndex, hash, store, blk, batch); err != nil {
 		return err
 	}
 	tipIndexBytes := byteutil.Uint64ToBytes(startIndex + uint64(len(blk.Actions)))
@@ -246,23 +246,18 @@ func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 	batch.Put(blockActionBlockMappingNS, indexActionsTipHeightKey, tipHeightBytes, "failed to put tip height")
 	return nil
 }
-func indexBlockHash(startActionsNum uint64, blkHash hash.Hash256, store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
-	for i, elp := range blk.Actions {
-		actHash := elp.Hash()
-		batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], blkHash[:], "failed to put action hash %x", actHash)
-		indexActionsBytes := byteutil.Uint64ToBytes(startActionsNum + uint64(i))
-		batch.Put(blockActionBlockMappingNS, indexActionsBytes, actHash[:], "failed to put index of actions %x", actHash)
-	}
 
-	return putActions(store, blk, batch)
-}
-
-func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
+func putActions(startActionsNum uint64, blkHash hash.Hash256, store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
 	senderDelta := make(map[hash.Hash160]uint64)
 	recipientDelta := make(map[hash.Hash160]uint64)
 
-	for _, selp := range blk.Actions {
+	for i, selp := range blk.Actions {
 		actHash := selp.Hash()
+
+		batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], blkHash[:], "failed to put action hash %x", actHash)
+		indexActionsBytes := byteutil.Uint64ToBytes(startActionsNum + uint64(i))
+		batch.Put(blockActionBlockMappingNS, indexActionsBytes, actHash[:], "failed to put index of actions %x", actHash)
+
 		callerAddrBytes := hash.BytesToHash160(selp.SrcPubkey().Hash())
 
 		// get action count for sender
