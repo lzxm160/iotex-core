@@ -241,7 +241,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64) (
 		// create contract
 		var evmContractAddress common.Address
 		_, evmContractAddress, remainingGas, evmErr = evm.Create(executor, evmParams.data, remainingGas, evmParams.amount)
-		fmt.Println(remainingGas, ":", evmErr)
+		fmt.Println(remainingGas, "244:", evmErr)
 		log.L().Debug("evm Create.", log.Hex("addrHash", evmContractAddress[:]))
 		if evmErr == nil {
 			if contractAddress, err := address.FromBytes(evmContractAddress.Bytes()); err == nil {
@@ -271,7 +271,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64) (
 	}
 	remainingGas += refund
 	fmt.Println(remainingGas, "273========", evmErr)
-	return ret, evmParams.gas, remainingGas, contractRawAddress, evmErr != nil, nil
+	return ret, evmParams.gas, remainingGas, contractRawAddress, evmErr != nil, evmErr
 }
 
 // intrinsicGas returns the intrinsic gas of an execution
