@@ -989,8 +989,7 @@ func TestServer_EstimateGasForAction(t *testing.T) {
 	request := &iotexapi.EstimateGasForActionRequest{Action: testExecution4.Proto()}
 	res, err := svr.EstimateGasForAction(context.Background(), request)
 	require.NoError(err)
-	require.Equal(0, res.Gas)
-
+	require.Equal(0x2774, res.Gas)
 }
 
 func TestServer_ReadUnclaimedBalance(t *testing.T) {
