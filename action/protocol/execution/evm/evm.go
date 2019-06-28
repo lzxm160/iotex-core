@@ -217,6 +217,7 @@ func getChainConfig() *params.ChainConfig {
 }
 
 func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64) ([]byte, uint64, uint64, string, bool, error) {
+	fmt.Println(":::::::::::::", gasLimit)
 	remainingGas := evmParams.gas
 	if err := securityDeposit(evmParams, stateDB, gasLimit); err != nil {
 		log.L().Warn("unexpected error: not enough security deposit", zap.Error(err))
