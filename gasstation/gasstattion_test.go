@@ -163,6 +163,16 @@ func TestSuggestGasPriceForSystemAction(t *testing.T) {
 	require.NoError(t, err)
 	// i from 10 to 29,gasprice for 20 to 39,60%*20+20=31
 	require.Equal(t, gs.cfg.GasStation.DefaultGas, gp)
+
+	time.Sleep(time.Second * 20)
+	// test for payload with account balance is 0
+	act := getActionWithPayloadWithoutBalance()
+	require.NotNil(t, act)
+	ret, err := gs.EstimateGasForAction(act)
+	fmt.Println(ret, ":::::::", err)
+	//require.NoError(err)
+	// base intrinsic gas 10000,plus data size*ExecutionDataGas
+	//require.Equal(uint64(10000)+10*action.ExecutionDataGas, ret)
 }
 
 func TestEstimateGasForAction(t *testing.T) {
@@ -189,18 +199,6 @@ func TestEstimateGasForAction(t *testing.T) {
 	require.NoError(err)
 	// base intrinsic gas 10000,plus data size*ExecutionDataGas
 	require.Equal(uint64(10000)+10*action.ExecutionDataGas, ret)
-
-	time.Sleep(time.Second * 20)
-	// test for payload with account balance is 0
-	act = getActionWithPayloadWithoutBalance()
-	require.NotNil(act)
-	require.NoError(bc.Start(context.Background()))
-	require.NotNil(bc)
-	ret, err = gs.EstimateGasForAction(act)
-	fmt.Println(ret, ":::::::", err)
-	//require.NoError(err)
-	// base intrinsic gas 10000,plus data size*ExecutionDataGas
-	//require.Equal(uint64(10000)+10*action.ExecutionDataGas, ret)
 }
 func getAction() (act *iotextypes.Action) {
 	pubKey1 := identityset.PrivateKey(28).PublicKey()
