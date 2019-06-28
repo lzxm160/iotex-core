@@ -85,6 +85,9 @@ var (
 	testExecution3, _ = testutil.SignedExecution(identityset.Address(31).String(), identityset.PrivateKey(28), 2,
 		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
 	executionHash3 = testExecution3.Hash()
+
+	testExecution4, _ = testutil.SignedExecution(identityset.Address(19).String(), identityset.PrivateKey(20), 2,
+		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
 )
 
 var (
@@ -981,6 +984,12 @@ func TestServer_EstimateGasForAction(t *testing.T) {
 		require.NoError(err)
 		require.Equal(test.estimatedGas, res.Gas)
 	}
+
+	// test for sender's balance is 0
+	request := &iotexapi.EstimateGasForActionRequest{Action: testExecution4.Proto()}
+	res, err := svr.EstimateGasForAction(context.Background(), request)
+	require.NoError(err)
+	require.Equal(0x2774, res.Gas)
 }
 
 func TestServer_ReadUnclaimedBalance(t *testing.T) {
