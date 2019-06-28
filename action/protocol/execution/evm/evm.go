@@ -131,7 +131,7 @@ func GetHashFn(stateDB *StateDBAdapter) func(n uint64) common.Hash {
 	}
 }
 
-func securityDeposit(ps *Params, stateDB vm.StateDB, gasLimit uint64) error {
+func securityDeposit(ps *Params, stateDB vm.StateDB, gasLimit uint64, checkBalance bool) error {
 	executorNonce := stateDB.GetNonce(ps.context.Origin)
 	if executorNonce > ps.nonce {
 		log.S().Errorf("Nonce on %v: %d vs %d", ps.context.Origin, executorNonce, ps.nonce)
@@ -142,7 +142,7 @@ func securityDeposit(ps *Params, stateDB vm.StateDB, gasLimit uint64) error {
 		return action.ErrHitGasLimit
 	}
 	maxGasValue := new(big.Int).Mul(new(big.Int).SetUint64(ps.gas), ps.context.GasPrice)
-	if stateDB.GetBalance(ps.context.Origin).Cmp(maxGasValue) < 0 {
+	if checkBalance && stateDB.GetBalance(ps.context.Origin).Cmp(maxGasValue) < 0 {
 		return action.ErrInsufficientBalanceForGas
 	}
 	stateDB.SubBalance(ps.context.Origin, maxGasValue)
@@ -156,6 +156,7 @@ func ExecuteContract(
 	execution *action.Execution,
 	cm protocol.ChainManager,
 	hc HeightChange,
+	checkBalance bool,
 ) ([]byte, *action.Receipt, error) {
 	raCtx := protocol.MustGetRunActionsCtx(ctx)
 	stateDB := NewStateDBAdapter(cm, sm, &hc, raCtx.BlockHeight, execution.Hash())
@@ -163,7 +164,7 @@ func ExecuteContract(
 	if err != nil {
 		return nil, nil, err
 	}
-	retval, depositGas, remainingGas, contractAddress, failed, err := executeInEVM(ps, stateDB, raCtx.GasLimit)
+	retval, depositGas, remainingGas, contractAddress, failed, err := executeInEVM(ps, stateDB, raCtx.GasLimit, checkBalance)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -211,9 +212,9 @@ func getChainConfig() *params.ChainConfig {
 	return &chainConfig
 }
 
-func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64) ([]byte, uint64, uint64, string, bool, error) {
+func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64, checkBalance bool) ([]byte, uint64, uint64, string, bool, error) {
 	remainingGas := evmParams.gas
-	if err := securityDeposit(evmParams, stateDB, gasLimit); err != nil {
+	if err := securityDeposit(evmParams, stateDB, gasLimit, checkBalance); err != nil {
 		log.L().Warn("unexpected error: not enough security deposit", zap.Error(err))
 		return nil, 0, 0, action.EmptyAddress, true, err
 	}

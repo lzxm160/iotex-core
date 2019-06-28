@@ -761,6 +761,7 @@ func (bc *blockchain) ExecuteContractRead(caller address.Address, ex *action.Exe
 			bc.config.Genesis.PacificBlockHeight,
 			bc.config.Genesis.AleutianBlockHeight,
 		),
+		false,
 	)
 }
 

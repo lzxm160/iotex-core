@@ -289,7 +289,6 @@ func (api *Server) GetServerMeta(ctx context.Context,
 // SendAction is the API to send an action to blockchain.
 func (api *Server) SendAction(ctx context.Context, in *iotexapi.SendActionRequest) (res *iotexapi.SendActionResponse, err error) {
 	log.L().Debug("receive send action request")
-
 	// broadcast to the network
 	if err = api.broadcastHandler(context.Background(), api.bc.ChainID(), in.Action); err != nil {
 		log.L().Warn("Failed to broadcast SendAction request.", zap.Error(err))
