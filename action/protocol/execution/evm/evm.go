@@ -268,7 +268,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64) (
 		refund = stateDB.GetRefund()
 	}
 	remainingGas += refund
-
+	fmt.Println("remaining gas:", remainingGas)
 	return ret, evmParams.gas, remainingGas, contractRawAddress, evmErr != nil, nil
 }
 
