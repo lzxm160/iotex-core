@@ -21,10 +21,9 @@ var actionEstimateCmd = &cobra.Command{
 		" [-s SIGNER] -b BYTE_CODE [-l GAS_LIMIT] [-p GAS_PRICE]",
 	Short: "Estimate gas of action on IoTeX blockchain",
 	Args:  cobra.RangeArgs(1, 2),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		cmd.SilenceUsage = true
 		var contract string
-		var err error
 		if !strings.EqualFold(args[0], "") {
 			contract, err = util.Address(args[0])
 			if err != nil {
