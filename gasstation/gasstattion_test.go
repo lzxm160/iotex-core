@@ -238,7 +238,7 @@ func getActionWithPayloadWithoutBalance() (act *iotextypes.Action) {
 		"",
 		1,
 		big.NewInt(0),
-		testutil.TestGasLimit,
+		10000,
 		big.NewInt(10),
 		[]byte("1234567890000000000000000000000000000000000000022222222222222222222211111111111111111111111111111111"),
 	)
