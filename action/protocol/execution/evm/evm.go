@@ -266,7 +266,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64) (
 	}
 	remainingGas += refund
 
-	return ret, evmParams.gas, remainingGas, contractRawAddress, evmErr != nil, evmErr
+	return ret, evmParams.gas, remainingGas, contractRawAddress, evmErr != nil, nil
 }
 
 // intrinsicGas returns the intrinsic gas of an execution
