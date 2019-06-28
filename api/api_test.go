@@ -85,6 +85,10 @@ var (
 	testExecution3, _ = testutil.SignedExecution(identityset.Address(31).String(), identityset.PrivateKey(28), 2,
 		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
 	executionHash3 = testExecution3.Hash()
+
+	testExecution4, _ = testutil.SignedExecution(identityset.Address(19).String(), identityset.PrivateKey(20), 2,
+		big.NewInt(1), testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64), []byte{1})
+	executionHash4 = testExecution4.Hash()
 )
 
 var (
@@ -416,7 +420,7 @@ var (
 			10000,
 		},
 		{
-			hex.EncodeToString(testExecutionHash[:]),
+			hex.EncodeToString(executionHash4[:]),
 			0,
 		},
 	}
