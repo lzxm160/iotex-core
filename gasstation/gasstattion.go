@@ -10,7 +10,6 @@ import (
 	"math/big"
 	"sort"
 
-	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/config"
@@ -94,18 +93,18 @@ func (gs *GasStation) EstimateGasForAction(actPb *iotextypes.Action) (uint64, er
 	if err := selp.LoadProto(actPb); err != nil {
 		return 0, err
 	}
-	// Special handling for executions
-	if sc, ok := selp.Action().(*action.Execution); ok {
-		callerAddr, err := address.FromBytes(selp.SrcPubkey().Hash())
-		if err != nil {
-			return 0, err
-		}
-		_, receipt, err := gs.bc.ExecuteContractRead(callerAddr, sc)
-		if err != nil {
-			return 0, err
-		}
-		return receipt.GasConsumed, nil
-	}
+	//// Special handling for executions
+	//if sc, ok := selp.Action().(*action.Execution); ok {
+	//	callerAddr, err := address.FromBytes(selp.SrcPubkey().Hash())
+	//	if err != nil {
+	//		return 0, err
+	//	}
+	//	_, receipt, err := gs.bc.ExecuteContractRead(callerAddr, sc)
+	//	if err != nil {
+	//		return 0, err
+	//	}
+	//	return receipt.GasConsumed, nil
+	//}
 	gas, err := selp.IntrinsicGas()
 	if err != nil {
 		return 0, err
