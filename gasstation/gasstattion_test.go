@@ -233,7 +233,7 @@ func getActionWithPayload() (act *iotextypes.Action) {
 }
 func getActionWithPayloadWithoutBalance() (act *iotextypes.Action) {
 	//pubKey1 := identityset.PrivateKey(20).PublicKey()
-	pubKey1 := identityset.PrivateKey(27).PublicKey()
+	pubKey1 := identityset.PrivateKey(27)
 	exec, _ := action.NewExecution(
 		"",
 		1,
@@ -242,23 +242,17 @@ func getActionWithPayloadWithoutBalance() (act *iotextypes.Action) {
 		big.NewInt(10),
 		[]byte("1234567890000000000000000000000000000000000000022222222222222222222211111111111111111111111111111111"),
 	)
-	//builder := &action.EnvelopeBuilder{}
-	//elp := builder.SetAction(exec).
-	//	SetNonce(exec.Nonce()).
-	//	SetGasLimit(exec.GasLimit()).
-	//	SetGasPrice(exec.GasPrice()).
-	//	Build()
-	//selp, _ := action.Sign(elp, pubKey1)
+	builder := &action.EnvelopeBuilder{}
+	elp := builder.SetAction(exec).
+		SetNonce(exec.Nonce()).
+		SetGasLimit(exec.GasLimit()).
+		SetGasPrice(exec.GasPrice()).
+		Build()
+	selp, _ := action.Sign(elp, pubKey1)
 
 	act = &iotextypes.Action{
-		Core: &iotextypes.ActionCore{
-			Action: &iotextypes.ActionCore_Execution{
-				Execution: exec.Proto(),
-			},
-			Version: version.ProtocolVersion,
-			Nonce:   101,
-		},
-		SenderPubKey: pubKey1.Bytes(),
+		Core:         selp.Proto().Core,
+		SenderPubKey: pubKey1.PublicKey().Bytes(),
 	}
 	return
 }
