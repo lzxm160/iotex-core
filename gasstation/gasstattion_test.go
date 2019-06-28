@@ -111,9 +111,8 @@ func TestSuggestGasPriceForUserAction(t *testing.T) {
 	require.NotNil(t, act)
 	ret, err := gs.EstimateGasForAction(act)
 	fmt.Println(ret, ":::::::", err)
-	//require.NoError(err)
-	// base intrinsic gas 10000,plus data size*ExecutionDataGas
-	//require.Equal(uint64(10000)+10*action.ExecutionDataGas, ret)
+	require.NoError(t, err)
+	require.Equal(t, uint64(10000)+10*action.ExecutionDataGas, ret)
 }
 
 func TestSuggestGasPriceForSystemAction(t *testing.T) {
