@@ -173,12 +173,12 @@ func sendToChain(request interface{}) (err error) {
 			return
 		}
 	case *iotexapi.EstimateGasForActionRequest:
-		resp, err := cli.EstimateGasForAction(ctx, req)
-		if err != nil {
-			if sta, ok := status.FromError(err); ok {
+		resp, errs := cli.EstimateGasForAction(ctx, req)
+		if errs != nil {
+			if sta, ok := status.FromError(errs); ok {
 				return fmt.Errorf(sta.Message())
 			}
-			return
+			return errs
 		}
 		fmt.Printf("Gas estimated is: %d\n", resp.Gas)
 	}
