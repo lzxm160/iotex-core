@@ -110,9 +110,8 @@ func TestSuggestGasPriceForUserAction(t *testing.T) {
 	act := getActionWithPayloadWithoutBalance()
 	require.NotNil(t, act)
 	ret, err := gs.EstimateGasForAction(act)
-	fmt.Println(ret, ":::::::", err)
 	require.NoError(t, err)
-	require.Equal(t, uint64(10000)+10*action.ExecutionDataGas, ret)
+	require.Equal(t, 1000000, ret)
 }
 
 func TestSuggestGasPriceForSystemAction(t *testing.T) {
