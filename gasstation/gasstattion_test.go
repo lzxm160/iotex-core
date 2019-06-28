@@ -233,12 +233,26 @@ func getActionWithPayload() (act *iotextypes.Action) {
 }
 func getActionWithPayloadWithoutBalance() (act *iotextypes.Action) {
 	pubKey1 := identityset.PrivateKey(20).PublicKey()
-	addr2 := identityset.Address(21).String()
+	exec, _ := action.NewExecution(
+		"",
+		1,
+		big.NewInt(0),
+		testutil.TestGasLimit,
+		big.NewInt(10),
+		[]byte("1234567890000000000000000000000000000000000000022222222222222222222211111111111111111111111111111111"),
+	)
+	//builder := &action.EnvelopeBuilder{}
+	//elp := builder.SetAction(exec).
+	//	SetNonce(exec.Nonce()).
+	//	SetGasLimit(exec.GasLimit()).
+	//	SetGasPrice(exec.GasPrice()).
+	//	Build()
+	//selp, _ := action.Sign(elp, pubKey1)
 
 	act = &iotextypes.Action{
 		Core: &iotextypes.ActionCore{
-			Action: &iotextypes.ActionCore_Transfer{
-				Transfer: &iotextypes.Transfer{Recipient: addr2, Payload: []byte("1234567890000000000000000000000000000000000000022222222222222222222211111111111111111111111111111111")},
+			Action: &iotextypes.ActionCore_Execution{
+				Execution: exec.Proto(),
 			},
 			Version: version.ProtocolVersion,
 			Nonce:   101,
