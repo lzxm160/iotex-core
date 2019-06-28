@@ -233,7 +233,7 @@ func getActionWithPayload() (act *iotextypes.Action) {
 }
 func getActionWithPayloadWithoutBalance() (act *iotextypes.Action) {
 	//pubKey1 := identityset.PrivateKey(20).PublicKey()
-	pubKey1 := identityset.PrivateKey(28)
+	pubKey1 := identityset.PrivateKey(0)
 	exec, _ := action.NewExecution(
 		"",
 		1,
