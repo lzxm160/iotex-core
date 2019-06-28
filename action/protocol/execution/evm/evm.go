@@ -217,7 +217,6 @@ func getChainConfig() *params.ChainConfig {
 }
 
 func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64) ([]byte, uint64, uint64, string, bool, error) {
-	fmt.Println(":::::::::::::", gasLimit)
 	remainingGas := evmParams.gas
 	if err := securityDeposit(evmParams, stateDB, gasLimit); err != nil {
 		log.L().Warn("unexpected error: not enough security deposit", zap.Error(err))
@@ -252,9 +251,9 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64) (
 	} else {
 		stateDB.SetNonce(evmParams.context.Origin, stateDB.GetNonce(evmParams.context.Origin)+1)
 		// process contract
-		fmt.Println(remainingGas, ":", evmErr)
+		fmt.Println(remainingGas, "254:", evmErr)
 		ret, remainingGas, evmErr = evm.Call(executor, *evmParams.contract, evmParams.data, remainingGas, evmParams.amount)
-		fmt.Println(remainingGas, "::::::", evmErr)
+		fmt.Println(remainingGas, "256::::::", evmErr)
 	}
 	if evmErr != nil {
 		log.L().Debug("evm error", zap.Error(err))
@@ -262,7 +261,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64) (
 			return nil, evmParams.gas, remainingGas, action.EmptyAddress, true, evmErr
 		}
 	}
-	fmt.Println(remainingGas, "========", evmErr)
+	fmt.Println(remainingGas, "264========", evmErr)
 	if stateDB.Error() != nil {
 		log.L().Debug("statedb error", zap.Error(stateDB.Error()))
 	}
@@ -271,7 +270,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64) (
 		refund = stateDB.GetRefund()
 	}
 	remainingGas += refund
-	fmt.Println(remainingGas, "========", evmErr)
+	fmt.Println(remainingGas, "273========", evmErr)
 	return ret, evmParams.gas, remainingGas, contractRawAddress, evmErr != nil, nil
 }
 
