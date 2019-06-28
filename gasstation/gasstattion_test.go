@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"math/big"
 	"testing"
-	"time"
 
 	"github.com/iotexproject/iotex-core/pkg/unit"
 
@@ -107,7 +106,6 @@ func TestSuggestGasPriceForUserAction(t *testing.T) {
 	// i from 10 to 29,gasprice for 20 to 39,60%*20+20=31
 	require.Equal(t, big.NewInt(1).Mul(big.NewInt(int64(31)), big.NewInt(unit.Qev)).Uint64(), gp)
 
-	time.Sleep(time.Second * 10)
 	act := getActionWithContractCreate()
 	require.NotNil(t, act)
 	ret, err := gs.EstimateGasForAction(act)
