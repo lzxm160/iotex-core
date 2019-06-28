@@ -55,6 +55,7 @@ func init() {
 	ActionCmd.AddCommand(actionClaimCmd)
 	ActionCmd.AddCommand(actionDepositCmd)
 	ActionCmd.AddCommand(actionSendRawCmd)
+	ActionCmd.AddCommand(actionEstimateCmd)
 	ActionCmd.PersistentFlags().StringVar(&config.ReadConfig.Endpoint, "endpoint",
 		config.ReadConfig.Endpoint, "set endpoint for once")
 	ActionCmd.PersistentFlags().BoolVar(&config.Insecure, "insecure", config.Insecure,
