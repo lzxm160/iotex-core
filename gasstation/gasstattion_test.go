@@ -188,6 +188,16 @@ func TestEstimateGasForAction(t *testing.T) {
 	require.NoError(err)
 	// base intrinsic gas 10000,plus data size*ExecutionDataGas
 	require.Equal(uint64(10000)+10*action.ExecutionDataGas, ret)
+
+	// test for payload with account balance is 0
+	act = getActionWithPayloadWithoutBalance()
+	require.NotNil(act)
+	require.NoError(bc.Start(context.Background()))
+	require.NotNil(bc)
+	ret, err = gs.EstimateGasForAction(act)
+	require.NoError(err)
+	// base intrinsic gas 10000,plus data size*ExecutionDataGas
+	require.Equal(uint64(10000)+10*action.ExecutionDataGas, ret)
 }
 func getAction() (act *iotextypes.Action) {
 	pubKey1 := identityset.PrivateKey(28).PublicKey()
@@ -213,6 +223,22 @@ func getActionWithPayload() (act *iotextypes.Action) {
 		Core: &iotextypes.ActionCore{
 			Action: &iotextypes.ActionCore_Transfer{
 				Transfer: &iotextypes.Transfer{Recipient: addr2, Payload: []byte("1234567890")},
+			},
+			Version: version.ProtocolVersion,
+			Nonce:   101,
+		},
+		SenderPubKey: pubKey1.Bytes(),
+	}
+	return
+}
+func getActionWithPayloadWithoutBalance() (act *iotextypes.Action) {
+	pubKey1 := identityset.PrivateKey(20).PublicKey()
+	addr2 := identityset.Address(21).String()
+
+	act = &iotextypes.Action{
+		Core: &iotextypes.ActionCore{
+			Action: &iotextypes.ActionCore_Transfer{
+				Transfer: &iotextypes.Transfer{Recipient: addr2, Payload: []byte("1234567890000000000000000000000000000000000000022222222222222222222211111111111111111111111111111111")},
 			},
 			Version: version.ProtocolVersion,
 			Nonce:   101,
