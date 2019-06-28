@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"math/big"
 	"testing"
-	"time"
 
 	"github.com/iotexproject/iotex-core/pkg/unit"
 
@@ -37,7 +36,7 @@ func TestNewGasStation(t *testing.T) {
 func TestSuggestGasPriceForUserAction(t *testing.T) {
 	ctx := context.Background()
 	cfg := config.Default
-	cfg.Genesis.BlockGasLimit = uint64(100000)
+	cfg.Genesis.BlockGasLimit = uint64(1000000)
 	cfg.Genesis.EnableGravityChainVoting = false
 	registry := protocol.Registry{}
 	acc := account.NewProtocol(0)
@@ -106,6 +105,15 @@ func TestSuggestGasPriceForUserAction(t *testing.T) {
 	require.NoError(t, err)
 	// i from 10 to 29,gasprice for 20 to 39,60%*20+20=31
 	require.Equal(t, big.NewInt(1).Mul(big.NewInt(int64(31)), big.NewInt(unit.Qev)).Uint64(), gp)
+
+	// test for payload with account balance is 0
+	act := getActionWithPayloadWithoutBalance()
+	require.NotNil(t, act)
+	ret, err := gs.EstimateGasForAction(act)
+	fmt.Println(ret, ":::::::", err)
+	//require.NoError(err)
+	// base intrinsic gas 10000,plus data size*ExecutionDataGas
+	//require.Equal(uint64(10000)+10*action.ExecutionDataGas, ret)
 }
 
 func TestSuggestGasPriceForSystemAction(t *testing.T) {
@@ -164,15 +172,6 @@ func TestSuggestGasPriceForSystemAction(t *testing.T) {
 	// i from 10 to 29,gasprice for 20 to 39,60%*20+20=31
 	require.Equal(t, gs.cfg.GasStation.DefaultGas, gp)
 
-	time.Sleep(time.Second * 20)
-	// test for payload with account balance is 0
-	act := getActionWithPayloadWithoutBalance()
-	require.NotNil(t, act)
-	ret, err := gs.EstimateGasForAction(act)
-	fmt.Println(ret, ":::::::", err)
-	//require.NoError(err)
-	// base intrinsic gas 10000,plus data size*ExecutionDataGas
-	//require.Equal(uint64(10000)+10*action.ExecutionDataGas, ret)
 }
 
 func TestEstimateGasForAction(t *testing.T) {
