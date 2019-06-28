@@ -8,6 +8,7 @@ package evm
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"math/big"
 
@@ -220,7 +221,9 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64) (
 	var config vm.Config
 	chainConfig := getChainConfig()
 	evm := vm.NewEVM(evmParams.context, stateDB, chainConfig, config)
+	fmt.Println("remaining gas:", remainingGas)
 	intriGas, err := intrinsicGas(evmParams.data)
+	fmt.Println("intriGas:", intriGas)
 	if err != nil {
 		return nil, evmParams.gas, remainingGas, action.EmptyAddress, true, err
 	}
