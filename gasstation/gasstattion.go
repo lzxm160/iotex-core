@@ -7,6 +7,7 @@
 package gasstation
 
 import (
+	"fmt"
 	"math/big"
 	"sort"
 
@@ -94,6 +95,11 @@ func (gs *GasStation) EstimateGasForAction(actPb *iotextypes.Action) (uint64, er
 	if err := selp.LoadProto(actPb); err != nil {
 		return 0, err
 	}
+	gass, err := selp.IntrinsicGas()
+	if err != nil {
+		return 0, err
+	}
+	fmt.Println("selp.IntrinsicGas()", gass)
 	// Special handling for executions
 	if sc, ok := selp.Action().(*action.Execution); ok {
 		callerAddr, err := address.FromBytes(selp.SrcPubkey().Hash())
