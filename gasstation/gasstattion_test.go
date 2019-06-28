@@ -111,7 +111,7 @@ func TestSuggestGasPriceForUserAction(t *testing.T) {
 func TestSuggestGasPriceForSystemAction(t *testing.T) {
 	ctx := context.Background()
 	cfg := config.Default
-	cfg.Genesis.BlockGasLimit = uint64(100000)
+	cfg.Genesis.BlockGasLimit = uint64(1000000)
 	cfg.Genesis.EnableGravityChainVoting = false
 	registry := protocol.Registry{}
 	acc := account.NewProtocol(0)
