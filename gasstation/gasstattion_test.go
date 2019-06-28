@@ -36,7 +36,7 @@ func TestNewGasStation(t *testing.T) {
 func TestSuggestGasPriceForUserAction(t *testing.T) {
 	ctx := context.Background()
 	cfg := config.Default
-	cfg.Genesis.BlockGasLimit = uint64(1000000)
+	cfg.Genesis.BlockGasLimit = uint64(100000)
 	cfg.Genesis.EnableGravityChainVoting = false
 	registry := protocol.Registry{}
 	acc := account.NewProtocol(0)
@@ -171,7 +171,6 @@ func TestSuggestGasPriceForSystemAction(t *testing.T) {
 	require.NoError(t, err)
 	// i from 10 to 29,gasprice for 20 to 39,60%*20+20=31
 	require.Equal(t, gs.cfg.GasStation.DefaultGas, gp)
-
 }
 
 func TestEstimateGasForAction(t *testing.T) {
