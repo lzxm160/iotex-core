@@ -106,11 +106,11 @@ func (gs *GasStation) EstimateGasForAction(actPb *iotextypes.Action) (uint64, er
 		}
 		return receipt.GasConsumed, nil
 	}
-	gas, err := selp.Cost()
+	gas, err := selp.IntrinsicGas()
 	if err != nil {
 		return 0, err
 	}
-	return gas.Uint64(), nil
+	return gas, nil
 }
 
 type bigIntArray []*big.Int
