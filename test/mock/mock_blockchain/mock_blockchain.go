@@ -6,6 +6,10 @@ package mock_blockchain
 
 import (
 	context "context"
+	big "math/big"
+	reflect "reflect"
+	time "time"
+
 	gomock "github.com/golang/mock/gomock"
 	hash "github.com/iotexproject/go-pkgs/hash"
 	address "github.com/iotexproject/iotex-address/address"
@@ -14,9 +18,6 @@ import (
 	block "github.com/iotexproject/iotex-core/blockchain/block"
 	state "github.com/iotexproject/iotex-core/state"
 	factory "github.com/iotexproject/iotex-core/state/factory"
-	big "math/big"
-	reflect "reflect"
-	time "time"
 )
 
 // MockBlockchain is a mock of Blockchain interface
@@ -497,7 +498,7 @@ func (mr *MockBlockchainMockRecorder) SetValidator(val interface{}) *gomock.Call
 }
 
 // ExecuteContractRead mocks base method
-func (m *MockBlockchain) ExecuteContractRead(caller address.Address, ex *action.Execution) ([]byte, *action.Receipt, error) {
+func (m *MockBlockchain) ExecuteContractRead(caller address.Address, ex *action.Execution, forEstimateGas bool) ([]byte, *action.Receipt, error) {
 	ret := m.ctrl.Call(m, "ExecuteContractRead", caller, ex)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(*action.Receipt)
