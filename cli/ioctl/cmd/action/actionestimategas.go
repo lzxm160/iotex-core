@@ -8,6 +8,7 @@ package action
 
 import (
 	"math/big"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -22,9 +23,13 @@ var actionEstimateCmd = &cobra.Command{
 	Args:  cobra.RangeArgs(1, 2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
-		contract, err := util.Address(args[0])
-		if err != nil {
-			return err
+		var contract string
+		var err error
+		if !strings.EqualFold(args[0], "") {
+			contract, err = util.Address(args[0])
+			if err != nil {
+				return err
+			}
 		}
 		amount := big.NewInt(0)
 		if len(args) == 2 {
