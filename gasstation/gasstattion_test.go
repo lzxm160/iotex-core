@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"math/big"
 	"testing"
+	"time"
 
 	"github.com/iotexproject/iotex-core/pkg/unit"
 
@@ -189,6 +190,7 @@ func TestEstimateGasForAction(t *testing.T) {
 	// base intrinsic gas 10000,plus data size*ExecutionDataGas
 	require.Equal(uint64(10000)+10*action.ExecutionDataGas, ret)
 
+	time.Sleep(time.Second * 20)
 	// test for payload with account balance is 0
 	act = getActionWithPayloadWithoutBalance()
 	require.NotNil(act)
