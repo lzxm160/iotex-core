@@ -176,7 +176,8 @@ func sendToChain(request interface{}) (err error) {
 		resp, err := cli.EstimateGasForAction(ctx, req)
 		if err != nil {
 			if sta, ok := status.FromError(err); ok {
-				err = fmt.Errorf(sta.Message())
+				errs := fmt.Errorf(sta.Message())
+				err = errs
 				return
 			}
 			return
@@ -217,7 +218,7 @@ func signAndConfirm(elp action.Envelope, signer string, forEstimate bool) (selp 
 		return
 	}
 	if !forEstimate {
-		if err := isBalanceEnough(signer, sealed); err != nil {
+		if err = isBalanceEnough(signer, sealed); err != nil {
 			return
 		}
 	}
