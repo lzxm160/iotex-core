@@ -499,7 +499,7 @@ func (mr *MockBlockchainMockRecorder) SetValidator(val interface{}) *gomock.Call
 
 // ExecuteContractRead mocks base method
 func (m *MockBlockchain) ExecuteContractRead(caller address.Address, ex *action.Execution, forEstimateGas bool) ([]byte, *action.Receipt, error) {
-	ret := m.ctrl.Call(m, "ExecuteContractRead", caller, ex)
+	ret := m.ctrl.Call(m, "ExecuteContractRead", caller, ex, forEstimateGas)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(*action.Receipt)
 	ret2, _ := ret[2].(error)
