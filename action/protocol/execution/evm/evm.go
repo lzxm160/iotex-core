@@ -8,6 +8,7 @@ package evm
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"math/big"
 
@@ -249,7 +250,9 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64) (
 	} else {
 		stateDB.SetNonce(evmParams.context.Origin, stateDB.GetNonce(evmParams.context.Origin)+1)
 		// process contract
+		fmt.Println(remainingGas, ":", evmErr)
 		ret, remainingGas, evmErr = evm.Call(executor, *evmParams.contract, evmParams.data, remainingGas, evmParams.amount)
+		fmt.Println(remainingGas, "::::::", evmErr)
 	}
 	if evmErr != nil {
 		log.L().Debug("evm error", zap.Error(err))
@@ -257,6 +260,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64) (
 			return nil, evmParams.gas, remainingGas, action.EmptyAddress, true, evmErr
 		}
 	}
+	fmt.Println(remainingGas, "========", evmErr)
 	if stateDB.Error() != nil {
 		log.L().Debug("statedb error", zap.Error(stateDB.Error()))
 	}
@@ -265,7 +269,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64) (
 		refund = stateDB.GetRefund()
 	}
 	remainingGas += refund
-
+	fmt.Println(remainingGas, "========", evmErr)
 	return ret, evmParams.gas, remainingGas, contractRawAddress, evmErr != nil, nil
 }
 
