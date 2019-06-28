@@ -234,7 +234,7 @@ func getActionWithPayloadWithoutBalance() (act *iotextypes.Action) {
 	pubKey1 := identityset.PrivateKey(0)
 	exec, _ := action.NewExecution(
 		"",
-		1,
+		30,
 		big.NewInt(0),
 		10000,
 		big.NewInt(10),
