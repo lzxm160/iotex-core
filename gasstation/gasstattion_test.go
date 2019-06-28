@@ -111,7 +111,7 @@ func TestSuggestGasPriceForUserAction(t *testing.T) {
 	require.NotNil(t, act)
 	ret, err := gs.EstimateGasForAction(act)
 	require.NoError(t, err)
-	require.Equal(t, ret, 1000000)
+	require.Equal(t, uint64(1000000), ret)
 }
 
 func TestSuggestGasPriceForSystemAction(t *testing.T) {
