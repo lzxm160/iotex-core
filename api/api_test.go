@@ -415,6 +415,10 @@ var (
 			hex.EncodeToString(transferHash2[:]),
 			10000,
 		},
+		{
+			hex.EncodeToString(testExecutionHash[:]),
+			0,
+		},
 	}
 
 	readUnclaimedBalanceTests = []struct {
