@@ -165,7 +165,7 @@ func sendToChain(request interface{}) (err error) {
 	ctx := context.Background()
 	switch req := request.(type) {
 	case *iotexapi.SendActionRequest:
-		if _, err := cli.SendAction(ctx, req); err != nil {
+		if _, err = cli.SendAction(ctx, req); err != nil {
 			if sta, ok := status.FromError(err); ok {
 				err = fmt.Errorf(sta.Message())
 				return
