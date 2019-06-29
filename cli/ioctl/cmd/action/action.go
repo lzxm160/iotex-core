@@ -38,6 +38,7 @@ var (
 	nonceFlag    = flag.NewUint64VarP("nonce", "n", 0, "set nonce (default using pending nonce)")
 	signerFlag   = flag.NewStringVarP("signer", "s", "", "choose a signing account")
 	bytecodeFlag = flag.NewStringVarP("bytecode", "b", "", "set the byte code")
+	notConfirmed = errors.New("not confirmed and quit")
 )
 
 // ActionCmd represents the account command
@@ -216,32 +217,35 @@ func signAndConfirm(elp action.Envelope, signer string, forEstimate bool) (selp 
 		log.L().Error("failed to sign action", zap.Error(err))
 		return
 	}
+	selp = sealed.Proto()
 	if !forEstimate {
 		if err = isBalanceEnough(signer, sealed); err != nil {
 			return
 		}
+		actionInfo, err := printActionProto(selp)
+		if err != nil {
+			return
+		}
+		var confirm string
+		fmt.Println("\n" + actionInfo + "\n" +
+			"Please confirm your action.\n" +
+			"Type 'YES' to continue, quit for anything else.")
+		fmt.Scanf("%s", &confirm)
+		if confirm != "YES" && confirm != "yes" {
+			fmt.Println("Quit")
+			err = notConfirmed
+			return
+		}
+		fmt.Println()
 	}
-	selp = sealed.Proto()
-	actionInfo, err := printActionProto(selp)
-	if err != nil {
-		return
-	}
-	var confirm string
-	fmt.Println("\n" + actionInfo + "\n" +
-		"Please confirm your action.\n" +
-		"Type 'YES' to continue, quit for anything else.")
-	fmt.Scanf("%s", &confirm)
-	if confirm != "YES" && confirm != "yes" {
-		fmt.Println("Quit")
-		err = errors.New("not confirmed and quit")
-		return
-	}
-	fmt.Println()
 	return
 }
 
 func sendAction(elp action.Envelope, signer string) error {
 	selp, err := signAndConfirm(elp, signer, false)
+	if err != nil && errors.Cause(err) == notConfirmed {
+		return nil
+	}
 	if err != nil {
 		return err
 	}
@@ -254,6 +258,12 @@ func estimateGas(contract string, amount *big.Int, bytecode []byte) (err error) 
 		return
 	}
 	selp, err := signAndConfirm(elp, signer, true)
+	if err != nil && errors.Cause(err) == notConfirmed {
+		return nil
+	}
+	if err != nil {
+		return
+	}
 	request := &iotexapi.EstimateGasForActionRequest{Action: selp}
 	err = sendToChain(request)
 	return
