@@ -218,11 +218,12 @@ func signAndConfirm(elp action.Envelope, signer string, forEstimate bool) (selp 
 		return
 	}
 	selp = sealed.Proto()
+	var actionInfo string
 	if !forEstimate {
 		if err = isBalanceEnough(signer, sealed); err != nil {
 			return
 		}
-		actionInfo, err := printActionProto(selp)
+		actionInfo, err = printActionProto(selp)
 		if err != nil {
 			return
 		}
@@ -233,8 +234,7 @@ func signAndConfirm(elp action.Envelope, signer string, forEstimate bool) (selp 
 		fmt.Scanf("%s", &confirm)
 		if confirm != "YES" && confirm != "yes" {
 			fmt.Println("Quit")
-			err = notConfirmed
-			return
+			return nil, notConfirmed
 		}
 		fmt.Println()
 	}
