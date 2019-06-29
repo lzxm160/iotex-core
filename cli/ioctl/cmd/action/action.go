@@ -232,6 +232,8 @@ func signAndConfirm(elp action.Envelope, signer string, forEstimate bool) (selp 
 		"Type 'YES' to continue, quit for anything else.")
 	fmt.Scanf("%s", &confirm)
 	if confirm != "YES" && confirm != "yes" {
+		fmt.Println("Quit")
+		err = errors.New("not confirmed and quit")
 		return
 	}
 	fmt.Println()
