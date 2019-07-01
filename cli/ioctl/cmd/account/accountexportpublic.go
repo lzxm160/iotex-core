@@ -7,7 +7,10 @@
 package account
 
 import (
+	"encoding/hex"
 	"fmt"
+
+	"github.com/iotexproject/go-pkgs/crypto"
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -22,7 +25,7 @@ var (
 
 // accountExportPublicCmd represents the account export public key command
 var accountExportPublicCmd = &cobra.Command{
-	Use:   "exportpublic [ALIAS|ADDRESS]",
+	Use:   "exportpublic [ALIAS|ADDRESS] [-c compressed]",
 	Short: "Export IoTeX public key from wallet",
 	Args:  cobra.RangeArgs(0, 1),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -51,9 +54,15 @@ func accountExportPublic(args []string) (string, error) {
 		return "", err
 	}
 	defer prvKey.Zero()
+	if compressed {
+		compre := crypto.CompressPubkey(prvKey.PublicKey())
+		return hex.EncodeToString(compre), nil
+	}
 	return prvKey.PublicKey().HexString(), nil
 }
 func init() {
-	accountExportPublicCmd.Flags().BoolVarP(&compressed,
-		"compressed", "c", true, "compressed public key")
+	//accountExportPublicCmd.Flags().BoolVarP(&compressed,
+	//	"compressed", "c", true, "compressed public key")
+	accountExportPublicCmd.PersistentFlags().BoolVarP(&compressed, "compressed", "c", true,
+		"compressed public key")
 }
