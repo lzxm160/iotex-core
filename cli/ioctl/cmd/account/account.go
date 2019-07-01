@@ -60,8 +60,8 @@ func init() {
 		config.ReadConfig.Endpoint, "set endpoint for once")
 	AccountCmd.PersistentFlags().BoolVar(&config.Insecure, "insecure", config.Insecure,
 		"insecure connection for once")
-	accountExportPublicCmd.PersistentFlags().BoolVarP(&compressed, "compressed", "c", false,
-		"compressed public key")
+	AccountCmd.PersistentFlags().BoolVarP(&compressed, "compressed", "c", false,
+		"compressed public key for account exportpublic")
 }
 
 // Sign sign message with signer
