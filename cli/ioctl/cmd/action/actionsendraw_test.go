@@ -12,6 +12,8 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/gogo/protobuf/proto"
+
 	"github.com/iotexproject/go-pkgs/crypto"
 
 	"github.com/iotexproject/iotex-core/action"
@@ -39,6 +41,8 @@ func TestSendRaw(t *testing.T) {
 	sealed, err := action.Sign(elp, pri)
 	act := sealed.Proto()
 	act.Signature[64] = act.Signature[64] + 27
-	fmt.Println(hex.EncodeToString(sealed.Serialize()))
+	b, err := proto.Marshal(act)
+	require.NoError(err)
+	fmt.Println(hex.EncodeToString(b))
 	require.Error(sendRaw(act)) //connect error
 }
