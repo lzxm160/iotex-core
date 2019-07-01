@@ -29,7 +29,7 @@ func TestSendRaw(t *testing.T) {
 	amount := big.NewInt(10000000000)
 	receipt := "io1eyn9tc6t782zx4zgy3hgt32hpz6t8v7pgf524z"
 	gaslimit := uint64(100000)
-	gasprice := big.NewInt(0)
+	gasprice := big.NewInt(1000000000)
 	tx, err := action.NewTransfer(nonce, amount,
 		receipt, nil, gaslimit, gasprice)
 	require.NoError(err)
