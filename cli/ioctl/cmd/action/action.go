@@ -139,6 +139,11 @@ func execute(contract string, amount *big.Int, bytecode []byte) (err error) {
 	)
 }
 func sendRaw(selp *iotextypes.Action) error {
+	b, err := proto.Marshal(selp)
+	if err != nil {
+		return err
+	}
+	fmt.Println(hex.EncodeToString(b))
 	conn, err := util.ConnectToEndpoint(config.ReadConfig.SecureConnect && !config.Insecure)
 	if err != nil {
 		return err
