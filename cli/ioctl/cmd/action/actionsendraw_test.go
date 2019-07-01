@@ -47,5 +47,5 @@ func TestSendRaw(t *testing.T) {
 	sealed, err := action.Sign(elp, pri)
 	require.Equal(uint8(1), sealed.Signature()[64])
 	sealed.Signature()[64] = sealed.Signature()[64] + 27
-	require.NoError(sendRaw(sealed.Proto()))
+	require.Error(sendRaw(sealed.Proto()))
 }
