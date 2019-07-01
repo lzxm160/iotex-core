@@ -147,13 +147,13 @@ func sendRaw(selp *iotextypes.Action) error {
 	cli := iotexapi.NewAPIServiceClient(conn)
 	ctx := context.Background()
 	v := selp.Signature[64]
-	fmt.Println(hex.EncodeToString(selp.Signature))
+	fmt.Println("ori:", hex.EncodeToString(selp.Signature))
 	if v >= 37 {
 		selp.Signature[64] = v - 37
 	} else if v >= 27 {
 		selp.Signature[64] = v - 27
 	}
-	fmt.Println(hex.EncodeToString(selp.Signature))
+	fmt.Println("fix:", hex.EncodeToString(selp.Signature))
 	request := &iotexapi.SendActionRequest{Action: selp}
 	if _, err = cli.SendAction(ctx, request); err != nil {
 		if sta, ok := status.FromError(err); ok {
