@@ -7,12 +7,11 @@
 package action
 
 import (
+	"fmt"
 	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/iotexproject/go-pkgs/crypto"
-	"github.com/iotexproject/iotex-core/cli/ioctl/cmd/config"
 
 	"github.com/iotexproject/iotex-core/action"
 
@@ -34,18 +33,11 @@ func TestSendRaw(t *testing.T) {
 		SetGasPrice(gasprice).
 		SetGasLimit(gaslimit).
 		SetAction(tx).Build()
-	ks := keystore.NewKeyStore(config.ReadConfig.Wallet,
-		keystore.StandardScryptN, keystore.StandardScryptP)
-	require.NotNil(ks)
-
-	// create an account
-	passwd := "3dj,<>@@SF{}rj0ZF#"
-	acc, err := ks.NewAccount(passwd)
-	require.NoError(err)
-	pri, err := crypto.KeystoreToPrivateKey(acc, passwd)
+	pri, err := crypto.HexStringToPrivateKey("0d4d9b248110257c575ef2e8d93dd53471d9178984482817dcbd6edb607f8cc5")
 	require.NoError(err)
 	sealed, err := action.Sign(elp, pri)
 	act := sealed.Proto()
 	act.Signature[64] = act.Signature[64] + 27
+	fmt.Println(act.String())
 	require.Error(sendRaw(act)) //connect error
 }
