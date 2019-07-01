@@ -7,6 +7,7 @@
 package action
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"testing"
@@ -38,6 +39,6 @@ func TestSendRaw(t *testing.T) {
 	sealed, err := action.Sign(elp, pri)
 	act := sealed.Proto()
 	act.Signature[64] = act.Signature[64] + 27
-	fmt.Println(act.String())
+	fmt.Println(hex.EncodeToString(sealed.Serialize()))
 	require.Error(sendRaw(act)) //connect error
 }
