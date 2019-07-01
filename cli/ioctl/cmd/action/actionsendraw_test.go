@@ -45,7 +45,7 @@ func TestSendRaw(t *testing.T) {
 	pri, err := crypto.KeystoreToPrivateKey(acc, passwd)
 	require.NoError(err)
 	sealed, err := action.Sign(elp, pri)
-	require.Equal(1, sealed.Signature()[64])
-	sealed.Signature()[64] = 27
+	require.Equal(0, sealed.Signature()[64])
+	sealed.Signature()[64] = sealed.Signature()[64] + 27
 	require.NoError(sendRaw(sealed.Proto()))
 }
