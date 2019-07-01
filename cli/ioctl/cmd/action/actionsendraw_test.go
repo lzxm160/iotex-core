@@ -21,11 +21,11 @@ import (
 
 func TestSendRaw(t *testing.T) {
 	require := require.New(t)
-	nonce := uint64(0)
-	amount := big.NewInt(1000000)
+	nonce := uint64(29)
+	amount := big.NewInt(1)
 	receipt := "io1eyn9tc6t782zx4zgy3hgt32hpz6t8v7pgf524z"
 	gaslimit := uint64(10000)
-	gasprice := big.NewInt(100000)
+	gasprice := big.NewInt(0)
 	tx, err := action.NewTransfer(nonce, amount,
 		receipt, nil, gaslimit, gasprice)
 	require.NoError(err)
