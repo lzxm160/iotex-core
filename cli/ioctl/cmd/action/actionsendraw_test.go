@@ -26,7 +26,7 @@ import (
 func TestSendRaw(t *testing.T) {
 	require := require.New(t)
 	nonce := uint64(29)
-	amount := big.NewInt(10000000000)
+	amount := big.NewInt(1000000000000000000)
 	receipt := "io1eyn9tc6t782zx4zgy3hgt32hpz6t8v7pgf524z"
 	gaslimit := uint64(100000)
 	gasprice := big.NewInt(1000000000)
