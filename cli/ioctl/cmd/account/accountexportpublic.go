@@ -60,9 +60,3 @@ func accountExportPublic(args []string) (string, error) {
 	}
 	return prvKey.PublicKey().HexString(), nil
 }
-func init() {
-	//accountExportPublicCmd.Flags().BoolVarP(&compressed,
-	//	"compressed", "c", true, "compressed public key")
-	accountExportPublicCmd.PersistentFlags().BoolVarP(&compressed, "compressed", "c", true,
-		"compressed public key")
-}
