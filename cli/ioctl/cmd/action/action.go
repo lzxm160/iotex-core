@@ -148,9 +148,9 @@ func sendRaw(selp *iotextypes.Action) error {
 	ctx := context.Background()
 	v := selp.Signature[64]
 	fmt.Println(hex.EncodeToString(selp.Signature))
-	if v > 37 {
+	if v >= 37 {
 		selp.Signature[64] = v - 37
-	} else if v > 27 {
+	} else if v >= 27 {
 		selp.Signature[64] = v - 27
 	}
 	fmt.Println(hex.EncodeToString(selp.Signature))
