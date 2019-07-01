@@ -46,6 +46,7 @@ func TestSendRaw(t *testing.T) {
 	b, err := proto.Marshal(act)
 	require.NoError(err)
 	fmt.Println(hex.EncodeToString(b))
+
 	actBytes, err := hex.DecodeString(hex.EncodeToString(b))
 	require.NoError(err)
 	actRet := &iotextypes.Action{}
