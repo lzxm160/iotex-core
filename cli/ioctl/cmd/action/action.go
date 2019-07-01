@@ -139,11 +139,6 @@ func execute(contract string, amount *big.Int, bytecode []byte) (err error) {
 	)
 }
 func sendRaw(selp *iotextypes.Action) error {
-	b, err := proto.Marshal(selp)
-	if err != nil {
-		return err
-	}
-	fmt.Println(hex.EncodeToString(b))
 	conn, err := util.ConnectToEndpoint(config.ReadConfig.SecureConnect && !config.Insecure)
 	if err != nil {
 		return err
@@ -152,13 +147,11 @@ func sendRaw(selp *iotextypes.Action) error {
 	cli := iotexapi.NewAPIServiceClient(conn)
 	ctx := context.Background()
 	v := selp.Signature[64]
-	fmt.Println("ori:", hex.EncodeToString(selp.Signature))
 	if v >= 37 {
 		selp.Signature[64] = v - 37
 	} else if v >= 27 {
 		selp.Signature[64] = v - 27
 	}
-	fmt.Println("fix:", hex.EncodeToString(selp.Signature))
 	request := &iotexapi.SendActionRequest{Action: selp}
 	if _, err = cli.SendAction(ctx, request); err != nil {
 		if sta, ok := status.FromError(err); ok {
