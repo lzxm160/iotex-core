@@ -16,6 +16,10 @@ import (
 	"github.com/iotexproject/iotex-core/pkg/log"
 )
 
+var (
+	compressed = false
+)
+
 // accountExportPublicCmd represents the account export public key command
 var accountExportPublicCmd = &cobra.Command{
 	Use:   "exportpublic [ALIAS|ADDRESS]",
@@ -48,4 +52,8 @@ func accountExportPublic(args []string) (string, error) {
 	}
 	defer prvKey.Zero()
 	return prvKey.PublicKey().HexString(), nil
+}
+func init() {
+	accountExportPublicCmd.Flags().BoolVarP(&compressed,
+		"compressed", "c", true, "compressed public key")
 }
