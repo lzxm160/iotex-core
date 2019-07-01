@@ -28,7 +28,6 @@ import (
 
 func TestSendRaw(t *testing.T) {
 	config.ReadConfig.Endpoint = "api.testnet.iotex.one:80"
-	config.Insecure = true
 	config.ReadConfig.SecureConnect = false
 	require := require.New(t)
 	nonce := uint64(33)
