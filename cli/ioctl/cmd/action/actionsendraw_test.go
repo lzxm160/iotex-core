@@ -28,7 +28,7 @@ func TestSendRaw(t *testing.T) {
 	nonce := uint64(29)
 	amount := big.NewInt(1)
 	receipt := "io1eyn9tc6t782zx4zgy3hgt32hpz6t8v7pgf524z"
-	gaslimit := uint64(10000)
+	gaslimit := uint64(100000)
 	gasprice := big.NewInt(0)
 	tx, err := action.NewTransfer(nonce, amount,
 		receipt, nil, gaslimit, gasprice)
@@ -46,6 +46,7 @@ func TestSendRaw(t *testing.T) {
 	b, err := proto.Marshal(act)
 	require.NoError(err)
 	fmt.Println(hex.EncodeToString(b))
+	fmt.Println(tx.IntrinsicGas())
 
 	actBytes, err := hex.DecodeString(hex.EncodeToString(b))
 	require.NoError(err)
