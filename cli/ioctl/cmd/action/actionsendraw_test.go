@@ -12,6 +12,8 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/iotexproject/iotex-proto/golang/iotextypes"
+
 	"github.com/gogo/protobuf/proto"
 
 	"github.com/iotexproject/go-pkgs/crypto"
@@ -44,5 +46,10 @@ func TestSendRaw(t *testing.T) {
 	b, err := proto.Marshal(act)
 	require.NoError(err)
 	fmt.Println(hex.EncodeToString(b))
-	require.Error(sendRaw(act)) //connect error
+	actBytes, err := hex.DecodeString(hex.EncodeToString(b))
+	require.NoError(err)
+	actRet := &iotextypes.Action{}
+	err = proto.Unmarshal(actBytes, actRet)
+	require.NoError(err)
+	require.Error(sendRaw(actRet)) //connect error
 }
