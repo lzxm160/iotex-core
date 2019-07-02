@@ -165,26 +165,27 @@ func sendRaw(selp *iotextypes.Action) error {
 }
 func sendAction(elp action.Envelope, signer string) error {
 	var (
-		prvKey crypto.PrivateKey
-		err    error
+		prvKey           crypto.PrivateKey
+		err              error
+		prvKeyOrPassword string
 	)
 	if !signerIsExist(signer) {
 		fmt.Printf("Enter private key #%s:\n", signer)
-		prvKeyString, err := util.ReadSecretFromStdin()
+		prvKeyOrPassword, err = util.ReadSecretFromStdin()
 		if err != nil {
 			log.L().Error("failed to get private key", zap.Error(err))
 			return err
 		}
-		prvKey, err = crypto.HexStringToPrivateKey(prvKeyString)
+		prvKey, err = crypto.HexStringToPrivateKey(prvKeyOrPassword)
 	} else {
 		fmt.Printf("Enter password #%s:\n", signer)
-		password, err := util.ReadSecretFromStdin()
+		prvKeyOrPassword, err = util.ReadSecretFromStdin()
 		if err != nil {
 			log.L().Error("failed to get password", zap.Error(err))
 			return err
 		}
-		fmt.Println(signer, password)
-		prvKey, err = account.KsAccountToPrivateKey(signer, password)
+		fmt.Println(signer, prvKeyOrPassword)
+		prvKey, err = account.KsAccountToPrivateKey(signer, prvKeyOrPassword)
 	}
 	if err != nil {
 		return err
