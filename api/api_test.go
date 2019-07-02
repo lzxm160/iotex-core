@@ -996,7 +996,7 @@ func TestServer_EstimateGasForAction(t *testing.T) {
 		require.NoError(err)
 		act, err := svr.bc.GetActionByActionHash(hash)
 		require.NoError(err)
-		request := &iotexapi.EstimateGasForActionRequest{Execution: act.Proto().Core.GetExecution(), CallerAddress: "io1c805w5rat2r0l0d0y0h82v0aq4jkj6g6xnc3le"}
+		request := &iotexapi.EstimateGasForActionRequest{Execution: act.Proto().GetCore().GetExecution(), CallerAddress: "io1c805w5rat2r0l0d0y0h82v0aq4jkj6g6xnc3le"}
 
 		res, err := svr.EstimateGasForAction(context.Background(), request)
 		require.NoError(err)
