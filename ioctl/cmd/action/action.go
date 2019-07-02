@@ -17,7 +17,10 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/crypto"
+	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
+	"github.com/iotexproject/iotex-proto/golang/iotexapi"
+	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -164,7 +167,10 @@ func sendRaw(selp *iotextypes.Action) error {
 	return nil
 }
 func sendAction(elp action.Envelope, signer string) error {
-	var prvKey crypto.PrivateKey
+	var (
+		prvKey crypto.PrivateKey
+		err    error
+	)
 	if !signerIsExist(signer) {
 		fmt.Printf("Enter private key #%s:\n", signer)
 		prvKeyString, err := util.ReadSecretFromStdin()
@@ -173,9 +179,6 @@ func sendAction(elp action.Envelope, signer string) error {
 			return err
 		}
 		prvKey, err = crypto.HexStringToPrivateKey(prvKeyString)
-		if err != nil {
-			return err
-		}
 	} else {
 		fmt.Printf("Enter password #%s:\n", signer)
 		password, err := util.ReadSecretFromStdin()
@@ -184,9 +187,9 @@ func sendAction(elp action.Envelope, signer string) error {
 			return err
 		}
 		prvKey, err = account.KsAccountToPrivateKey(signer, password)
-		if err != nil {
-			return err
-		}
+	}
+	if err != nil {
+		return err
 	}
 	defer prvKey.Zero()
 	sealed, err := action.Sign(elp, prvKey)
@@ -233,11 +236,7 @@ func isBalanceEnough(address string, act action.SealedEnvelope) (err error) {
 	return
 }
 func signerIsExist(signer string) bool {
-	addr, err := util.Address(signer)
-	if err != nil {
-		return false
-	}
-	address, err := address.FromString(addr)
+	address, err := address.FromString(signer)
 	if err != nil {
 		return false
 	}
