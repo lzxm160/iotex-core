@@ -7,13 +7,17 @@
 package action
 
 import (
+	"bytes"
 	"context"
 	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/golang/protobuf/proto"
+	"github.com/iotexproject/go-pkgs/crypto"
+	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -160,15 +164,29 @@ func sendRaw(selp *iotextypes.Action) error {
 	return nil
 }
 func sendAction(elp action.Envelope, signer string) error {
-	fmt.Printf("Enter password #%s:\n", signer)
-	password, err := util.ReadSecretFromStdin()
-	if err != nil {
-		log.L().Error("failed to get password", zap.Error(err))
-		return err
-	}
-	prvKey, err := account.KsAccountToPrivateKey(signer, password)
-	if err != nil {
-		return err
+	var prvKey crypto.PrivateKey
+	if !signerIsExist(signer) {
+		fmt.Printf("Enter private key #%s:\n", signer)
+		prvKeyString, err := util.ReadSecretFromStdin()
+		if err != nil {
+			log.L().Error("failed to get private key", zap.Error(err))
+			return err
+		}
+		prvKey, err = crypto.HexStringToPrivateKey(prvKeyString)
+		if err != nil {
+			return err
+		}
+	} else {
+		fmt.Printf("Enter password #%s:\n", signer)
+		password, err := util.ReadSecretFromStdin()
+		if err != nil {
+			log.L().Error("failed to get password", zap.Error(err))
+			return err
+		}
+		prvKey, err = account.KsAccountToPrivateKey(signer, password)
+		if err != nil {
+			return err
+		}
 	}
 	defer prvKey.Zero()
 	sealed, err := action.Sign(elp, prvKey)
@@ -213,4 +231,23 @@ func isBalanceEnough(address string, act action.SealedEnvelope) (err error) {
 		return
 	}
 	return
+}
+func signerIsExist(signer string) bool {
+	addr, err := util.Address(signer)
+	if err != nil {
+		return false
+	}
+	address, err := address.FromString(addr)
+	if err != nil {
+		return false
+	}
+	// find the account in keystore
+	ks := keystore.NewKeyStore(config.ReadConfig.Wallet,
+		keystore.StandardScryptN, keystore.StandardScryptP)
+	for _, account := range ks.Accounts() {
+		if bytes.Equal(address.Bytes(), account.Address.Bytes()) {
+			return true
+		}
+	}
+	return false
 }
