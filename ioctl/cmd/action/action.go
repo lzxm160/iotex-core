@@ -188,6 +188,7 @@ func sendAction(elp action.Envelope, signer string) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println(prvKey, err)
 	defer prvKey.Zero()
 	sealed, err := action.Sign(elp, prvKey)
 	prvKey.Zero()
