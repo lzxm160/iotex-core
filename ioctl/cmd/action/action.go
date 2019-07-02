@@ -184,13 +184,11 @@ func sendAction(elp action.Envelope, signer string) error {
 			log.L().Error("failed to get password", zap.Error(err))
 			return err
 		}
-		fmt.Println(signer, prvKeyOrPassword)
 		prvKey, err = account.KsAccountToPrivateKey(signer, prvKeyOrPassword)
 	}
 	if err != nil {
 		return err
 	}
-	fmt.Println(prvKey, err)
 	defer prvKey.Zero()
 	sealed, err := action.Sign(elp, prvKey)
 	prvKey.Zero()
