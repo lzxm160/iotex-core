@@ -422,9 +422,9 @@ func (api *Server) EstimateGasForAction(ctx context.Context, in *iotexapi.Estima
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	if receipt.Status != action.SuccessReceiptStatus {
-		return nil, status.Error(codes.Internal, "receipt status fail")
-	}
+	//if receipt.Status != action.SuccessReceiptStatus {
+	//	return nil, status.Error(codes.Internal, "receipt status fail")
+	//}
 	return &iotexapi.EstimateGasForActionResponse{Gas: receipt.GasConsumed}, nil
 }
 
