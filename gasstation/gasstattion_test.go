@@ -192,12 +192,11 @@ func TestEstimateGasForAction(t *testing.T) {
 }
 func getAction() (act *iotextypes.Action) {
 	pubKey1 := identityset.PrivateKey(28).PublicKey()
-	addr2 := identityset.Address(29).String()
 
 	act = &iotextypes.Action{
 		Core: &iotextypes.ActionCore{
-			Action: &iotextypes.ActionCore_Transfer{
-				Transfer: &iotextypes.Transfer{Recipient: addr2},
+			Action: &iotextypes.ActionCore_Execution{
+				Execution: &iotextypes.Execution{Amount: "0", Contract: "", Data: []byte("xx")},
 			},
 			Version: version.ProtocolVersion,
 			Nonce:   101,
