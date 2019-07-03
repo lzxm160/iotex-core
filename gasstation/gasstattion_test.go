@@ -36,7 +36,7 @@ func TestNewGasStation(t *testing.T) {
 func TestSuggestGasPriceForUserAction(t *testing.T) {
 	ctx := context.Background()
 	cfg := config.Default
-	cfg.Genesis.BlockGasLimit = uint64(100000)
+	cfg.Genesis.BlockGasLimit = uint64(1000000)
 	cfg.Genesis.EnableGravityChainVoting = false
 	registry := protocol.Registry{}
 	acc := account.NewProtocol(0)
@@ -105,6 +105,13 @@ func TestSuggestGasPriceForUserAction(t *testing.T) {
 	require.NoError(t, err)
 	// i from 10 to 29,gasprice for 20 to 39,60%*20+20=31
 	require.Equal(t, big.NewInt(1).Mul(big.NewInt(int64(31)), big.NewInt(unit.Qev)).Uint64(), gp)
+
+	acts := getActionWithContractCreate()
+	require.NotNil(t, acts)
+	ret, err := gs.EstimateGasForAction(acts.GetCore().GetExecution(), identityset.Address(0).String())
+	require.NoError(t, err)
+	// base intrinsic gas 10000
+	require.Equal(t, uint64(10000), ret)
 }
 
 func TestSuggestGasPriceForSystemAction(t *testing.T) {
@@ -166,8 +173,6 @@ func TestSuggestGasPriceForSystemAction(t *testing.T) {
 
 func TestEstimateGasForAction(t *testing.T) {
 	require := require.New(t)
-	act := getActionWithContractCreate()
-	require.NotNil(act)
 	cfg := config.Default
 	cfg.Genesis.BlockGasLimit = uint64(1000000)
 	bc := blockchain.NewBlockchain(cfg, blockchain.InMemDaoOption(), blockchain.InMemStateFactoryOption())
@@ -187,6 +192,8 @@ func TestEstimateGasForAction(t *testing.T) {
 	}
 	gs := NewGasStation(bc, config.Default.API)
 	require.NotNil(gs)
+	act := getActionWithContractCreate()
+	require.NotNil(act)
 	ret, err := gs.EstimateGasForAction(act.GetCore().GetExecution(), identityset.Address(0).String())
 	require.NoError(err)
 	// base intrinsic gas 10000
