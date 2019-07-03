@@ -174,6 +174,13 @@ func TestEstimateGasForAction(t *testing.T) {
 	bc := blockchain.NewBlockchain(cfg, blockchain.InMemDaoOption(), blockchain.InMemStateFactoryOption())
 	require.NoError(bc.Start(context.Background()))
 	require.NotNil(bc)
+	for i := 0; i < 5; i++ {
+		actionMap := make(map[string][]action.SealedEnvelope)
+		bc.MintNewBlock(
+			actionMap,
+			testutil.TimestampNow(),
+		)
+	}
 	gs := NewGasStation(bc, config.Default.API)
 	require.NotNil(gs)
 	ret, err := gs.EstimateGasForAction(exec, identityset.Address(28).String())
