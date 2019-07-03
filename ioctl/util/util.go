@@ -16,6 +16,7 @@ import (
 	"syscall"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh/terminal"
 	"google.golang.org/grpc"
@@ -33,6 +34,10 @@ const (
 	IotxDecimalNum = 18
 	// GasPriceDecimalNum defines the number of decimal digits for gas price
 	GasPriceDecimalNum = 12
+)
+
+var (
+	ErrCanNotFindAddress = errors.New("cannot find address from ")
 )
 
 // ConnectToEndpoint starts a new connection
@@ -172,5 +177,5 @@ func Address(in string) (string, error) {
 	if ok {
 		return addr, nil
 	}
-	return "", fmt.Errorf("cannot find address from " + in)
+	return "", errors.Wrapf(ErrCanNotFindAddress, "%s", in)
 }

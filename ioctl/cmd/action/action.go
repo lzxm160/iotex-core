@@ -7,18 +7,15 @@
 package action
 
 import (
-	"bytes"
 	"context"
 	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/go-pkgs/hash"
-	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-proto/golang/iotexapi"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 	"github.com/pkg/errors"
@@ -163,13 +160,14 @@ func sendRaw(selp *iotextypes.Action) error {
 	fmt.Printf("Wait for several seconds and query this action by hash: %s\n", hex.EncodeToString(shash[:]))
 	return nil
 }
-func sendAction(elp action.Envelope, signer string) error {
+func sendAction(elp action.Envelope, s string) error {
 	var (
 		prvKey           crypto.PrivateKey
 		err              error
 		prvKeyOrPassword string
 	)
-	if !signerIsExist(signer) {
+	signer, err := signer()
+	if err != nil && errors.Cause(err) == util.ErrCanNotFindAddress {
 		fmt.Printf("Enter private key #%s:\n", signer)
 		prvKeyOrPassword, err = util.ReadSecretFromStdin()
 		if err != nil {
@@ -232,19 +230,4 @@ func isBalanceEnough(address string, act action.SealedEnvelope) (err error) {
 		return
 	}
 	return
-}
-func signerIsExist(signer string) bool {
-	address, err := address.FromString(signer)
-	if err != nil {
-		return false
-	}
-	// find the account in keystore
-	ks := keystore.NewKeyStore(config.ReadConfig.Wallet,
-		keystore.StandardScryptN, keystore.StandardScryptP)
-	for _, account := range ks.Accounts() {
-		if bytes.Equal(address.Bytes(), account.Address.Bytes()) {
-			return true
-		}
-	}
-	return false
 }
