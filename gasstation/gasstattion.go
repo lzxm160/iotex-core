@@ -92,12 +92,12 @@ func (gs *GasStation) SuggestGasPrice() (uint64, error) {
 
 // EstimateGasForAction estimate gas for action
 func (gs *GasStation) EstimateGasForAction(exec *iotextypes.Execution, caller string) (uint64, error) {
-	fmt.Println("xxxxxx", config.Default.Genesis.BlockGasLimit)
-	sc, err := action.NewExecution("", 0, big.NewInt(0), config.Default.Genesis.BlockGasLimit, big.NewInt(0), []byte(""))
-	if err != nil {
+	sc := &action.Execution{}
+	if err := sc.LoadProto(exec); err != nil {
 		return 0, err
 	}
-	if err := sc.LoadProto(exec); err != nil {
+	sc, err := action.NewExecution(sc.Contract(), 0, sc.Amount(), config.Default.Genesis.BlockGasLimit, big.NewInt(0), sc.Data())
+	if err != nil {
 		return 0, err
 	}
 	fmt.Println("cccccc", sc.GasLimit())
