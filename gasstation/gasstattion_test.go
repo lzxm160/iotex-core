@@ -174,6 +174,7 @@ func TestEstimateGasForAction(t *testing.T) {
 	}
 	require.NotNil(exec)
 	cfg := config.Default
+	cfg.Genesis.BlockGasLimit = uint64(1000000)
 	bc := blockchain.NewBlockchain(cfg, blockchain.InMemDaoOption(), blockchain.InMemStateFactoryOption())
 	require.NoError(bc.Start(context.Background()))
 	require.NotNil(bc)
