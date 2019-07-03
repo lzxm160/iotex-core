@@ -54,6 +54,11 @@ var (
 	ErrAction = errors.New("invalid action")
 )
 
+const (
+	secp256pubKeyLength = 65
+	secp256prvKeyLength = 32
+)
+
 // BroadcastOutbound sends a broadcast message to the whole network
 type BroadcastOutbound func(ctx context.Context, chainID uint32, msg proto.Message) error
 
@@ -289,16 +294,33 @@ func (api *Server) GetServerMeta(ctx context.Context,
 // SendAction is the API to send an action to blockchain.
 func (api *Server) SendAction(ctx context.Context, in *iotexapi.SendActionRequest) (res *iotexapi.SendActionResponse, err error) {
 	log.L().Debug("receive send action request")
+	coreBytes, err := proto.Marshal(in.Action.Core)
+	if err != nil {
+		return nil, err
+	}
+	act := &iotextypes.Action{}
+	if err := proto.Unmarshal(coreBytes, act.Core); err != nil {
+		return
+	}
+	act.SenderPubKey = in.Action.SenderPubKey
+	act.Signature = in.Action.Signature
+
+	if len(act.SenderPubKey) == secp256pubKeyLength-1 {
+		act.SenderPubKey = append([]byte{4}, act.SenderPubKey...)
+	}
+	if act.Signature[secp256prvKeyLength-1] >= 27 {
+		act.Signature[secp256prvKeyLength-1] -= 27
+	}
 
 	// broadcast to the network
-	if err = api.broadcastHandler(context.Background(), api.bc.ChainID(), in.Action); err != nil {
+	if err = api.broadcastHandler(context.Background(), api.bc.ChainID(), act); err != nil {
 		log.L().Warn("Failed to broadcast SendAction request.", zap.Error(err))
 	}
 	// send to actpool via dispatcher
-	api.dp.HandleBroadcast(context.Background(), api.bc.ChainID(), in.Action)
+	api.dp.HandleBroadcast(context.Background(), api.bc.ChainID(), act)
 
 	var selp action.SealedEnvelope
-	if err = selp.LoadProto(in.Action); err != nil {
+	if err = selp.LoadProto(act); err != nil {
 		return
 	}
 	hash := selp.Hash()

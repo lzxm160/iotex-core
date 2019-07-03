@@ -65,5 +65,3 @@ require (
 )
 
 replace github.com/ethereum/go-ethereum => github.com/iotexproject/go-ethereum v1.7.4-0.20190604221806-8ab2d21b162f
-
-replace github.com/iotexproject/go-pkgs => github.com/lzxm160/go-pkgs v1.1.2
