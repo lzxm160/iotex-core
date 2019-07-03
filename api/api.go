@@ -298,12 +298,12 @@ func (api *Server) SendAction(ctx context.Context, in *iotexapi.SendActionReques
 	if err != nil {
 		return nil, err
 	}
-	act := &iotextypes.Action{}
+	act := &iotextypes.Action{Core: &iotextypes.ActionCore{}}
 	if err = proto.Unmarshal(coreBytes, act.Core); err != nil {
 		return
 	}
-	act.SenderPubKey = in.Action.SenderPubKey
-	act.Signature = in.Action.Signature
+	act.SenderPubKey = in.Action.SenderPubKey[:]
+	act.Signature = in.Action.Signature[:]
 
 	if len(act.SenderPubKey) == secp256pubKeyLength-1 {
 		act.SenderPubKey = append([]byte{4}, act.SenderPubKey...)
