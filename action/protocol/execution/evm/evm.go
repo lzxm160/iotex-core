@@ -163,6 +163,7 @@ func ExecuteContract(
 	if err != nil {
 		return nil, nil, err
 	}
+	ps.gas = raCtx.GasLimit
 	retval, depositGas, remainingGas, contractAddress, failed, err := executeInEVM(ps, stateDB, raCtx.GasLimit)
 	if err != nil {
 		return nil, nil, err

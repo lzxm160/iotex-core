@@ -106,12 +106,11 @@ func TestSuggestGasPriceForUserAction(t *testing.T) {
 	// i from 10 to 29,gasprice for 20 to 39,60%*20+20=31
 	require.Equal(t, big.NewInt(1).Mul(big.NewInt(int64(31)), big.NewInt(unit.Qev)).Uint64(), gp)
 
-	acts := getActionWithContractCreate()
-	require.NotNil(t, acts)
-	ret, err := gs.EstimateGasForAction(acts.GetCore().GetExecution(), identityset.Address(0).String())
+	act := getActionWithContractCreate()
+	require.NotNil(t, act)
+	ret, err := gs.EstimateGasForAction(act.GetCore().GetExecution(), identityset.Address(0).String())
 	require.NoError(t, err)
-	// base intrinsic gas 10000
-	require.Equal(t, uint64(10000), ret)
+	require.Equal(t, uint64(286579), ret)
 }
 
 func TestSuggestGasPriceForSystemAction(t *testing.T) {
@@ -204,7 +203,7 @@ func getActionWithContractCreate() (act *iotextypes.Action) {
 	pubKey1 := identityset.PrivateKey(0)
 	exec, err := action.NewExecution(
 		"",
-		1,
+		30,
 		big.NewInt(0),
 		1000000,
 		big.NewInt(10),
