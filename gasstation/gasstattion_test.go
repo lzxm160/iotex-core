@@ -176,10 +176,15 @@ func TestEstimateGasForAction(t *testing.T) {
 	require.NotNil(bc)
 	for i := 0; i < 5; i++ {
 		actionMap := make(map[string][]action.SealedEnvelope)
-		bc.MintNewBlock(
+		blk, err := bc.MintNewBlock(
 			actionMap,
 			testutil.TimestampNow(),
 		)
+		require.NoError(err)
+		err = bc.ValidateBlock(blk)
+		require.NoError(err)
+		err = bc.CommitBlock(blk)
+		require.NoError(err)
 	}
 	gs := NewGasStation(bc, config.Default.API)
 	require.NotNil(gs)
