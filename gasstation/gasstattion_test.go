@@ -204,9 +204,9 @@ func getActionWithContractCreate() (act *iotextypes.Action) {
 	pubKey1 := identityset.PrivateKey(0)
 	exec, err := action.NewExecution(
 		"",
-		30,
+		1,
 		big.NewInt(0),
-		10000,
+		1000000,
 		big.NewInt(10),
 		byteCode,
 	)
