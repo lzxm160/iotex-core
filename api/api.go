@@ -393,21 +393,14 @@ func (api *Server) EstimateGasForAction(ctx context.Context, in *iotexapi.Estima
 	if err := sc.LoadProto(in.Execution); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-
-	caller, err := api.bc.StateByAddr(in.CallerAddress)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-
 	sc, _ = action.NewExecution(
 		sc.Contract(),
-		caller.Nonce+1,
+		1,
 		sc.Amount(),
 		api.cfg.Genesis.BlockGasLimit,
 		big.NewInt(0),
 		sc.Data(),
 	)
-
 	callerAddr, err := address.FromString(in.CallerAddress)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
