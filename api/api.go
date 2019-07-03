@@ -56,7 +56,6 @@ var (
 
 const (
 	secp256pubKeyLength = 65
-	secp256prvKeyLength = 32
 )
 
 // BroadcastOutbound sends a broadcast message to the whole network
@@ -308,8 +307,8 @@ func (api *Server) SendAction(ctx context.Context, in *iotexapi.SendActionReques
 	if len(act.SenderPubKey) == secp256pubKeyLength-1 {
 		act.SenderPubKey = append([]byte{4}, act.SenderPubKey...)
 	}
-	if act.Signature[secp256prvKeyLength-1] >= 27 {
-		act.Signature[secp256prvKeyLength-1] -= 27
+	if act.Signature[secp256pubKeyLength-1] >= 27 {
+		act.Signature[secp256pubKeyLength-1] -= 27
 	}
 
 	// broadcast to the network
