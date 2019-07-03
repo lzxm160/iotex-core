@@ -218,7 +218,7 @@ func getActionWithPayload() (act *iotextypes.Action) {
 			Version: version.ProtocolVersion,
 			Nonce:   101,
 		},
-		SenderPubKey: pubKey1.Bytetes(),
+		SenderPubKey: pubKey1.Bytes(),
 	}
 	return
 }
