@@ -8,6 +8,7 @@ package evm
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"math/big"
 
@@ -163,6 +164,9 @@ func ExecuteContract(
 	if err != nil {
 		return nil, nil, err
 	}
+	fmt.Println(ps.gas)
+	fmt.Println(raCtx.GasLimit)
+
 	ps.gas = raCtx.GasLimit
 	retval, depositGas, remainingGas, contractAddress, failed, err := executeInEVM(ps, stateDB, raCtx.GasLimit)
 	if err != nil {
