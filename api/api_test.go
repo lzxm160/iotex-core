@@ -929,6 +929,42 @@ func TestServer_SendAction(t *testing.T) {
 	}
 }
 
+func TestServer_SendActionForSig(t *testing.T) {
+	// test for pubkey without "04",and sig's v is plus 27
+	require := require.New(t)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	chain := mock_blockchain.NewMockBlockchain(ctrl)
+	mDp := mock_dispatcher.NewMockDispatcher(ctrl)
+	broadcastHandlerCount := 0
+	svr := Server{bc: chain, dp: mDp, broadcastHandler: func(_ context.Context, _ uint32, _ proto.Message) error {
+		broadcastHandlerCount++
+		return nil
+	}}
+
+	chain.EXPECT().ChainID().Return(uint32(1)).Times(4)
+	mDp.EXPECT().HandleBroadcast(gomock.Any(), gomock.Any(), gomock.Any()).Times(2)
+
+	transfer, err := action.NewTransfer(3, big.NewInt(10), identityset.Address(28).String(), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
+	require.NoError(err)
+	bd := &action.EnvelopeBuilder{}
+	elp := bd.SetNonce(3).
+		SetGasPrice(big.NewInt(testutil.TestGasPriceInt64)).
+		SetGasLimit(testutil.TestGasLimit).
+		SetAction(transfer).Build()
+	selp, err := action.Sign(elp, identityset.PrivateKey(28))
+	require.NoError(err)
+	pro := selp.Proto()
+	pro.SenderPubKey = pro.SenderPubKey[1:]
+	request := &iotexapi.SendActionRequest{Action: pro}
+	res, err := svr.SendAction(context.Background(), request)
+	require.NoError(err)
+	require.Equal(1, broadcastHandlerCount)
+	require.Equal(selp.Hash(), res.ActionHash)
+}
+
 func TestServer_GetReceiptByAction(t *testing.T) {
 	require := require.New(t)
 	cfg := newConfig()
