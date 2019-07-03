@@ -7,11 +7,16 @@
 package action
 
 import (
+	"bytes"
 	"context"
 	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strings"
+
+	"github.com/iotexproject/iotex-address/address"
+
+	"github.com/ethereum/go-ethereum/accounts/keystore"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/crypto"
@@ -66,8 +71,21 @@ func decodeBytecode() ([]byte, error) {
 	return hex.DecodeString(strings.TrimPrefix(bytecodeFlag.Value().(string), "0x"))
 }
 
-func signer() (address string, err error) {
-	return util.GetAddress([]string{signerFlag.Value().(string)})
+func signer() (addr string, err error) {
+	addr, err = util.GetAddress([]string{signerFlag.Value().(string)})
+	addres, err := address.FromString(addr)
+	if err != nil {
+		return
+	}
+	ks := keystore.NewKeyStore(config.ReadConfig.Wallet,
+		keystore.StandardScryptN, keystore.StandardScryptP)
+	for _, account := range ks.Accounts() {
+		if bytes.Equal(addres.Bytes(), account.Address.Bytes()) {
+			return
+		}
+	}
+	err = errors.Wrapf(util.ErrCanNotFindAddress, "%s", addr)
+	return
 }
 
 func nonce(executor string) (uint64, error) {
@@ -160,30 +178,21 @@ func sendRaw(selp *iotextypes.Action) error {
 	fmt.Printf("Wait for several seconds and query this action by hash: %s\n", hex.EncodeToString(shash[:]))
 	return nil
 }
-func sendAction(elp action.Envelope, s string) error {
+func sendAction(elp action.Envelope, signer string) error {
 	var (
 		prvKey           crypto.PrivateKey
 		err              error
 		prvKeyOrPassword string
 	)
-	signer, err := signer()
-	if err != nil && errors.Cause(err) == util.ErrCanNotFindAddress {
-		fmt.Printf("Enter private key #%s:\n", signer)
-		prvKeyOrPassword, err = util.ReadSecretFromStdin()
-		if err != nil {
-			log.L().Error("failed to get private key", zap.Error(err))
-			return err
-		}
-		prvKey, err = crypto.HexStringToPrivateKey(prvKeyOrPassword)
-	} else {
-		fmt.Printf("Enter password #%s:\n", signer)
-		prvKeyOrPassword, err = util.ReadSecretFromStdin()
-		if err != nil {
-			log.L().Error("failed to get password", zap.Error(err))
-			return err
-		}
-		prvKey, err = account.KsAccountToPrivateKey(signer, prvKeyOrPassword)
+
+	fmt.Printf("Enter password #%s:\n", signer)
+	prvKeyOrPassword, err = util.ReadSecretFromStdin()
+	if err != nil {
+		log.L().Error("failed to get password", zap.Error(err))
+		return err
 	}
+	prvKey, err = account.KsAccountToPrivateKey(signer, prvKeyOrPassword)
+
 	if err != nil {
 		return err
 	}
