@@ -43,9 +43,14 @@ func TestSendRaw(t *testing.T) {
 	require.NoError(err)
 	sealed, err := action.Sign(elp, pri)
 	act := sealed.Proto()
+
+	b, err := proto.Marshal(act)
+	require.NoError(err)
+	fmt.Println(hex.EncodeToString(b))
+
 	act.Signature[64] = act.Signature[64] + 27
 	act.SenderPubKey = act.SenderPubKey[1:]
-	b, err := proto.Marshal(act)
+	b, err = proto.Marshal(act)
 	require.NoError(err)
 	fmt.Println(hex.EncodeToString(b))
 
@@ -69,6 +74,9 @@ func TestSendRaw(t *testing.T) {
 		SetAction(exec).Build()
 	sealed, err = action.Sign(elp, pri)
 	act = sealed.Proto()
+	b, err = proto.Marshal(act)
+	require.NoError(err)
+	fmt.Println(hex.EncodeToString(b))
 	act.Signature[64] = act.Signature[64] + 27
 	act.SenderPubKey = act.SenderPubKey[1:]
 	b, err = proto.Marshal(act)
