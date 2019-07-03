@@ -8,6 +8,7 @@ package gasstation
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 	"sort"
 
@@ -99,6 +100,7 @@ func (gs *GasStation) EstimateGasForAction(exec *iotextypes.Execution, caller st
 	if err != nil {
 		return 0, err
 	}
+	fmt.Println(sc.GasLimit())
 	_, receipt, err := gs.bc.ExecuteContractRead(callerAddr, sc)
 	if err != nil {
 		return 0, err

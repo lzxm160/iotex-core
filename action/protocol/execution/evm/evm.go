@@ -8,7 +8,6 @@ package evm
 
 import (
 	"context"
-	"fmt"
 	"math"
 	"math/big"
 
@@ -91,7 +90,6 @@ func NewParams(
 	}
 
 	gasLimit := execution.GasLimit()
-	fmt.Println("......................", execution.GasLimit())
 	// Reset gas limit to the system wide action gas limit cap if it's greater than it
 	if raCtx.BlockHeight < hc.AleutianHeight && gasLimit > preAleutianActionGasLimit {
 		gasLimit = preAleutianActionGasLimit
