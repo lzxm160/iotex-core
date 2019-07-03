@@ -23,7 +23,6 @@ require (
 	github.com/iotexproject/go-pkgs v0.1.1-0.20190613181553-bd03f6d4187e
 	github.com/iotexproject/iotex-address v0.2.0
 	github.com/iotexproject/iotex-election v0.1.10
-	github.com/iotexproject/iotex-proto v0.2.1-0.20190626221605-1f92737a3f6a
 	github.com/ipfs/go-datastore v0.0.5 // indirect
 	github.com/karalabe/hid v1.0.0 // indirect
 	github.com/libp2p/go-libp2p v0.0.21 // indirect
@@ -65,5 +64,3 @@ require (
 )
 
 replace github.com/ethereum/go-ethereum => github.com/iotexproject/go-ethereum v1.7.4-0.20190604221806-8ab2d21b162f
-
-replace github.com/iotexproject/iotex-proto => github.com/lzxm160/iotex-proto v1.1.1

@@ -389,11 +389,6 @@ func (api *Server) SuggestGasPrice(ctx context.Context, in *iotexapi.SuggestGasP
 
 // EstimateGasForAction estimates gas for action
 func (api *Server) EstimateGasForAction(ctx context.Context, in *iotexapi.EstimateGasForActionRequest) (*iotexapi.EstimateGasForActionResponse, error) {
-	//estimateGas, err := api.gs.EstimateGasForAction(in.Action)
-	//if err != nil {
-	//	return nil, status.Error(codes.Internal, err.Error())
-	//}
-	//return &iotexapi.EstimateGasForActionResponse{Gas: estimateGas}, nil
 	sc := &action.Execution{}
 	if err := sc.LoadProto(in.Execution); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())

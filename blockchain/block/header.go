@@ -165,7 +165,9 @@ func (h *Header) HashHeaderCore() hash.Hash256 {
 // VerifySignature verifies the signature saved in block header
 func (h *Header) VerifySignature() bool {
 	hash := h.HashHeaderCore()
-
+	if h.blockSig[64] >= 27 {
+		h.blockSig[64] -= 27
+	}
 	if h.pubkey == nil || len(h.blockSig) != action.SignatureLength {
 		return false
 	}
