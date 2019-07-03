@@ -975,7 +975,7 @@ func TestServer_SendActionForSig(t *testing.T) {
 		sig := selp1.Proto().GetSignature()
 		sig[64] += 27
 		pub := selp1.Proto().SenderPubKey[1:]
-		protoAction := &iotextypes.Action{selp1.Proto().Core, pub, sig, nil, nil, 0}
+		protoAction := &iotextypes.Action{selp1.Proto().Core, pub, sig, struct{}{}, nil, 0}
 		seal := action.SealedEnvelope{}
 		require.NoError(t, seal.LoadProto(protoAction))
 
