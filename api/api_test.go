@@ -931,38 +931,66 @@ func TestServer_SendAction(t *testing.T) {
 
 func TestServer_SendActionForSig(t *testing.T) {
 	// test for pubkey without "04",and sig's v is plus 27
-	require := require.New(t)
+	ctx := context.Background()
+	cfg := config.Default
+	cfg.Genesis.BlockGasLimit = uint64(100000)
+	cfg.Genesis.EnableGravityChainVoting = false
+	registry := protocol.Registry{}
+	acc := account.NewProtocol(0)
+	require.NoError(t, registry.Register(account.ProtocolID, acc))
+	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+	require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
+	blkState := blockchain.InMemStateFactoryOption()
+	blkMemDao := blockchain.InMemDaoOption()
+	blkRegistryOption := blockchain.RegistryOption(&registry)
+	bc := blockchain.NewBlockchain(cfg, blkState, blkMemDao, blkRegistryOption)
+	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
+	exec := execution.NewProtocol(bc, 0, 0)
+	require.NoError(t, registry.Register(execution.ProtocolID, exec))
+	bc.Validator().AddActionValidators(acc, exec)
+	bc.GetFactory().AddActionHandlers(acc, exec)
+	require.NoError(t, bc.Start(ctx))
+	defer func() {
+		require.NoError(t, bc.Stop(ctx))
+	}()
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	for i := 0; i < 30; i++ {
+		tsf, err := action.NewTransfer(
+			uint64(i)+1,
+			big.NewInt(100),
+			identityset.Address(27).String(),
+			[]byte{}, uint64(100000),
+			big.NewInt(1).Mul(big.NewInt(int64(i)+10), big.NewInt(unit.Qev)),
+		)
+		require.NoError(t, err)
 
-	chain := mock_blockchain.NewMockBlockchain(ctrl)
-	mDp := mock_dispatcher.NewMockDispatcher(ctrl)
-	broadcastHandlerCount := 0
-	svr := Server{bc: chain, dp: mDp, broadcastHandler: func(_ context.Context, _ uint32, _ proto.Message) error {
-		broadcastHandlerCount++
-		return nil
-	}}
+		bd := &action.EnvelopeBuilder{}
+		elp1 := bd.SetAction(tsf).
+			SetNonce(uint64(i) + 1).
+			SetGasLimit(100000).
+			SetGasPrice(big.NewInt(1).Mul(big.NewInt(int64(i)+10), big.NewInt(unit.Qev))).Build()
+		selp1, err := action.Sign(elp1, identityset.PrivateKey(0))
+		require.NoError(t, err)
 
-	chain.EXPECT().ChainID().Return(uint32(1)).Times(4)
-	mDp.EXPECT().HandleBroadcast(gomock.Any(), gomock.Any(), gomock.Any()).Times(2)
+		sig := selp1.Proto().Signature
+		sig[64] += 27
+		env := action.Envelope{}
+		require.NoError(t, env.LoadProto(selp1.Proto().Core))
+		seal := action.SealedEnvelope{env, selp1.SrcPubkey(), sig}
 
-	transfer, err := action.NewTransfer(3, big.NewInt(10), identityset.Address(28).String(), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
-	require.NoError(err)
-	bd := &action.EnvelopeBuilder{}
-	elp := bd.SetNonce(3).
-		SetGasPrice(big.NewInt(testutil.TestGasPriceInt64)).
-		SetGasLimit(testutil.TestGasLimit).
-		SetAction(transfer).Build()
-	selp, err := action.Sign(elp, identityset.PrivateKey(28))
-	require.NoError(err)
-	pro := selp.Proto()
-	pro.SenderPubKey = pro.SenderPubKey[1:]
-	request := &iotexapi.SendActionRequest{Action: pro}
-	res, err := svr.SendAction(context.Background(), request)
-	require.NoError(err)
-	require.Equal(1, broadcastHandlerCount)
-	require.Equal(selp.Hash(), res.ActionHash)
+		actionMap := make(map[string][]action.SealedEnvelope)
+		actionMap[identityset.Address(0).String()] = []action.SealedEnvelope{seal}
+
+		blk, err := bc.MintNewBlock(
+			actionMap,
+			testutil.TimestampNow(),
+		)
+		require.NoError(t, err)
+		err = bc.ValidateBlock(blk)
+		require.NoError(t, err)
+		err = bc.CommitBlock(blk)
+		require.NoError(t, err)
+	}
 }
 
 func TestServer_GetReceiptByAction(t *testing.T) {
