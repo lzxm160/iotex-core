@@ -82,7 +82,7 @@ func signer() (addr string, err error) {
 			return
 		}
 	}
-	err = errors.Wrapf(util.ErrCanNotFindAddress, "%s", addr)
+	err = errors.Errorf("cannot find %s,please import first", addr)
 	return
 }
 
