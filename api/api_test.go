@@ -18,11 +18,12 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/proto"
+	"github.com/iotexproject/go-pkgs/crypto"
+	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
@@ -974,9 +975,13 @@ func TestServer_SendActionForSig(t *testing.T) {
 
 		sig := selp1.Proto().GetSignature()
 		sig[64] += 27
+		pub := selp1.Proto().SenderPubKey
+		pubkey, err := crypto.BytesToPublicKey(pub)
+		require.NoError(t, err)
+
 		env := action.Envelope{}
 		require.NoError(t, env.LoadProto(selp1.Proto().Core))
-		seal := action.SealedEnvelope{env, selp1.SrcPubkey(), sig}
+		seal := action.SealedEnvelope{env, pubkey, sig}
 
 		actionMap := make(map[string][]action.SealedEnvelope)
 		actionMap[identityset.Address(0).String()] = []action.SealedEnvelope{seal}
