@@ -91,6 +91,7 @@ func NewParams(
 	}
 
 	gasLimit := execution.GasLimit()
+	fmt.Println("......................", execution.GasLimit())
 	// Reset gas limit to the system wide action gas limit cap if it's greater than it
 	if raCtx.BlockHeight < hc.AleutianHeight && gasLimit > preAleutianActionGasLimit {
 		gasLimit = preAleutianActionGasLimit
@@ -164,9 +165,6 @@ func ExecuteContract(
 	if err != nil {
 		return nil, nil, err
 	}
-	fmt.Println(ps.gas)
-	fmt.Println(raCtx.GasLimit)
-
 	ps.gas = raCtx.GasLimit
 	retval, depositGas, remainingGas, contractAddress, failed, err := executeInEVM(ps, stateDB, raCtx.GasLimit)
 	if err != nil {
