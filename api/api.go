@@ -402,7 +402,7 @@ func (api *Server) EstimateGasForAction(ctx context.Context, in *iotexapi.Estima
 		big.NewInt(0),
 		sc.Data(),
 	)
-	fmt.Println(hex.EncodeToString(sc.Data()))
+	fmt.Println("////////////////////////////////////", hex.EncodeToString(sc.Data()))
 	callerAddr, err := address.FromString(in.CallerAddress)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
