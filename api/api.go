@@ -299,7 +299,7 @@ func (api *Server) SendAction(ctx context.Context, in *iotexapi.SendActionReques
 		return nil, err
 	}
 	act := &iotextypes.Action{}
-	if err := proto.Unmarshal(coreBytes, act.Core); err != nil {
+	if err = proto.Unmarshal(coreBytes, act.Core); err != nil {
 		return
 	}
 	act.SenderPubKey = in.Action.SenderPubKey
