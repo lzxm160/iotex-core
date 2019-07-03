@@ -972,7 +972,7 @@ func TestServer_SendActionForSig(t *testing.T) {
 		selp1, err := action.Sign(elp1, identityset.PrivateKey(0))
 		require.NoError(t, err)
 
-		sig := selp1.Proto().Signature
+		sig := selp1.Proto().GetSignature()
 		sig[64] += 27
 		env := action.Envelope{}
 		require.NoError(t, env.LoadProto(selp1.Proto().Core))
