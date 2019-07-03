@@ -9,7 +9,6 @@ package api
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"net"
 	"sort"
@@ -406,7 +405,6 @@ func (api *Server) EstimateGasForAction(ctx context.Context, in *iotexapi.Estima
 		big.NewInt(0),
 		byteCode,
 	)
-	fmt.Println("////////////////////////////////////", hex.EncodeToString(sc.Data()))
 	callerAddr, err := address.FromString(in.CallerAddress)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
