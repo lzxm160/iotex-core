@@ -198,7 +198,7 @@ func getActionWithContractCreate() (act *iotextypes.Action) {
 		"",
 		30,
 		big.NewInt(0),
-		1000000,
+		0,
 		big.NewInt(10),
 		byteCode,
 	)
