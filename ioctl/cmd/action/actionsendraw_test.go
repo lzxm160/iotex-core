@@ -26,8 +26,8 @@ func TestSendRaw(t *testing.T) {
 	config.ReadConfig.Endpoint = "127.0.0.1:14014"
 	config.ReadConfig.SecureConnect = false
 	require := require.New(t)
-	nonce := uint64(41)
-	amount := big.NewInt(10000000000000000) //0.01 iotx
+	nonce := uint64(43)
+	amount := big.NewInt(500000000000000000) //0.5 iotx
 	receipt := "io1eyn9tc6t782zx4zgy3hgt32hpz6t8v7pgf524z"
 	gaslimit := uint64(300000)
 	gasprice := big.NewInt(1000000000000)
