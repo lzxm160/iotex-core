@@ -23,7 +23,6 @@ import (
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/config"
-	"github.com/iotexproject/iotex-core/pkg/version"
 	"github.com/iotexproject/iotex-core/test/identityset"
 	"github.com/iotexproject/iotex-core/testutil"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
@@ -166,58 +165,19 @@ func TestSuggestGasPriceForSystemAction(t *testing.T) {
 
 func TestEstimateGasForAction(t *testing.T) {
 	require := require.New(t)
-	act := getAction()
-	require.NotNil(act)
+	exec := &iotextypes.Execution{
+		Amount:   "0",
+		Contract: "",
+		Data:     []byte("0x608060405234801561001057600080fd5b50610123600102600281600019169055503373ffffffffffffffffffffffffffffffffffffffff166001026003816000191690555060035460025417600481600019169055506102ae806100656000396000f300608060405260043610610078576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680630cc0e1fb1461007d57806328f371aa146100b05780636b1d752b146100df578063d4b8399214610112578063daea85c514610145578063eb6fd96a14610188575b600080fd5b34801561008957600080fd5b506100926101bb565b60405180826000191660001916815260200191505060405180910390f35b3480156100bc57600080fd5b506100c56101c1565b604051808215151515815260200191505060405180910390f35b3480156100eb57600080fd5b506100f46101d7565b60405180826000191660001916815260200191505060405180910390f35b34801561011e57600080fd5b506101276101dd565b60405180826000191660001916815260200191505060405180910390f35b34801561015157600080fd5b50610186600480360381019080803573ffffffffffffffffffffffffffffffffffffffff1690602001909291905050506101e3565b005b34801561019457600080fd5b5061019d61027c565b60405180826000191660001916815260200191505060405180910390f35b60035481565b6000600454600019166001546000191614905090565b60025481565b60045481565b3373ffffffffffffffffffffffffffffffffffffffff166001028173ffffffffffffffffffffffffffffffffffffffff16600102176001816000191690555060016000808373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060006101000a81548160ff02191690831515021790555050565b600154815600a165627a7a7230582089b5f99476d642b66a213c12cd198207b2e813bb1caf3bd75e22be535ebf5d130029")}
+	require.NotNil(exec)
 	cfg := config.Default
 	bc := blockchain.NewBlockchain(cfg, blockchain.InMemDaoOption(), blockchain.InMemStateFactoryOption())
 	require.NoError(bc.Start(context.Background()))
 	require.NotNil(bc)
 	gs := NewGasStation(bc, config.Default.API)
 	require.NotNil(gs)
-	ret, err := gs.EstimateGasForAction(act.Core.GetExecution(), identityset.Address(28).String())
+	ret, err := gs.EstimateGasForAction(exec, identityset.Address(28).String())
 	require.NoError(err)
 	// base intrinsic gas 10000
 	require.Equal(uint64(10000), ret)
-
-	// test for payload
-	act = getActionWithPayload()
-	require.NotNil(act)
-	require.NoError(bc.Start(context.Background()))
-	require.NotNil(bc)
-
-	ret, err = gs.EstimateGasForAction(act.Core.GetExecution(), identityset.Address(28).String())
-	require.NoError(err)
-	// base intrinsic gas 10000,plus data size*ExecutionDataGas
-	require.Equal(uint64(10000)+10*action.ExecutionDataGas, ret)
-}
-func getAction() (act *iotextypes.Action) {
-	pubKey1 := identityset.PrivateKey(28).PublicKey()
-
-	act = &iotextypes.Action{
-		Core: &iotextypes.ActionCore{
-			Action: &iotextypes.ActionCore_Execution{
-				Execution: &iotextypes.Execution{Amount: "0", Contract: "", Data: []byte("0x608060405234801561001057600080fd5b50610123600102600281600019169055503373ffffffffffffffffffffffffffffffffffffffff166001026003816000191690555060035460025417600481600019169055506102ae806100656000396000f300608060405260043610610078576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680630cc0e1fb1461007d57806328f371aa146100b05780636b1d752b146100df578063d4b8399214610112578063daea85c514610145578063eb6fd96a14610188575b600080fd5b34801561008957600080fd5b506100926101bb565b60405180826000191660001916815260200191505060405180910390f35b3480156100bc57600080fd5b506100c56101c1565b604051808215151515815260200191505060405180910390f35b3480156100eb57600080fd5b506100f46101d7565b60405180826000191660001916815260200191505060405180910390f35b34801561011e57600080fd5b506101276101dd565b60405180826000191660001916815260200191505060405180910390f35b34801561015157600080fd5b50610186600480360381019080803573ffffffffffffffffffffffffffffffffffffffff1690602001909291905050506101e3565b005b34801561019457600080fd5b5061019d61027c565b60405180826000191660001916815260200191505060405180910390f35b60035481565b6000600454600019166001546000191614905090565b60025481565b60045481565b3373ffffffffffffffffffffffffffffffffffffffff166001028173ffffffffffffffffffffffffffffffffffffffff16600102176001816000191690555060016000808373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060006101000a81548160ff02191690831515021790555050565b600154815600a165627a7a7230582089b5f99476d642b66a213c12cd198207b2e813bb1caf3bd75e22be535ebf5d130029")},
-			},
-			Version: version.ProtocolVersion,
-			Nonce:   101,
-		},
-		SenderPubKey: pubKey1.Bytes(),
-	}
-	return
-}
-func getActionWithPayload() (act *iotextypes.Action) {
-	pubKey1 := identityset.PrivateKey(28).PublicKey()
-	addr2 := identityset.Address(29).String()
-
-	act = &iotextypes.Action{
-		Core: &iotextypes.ActionCore{
-			Action: &iotextypes.ActionCore_Transfer{
-				Transfer: &iotextypes.Transfer{Recipient: addr2, Payload: []byte("1234567890")},
-			},
-			Version: version.ProtocolVersion,
-			Nonce:   101,
-		},
-		SenderPubKey: pubKey1.Bytes(),
-	}
-	return
 }
