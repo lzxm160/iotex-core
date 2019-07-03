@@ -174,7 +174,7 @@ func TestEstimateGasForAction(t *testing.T) {
 	require.NotNil(bc)
 	gs := NewGasStation(bc, config.Default.API)
 	require.NotNil(gs)
-	ret, err := gs.EstimateGasForAction(act)
+	ret, err := gs.EstimateGasForAction(act.Core.GetExecution(), identityset.Address(28).String())
 	require.NoError(err)
 	// base intrinsic gas 10000
 	require.Equal(uint64(10000), ret)
@@ -184,7 +184,8 @@ func TestEstimateGasForAction(t *testing.T) {
 	require.NotNil(act)
 	require.NoError(bc.Start(context.Background()))
 	require.NotNil(bc)
-	ret, err = gs.EstimateGasForAction(act)
+
+	ret, err = gs.EstimateGasForAction(act.Core.GetExecution(), identityset.Address(28).String())
 	require.NoError(err)
 	// base intrinsic gas 10000,plus data size*ExecutionDataGas
 	require.Equal(uint64(10000)+10*action.ExecutionDataGas, ret)
@@ -217,7 +218,7 @@ func getActionWithPayload() (act *iotextypes.Action) {
 			Version: version.ProtocolVersion,
 			Nonce:   101,
 		},
-		SenderPubKey: pubKey1.Bytes(),
+		SenderPubKey: pubKey1.Bytetes(),
 	}
 	return
 }

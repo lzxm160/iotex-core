@@ -7,6 +7,7 @@
 package gasstation
 
 import (
+	"errors"
 	"math/big"
 	"sort"
 
@@ -89,28 +90,23 @@ func (gs *GasStation) SuggestGasPrice() (uint64, error) {
 }
 
 // EstimateGasForAction estimate gas for action
-func (gs *GasStation) EstimateGasForAction(actPb *iotextypes.Action) (uint64, error) {
-	var selp action.SealedEnvelope
-	if err := selp.LoadProto(actPb); err != nil {
+func (gs *GasStation) EstimateGasForAction(exec *iotextypes.Execution, caller string) (uint64, error) {
+	sc := &action.Execution{}
+	if err := sc.LoadProto(exec); err != nil {
 		return 0, err
 	}
-	// Special handling for executions
-	if sc, ok := selp.Action().(*action.Execution); ok {
-		callerAddr, err := address.FromBytes(selp.SrcPubkey().Hash())
-		if err != nil {
-			return 0, err
-		}
-		_, receipt, err := gs.bc.ExecuteContractRead(callerAddr, sc)
-		if err != nil {
-			return 0, err
-		}
-		return receipt.GasConsumed, nil
-	}
-	gas, err := selp.IntrinsicGas()
+	callerAddr, err := address.FromString(caller)
 	if err != nil {
 		return 0, err
 	}
-	return gas, nil
+	_, receipt, err := gs.bc.ExecuteContractRead(callerAddr, sc)
+	if err != nil {
+		return 0, err
+	}
+	if receipt.Status != action.SuccessReceiptStatus {
+		return 0, errors.New("receipt status fail")
+	}
+	return receipt.GasConsumed, nil
 }
 
 type bigIntArray []*big.Int
