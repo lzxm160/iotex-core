@@ -177,5 +177,5 @@ func Address(in string) (string, error) {
 	if ok {
 		return addr, nil
 	}
-	return "", errors.Wrapf(ErrCanNotFindAddress, "%s", in)
+	return "", fmt.Errorf("cannot find address from " + in)
 }
