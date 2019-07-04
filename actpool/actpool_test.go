@@ -8,6 +8,7 @@ package actpool
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"strings"
 	"testing"
@@ -50,9 +51,17 @@ var (
 	priKey6 = identityset.PrivateKey(33)
 )
 
+type Opt func(b []byte)
+
 func TestActPool_NewActPool(t *testing.T) {
-	require := require.New(t)
-	cfg := config.Default
+	//require := require.New(t)
+	O := func(b []byte) {
+		for _, v := range b {
+			fmt.Println("xx", v)
+		}
+	}
+	O(nil)
+	//cfg := config.Default
 
 	// error caused by nil blockchain
 	//_, err := NewActPool(nil, cfg.ActPool, nil)
@@ -60,7 +69,7 @@ func TestActPool_NewActPool(t *testing.T) {
 
 	// all good
 	//opt := EnableExperimentalActions()
-	require.Panics(func() { blockchain.NewBlockchain(cfg, nil) }, "option is nil")
+	//require.Panics(func() { blockchain.NewBlockchain(cfg, nil) }, "option is nil")
 	//bc := blockchain.NewBlockchain(cfg, blockchain.DefaultStateFactoryOption())
 	//act, err := NewActPool(bc, cfg.ActPool, opt)
 	//require.NoError(err)
