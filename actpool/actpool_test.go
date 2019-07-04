@@ -52,7 +52,7 @@ var (
 )
 
 //type Opt func(b []byte)
-type Opt func(b string)
+type Opt func(b *int)
 
 func callOpt(opt ...Opt) {
 	for _, v := range opt {
