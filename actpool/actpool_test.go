@@ -61,10 +61,10 @@ func callOpt(opt ...Opt) {
 	}
 }
 func TestActPool_NewActPool(t *testing.T) {
-	//require := require.New(t)
+	require := require.New(t)
 
-	callOpt(nil)
-	//cfg := config.Default
+	//callOpt(nil)
+	cfg := config.Default
 
 	// error caused by nil blockchain
 	//_, err := NewActPool(nil, cfg.ActPool, nil)
@@ -73,11 +73,13 @@ func TestActPool_NewActPool(t *testing.T) {
 	// all good
 	//opt := EnableExperimentalActions()
 	//require.Panics(func() { blockchain.NewBlockchain(cfg, nil) }, "option is nil")
-	//bc := blockchain.NewBlockchain(cfg, blockchain.DefaultStateFactoryOption())
+	bc := blockchain.NewBlockchain(cfg, blockchain.DefaultStateFactoryOption())
 	//act, err := NewActPool(bc, cfg.ActPool, opt)
 	//require.NoError(err)
 	//require.NotNil(act)
 	//
+	require.Panics(func() { NewActPool(bc, cfg.ActPool, nil) }, "option is nil")
+
 	//// error caused by option
 	//opt2 := func(pool *actPool) error {
 	//	return errors.New("test error")
