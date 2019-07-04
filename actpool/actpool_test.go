@@ -55,8 +55,9 @@ func TestActPool_NewActPool(t *testing.T) {
 	cfg := config.Default
 
 	// error caused by nil blockchain
-	_, err := NewActPool(nil, cfg.ActPool, nil)
-	require.Error(err)
+	//_, err := NewActPool(nil, cfg.ActPool, nil)
+	//require.Error(err)
+	require.Panics(func() { NewActPool(nil, cfg.ActPool, nil) }, "option is nil")
 
 	// all good
 	//opt := EnableExperimentalActions()
