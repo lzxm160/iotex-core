@@ -74,8 +74,8 @@ func TestActPool_NewActPool(t *testing.T) {
 	require.Error(err)
 
 	// panic by option is nil
-	require.Panics(func() { act.AddActionValidators(nil) }, "option is nil")
-	require.Panics(func() { act.AddActionEnvelopeValidators(nil) }, "option is nil")
+	require.NotPanics(func() { act.AddActionValidators(nil) }, "option is nil")
+	require.NotPanics(func() { act.AddActionEnvelopeValidators(nil) }, "option is nil")
 }
 
 func TestActPool_validateGenericAction(t *testing.T) {

@@ -8,6 +8,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"os"
 	"strconv"
@@ -291,6 +292,7 @@ func NewBlockchain(cfg config.Config, opts ...Option) Blockchain {
 		config: cfg,
 		clk:    clock.New(),
 	}
+	fmt.Println("22222")
 	for _, opt := range opts {
 		if err := opt(chain, cfg); err != nil {
 			log.S().Panicf("Failed to execute blockchain creation option %p: %v", opt, err)
@@ -302,9 +304,11 @@ func NewBlockchain(cfg config.Config, opts ...Option) Blockchain {
 		[]string{"topic", "chainID"},
 		[]string{"default", strconv.FormatUint(uint64(cfg.Chain.ID), 10)},
 	)
+	fmt.Println("333333")
 	if err != nil {
 		log.L().Panic("Failed to generate prometheus timer factory.", zap.Error(err))
 	}
+	fmt.Println("panic")
 	chain.timerFactory = timerFactory
 	// Set block validator
 	chain.validator = &validator{
