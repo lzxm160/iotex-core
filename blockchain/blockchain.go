@@ -293,8 +293,8 @@ func NewBlockchain(cfg config.Config, opts ...Option) Blockchain {
 		clk:    clock.New(),
 	}
 	for _, opt := range opts {
-		fmt.Println("nil here")
 		if err := opt(chain, cfg); err != nil {
+			fmt.Println(opt, ":", err)
 			log.S().Panicf("Failed to execute blockchain creation option %p: %v", opt, err)
 		}
 	}
