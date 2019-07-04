@@ -8,6 +8,7 @@ package actpool
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/iotexproject/iotex-core/pkg/prometheustimer"
@@ -96,6 +97,7 @@ func NewActPool(bc blockchain.Blockchain, cfg config.ActPool, opts ...Option) (A
 		allActions:      make(map[hash.Hash256]action.SealedEnvelope),
 	}
 	for _, opt := range opts {
+		fmt.Println("act:", opt)
 		if err := opt(ap); err != nil {
 			return nil, err
 		}
