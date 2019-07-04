@@ -60,7 +60,7 @@ func TestActPool_NewActPool(t *testing.T) {
 
 	// all good
 	//opt := EnableExperimentalActions()
-	require.Panics(func() { blockchain.NewBlockchain(cfg, nil) }, "option is nil")
+	//require.Panics(func() { blockchain.NewBlockchain(cfg, nil) }, "option is nil")
 	//bc := blockchain.NewBlockchain(cfg, blockchain.DefaultStateFactoryOption())
 	//act, err := NewActPool(bc, cfg.ActPool, opt)
 	//require.NoError(err)
