@@ -53,14 +53,15 @@ var (
 
 type Opt func(b []byte)
 
+func callOpt(opt ...Opt) {
+	for _, v := range opt {
+		fmt.Println("xx", v)
+	}
+}
 func TestActPool_NewActPool(t *testing.T) {
 	//require := require.New(t)
-	O := func(b []byte) {
-		for _, v := range b {
-			fmt.Println("xx", v)
-		}
-	}
-	O(nil)
+
+	callOpt(nil)
 	//cfg := config.Default
 
 	// error caused by nil blockchain
