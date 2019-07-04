@@ -50,6 +50,31 @@ var (
 	priKey6 = identityset.PrivateKey(33)
 )
 
+func TestActPool_NewActPool(t *testing.T) {
+	require := require.New(t)
+	cfg := config.Default
+
+	// error caused by nil blockchain
+	_, err := NewActPool(nil, cfg.ActPool, nil)
+	require.Error(err)
+
+	// all good
+	opt := EnableExperimentalActions()
+	bc := blockchain.NewBlockchain(cfg, nil)
+	act, err := NewActPool(bc, cfg.ActPool, opt)
+	require.NoError(err)
+	require.NotNil(act)
+
+	// error caused by option
+	opt2 := func(pool *actPool) error {
+		return errors.New("test error")
+	}
+	_, err = NewActPool(bc, cfg.ActPool, opt2)
+	require.Error(err)
+
+	act.AddActionValidators(nil)
+}
+
 func TestActPool_validateGenericAction(t *testing.T) {
 	require := require.New(t)
 
