@@ -52,7 +52,8 @@ var (
 )
 
 //type Opt func(b []byte)
-type Opt func(b *int)
+//type Opt func(b *int)
+type Opt func(pool *actPool) error
 
 func callOpt(opt ...Opt) {
 	for _, v := range opt {
