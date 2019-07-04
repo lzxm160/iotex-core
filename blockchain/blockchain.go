@@ -29,7 +29,7 @@ import (
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
@@ -292,8 +292,8 @@ func NewBlockchain(cfg config.Config, opts ...Option) Blockchain {
 		config: cfg,
 		clk:    clock.New(),
 	}
-	fmt.Println("22222")
 	for _, opt := range opts {
+		fmt.Println("nil here")
 		if err := opt(chain, cfg); err != nil {
 			log.S().Panicf("Failed to execute blockchain creation option %p: %v", opt, err)
 		}
@@ -304,11 +304,9 @@ func NewBlockchain(cfg config.Config, opts ...Option) Blockchain {
 		[]string{"topic", "chainID"},
 		[]string{"default", strconv.FormatUint(uint64(cfg.Chain.ID), 10)},
 	)
-	fmt.Println("333333")
 	if err != nil {
 		log.L().Panic("Failed to generate prometheus timer factory.", zap.Error(err))
 	}
-	fmt.Println("panic")
 	chain.timerFactory = timerFactory
 	// Set block validator
 	chain.validator = &validator{
