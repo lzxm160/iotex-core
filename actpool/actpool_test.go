@@ -51,7 +51,8 @@ var (
 	priKey6 = identityset.PrivateKey(33)
 )
 
-type Opt func(b []byte)
+//type Opt func(b []byte)
+type Opt func(b string)
 
 func callOpt(opt ...Opt) {
 	for _, v := range opt {
