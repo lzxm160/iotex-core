@@ -307,9 +307,6 @@ func NewBlockchain(cfg config.Config, opts ...Option) Blockchain {
 	}
 	chain.timerFactory = timerFactory
 	// Set block validator
-	if err != nil {
-		log.L().Panic("Failed to get block producer address.", zap.Error(err))
-	}
 	chain.validator = &validator{
 		sf:                        chain.sf,
 		validatorAddr:             cfg.ProducerAddress().String(),
