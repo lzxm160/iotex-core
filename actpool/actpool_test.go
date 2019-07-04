@@ -60,7 +60,8 @@ func TestActPool_NewActPool(t *testing.T) {
 
 	// all good
 	opt := EnableExperimentalActions()
-	bc := blockchain.NewBlockchain(cfg, nil)
+	require.Panics(func() { blockchain.NewBlockchain(cfg, nil) }, "option is nil")
+	bc := blockchain.NewBlockchain(cfg, blockchain.DefaultStateFactoryOption())
 	act, err := NewActPool(bc, cfg.ActPool, opt)
 	require.NoError(err)
 	require.NotNil(act)
@@ -72,7 +73,9 @@ func TestActPool_NewActPool(t *testing.T) {
 	_, err = NewActPool(bc, cfg.ActPool, opt2)
 	require.Error(err)
 
-	act.AddActionValidators(nil)
+	// panic by option is nil
+	require.Panics(func() { act.AddActionValidators(nil) }, "option is nil")
+	require.Panics(func() { act.AddActionEnvelopeValidators(nil) }, "option is nil")
 }
 
 func TestActPool_validateGenericAction(t *testing.T) {
