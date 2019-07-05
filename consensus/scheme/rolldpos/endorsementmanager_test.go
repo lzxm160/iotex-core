@@ -86,7 +86,7 @@ func TestBlockEndorsementCollection(t *testing.T) {
 	require.Equal(1, len(ends))
 	require.Equal(end, ends[0])
 
-	cleaned := ec.Cleanup(time.Now().Add(time.Duration(10)))
+	cleaned := ec.Cleanup(time.Now().Add(time.Second))
 	require.Equal(1, len(cleaned.endorsers))
 	require.Equal(end, cleaned.endorsers[b.PublicKey().HexString()].endorsements[PROPOSAL])
 }
