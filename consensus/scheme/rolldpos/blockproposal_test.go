@@ -9,6 +9,10 @@ package rolldpos
 import (
 	"testing"
 
+	"github.com/iotexproject/iotex-proto/golang/iotextypes"
+
+	"github.com/iotexproject/iotex-core/blockchain/block"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,4 +25,11 @@ func TestNewBlockProposal(t *testing.T) {
 	require.Panics(func() { bp.Hash() }, "block is nil")
 	require.Panics(func() { bp.ProposerAddress() }, "block is nil")
 
+	hcore := &iotextypes.BlockHeaderCore{Height: 123}
+	header := &block.Header{}
+	header.LoadFromBlockHeaderProto(&iotextypes.BlockHeader{Core: hcore})
+	b := block.Block{Header: *header}
+	bp2 := newBlockProposal(&b, nil)
+	require.NotNil(bp2)
+	require.Equal(uint64(123), bp2.Height())
 }
