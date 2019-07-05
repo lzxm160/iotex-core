@@ -31,7 +31,8 @@ func TestNewBlockProposal(t *testing.T) {
 	header := block.Header{}
 	pk, err := hex.DecodeString("04ea8046cf8dc5bc9cda5f2e83e5d2d61932ad7e0e402b4f4cb65b58e9618891f54cba5cfcda873351ad9da1f5a819f54bba9e8343f2edd1ad34dcf7f35de552f3")
 	require.NoError(err)
-	header.LoadFromBlockHeaderProto(&iotextypes.BlockHeader{Core: hcore, ProducerPubkey: pk[:]})
+	require.NoError(header.LoadFromBlockHeaderProto(&iotextypes.BlockHeader{Core: hcore, ProducerPubkey: pk}))
+
 	b := block.Block{Header: header}
 	bp2 := newBlockProposal(&b, nil)
 	require.NotNil(bp2)
