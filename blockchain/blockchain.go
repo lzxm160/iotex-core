@@ -8,7 +8,6 @@ package blockchain
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"os"
 	"strconv"
@@ -293,7 +292,6 @@ func NewBlockchain(cfg config.Config, opts ...Option) Blockchain {
 		clk:    clock.New(),
 	}
 	for _, opt := range opts {
-		fmt.Println(opt, ":")
 		if err := opt(chain, cfg); err != nil {
 			log.S().Panicf("Failed to execute blockchain creation option %p: %v", opt, err)
 		}
