@@ -35,7 +35,10 @@ func TestNewBlockProposal(t *testing.T) {
 	bp2 := newBlockProposal(&b, nil)
 	require.NotNil(bp2)
 	require.Equal(uint64(123), bp2.Height())
-	require.Equal("io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg", bp2.ProposerAddress())
+	require.Panics(func() {
+		bp2.ProposerAddress()
+	}, "proposer address is nil")
+	//require.Equal("io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg", bp2.ProposerAddress())
 
 	h, err := bp2.Hash()
 	require.NoError(err)
