@@ -59,5 +59,5 @@ func TestNewBlockProposal(t *testing.T) {
 
 	bp3 := newBlockProposal(nil, nil)
 	require.NoError(bp3.LoadProto(pro))
-	require.Equal(bp2, bp3)
+	require.EqualValues(bp2, bp3)
 }
