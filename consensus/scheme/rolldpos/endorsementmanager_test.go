@@ -72,7 +72,10 @@ func TestEndorserEndorsementCollection(t *testing.T) {
 }
 
 func TestBlockEndorsementCollection(t *testing.T) {
-
+	require := require.New(t)
+	b := getBlock(t)
+	ec := newBlockEndorsementCollection(&b)
+	require.NotNil(ec)
 }
 
 func TestEndorsementManager(t *testing.T) {

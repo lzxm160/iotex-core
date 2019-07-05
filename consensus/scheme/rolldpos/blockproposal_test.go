@@ -8,16 +8,13 @@ package rolldpos
 
 import (
 	"encoding/hex"
-
-	"github.com/golang/protobuf/ptypes/timestamp"
-
 	"testing"
 
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
+	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/iotex-core/blockchain/block"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewBlockProposal(t *testing.T) {
@@ -28,23 +25,7 @@ func TestNewBlockProposal(t *testing.T) {
 	require.Panics(func() { bp.Proto() }, "block is nil")
 	require.Panics(func() { bp.Hash() }, "block is nil")
 	require.Panics(func() { bp.ProposerAddress() }, "block is nil")
-
-	ts := &timestamp.Timestamp{Seconds: 10, Nanos: 10}
-	hcore := &iotextypes.BlockHeaderCore{
-		Version:          1,
-		Height:           123,
-		Timestamp:        ts,
-		PrevBlockHash:    []byte(""),
-		TxRoot:           []byte(""),
-		DeltaStateDigest: []byte(""),
-		ReceiptRoot:      []byte(""),
-	}
-	header := block.Header{}
-	pk, err := hex.DecodeString("04ea8046cf8dc5bc9cda5f2e83e5d2d61932ad7e0e402b4f4cb65b58e9618891f54cba5cfcda873351ad9da1f5a819f54bba9e8343f2edd1ad34dcf7f35de552f3")
-	require.NoError(err)
-	require.NoError(header.LoadFromBlockHeaderProto(&iotextypes.BlockHeader{Core: hcore, ProducerPubkey: pk}))
-
-	b := block.Block{Header: header}
+	b := getBlock(t)
 	bp2 := newBlockProposal(&b, nil)
 	require.NotNil(bp2)
 	require.Equal(uint64(123), bp2.Height())
@@ -62,4 +43,24 @@ func TestNewBlockProposal(t *testing.T) {
 	pro3, err := bp3.Proto()
 	require.NoError(err)
 	require.EqualValues(pro, pro3)
+}
+func getBlock(t *testing.T) block.Block {
+	require := require.New(t)
+	ts := &timestamp.Timestamp{Seconds: 10, Nanos: 10}
+	hcore := &iotextypes.BlockHeaderCore{
+		Version:          1,
+		Height:           123,
+		Timestamp:        ts,
+		PrevBlockHash:    []byte(""),
+		TxRoot:           []byte(""),
+		DeltaStateDigest: []byte(""),
+		ReceiptRoot:      []byte(""),
+	}
+	header := block.Header{}
+	pk, err := hex.DecodeString("04ea8046cf8dc5bc9cda5f2e83e5d2d61932ad7e0e402b4f4cb65b58e9618891f54cba5cfcda873351ad9da1f5a819f54bba9e8343f2edd1ad34dcf7f35de552f3")
+	require.NoError(err)
+	require.NoError(header.LoadFromBlockHeaderProto(&iotextypes.BlockHeader{Core: hcore, ProducerPubkey: pk}))
+
+	b := block.Block{Header: header}
+	return b
 }
