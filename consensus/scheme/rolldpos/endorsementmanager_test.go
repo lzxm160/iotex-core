@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-address/address"
+
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
@@ -78,6 +80,11 @@ func TestBlockEndorsementCollection(t *testing.T) {
 	require.NotNil(ec)
 	require.NoError(ec.SetBlock(&b))
 	require.Equal(&b, ec.Block())
+	end := endorsement.NewEndorsement(time.Now(), b.PublicKey(), []byte("123"))
+	addr, err := address.FromBytes(b.PublicKey().Hash())
+	require.NoError(err)
+	require.NoError(ec.AddEndorsement(PROPOSAL, end))
+	require.Equal(end, ec.Endorsement(addr.String(), PROPOSAL))
 }
 
 func TestEndorsementManager(t *testing.T) {
