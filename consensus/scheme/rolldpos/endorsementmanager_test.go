@@ -76,6 +76,8 @@ func TestBlockEndorsementCollection(t *testing.T) {
 	b := getBlock(t)
 	ec := newBlockEndorsementCollection(&b)
 	require.NotNil(ec)
+	require.NoError(ec.SetBlock(&b))
+	require.Equal(b, ec.Block())
 }
 
 func TestEndorsementManager(t *testing.T) {
