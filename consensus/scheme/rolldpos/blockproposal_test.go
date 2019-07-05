@@ -8,6 +8,7 @@ package rolldpos
 
 import (
 	"encoding/hex"
+	"fmt"
 	"testing"
 
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
@@ -35,6 +36,7 @@ func TestNewBlockProposal(t *testing.T) {
 	bp2 := newBlockProposal(&b, nil)
 	require.NotNil(bp2)
 	require.Equal(uint64(123), bp2.Height())
+	fmt.Println(bp2.block)
 	require.Panics(func() {
 		bp2.ProposerAddress()
 	}, "proposer address is nil")
