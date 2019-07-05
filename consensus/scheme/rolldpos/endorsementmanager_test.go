@@ -86,6 +86,9 @@ func TestBlockEndorsementCollection(t *testing.T) {
 	require.Equal(1, len(ends))
 	require.Equal(end, ends[0])
 
+	cleaned := ec.Cleanup(time.Now())
+	require.Equal(1, len(cleaned.endorsers))
+	require.Equal(end, cleaned.endorsers[b.PublicKey().HexString()])
 }
 
 func TestEndorsementManager(t *testing.T) {
