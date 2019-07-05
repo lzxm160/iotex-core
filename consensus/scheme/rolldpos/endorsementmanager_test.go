@@ -82,6 +82,10 @@ func TestBlockEndorsementCollection(t *testing.T) {
 
 	require.NoError(ec.AddEndorsement(PROPOSAL, end))
 	require.Equal(end, ec.Endorsement(b.PublicKey().HexString(), PROPOSAL))
+	ends := ec.Endorsements([]ConsensusVoteTopic{PROPOSAL})
+	require.Equal(1, len(ends))
+	require.Equal(end, ends[0])
+
 }
 
 func TestEndorsementManager(t *testing.T) {
