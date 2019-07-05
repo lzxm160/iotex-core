@@ -84,7 +84,7 @@ func TestBlockEndorsementCollection(t *testing.T) {
 	addr, err := address.FromBytes(b.PublicKey().Hash())
 	require.NoError(err)
 	require.NoError(ec.AddEndorsement(PROPOSAL, end))
-	require.Equal(end, ec.Endorsement(addr.String(), PROPOSAL))
+	require.Equal(&end, ec.Endorsement(addr.String(), PROPOSAL))
 }
 
 func TestEndorsementManager(t *testing.T) {
