@@ -7,6 +7,7 @@
 package rolldpos
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -245,6 +246,7 @@ func (c *roundCalculator) calculateProposer(
 	delegates []string,
 ) (proposer string, err error) {
 	numDelegates := c.rp.NumDelegates()
+	fmt.Println(numDelegates)
 	if numDelegates != uint64(len(delegates)) {
 		err = errors.New("invalid delegate list")
 		return
