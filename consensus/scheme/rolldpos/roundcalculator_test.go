@@ -48,7 +48,7 @@ func TestNewRound(t *testing.T) {
 	require.NoError(err)
 	require.Equal("3", proposer)
 
-	ra, err := rc.NewRound(5, time.Unix(1562382392, 0))
+	ra, err := rc.NewRound(1, time.Unix(1562382392, 0))
 	require.NoError(err)
 	fmt.Println(ra)
 	require.Equal(uint32(19), ra.roundNum)
