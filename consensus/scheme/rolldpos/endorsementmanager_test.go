@@ -107,8 +107,8 @@ func TestEndorsementManager(t *testing.T) {
 	require.Panics(func() {
 		em.AddVoteEndorsement(nil, nil)
 	}, "vote is nil")
-
-	cv := NewConsensusVote(b.HashBlock()[:], PROPOSAL)
+	blkHash := b.HashBlock()[:]
+	cv := NewConsensusVote(blkHash, PROPOSAL)
 	require.NotNil(cv)
 
 	require.Panics(func() {
