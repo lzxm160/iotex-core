@@ -60,7 +60,7 @@ func TestNewRound(t *testing.T) {
 	fmt.Println(ra)
 	require.Equal(uint32(19), ra.roundNum)
 	require.Equal(uint64(1), ra.height)
-	require.Equal("io14gnqxf9dpkn05g337rl7eyt2nxasphf5m6n0rd", ra.proposer)
+	require.Equal("io1fxzh50pa6qc6x5cprgmgw4qrp5vw97zk5pxt3q", ra.proposer)
 }
 func TestDelegates(t *testing.T) {
 	require := require.New(t)
