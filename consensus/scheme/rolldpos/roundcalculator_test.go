@@ -68,15 +68,13 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	dBPath := "db.test"
 	triePath := "trie.test"
 	cfg := config.Default
-	cfg.ActPool.MinGasPriceStr = "0"
-	cfg.Consensus.Scheme = config.NOOPScheme
 	cfg.Network.Port = testutil.RandomPort()
 	cfg.API.Port = testutil.RandomPort()
 	cfg.System.EnableExperimentalActions = true
 	cfg.Genesis.Timestamp = 1562382372
 	sk, err := crypto.GenerateKey()
 	cfg.Chain.ProducerPrivKey = sk.HexString()
-	require.Nil(err)
+	require.NoError(err)
 	testTrieFile, _ := ioutil.TempFile(os.TempDir(), triePath)
 	testTriePath := testTrieFile.Name()
 
@@ -117,8 +115,8 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	}
 	require.Equal(uint64(5), chain.TipHeight())
 	require.NoError(err)
-	defer func() {
-		require.NoError(chain.Stop(ctx))
-	}()
+	//defer func() {
+	//	require.NoError(chain.Stop(ctx))
+	//}()
 	return chain, rolldposProtocol
 }
