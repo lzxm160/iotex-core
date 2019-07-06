@@ -31,6 +31,10 @@ func TestDelegates(t *testing.T) {
 	rc := &roundCalculator{bc, time.Second, time.Second, true, roll, bc.CandidatesByHeight}
 	_, err := rc.Delegates(10)
 	require.Error(err)
+
+	dels, err := rc.Delegates(5)
+	require.NoError(err)
+	require.Equal(roll.NumDelegates(), len(dels))
 }
 func TestRoundInfo(t *testing.T) {
 	require := require.New(t)
