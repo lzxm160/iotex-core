@@ -97,18 +97,6 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.ChainDBPath = testDBPath
 
-	registry := protocol.Registry{}
-	chain := blockchain.NewBlockchain(
-		cfg,
-		blockchain.DefaultStateFactoryOption(),
-		blockchain.BoltDBDaoOption(),
-		blockchain.RegistryOption(&registry),
-	)
-	rolldposProtocol := rolldpos.NewProtocol(
-		cfg.Genesis.NumCandidateDelegates,
-		cfg.Genesis.NumDelegates,
-		cfg.Genesis.NumSubEpochs,
-	)
 	for i := 0; i < identityset.Size(); i++ {
 		addr := identityset.Address(i).String()
 		value := unit.ConvertIotxToRau(100000000).String()
@@ -122,6 +110,19 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 			cfg.Genesis.Delegates = append(cfg.Genesis.Delegates, d)
 		}
 	}
+
+	registry := protocol.Registry{}
+	chain := blockchain.NewBlockchain(
+		cfg,
+		blockchain.DefaultStateFactoryOption(),
+		blockchain.BoltDBDaoOption(),
+		blockchain.RegistryOption(&registry),
+	)
+	rolldposProtocol := rolldpos.NewProtocol(
+		cfg.Genesis.NumCandidateDelegates,
+		cfg.Genesis.NumDelegates,
+		cfg.Genesis.NumSubEpochs,
+	)
 
 	require.NoError(registry.Register(rolldpos.ProtocolID, rolldposProtocol))
 	rewardingProtocol := rewarding.NewProtocol(chain, rolldposProtocol)
