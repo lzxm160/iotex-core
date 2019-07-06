@@ -40,6 +40,9 @@ func TestDelegates(t *testing.T) {
 	dels, err := rc.Delegates(4)
 	require.NoError(err)
 	require.Equal(roll.NumDelegates(), uint64(len(dels)))
+
+	require.False(rc.IsDelegate("io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms", 2))
+	require.True(rc.IsDelegate("io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg", 2))
 }
 func TestRoundInfo(t *testing.T) {
 	require := require.New(t)
