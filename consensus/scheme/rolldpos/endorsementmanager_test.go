@@ -121,6 +121,7 @@ func TestEndorsementManager(t *testing.T) {
 	require.Panics(func() {
 		em.Log(nil, nil)
 	}, "logger is nil")
-
-	require.NotNil(em.Log(log.L(), nil))
+	l := em.Log(log.L(), nil)
+	require.NotNil(l)
+	l.Info("test output")
 }
