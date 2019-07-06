@@ -25,7 +25,7 @@ import (
 	"github.com/iotexproject/iotex-core/testutil"
 )
 
-func TestRoundCalculator(t *testing.T) {
+func TestRoundInfo(t *testing.T) {
 	require := require.New(t)
 	rc := &roundCalculator{nil, time.Second, time.Second, true, nil, nil}
 	require.NotNil(rc)
