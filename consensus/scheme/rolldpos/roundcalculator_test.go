@@ -39,11 +39,11 @@ func TestRoundCalculator(t *testing.T) {
 	require.Equal(time.Second, rc.BlockInterval())
 	bc, roll := makeChain(t)
 	rc = &roundCalculator{bc, time.Second, time.Second, true, roll, bc.CandidatesByHeight}
-	now := time.Now()
+	now := time.Unix(1562382392, 0)
 	roundNum, roundStartTime, err := rc.RoundInfo(1, now)
 	require.NoError(err)
 	fmt.Println(roundNum, ":", roundStartTime)
-	require.Equal(1, roundNum)
+	require.Equal(2, roundNum)
 	require.True(roundStartTime.Before(now))
 }
 func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
@@ -56,8 +56,7 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	cfg.Network.Port = testutil.RandomPort()
 	cfg.API.Port = testutil.RandomPort()
 	cfg.System.EnableExperimentalActions = true
-	cfg.Genesis.Timestamp = time.Now().Unix()
-	fmt.Println(cfg.Genesis.Timestamp)
+	cfg.Genesis.Timestamp = 1562382372
 	sk, err := crypto.GenerateKey()
 	cfg.Chain.ProducerPrivKey = sk.HexString()
 	require.Nil(err)
