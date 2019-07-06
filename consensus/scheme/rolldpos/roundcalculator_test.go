@@ -50,10 +50,17 @@ func TestNewRound(t *testing.T) {
 
 	ra, err := rc.NewRound(1, time.Unix(1562382392, 0))
 	require.NoError(err)
+	require.Equal(uint32(19), ra.roundNum)
+	require.Equal(uint64(1), ra.height)
+	require.Equal("io1l3wc0smczyay8xq747e2hw63mzg3ctp6uf8wsg", ra.proposer)
+
+	rc.timeBasedRotation = true
+	ra, err = rc.NewRound(1, time.Unix(1562382392, 0))
+	require.NoError(err)
 	fmt.Println(ra)
 	require.Equal(uint32(19), ra.roundNum)
 	require.Equal(uint64(1), ra.height)
-	require.Equal("io1xuavja5dwde8pvy4yms06yyncad4yavghjhwra", ra.proposer)
+	require.Equal("io14gnqxf9dpkn05g337rl7eyt2nxasphf5m6n0rd", ra.proposer)
 }
 func TestDelegates(t *testing.T) {
 	require := require.New(t)
