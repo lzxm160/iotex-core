@@ -7,6 +7,7 @@
 package rolldpos
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -105,6 +106,7 @@ func (c *roundCalculator) IsDelegate(addr string, height uint64) bool {
 		return false
 	}
 	for _, d := range delegates {
+		fmt.Println(d)
 		if addr == d {
 			return true
 		}
