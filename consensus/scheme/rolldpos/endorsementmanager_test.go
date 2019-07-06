@@ -108,5 +108,11 @@ func TestEndorsementManager(t *testing.T) {
 
 	cv := NewConsensusVote([]byte("blk hash"), PROPOSAL)
 	require.NotNil(cv)
-	require.NoError(em.AddVoteEndorsement(cv, nil))
+
+	require.Panics(func() {
+		em.AddVoteEndorsement(cv, nil)
+	}, "endorsement is nil")
+
+	end := endorsement.NewEndorsement(time.Now(), b.PublicKey(), []byte("123"))
+	require.NoError(em.AddVoteEndorsement(cv, end))
 }
