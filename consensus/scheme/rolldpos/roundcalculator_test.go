@@ -56,7 +56,8 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	cfg.Network.Port = testutil.RandomPort()
 	cfg.API.Port = testutil.RandomPort()
 	cfg.System.EnableExperimentalActions = true
-	cfg.Genesis.EnableGravityChainVoting = false
+	cfg.Genesis.Timestamp = time.Now().Unix()
+	fmt.Println(cfg.Genesis.Timestamp)
 	sk, err := crypto.GenerateKey()
 	cfg.Chain.ProducerPrivKey = sk.HexString()
 	require.Nil(err)
