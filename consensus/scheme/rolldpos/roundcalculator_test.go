@@ -8,6 +8,7 @@ package rolldpos
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -41,6 +42,7 @@ func TestRoundCalculator(t *testing.T) {
 	now := time.Now()
 	roundNum, roundStartTime, err := rc.RoundInfo(1, now)
 	require.NoError(err)
+	fmt.Println(roundNum, ":", roundStartTime)
 	require.Equal(1, roundNum)
 	require.True(roundStartTime.Before(now))
 }
