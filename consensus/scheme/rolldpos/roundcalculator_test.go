@@ -32,7 +32,7 @@ func TestDelegates(t *testing.T) {
 	_, err := rc.Delegates(10)
 	require.Error(err)
 
-	dels, err := rc.Delegates(5)
+	dels, err := rc.Delegates(4)
 	require.NoError(err)
 	require.Equal(roll.NumDelegates(), len(dels))
 }
