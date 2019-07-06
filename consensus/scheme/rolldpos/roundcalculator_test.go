@@ -39,7 +39,7 @@ func TestDelegates(t *testing.T) {
 
 	dels, err := rc.Delegates(4)
 	require.NoError(err)
-	require.Equal(roll.NumDelegates(), len(dels))
+	require.Equal(roll.NumDelegates(), uint64(len(dels)))
 }
 func TestRoundInfo(t *testing.T) {
 	require := require.New(t)
