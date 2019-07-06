@@ -61,7 +61,7 @@ func TestRoundInfo(t *testing.T) {
 	roundNum, roundStartTime, err = rc.roundInfo(4, time.Unix(1562382392, 0), true)
 	require.NoError(err)
 	require.Equal(uint32(17), roundNum)
-	require.True(roundStartTime.After(time.Unix(1562382392, 0)))
+	require.True(roundStartTime.Equal(time.Unix(1562382391, 0)))
 }
 func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	require := require.New(t)
