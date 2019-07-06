@@ -79,9 +79,18 @@ func TestRoundInfo(t *testing.T) {
 }
 func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	require := require.New(t)
+	cfg := config.Default
+
 	dBPath := "db.test"
 	triePath := "trie.test"
-	cfg := config.Default
+	testTrieFile, _ := ioutil.TempFile(os.TempDir(), triePath)
+	testTriePath := testTrieFile.Name()
+	testDBFile, _ := ioutil.TempFile(os.TempDir(), dBPath)
+	testDBPath := testDBFile.Name()
+	cfg.Chain.TrieDBPath = testTriePath
+	cfg.Chain.ChainDBPath = testDBPath
+
+	cfg.Consensus.Scheme = config.RollDPoSScheme
 	cfg.Network.Port = testutil.RandomPort()
 	cfg.API.Port = testutil.RandomPort()
 	cfg.System.EnableExperimentalActions = true
@@ -89,13 +98,6 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	sk, err := crypto.GenerateKey()
 	cfg.Chain.ProducerPrivKey = sk.HexString()
 	require.NoError(err)
-	testTrieFile, _ := ioutil.TempFile(os.TempDir(), triePath)
-	testTriePath := testTrieFile.Name()
-
-	testDBFile, _ := ioutil.TempFile(os.TempDir(), dBPath)
-	testDBPath := testDBFile.Name()
-	cfg.Chain.TrieDBPath = testTriePath
-	cfg.Chain.ChainDBPath = testDBPath
 
 	for i := 0; i < identityset.Size(); i++ {
 		addr := identityset.Address(i).String()
