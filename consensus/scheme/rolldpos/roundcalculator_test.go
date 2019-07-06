@@ -8,7 +8,6 @@ package rolldpos
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -107,12 +106,11 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	ctx := context.Background()
 	require.NoError(chain.Start(ctx))
 	for i := 0; i < 5; i++ {
-		fmt.Println("blk:", time.Unix(cfg.Genesis.Timestamp+int64(i), 0).Unix())
 		blk, err := chain.MintNewBlock(
 			nil,
 			time.Unix(cfg.Genesis.Timestamp+int64(i), 0),
 		)
-		fmt.Println("blk:", blk.Timestamp().Unix())
+		require.NoError(blk.Finalize(nil, time.Unix(cfg.Genesis.Timestamp+int64(i), 0)))
 		require.NoError(err)
 		require.NoError(chain.CommitBlock(blk))
 	}
