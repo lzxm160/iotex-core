@@ -108,7 +108,7 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	for i := 0; i < 5; i++ {
 		blk, err := chain.MintNewBlock(
 			nil,
-			testutil.TimestampNow(),
+			time.Unix(cfg.Genesis.Timestamp+int64(i), 0),
 		)
 		require.NoError(err)
 		require.NoError(chain.CommitBlock(blk))
