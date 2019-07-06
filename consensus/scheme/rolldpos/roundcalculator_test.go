@@ -39,11 +39,11 @@ func TestUpdateRound(t *testing.T) {
 	require.NoError(err)
 
 	// height < round.Height()
-	ra, err = rc.UpdateRound(ra, 0, time.Unix(1562382492, 0))
+	_, err = rc.UpdateRound(ra, 0, time.Unix(1562382492, 0))
 	require.Error(err)
 
 	// height == round.Height() and now.Before(round.StartTime())
-	ra, err = rc.UpdateRound(ra, 1, time.Unix(1562382092, 0))
+	_, err = rc.UpdateRound(ra, 1, time.Unix(1562382092, 0))
 	require.Error(err)
 
 	fmt.Println(ra)
