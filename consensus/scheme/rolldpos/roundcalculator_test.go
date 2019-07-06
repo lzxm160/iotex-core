@@ -8,6 +8,7 @@ package rolldpos
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -46,9 +47,13 @@ func TestNewRound(t *testing.T) {
 	proposer, err = rc.calculateProposer(50, 1, validDelegates)
 	require.NoError(err)
 	require.Equal("3", proposer)
-	//ra, err := rc.NewRound(5, time.Now())
-	//require.NoError(err)
 
+	ra, err := rc.NewRound(5, time.Now())
+	require.NoError(err)
+	fmt.Println(ra)
+	require.Equal(1, ra.roundNum)
+	require.Equal(5, ra.height)
+	require.Equal("io1xuavja5dwde8pvy4yms06yyncad4yavghjhwra", ra.proposer)
 }
 func TestDelegates(t *testing.T) {
 	require := require.New(t)
