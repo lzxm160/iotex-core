@@ -8,7 +8,6 @@ package rolldpos
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -28,12 +27,6 @@ import (
 
 func TestRoundCalculator(t *testing.T) {
 	require := require.New(t)
-	//chain                  blockchain.Blockchain
-	//blockInterval          time.Duration
-	//toleratedOvertime      time.Duration
-	//timeBasedRotation      bool
-	//rp                     *rolldpos.Protocol
-	//candidatesByHeightFunc CandidatesByHeightFunc
 	rc := &roundCalculator{nil, time.Second, time.Second, true, nil, nil}
 	require.NotNil(rc)
 	require.Equal(time.Second, rc.BlockInterval())
@@ -44,11 +37,23 @@ func TestRoundCalculator(t *testing.T) {
 	_, _, err := rc.RoundInfo(1, time.Unix(1562382300, 0))
 	require.Error(err)
 
-	// height is 1
+	// height is 1 with withToleration false
 	roundNum, roundStartTime, err := rc.RoundInfo(1, time.Unix(1562382392, 0))
 	require.NoError(err)
-	fmt.Println(roundNum, ":", roundStartTime)
-	require.Equal(2, roundNum)
+	require.Equal(19, roundNum)
+	require.True(roundStartTime.Before(time.Unix(1562382392, 0)))
+
+	// height is 1 with withToleration true and duration%c.blockInterval < c.toleratedOvertime
+	roundNum, roundStartTime, err = rc.roundInfo(1, time.Unix(1562382392, 0), true)
+	require.NoError(err)
+	require.Equal(19, roundNum)
+	require.True(roundStartTime.Before(time.Unix(1562382392, 0)))
+
+	// height is 1 with withToleration true and duration%c.blockInterval >= c.toleratedOvertime
+	rc.toleratedOvertime = 0
+	roundNum, roundStartTime, err = rc.roundInfo(1, time.Unix(1562382392, 0), true)
+	require.NoError(err)
+	require.Equal(20, roundNum)
 	require.True(roundStartTime.Before(time.Unix(1562382392, 0)))
 }
 func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
@@ -62,7 +67,6 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	cfg.API.Port = testutil.RandomPort()
 	cfg.System.EnableExperimentalActions = true
 	cfg.Genesis.Timestamp = 1562382372
-	cfg.Genesis.BlockInterval = time.Second * 10
 	sk, err := crypto.GenerateKey()
 	cfg.Chain.ProducerPrivKey = sk.HexString()
 	require.Nil(err)
