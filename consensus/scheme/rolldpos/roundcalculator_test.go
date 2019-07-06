@@ -57,7 +57,7 @@ func TestRoundInfo(t *testing.T) {
 	require.True(roundStartTime.After(time.Unix(1562382392, 0)))
 
 	// height is 4 with withToleration true and duration%c.blockInterval >= c.toleratedOvertime
-	rc.toleratedOvertime = 0
+	rc.toleratedOvertime = 20
 	roundNum, roundStartTime, err = rc.roundInfo(4, time.Unix(1562382392, 0), true)
 	require.NoError(err)
 	require.Equal(uint32(17), roundNum)
