@@ -47,7 +47,7 @@ func TestUpdateRound(t *testing.T) {
 	require.Error(err)
 
 	// height >= round.NextEpochStartHeight() Delegates error
-	_, err = rc.UpdateRound(ra, 50, time.Unix(1562382092, 0))
+	_, err = rc.UpdateRound(ra, 500, time.Unix(1562382092, 0))
 	require.Error(err)
 
 	// (31+30)%24
@@ -197,7 +197,7 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	chain.GetFactory().AddActionHandlers(acc, rewardingProtocol)
 	ctx := context.Background()
 	require.NoError(chain.Start(ctx))
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 50; i++ {
 		blk, err := chain.MintNewBlock(
 			nil,
 			time.Unix(cfg.Genesis.Timestamp+int64(i), 0),
@@ -206,7 +206,7 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 		require.NoError(err)
 		require.NoError(chain.CommitBlock(blk))
 	}
-	require.Equal(uint64(5), chain.TipHeight())
+	require.Equal(uint64(50), chain.TipHeight())
 	require.NoError(err)
 	//defer func() {
 	//	require.NoError(chain.Stop(ctx))
