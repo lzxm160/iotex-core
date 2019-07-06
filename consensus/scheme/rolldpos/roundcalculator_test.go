@@ -31,6 +31,23 @@ import (
 	"github.com/iotexproject/iotex-core/testutil"
 )
 
+func TestUpdateRound(t *testing.T) {
+	require := require.New(t)
+	bc, roll := makeChain(t)
+	rc := &roundCalculator{bc, time.Second, time.Second, true, roll, bc.CandidatesByHeight}
+	ra, err := rc.NewRound(1, time.Unix(1562382392, 0))
+	require.NoError(err)
+
+	// height < round.Height()
+	ra, err = rc.UpdateRound(ra, 0, time.Unix(1562382492, 0))
+	require.Error(err)
+
+	// height == round.Height() and now.Before(round.StartTime())
+	ra, err = rc.UpdateRound(ra, 1, time.Unix(1562382092, 0))
+	require.Error(err)
+
+	fmt.Println(ra)
+}
 func TestNewRound(t *testing.T) {
 	require := require.New(t)
 	bc, roll := makeChain(t)
@@ -57,7 +74,6 @@ func TestNewRound(t *testing.T) {
 	rc.timeBasedRotation = true
 	ra, err = rc.NewRound(1, time.Unix(1562382392, 0))
 	require.NoError(err)
-	fmt.Println(ra)
 	require.Equal(uint32(19), ra.roundNum)
 	require.Equal(uint64(1), ra.height)
 	require.Equal("io1fxzh50pa6qc6x5cprgmgw4qrp5vw97zk5pxt3q", ra.proposer)
