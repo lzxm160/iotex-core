@@ -51,7 +51,7 @@ func TestUpdateRound(t *testing.T) {
 	require.Error(err)
 
 	// (31+30)%24
-	ra, err = rc.UpdateRound(ra, 31, time.Unix(1562382422, 0))
+	ra, err = rc.UpdateRound(ra, 31, time.Unix(1562382522, 0))
 	require.NoError(err)
 	fmt.Println(ra)
 }
