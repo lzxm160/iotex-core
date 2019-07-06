@@ -133,7 +133,6 @@ func (c *roundCalculator) roundInfo(
 			return
 		}
 		lastBlockCommitTime := lastBlock.CommitTime()
-		fmt.Println(lastBlockCommitTime.Unix())
 		lastBlockTime = lastBlockTime.Add(lastBlockCommitTime.Sub(lastBlockTime) / c.blockInterval * c.blockInterval)
 	}
 	if !lastBlockTime.Before(now) {

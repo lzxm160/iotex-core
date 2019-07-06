@@ -8,6 +8,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/hash"
@@ -326,6 +327,7 @@ func (dao *blockDAO) footer(h hash.Hash256) (*block.Footer, error) {
 	if err := footer.Deserialize(value); err != nil {
 		return nil, errors.Wrapf(err, "failed to deserialize block footer %x", h)
 	}
+	fmt.Println("footer:", footer.CommitTime().Unix())
 	if dao.footerCache != nil {
 		dao.footerCache.Add(h, footer)
 	}
