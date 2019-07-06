@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-core/pkg/log"
+
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
@@ -115,4 +117,10 @@ func TestEndorsementManager(t *testing.T) {
 
 	end := endorsement.NewEndorsement(time.Now(), b.PublicKey(), []byte("123"))
 	require.NoError(em.AddVoteEndorsement(cv, end))
+
+	require.Panics(func() {
+		em.Log(nil, nil)
+	}, "logger is nil")
+
+	require.NotNil(em.Log(log.L(), nil))
 }
