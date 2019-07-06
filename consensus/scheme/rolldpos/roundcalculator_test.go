@@ -46,6 +46,10 @@ func TestUpdateRound(t *testing.T) {
 	_, err = rc.UpdateRound(ra, 1, time.Unix(1562382092, 0))
 	require.Error(err)
 
+	// height >= round.NextEpochStartHeight() Delegates error
+	_, err = rc.UpdateRound(ra, 50, time.Unix(1562382092, 0))
+	require.Error(err)
+
 	fmt.Println(ra)
 }
 func TestNewRound(t *testing.T) {
