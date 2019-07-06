@@ -25,6 +25,13 @@ import (
 	"github.com/iotexproject/iotex-core/testutil"
 )
 
+func TestDelegates(t *testing.T) {
+	require := require.New(t)
+	bc, roll := makeChain(t)
+	rc := &roundCalculator{bc, time.Second, time.Second, true, roll, bc.CandidatesByHeight}
+	_, err := rc.Delegates(10)
+	require.Error(err)
+}
 func TestRoundInfo(t *testing.T) {
 	require := require.New(t)
 	rc := &roundCalculator{nil, time.Second, time.Second, true, nil, nil}
