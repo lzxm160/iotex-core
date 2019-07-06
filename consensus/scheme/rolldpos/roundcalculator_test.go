@@ -8,7 +8,6 @@ package rolldpos
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -50,10 +49,10 @@ func TestUpdateRound(t *testing.T) {
 	_, err = rc.UpdateRound(ra, 500, time.Unix(1562382092, 0))
 	require.Error(err)
 
-	// (31+30)%24
+	// (31+120)%24
 	ra, err = rc.UpdateRound(ra, 31, time.Unix(1562382522, 0))
 	require.NoError(err)
-	fmt.Println(ra)
+	require.Equal("io1eq4ehs6xx6zj9gcsax7h3qydwlxut9xcfcjras", ra.proposer)
 }
 func TestNewRound(t *testing.T) {
 	require := require.New(t)
