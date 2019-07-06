@@ -88,7 +88,11 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	chain.GetFactory().AddActionHandlers(acc, rewardingProtocol)
 	ctx := context.Background()
 	require.NoError(chain.Start(ctx))
-	require.True(5 == chain.TipHeight())
+	err = testutil.WaitUntil(100*time.Millisecond, 60*time.Second, func() (bool, error) {
+		height := chain.TipHeight()
+		return int(height) == 9, nil
+	})
+	require.NoError(err)
 	defer func() {
 		require.NoError(chain.Stop(ctx))
 	}()
