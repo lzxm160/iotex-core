@@ -124,4 +124,9 @@ func TestEndorsementManager(t *testing.T) {
 	l := em.Log(log.L(), nil)
 	require.NotNil(l)
 	l.Info("test output")
+	cleaned := em.Cleanup(time.Now())
+	require.NotNil(cleaned)
+	require.Equal(1, len(cleaned.collections))
+	encoded := encodeToString(cv.BlockHash())
+	require.Equal(1, len(cleaned.collections[encoded].endorsers))
 }
