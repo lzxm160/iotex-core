@@ -21,7 +21,10 @@ import (
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/blockchain"
+	"github.com/iotexproject/iotex-core/blockchain/genesis"
 	"github.com/iotexproject/iotex-core/config"
+	"github.com/iotexproject/iotex-core/pkg/unit"
+	"github.com/iotexproject/iotex-core/test/identityset"
 	"github.com/iotexproject/iotex-core/testutil"
 )
 
@@ -106,6 +109,20 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 		cfg.Genesis.NumDelegates,
 		cfg.Genesis.NumSubEpochs,
 	)
+	for i := 0; i < identityset.Size(); i++ {
+		addr := identityset.Address(i).String()
+		value := unit.ConvertIotxToRau(100000000).String()
+		cfg.Genesis.InitBalanceMap[addr] = value
+		if uint64(i) < cfg.Genesis.NumDelegates {
+			d := genesis.Delegate{
+				OperatorAddrStr: addr,
+				RewardAddrStr:   addr,
+				VotesStr:        value,
+			}
+			cfg.Genesis.Delegates = append(cfg.Genesis.Delegates, d)
+		}
+	}
+
 	require.NoError(registry.Register(rolldpos.ProtocolID, rolldposProtocol))
 	rewardingProtocol := rewarding.NewProtocol(chain, rolldposProtocol)
 	registry.Register(rewarding.ProtocolID, rewardingProtocol)
