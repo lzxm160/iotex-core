@@ -55,6 +55,13 @@ func TestRoundCalculator(t *testing.T) {
 	require.NoError(err)
 	require.Equal(uint32(20), roundNum)
 	require.True(roundStartTime.After(time.Unix(1562382392, 0)))
+
+	// height is 4 with withToleration true and duration%c.blockInterval >= c.toleratedOvertime
+	rc.toleratedOvertime = 0
+	roundNum, roundStartTime, err = rc.roundInfo(4, time.Unix(1562382392, 0), true)
+	require.NoError(err)
+	require.Equal(uint32(17), roundNum)
+	require.True(roundStartTime.After(time.Unix(1562382392, 0)))
 }
 func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	require := require.New(t)
