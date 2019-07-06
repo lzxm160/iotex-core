@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-core/action/protocol/poll"
+
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/stretchr/testify/require"
 
@@ -131,6 +133,7 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	registry.Register(rewarding.ProtocolID, rewardingProtocol)
 	acc := account.NewProtocol(0)
 	registry.Register(account.ProtocolID, acc)
+	require.NoError(registry.Register(poll.ProtocolID, poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)))
 	chain.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(chain))
 	chain.Validator().AddActionValidators(acc, rewardingProtocol)
 	chain.GetFactory().AddActionHandlers(acc, rewardingProtocol)
