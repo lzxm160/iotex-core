@@ -7,7 +7,6 @@
 package rolldpos
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -54,7 +53,6 @@ func (c *roundCalculator) UpdateRound(round *roundCtx, height uint64, now time.T
 		}
 	}
 	roundNum, roundStartTime, err := c.roundInfo(height, now, true)
-	fmt.Println("roundInfo:", err)
 	if err != nil {
 		return nil, err
 	}
