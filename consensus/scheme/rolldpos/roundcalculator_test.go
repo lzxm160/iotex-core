@@ -112,6 +112,7 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 			nil,
 			time.Unix(cfg.Genesis.Timestamp+int64(i), 0),
 		)
+		fmt.Println("blk:", blk.Timestamp().Unix())
 		require.NoError(err)
 		require.NoError(chain.CommitBlock(blk))
 	}
