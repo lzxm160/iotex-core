@@ -34,7 +34,7 @@ func TestDelegates(t *testing.T) {
 	require := require.New(t)
 	bc, roll := makeChain(t)
 	rc := &roundCalculator{bc, time.Second, time.Second, true, roll, bc.CandidatesByHeight}
-	_, err := rc.Delegates(10)
+	_, err := rc.Delegates(361)
 	require.Error(err)
 
 	dels, err := rc.Delegates(4)
