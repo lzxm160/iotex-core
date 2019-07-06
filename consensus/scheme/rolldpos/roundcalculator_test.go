@@ -30,6 +30,22 @@ import (
 	"github.com/iotexproject/iotex-core/testutil"
 )
 
+func TestNewRound(t *testing.T) {
+	require := require.New(t)
+	bc, roll := makeChain(t)
+	rc := &roundCalculator{bc, time.Second, time.Second, true, roll, bc.CandidatesByHeight}
+	proposer, err := rc.calculateProposer(5, 1, []string{"1", "2", "3", "4", "5"})
+	require.NoError(err)
+	require.Equal("2", proposer)
+
+	rc.timeBasedRotation = false
+	proposer, err = rc.calculateProposer(5, 1, []string{"1", "2", "3", "4", "5"})
+	require.NoError(err)
+	require.Equal("1", proposer)
+	//ra, err := rc.NewRound(5, time.Now())
+	//require.NoError(err)
+
+}
 func TestDelegates(t *testing.T) {
 	require := require.New(t)
 	bc, roll := makeChain(t)
