@@ -129,4 +129,7 @@ func TestEndorsementManager(t *testing.T) {
 	require.Equal(1, len(cleaned.collections))
 	encoded := encodeToString(cv.BlockHash())
 	require.Equal(1, len(cleaned.collections[encoded].endorsers))
+
+	collection := cleaned.collections[encoded].endorsers[end.Endorser().HexString()]
+	require.Equal(end, collection.endorsements[PROPOSAL])
 }
