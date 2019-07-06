@@ -93,5 +93,20 @@ func TestBlockEndorsementCollection(t *testing.T) {
 }
 
 func TestEndorsementManager(t *testing.T) {
+	require := require.New(t)
+	em := newEndorsementManager()
+	require.NotNil(em)
+	require.Equal(0, em.Size())
+	require.Equal(0, em.SizeWithBlock())
 
+	b := getBlock(t)
+	require.NoError(em.RegisterBlock(&b))
+
+	require.Panics(func() {
+		em.AddVoteEndorsement(nil, nil)
+	}, "vote is nil")
+
+	cv := NewConsensusVote([]byte("blk hash"), PROPOSAL)
+	require.NotNil(cv)
+	require.NoError(em.AddVoteEndorsement(cv, nil))
 }
