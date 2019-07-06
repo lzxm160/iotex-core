@@ -204,6 +204,7 @@ func (sdb *stateDB) CandidatesByHeight(height uint64) ([]*state.Candidate, error
 		zap.Any("candidates", candidates),
 		zap.Error(err),
 	)
+	fmt.Println("/////////////////////////////statedb:", err)
 	if errors.Cause(err) == nil {
 		if len(candidates) > 0 {
 			return candidates, nil
