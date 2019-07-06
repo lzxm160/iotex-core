@@ -39,12 +39,17 @@ func TestRoundCalculator(t *testing.T) {
 	require.Equal(time.Second, rc.BlockInterval())
 	bc, roll := makeChain(t)
 	rc = &roundCalculator{bc, time.Second, time.Second, true, roll, bc.CandidatesByHeight}
-	now := time.Unix(1562382392, 0)
-	roundNum, roundStartTime, err := rc.RoundInfo(1, now)
+
+	// error for lastBlockTime.Before(now)
+	_, _, err := rc.RoundInfo(1, time.Unix(1562382300, 0))
+	require.Error(err)
+
+	// height is 1
+	roundNum, roundStartTime, err := rc.RoundInfo(1, time.Unix(1562382392, 0))
 	require.NoError(err)
 	fmt.Println(roundNum, ":", roundStartTime)
 	require.Equal(2, roundNum)
-	require.True(roundStartTime.Before(now))
+	require.True(roundStartTime.Before(time.Unix(1562382392, 0)))
 }
 func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	require := require.New(t)
