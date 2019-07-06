@@ -7,7 +7,6 @@
 package rolldpos
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -145,7 +144,6 @@ func (c *roundCalculator) roundInfo(
 	}
 	duration := now.Sub(lastBlockTime)
 	if duration > c.blockInterval {
-		fmt.Println(duration, ":", c.blockInterval)
 		roundNum = uint32(duration / c.blockInterval)
 		if !withToleration || duration%c.blockInterval < c.toleratedOvertime {
 			roundNum--
