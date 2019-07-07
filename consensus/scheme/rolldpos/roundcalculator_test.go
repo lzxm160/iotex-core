@@ -164,6 +164,7 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 
 	for i := 0; i < identityset.Size(); i++ {
 		addr := identityset.Address(i).String()
+		fmt.Println(i, ":", addr)
 		value := unit.ConvertIotxToRau(100000000).String()
 		cfg.Genesis.InitBalanceMap[addr] = value
 		if uint64(i) < cfg.Genesis.NumDelegates {
