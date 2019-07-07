@@ -51,7 +51,7 @@ func TestUpdateRound(t *testing.T) {
 	// (31+120)%24
 	ra, err = rc.UpdateRound(ra, 31, time.Unix(1562382522, 0))
 	require.NoError(err)
-	require.Equal("io1eq4ehs6xx6zj9gcsax7h3qydwlxut9xcfcjras", ra.proposer)
+	require.Equal(identityset.Address(7).String(), ra.proposer)
 }
 func TestNewRound(t *testing.T) {
 	require := require.New(t)
@@ -74,7 +74,7 @@ func TestNewRound(t *testing.T) {
 	require.NoError(err)
 	require.Equal(uint32(19), ra.roundNum)
 	require.Equal(uint64(1), ra.height)
-	require.Equal("io1l3wc0smczyay8xq747e2hw63mzg3ctp6uf8wsg", ra.proposer)
+	require.Equal(identityset.Address(1).String(), ra.proposer)
 
 	rc.timeBasedRotation = true
 	ra, err = rc.NewRound(1, time.Unix(1562382392, 0))
