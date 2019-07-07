@@ -86,7 +86,7 @@ func TestNewRound(t *testing.T) {
 	require.Equal(uint32(19), ra.roundNum)
 	require.Equal(uint64(1), ra.height)
 	fmt.Println(ra)
-	require.Equal(identityset.Address(20).String(), ra.proposer)
+	require.Equal(identityset.Address(5).String(), ra.proposer)
 }
 func TestDelegates(t *testing.T) {
 	require := require.New(t)
@@ -99,8 +99,8 @@ func TestDelegates(t *testing.T) {
 	require.NoError(err)
 	require.Equal(roll.NumDelegates(), uint64(len(dels)))
 
-	require.False(rc.IsDelegate("io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms", 2))
-	require.True(rc.IsDelegate("io14gnqxf9dpkn05g337rl7eyt2nxasphf5m6n0rd", 2))
+	require.False(rc.IsDelegate(identityset.Address(25).String(), 2))
+	require.True(rc.IsDelegate(identityset.Address(5).String(), 2))
 }
 func TestRoundInfo(t *testing.T) {
 	require := require.New(t)
