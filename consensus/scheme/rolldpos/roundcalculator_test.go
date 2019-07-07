@@ -211,8 +211,5 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	}
 	require.Equal(uint64(50), chain.TipHeight())
 	require.NoError(err)
-	//defer func() {
-	//	require.NoError(chain.Stop(ctx))
-	//}()
 	return chain, rolldposProtocol
 }
