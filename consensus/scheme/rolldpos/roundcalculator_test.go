@@ -77,6 +77,7 @@ func TestNewRound(t *testing.T) {
 	require.NoError(err)
 	require.Equal(uint32(19), ra.roundNum)
 	require.Equal(uint64(1), ra.height)
+	// sorted by address hash
 	require.Equal(identityset.Address(16).String(), ra.proposer)
 
 	rc.timeBasedRotation = true
