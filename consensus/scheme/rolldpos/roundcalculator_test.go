@@ -60,21 +60,24 @@ func TestNewRound(t *testing.T) {
 	rc := &roundCalculator{bc, time.Second, time.Second, true, roll, bc.CandidatesByHeight}
 	proposer, err := rc.calculateProposer(5, 1, []string{"1", "2", "3", "4", "5"})
 	require.Error(err)
-
-	validDelegates := []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"}
-	proposer, err = rc.calculateProposer(5, 1, validDelegates)
+	var validDelegates [24]string
+	for i := 0; i < 24; i++ {
+		validDelegates[i] = identityset.Address(i).String()
+	}
+	proposer, err = rc.calculateProposer(5, 1, validDelegates[:])
 	require.NoError(err)
-	require.Equal("7", proposer)
+	require.Equal(validDelegates[6], proposer)
 
 	rc.timeBasedRotation = false
-	proposer, err = rc.calculateProposer(50, 1, validDelegates)
+	proposer, err = rc.calculateProposer(50, 1, validDelegates[:])
 	require.NoError(err)
-	require.Equal("3", proposer)
+	require.Equal(validDelegates[2], proposer)
 
 	ra, err := rc.NewRound(1, time.Unix(1562382392, 0))
 	require.NoError(err)
 	require.Equal(uint32(19), ra.roundNum)
 	require.Equal(uint64(1), ra.height)
+	fmt.Println(ra)
 	require.Equal(identityset.Address(20).String(), ra.proposer)
 
 	rc.timeBasedRotation = true
