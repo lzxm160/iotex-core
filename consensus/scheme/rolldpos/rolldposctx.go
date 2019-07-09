@@ -107,8 +107,8 @@ func newRollDPoSCtx(
 		timeBasedRotation:      timeBasedRotation,
 		toleratedOvertime:      toleratedOvertime,
 	}
-	fmt.Println("11222222222222222222222222:", roundCalc)
 	round, err := roundCalc.NewRoundWithToleration(0, clock.Now())
+	fmt.Println("11222222222222222222222222:", round, ":", err)
 	if err != nil {
 		log.Logger("consensus").Panic("failed to generate round context", zap.Error(err))
 	}
