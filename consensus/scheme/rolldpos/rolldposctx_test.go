@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/facebookgo/clock"
+
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 
 	"github.com/iotexproject/iotex-core/config"
@@ -46,13 +48,19 @@ func TestRollDPoSCtx(t *testing.T) {
 		newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, nil, nil, nil, "", nil, nil)
 	}, "rp is nil")
 
-	// case 3:normal
+	// case 3:panic because of clock is nil
 	rp := rolldpos.NewProtocol(
 		config.Default.Genesis.NumCandidateDelegates,
 		config.Default.Genesis.NumDelegates,
 		config.Default.Genesis.NumSubEpochs,
 	)
-	rctx := newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, rp, nil, nil, "", nil, nil)
+	require.Panics(func() {
+		newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, rp, nil, nil, "", nil, nil)
+	}, "clock is nil")
+
+	// case 4:normal
+	c := clock.New()
+	rctx := newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, rp, nil, nil, "", nil, c)
 	require.NotNil(rctx)
 
 	//
