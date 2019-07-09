@@ -107,9 +107,9 @@ func newRollDPoSCtx(
 		timeBasedRotation:      timeBasedRotation,
 		toleratedOvertime:      toleratedOvertime,
 	}
+	fmt.Println("11222222222222222222222222:", roundCalc)
 	round, err := roundCalc.NewRoundWithToleration(0, clock.Now())
 	if err != nil {
-		fmt.Println("11222222222222222222222222:", err)
 		log.Logger("consensus").Panic("failed to generate round context", zap.Error(err))
 	}
 	if cfg.FSM.AcceptBlockTTL+cfg.FSM.AcceptProposalEndorsementTTL+cfg.FSM.AcceptLockEndorsementTTL+cfg.FSM.CommitTTL > blockInterval {
