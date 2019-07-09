@@ -36,6 +36,7 @@ func TestRollDPoSCtx(t *testing.T) {
 	cfg := config.Default.Consensus.RollDPoS
 
 	// case 1:panic because of chain is nil
+	newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, nil, nil, nil, nil, nil, "", nil, nil)
 	require.Panics(func() {
 		newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, nil, nil, nil, nil, nil, "", nil, nil)
 	}, "chain is nil")
