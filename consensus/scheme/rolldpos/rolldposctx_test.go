@@ -64,6 +64,7 @@ func TestRollDPoSCtx(t *testing.T) {
 	cfg.FSM.AcceptProposalEndorsementTTL = time.Second
 	cfg.FSM.AcceptLockEndorsementTTL = time.Second
 	cfg.FSM.CommitTTL = time.Second
+	// this panic triggered by log,cannot catch,need find a better way
 	require.Panics(func() {
 		newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, rp, nil, nil, "", nil, c)
 	}, "fsm's time is bigger than block interval")

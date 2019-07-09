@@ -7,7 +7,6 @@
 package rolldpos
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -189,7 +188,6 @@ func (c *roundCalculator) NewRoundWithToleration(
 	height uint64,
 	now time.Time,
 ) (round *roundCtx, err error) {
-	fmt.Println("/////////////////////::1")
 	return c.newRound(height, now, true)
 }
 
@@ -225,7 +223,6 @@ func (c *roundCalculator) newRound(
 			return
 		}
 	}
-	fmt.Println("/////////////////////::2")
 	return &roundCtx{
 		epochNum:             epochNum,
 		epochStartHeight:     epochStartHeight,
