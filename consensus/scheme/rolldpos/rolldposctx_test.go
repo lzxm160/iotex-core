@@ -32,6 +32,23 @@ func TestRollDPoSCtx(t *testing.T) {
 	//)
 	require := require.New(t)
 	cfg := config.Default.Consensus.RollDPoS
-	rctx := newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, nil, nil, nil, nil, nil, "", nil, nil)
+
+	// case 1:panic because of chain is nil
+	require.Panics(func() {
+		newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, nil, nil, nil, nil, nil, "", nil, nil)
+	}, "chain is nil")
+
+	// case 2:panic because of fsm time bigger than block interval
+	cfg.FSM.AcceptBlockTTL = time.Second * 10
+	cfg.FSM.AcceptProposalEndorsementTTL = time.Second
+	cfg.FSM.AcceptLockEndorsementTTL = time.Second
+	cfg.FSM.CommitTTL = time.Second
+	require.Panics(func() {
+		newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, nil, nil, nil, nil, nil, "", nil, nil)
+	}, "fsm time bigger than block interval")
+
+	// case 3:normal
+	b, _ := makeChain(t)
+	rctx := newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, nil, nil, nil, "", nil, nil)
 	require.NotNil(rctx)
 }
