@@ -317,7 +317,7 @@ var (
 			lld,
 			4,
 			15,
-			int64(float32(5 / 10.0)),
+			5 / 10,
 			5 / 10.0,
 			iotextypes.EpochData{
 				Num:                     1,
@@ -331,7 +331,7 @@ var (
 			"governanceChainCommittee",
 			4,
 			15,
-			int64(float32(15 / 13.0)),
+			15 / 13,
 			15 / 13.0,
 			iotextypes.EpochData{
 				Num:                     1,
