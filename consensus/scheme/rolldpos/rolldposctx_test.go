@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
+
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/stretchr/testify/require"
 )
@@ -45,10 +47,20 @@ func TestRollDPoSCtx(t *testing.T) {
 	cfg.FSM.CommitTTL = time.Second
 	require.Panics(func() {
 		newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, nil, nil, nil, nil, nil, "", nil, nil)
-	}, "fsm time bigger than block interval")
+	}, "fsm's time is bigger than block interval")
 
-	// case 3:normal
+	// case 3:panic because of rp is nil
 	b, _ := makeChain(t)
-	rctx := newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, nil, nil, nil, "", nil, nil)
+	require.Panics(func() {
+		newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, nil, nil, nil, "", nil, nil)
+	}, "rp is nil")
+
+	// case 4:normal
+	rp := rolldpos.NewProtocol(
+		config.Default.Genesis.NumCandidateDelegates,
+		config.Default.Genesis.NumDelegates,
+		config.Default.Genesis.NumSubEpochs,
+	)
+	rctx := newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, rp, nil, nil, "", nil, nil)
 	require.NotNil(rctx)
 }
