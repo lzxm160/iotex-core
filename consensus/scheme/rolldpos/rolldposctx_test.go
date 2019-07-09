@@ -70,6 +70,6 @@ func TestRollDPoSCtx(t *testing.T) {
 	}, "fsm's time is bigger than block interval")
 
 	// case 5:normal
-	rctx := newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, rp, nil, nil, "", nil, c)
+	rctx := newRollDPoSCtx(cfg, true, time.Second*20, time.Second, true, b, nil, rp, nil, nil, "", nil, c)
 	require.NotNil(rctx)
 }
