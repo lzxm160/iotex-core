@@ -268,7 +268,7 @@ func (api *Server) GetChainMeta(ctx context.Context, in *iotexapi.GetChainMetaRe
 			GravityChainStartHeight: gravityChainStartHeight,
 		},
 		NumActions: int64(totalActions),
-		Tps:        int64(tps),
+		Tps:        int64(tps+1),
 		TpsFloat:   tps,
 	}
 
