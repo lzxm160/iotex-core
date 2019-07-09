@@ -40,23 +40,13 @@ func TestRollDPoSCtx(t *testing.T) {
 		newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, nil, nil, nil, nil, nil, "", nil, nil)
 	}, "chain is nil")
 
-	// case 2:panic because of fsm time bigger than block interval
-	cfg.FSM.AcceptBlockTTL = time.Second * 10
-	cfg.FSM.AcceptProposalEndorsementTTL = time.Second
-	cfg.FSM.AcceptLockEndorsementTTL = time.Second
-	cfg.FSM.CommitTTL = time.Second
+	// case 2:panic because of rp is nil
 	b, _ := makeChain(t)
-	newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, nil, nil, nil, "", nil, nil)
-	require.Panics(func() {
-		newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, nil, nil, nil, nil, nil, "", nil, nil)
-	}, "fsm's time is bigger than block interval")
-
-	// case 3:panic because of rp is nil
 	require.Panics(func() {
 		newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, nil, nil, nil, "", nil, nil)
 	}, "rp is nil")
 
-	// case 4:normal
+	// case 3:normal
 	rp := rolldpos.NewProtocol(
 		config.Default.Genesis.NumCandidateDelegates,
 		config.Default.Genesis.NumDelegates,
@@ -64,4 +54,25 @@ func TestRollDPoSCtx(t *testing.T) {
 	)
 	rctx := newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, rp, nil, nil, "", nil, nil)
 	require.NotNil(rctx)
+
+	//
+	//// case 2:panic because of fsm time bigger than block interval
+	//cfg.FSM.AcceptBlockTTL = time.Second * 10
+	//cfg.FSM.AcceptProposalEndorsementTTL = time.Second
+	//cfg.FSM.AcceptLockEndorsementTTL = time.Second
+	//cfg.FSM.CommitTTL = time.Second
+	//b, _ := makeChain(t)
+	//newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, nil, nil, nil, "", nil, nil)
+	//require.Panics(func() {
+	//	newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, nil, nil, nil, nil, nil, "", nil, nil)
+	//}, "fsm's time is bigger than block interval")
+	//
+	//// case 4:normal
+	//rp := rolldpos.NewProtocol(
+	//	config.Default.Genesis.NumCandidateDelegates,
+	//	config.Default.Genesis.NumDelegates,
+	//	config.Default.Genesis.NumSubEpochs,
+	//)
+	//rctx := newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, rp, nil, nil, "", nil, nil)
+	//require.NotNil(rctx)
 }
