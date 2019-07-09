@@ -210,6 +210,7 @@ func (c *roundCalculator) newRound(
 	var roundNum uint32
 	var proposer string
 	var roundStartTime time.Time
+	fmt.Println("/////////////////////::1")
 	if height != 0 {
 		epochNum = c.rp.GetEpochNum(height)
 		epochStartHeight := c.rp.GetEpochHeight(epochNum)
@@ -223,7 +224,7 @@ func (c *roundCalculator) newRound(
 			return
 		}
 	}
-	fmt.Println("/////////////////////::")
+	fmt.Println("/////////////////////::2")
 	return &roundCtx{
 		epochNum:             epochNum,
 		epochStartHeight:     epochStartHeight,
