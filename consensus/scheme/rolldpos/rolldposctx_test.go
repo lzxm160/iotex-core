@@ -58,29 +58,17 @@ func TestRollDPoSCtx(t *testing.T) {
 		newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, rp, nil, nil, "", nil, nil)
 	}, "clock is nil")
 
-	// case 4:normal
+	// case 4:panic because of fsm time bigger than block interval
 	c := clock.New()
+	cfg.FSM.AcceptBlockTTL = time.Second * 10
+	cfg.FSM.AcceptProposalEndorsementTTL = time.Second
+	cfg.FSM.AcceptLockEndorsementTTL = time.Second
+	cfg.FSM.CommitTTL = time.Second
+	require.Panics(func() {
+		newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, rp, nil, nil, "", nil, c)
+	}, "fsm's time is bigger than block interval")
+
+	// case 5:normal
 	rctx := newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, rp, nil, nil, "", nil, c)
 	require.NotNil(rctx)
-
-	//
-	//// case 2:panic because of fsm time bigger than block interval
-	//cfg.FSM.AcceptBlockTTL = time.Second * 10
-	//cfg.FSM.AcceptProposalEndorsementTTL = time.Second
-	//cfg.FSM.AcceptLockEndorsementTTL = time.Second
-	//cfg.FSM.CommitTTL = time.Second
-	//b, _ := makeChain(t)
-	//newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, nil, nil, nil, "", nil, nil)
-	//require.Panics(func() {
-	//	newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, nil, nil, nil, nil, nil, "", nil, nil)
-	//}, "fsm's time is bigger than block interval")
-	//
-	//// case 4:normal
-	//rp := rolldpos.NewProtocol(
-	//	config.Default.Genesis.NumCandidateDelegates,
-	//	config.Default.Genesis.NumDelegates,
-	//	config.Default.Genesis.NumSubEpochs,
-	//)
-	//rctx := newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, rp, nil, nil, "", nil, nil)
-	//require.NotNil(rctx)
 }
