@@ -45,13 +45,13 @@ func TestRollDPoSCtx(t *testing.T) {
 	cfg.FSM.AcceptProposalEndorsementTTL = time.Second
 	cfg.FSM.AcceptLockEndorsementTTL = time.Second
 	cfg.FSM.CommitTTL = time.Second
-	newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, nil, nil, nil, nil, nil, "", nil, nil)
+	b, _ := makeChain(t)
+	newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, nil, nil, nil, "", nil, nil)
 	require.Panics(func() {
 		newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, nil, nil, nil, nil, nil, "", nil, nil)
 	}, "fsm's time is bigger than block interval")
 
 	// case 3:panic because of rp is nil
-	b, _ := makeChain(t)
 	require.Panics(func() {
 		newRollDPoSCtx(cfg, true, time.Second*10, time.Second, true, b, nil, nil, nil, nil, "", nil, nil)
 	}, "rp is nil")
