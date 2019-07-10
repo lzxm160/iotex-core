@@ -7,6 +7,7 @@
 package rolldpos
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -95,7 +96,7 @@ func (c *roundCalculator) Proposer(height uint64, roundStartTime time.Time) stri
 	if err != nil {
 		return ""
 	}
-
+	fmt.Println(round.roundNum)
 	return round.Proposer()
 }
 
