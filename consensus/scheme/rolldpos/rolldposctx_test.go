@@ -89,3 +89,34 @@ func TestCheckVoteEndorser(t *testing.T) {
 	en = endorsement.NewEndorsement(time.Now(), identityset.PrivateKey(10).PublicKey(), nil)
 	require.NoError(rctx.CheckVoteEndorser(1, nil, en))
 }
+
+func TestCheckBlockProposer(t *testing.T) {
+	require := require.New(t)
+	cfg := config.Default.Consensus.RollDPoS
+	b, _ := makeChain(t)
+	rp := rolldpos.NewProtocol(
+		config.Default.Genesis.NumCandidateDelegates,
+		config.Default.Genesis.NumDelegates,
+		config.Default.Genesis.NumSubEpochs,
+	)
+	c := clock.New()
+	rctx := newRollDPoSCtx(cfg, true, time.Second*20, time.Second, true, b, nil, rp, nil, nil, "", nil, c)
+	require.NotNil(rctx)
+	block := getBlock(t)
+	bp := newBlockProposal(&block, nil)
+	en := endorsement.NewEndorsement(time.Unix(1562382392, 0), identityset.PrivateKey(10).PublicKey(), nil)
+
+	// case 1:panic caused by blockproposal is nil
+	require.Panics(func() {
+		rctx.CheckBlockProposer(1, nil, nil)
+	}, "blockproposal is nil")
+
+	// case 2:panic caused by endorsement is nil
+	require.Panics(func() {
+		rctx.CheckBlockProposer(1, bp, nil)
+	}, "endorsement is nil")
+
+	//
+	err := rctx.CheckBlockProposer(1, bp, en)
+	fmt.Println(err)
+}
