@@ -123,7 +123,7 @@ func TestCheckBlockProposer(t *testing.T) {
 	require.Error(rctx.CheckBlockProposer(123, bp, en))
 
 	// case 5:
-	en = endorsement.NewEndorsement(time.Unix(1562383700, 0), identityset.PrivateKey(10).PublicKey(), nil)
+	en = endorsement.NewEndorsement(time.Unix(1562385700, 0), identityset.PrivateKey(10).PublicKey(), nil)
 	err := rctx.CheckBlockProposer(123, bp, en)
 	fmt.Println(err)
 }
