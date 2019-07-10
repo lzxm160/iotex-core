@@ -7,7 +7,6 @@
 package rolldpos
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -177,7 +176,6 @@ func (ctx *rollDPoSCtx) CheckBlockProposer(
 	}
 	proposerAddr := proposal.ProposerAddress()
 	if ctx.roundCalc.Proposer(height, proposal.block.Timestamp()) != proposerAddr {
-		fmt.Println(ctx.roundCalc.Proposer(height, proposal.block.Timestamp()), ":", proposerAddr)
 		return errors.Errorf("%s is not proposer of the correpsonding round", proposerAddr)
 	}
 	if !proposal.block.VerifySignature() {
