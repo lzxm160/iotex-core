@@ -134,7 +134,7 @@ func TestCheckBlockProposer(t *testing.T) {
 	// case 7:failed to verify proof of lock
 	block = getBlockforctx(t, 5, true)
 	en = endorsement.NewEndorsement(time.Unix(1562382392, 0), identityset.PrivateKey(5).PublicKey(), nil)
-	en2 := endorsement.NewEndorsement(time.Unix(1562382492, 0), identityset.PrivateKey(10).PublicKey(), nil)
+	en2 := endorsement.NewEndorsement(time.Unix(1562382492, 0), identityset.PrivateKey(21).PublicKey(), nil)
 	bp = newBlockProposal(&block, []*endorsement.Endorsement{en2, en})
 	require.Error(rctx.CheckBlockProposer(21, bp, en2))
 	fmt.Println(rctx.CheckBlockProposer(21, bp, en2))
