@@ -131,6 +131,9 @@ func TestCheckBlockProposer(t *testing.T) {
 	bp = newBlockProposal(&block, []*endorsement.Endorsement{en})
 	err := rctx.CheckBlockProposer(21, bp, en)
 	fmt.Println(err)
+	for i := 0; i < 24; i++ {
+		fmt.Println(i, ":", identityset.Address(i).String())
+	}
 }
 
 func getBlockforctx(t *testing.T, i int) block.Block {
