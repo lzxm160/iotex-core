@@ -126,10 +126,9 @@ func TestCheckBlockProposer(t *testing.T) {
 	require.Error(rctx.CheckBlockProposer(21, bp, en))
 
 	// case 6:invalid block signature
-	block = getBlockforctx(t, 22)
+	block = getBlockforctx(t, 5)
 	en = endorsement.NewEndorsement(time.Unix(1562382392, 0), identityset.PrivateKey(5).PublicKey(), nil)
-	en2 := endorsement.NewEndorsement(time.Unix(1562382392, 0), identityset.PrivateKey(5).PublicKey(), nil)
-	bp = newBlockProposal(&block, []*endorsement.Endorsement{en2})
+	bp = newBlockProposal(&block, []*endorsement.Endorsement{en})
 	err := rctx.CheckBlockProposer(21, bp, en)
 	fmt.Println(err)
 	for i := 0; i < 24; i++ {
