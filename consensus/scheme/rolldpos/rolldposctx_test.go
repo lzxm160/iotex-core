@@ -121,4 +121,5 @@ func TestCheckBlockProposer(t *testing.T) {
 	en = endorsement.NewEndorsement(time.Unix(1562382492, 0), identityset.PrivateKey(22).PublicKey(), nil)
 	err := rctx.CheckBlockProposer(21, bp, en)
 	require.Error(err)
+	fmt.Println(err)
 }
