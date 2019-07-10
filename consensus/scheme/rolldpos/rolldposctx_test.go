@@ -78,6 +78,6 @@ func TestCheckVoteEndorser(t *testing.T) {
 	require.Panics(func() { rctx.CheckBlockProposer(0, nil, nil) }, "")
 
 	//case 2:endorser address error
-	en := &endorsement.Endorsement{time.Now(), identityset.PrivateKey(0).PublicKey(), nil}
+	en := endorsement.NewEndorsement(time.Now(), identityset.PrivateKey(0).PublicKey(), nil)
 	require.Error(rctx.CheckBlockProposer(0, nil, en))
 }
