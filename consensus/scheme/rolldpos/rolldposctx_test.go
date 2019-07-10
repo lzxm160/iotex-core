@@ -127,7 +127,7 @@ func TestCheckBlockProposer(t *testing.T) {
 
 	// case 6:invalid block signature
 	block = getBlockforctx(t, 22)
-	en = endorsement.NewEndorsement(time.Unix(1562382392, 0), identityset.PrivateKey(22).PublicKey(), nil)
+	en = endorsement.NewEndorsement(time.Unix(1562382392, 0), identityset.PrivateKey(5).PublicKey(), nil)
 	bp = newBlockProposal(&block, []*endorsement.Endorsement{en})
 	err := rctx.CheckBlockProposer(21, bp, en)
 	fmt.Println(err)
