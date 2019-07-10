@@ -112,14 +112,14 @@ func gasPriceInRau() (*big.Int, error) {
 	return new(big.Int).SetUint64(response.GasPrice), nil
 }
 
-func fixGasLimit(execution *action.Execution) (*action.Execution, error) {
+func fixGasLimit(signer string, execution *action.Execution) (*action.Execution, error) {
 	conn, err := util.ConnectToEndpoint(config.ReadConfig.SecureConnect && !config.Insecure)
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Close()
 	cli := iotexapi.NewAPIServiceClient(conn)
-	caller, err := address.FromBytes(execution.SrcPubkey().Hash())
+	caller, err := address.FromString(signer)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func execute(contract string, amount *big.Int, bytecode []byte) (err error) {
 		return
 	}
 	if gasLimit == 300000 {
-		tx, err = fixGasLimit(tx)
+		tx, err = fixGasLimit(signer, tx)
 		if err != nil || tx == nil {
 			err = errors.Wrap(err, "cannot fix Execution gaslimit")
 			log.L().Error("error when invoke an execution", zap.Error(err))
