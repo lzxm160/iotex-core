@@ -7,6 +7,7 @@
 package rolldpos
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -204,6 +205,7 @@ func (ctx *rollDPoSCtx) CheckBlockProposer(
 				return err
 			}
 		}
+		fmt.Println("xx")
 		if !round.EndorsedByMajority(blkHash[:], []ConsensusVoteTopic{PROPOSAL, COMMIT}) {
 			return errors.Wrap(ErrInsufficientEndorsements, "failed to verify proof of lock")
 		}
