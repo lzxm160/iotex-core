@@ -120,6 +120,6 @@ func TestCheckBlockProposer(t *testing.T) {
 	}, "endorsement is nil")
 
 	//
-	err := rctx.CheckBlockProposer(1, bp, en)
+	err := rctx.CheckBlockProposer(123, bp, en)
 	fmt.Println(err)
 }
