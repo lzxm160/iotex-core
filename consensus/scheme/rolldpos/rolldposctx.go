@@ -191,7 +191,7 @@ func (ctx *rollDPoSCtx) CheckBlockProposer(
 		if err := round.AddBlock(proposal.block); err != nil {
 			return err
 		}
-		fmt.Println("xx")
+
 		blkHash := proposal.block.HashBlock()
 		for _, e := range proposal.proofOfLock {
 			if err := round.AddVoteEndorsement(
@@ -204,6 +204,7 @@ func (ctx *rollDPoSCtx) CheckBlockProposer(
 				NewConsensusVote(blkHash[:], COMMIT),
 				e,
 			); err != nil {
+				fmt.Println("xx")
 				return err
 			}
 		}
