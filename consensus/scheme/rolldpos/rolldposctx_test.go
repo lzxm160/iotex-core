@@ -86,6 +86,6 @@ func TestCheckVoteEndorser(t *testing.T) {
 	des, err := rctx.roundCalc.Delegates(1)
 	require.NoError(err)
 	fmt.Println(des)
-	en = endorsement.NewEndorsement(time.Now(), identityset.PrivateKey(0).PublicKey(), nil)
+	en = endorsement.NewEndorsement(time.Now(), identityset.PrivateKey(10).PublicKey(), nil)
 	require.NoError(rctx.CheckVoteEndorser(1, nil, en))
 }
