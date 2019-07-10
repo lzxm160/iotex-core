@@ -182,8 +182,8 @@ func (ctx *rollDPoSCtx) CheckBlockProposer(
 	if !proposal.block.VerifySignature() {
 		return errors.Errorf("invalid block signature")
 	}
+	fmt.Println(proposerAddr, ":", endorserAddr.String())
 	if proposerAddr != endorserAddr.String() {
-		fmt.Println("hear")
 		round, err := ctx.roundCalc.NewRound(height, en.Timestamp())
 		if err != nil {
 			return err
