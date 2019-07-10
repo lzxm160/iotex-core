@@ -124,6 +124,8 @@ func TestCheckBlockProposer(t *testing.T) {
 
 	// case 5:
 	en = endorsement.NewEndorsement(time.Unix(1562385700, 0), identityset.PrivateKey(10).PublicKey(), nil)
-	err := rctx.CheckBlockProposer(123, bp, en)
+	d, err := rctx.roundCalc.Delegates(123)
+	fmt.Println(d, ":", err)
+	err = rctx.CheckBlockProposer(123, bp, en)
 	fmt.Println(err)
 }
