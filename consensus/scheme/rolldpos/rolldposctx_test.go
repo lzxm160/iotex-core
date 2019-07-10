@@ -7,23 +7,19 @@
 package rolldpos
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/iotexproject/iotex-core/blockchain/block"
-	"github.com/iotexproject/iotex-proto/golang/iotextypes"
-
-	"github.com/iotexproject/iotex-core/endorsement"
-	"github.com/iotexproject/iotex-core/test/identityset"
-
 	"github.com/facebookgo/clock"
+	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/iotexproject/iotex-proto/golang/iotextypes"
+	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
-
+	"github.com/iotexproject/iotex-core/blockchain/block"
 	"github.com/iotexproject/iotex-core/config"
-	"github.com/stretchr/testify/require"
+	"github.com/iotexproject/iotex-core/endorsement"
+	"github.com/iotexproject/iotex-core/test/identityset"
 )
 
 func TestRollDPoSCtx(t *testing.T) {
@@ -87,9 +83,6 @@ func TestCheckVoteEndorser(t *testing.T) {
 	require.Error(rctx.CheckVoteEndorser(0, nil, en))
 
 	// case 3:normal
-	des, err := rctx.roundCalc.Delegates(1)
-	require.NoError(err)
-	fmt.Println(des)
 	en = endorsement.NewEndorsement(time.Now(), identityset.PrivateKey(10).PublicKey(), nil)
 	require.NoError(rctx.CheckVoteEndorser(1, nil, en))
 }
@@ -138,18 +131,16 @@ func TestCheckBlockProposer(t *testing.T) {
 	bp = newBlockProposal(&block, []*endorsement.Endorsement{en2, en})
 	require.Error(rctx.CheckBlockProposer(21, bp, en2))
 
-	// case 8:invalid endorsement for the vote when call AddVoteEndorsement
+	// case 8:Insufficient endorsements
 	block = getBlockforctx(t, 5, true)
 	hash := block.HashBlock()
 	vote := NewConsensusVote(hash[:], COMMIT)
 	en2, err := endorsement.Endorse(identityset.PrivateKey(7), vote, time.Unix(1562382592, 0))
 	require.NoError(err)
-	//en2 = endorsement.NewEndorsement(time.Unix(1562382592, 0), identityset.PrivateKey(7).PublicKey(), nil)
 	bp = newBlockProposal(&block, []*endorsement.Endorsement{en2})
 	require.Error(rctx.CheckBlockProposer(21, bp, en2))
-	fmt.Println(rctx.CheckBlockProposer(21, bp, en2))
 
-	// case 8:normal
+	// case 9:normal
 	block = getBlockforctx(t, 5, true)
 	bp = newBlockProposal(&block, []*endorsement.Endorsement{en})
 	require.NoError(rctx.CheckBlockProposer(21, bp, en))

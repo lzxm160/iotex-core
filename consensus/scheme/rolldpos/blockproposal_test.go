@@ -28,7 +28,7 @@ func TestNewBlockProposal(t *testing.T) {
 	b := getBlock(t)
 	bp2 := newBlockProposal(&b, nil)
 	require.NotNil(bp2)
-	require.Equal(uint64(21), bp2.Height())
+	require.Equal(uint64(123), bp2.Height())
 	require.Equal(identityset.Address(0).String(), bp2.ProposerAddress())
 
 	h, err := bp2.Hash()
@@ -49,7 +49,7 @@ func getBlock(t *testing.T) block.Block {
 	ts := &timestamp.Timestamp{Seconds: 10, Nanos: 10}
 	hcore := &iotextypes.BlockHeaderCore{
 		Version:          1,
-		Height:           21,
+		Height:           123,
 		Timestamp:        ts,
 		PrevBlockHash:    []byte(""),
 		TxRoot:           []byte(""),

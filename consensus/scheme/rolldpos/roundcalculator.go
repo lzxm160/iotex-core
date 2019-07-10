@@ -95,6 +95,7 @@ func (c *roundCalculator) Proposer(height uint64, roundStartTime time.Time) stri
 	if err != nil {
 		return ""
 	}
+
 	return round.Proposer()
 }
 
