@@ -164,6 +164,7 @@ func execute(contract string, amount *big.Int, bytecode []byte) (err error) {
 			return
 		}
 	}
+	fmt.Println(tx.GasLimit())
 	return sendAction(
 		(&action.EnvelopeBuilder{}).
 			SetNonce(nonce).
