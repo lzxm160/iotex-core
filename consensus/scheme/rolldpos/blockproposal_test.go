@@ -28,7 +28,7 @@ func TestNewBlockProposal(t *testing.T) {
 	b := getBlock(t)
 	bp2 := newBlockProposal(&b, nil)
 	require.NotNil(bp2)
-	require.Equal(uint64(123), bp2.Height())
+	require.Equal(uint64(21), bp2.Height())
 	require.Equal(identityset.Address(0).String(), bp2.ProposerAddress())
 
 	h, err := bp2.Hash()
