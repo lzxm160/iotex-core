@@ -11,7 +11,6 @@ import (
 	"encoding/hex"
 	"math/big"
 	"net"
-	"sort"
 	"strconv"
 	"time"
 
@@ -779,9 +778,9 @@ func (api *Server) getActionsByAddress(address string, start uint64, count uint6
 		}
 		res.ActionInfo = append(res.ActionInfo, act)
 	}
-	sort.Slice(res.ActionInfo, func(i, j int) bool {
-		return res.ActionInfo[i].Timestamp.Seconds < res.ActionInfo[j].Timestamp.Seconds
-	})
+	//sort.Slice(res.ActionInfo, func(i, j int) bool {
+	//	return res.ActionInfo[i].Timestamp.Seconds < res.ActionInfo[j].Timestamp.Seconds
+	//})
 
 	end := start + count
 	if end > uint64(len(res.ActionInfo)) {
