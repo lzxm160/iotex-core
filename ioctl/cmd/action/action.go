@@ -163,8 +163,8 @@ func execute(contract string, amount *big.Int, bytecode []byte) (err error) {
 			log.L().Error("error when invoke an execution", zap.Error(err))
 			return
 		}
+		gasLimit = tx.GasLimit()
 	}
-	gasLimit = tx.GasLimit()
 	fmt.Println(gasLimit)
 	return sendAction(
 		(&action.EnvelopeBuilder{}).
