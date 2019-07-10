@@ -119,6 +119,10 @@ func TestCheckBlockProposer(t *testing.T) {
 
 	// case 5:
 	en = endorsement.NewEndorsement(time.Unix(1562382492, 0), identityset.PrivateKey(8).PublicKey(), nil)
+	for i := 0; i < 24; i++ {
+		fmt.Println(i, ":", identityset.Address(i).String())
+	}
+	fmt.Println()
 	err := rctx.CheckBlockProposer(21, bp, en)
 	fmt.Println(err)
 }
