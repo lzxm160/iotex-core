@@ -129,6 +129,7 @@ func TestCheckBlockProposer(t *testing.T) {
 	block = getBlockforctx(t, 22)
 	en = endorsement.NewEndorsement(time.Unix(1562382392, 0), identityset.PrivateKey(5).PublicKey(), nil)
 	bp = newBlockProposal(&block, []*endorsement.Endorsement{en})
+	fmt.Println(bp.ProposerAddress())
 	err := rctx.CheckBlockProposer(21, bp, en)
 	fmt.Println(err)
 	for i := 0; i < 24; i++ {
