@@ -1020,6 +1020,7 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 		Action: &iotexapi.EstimateActionGasConsumptionRequest_Execution{
 			Execution: execution.Proto(),
 		},
+		CallerAddress: identityset.Address(0).String(),
 	}
 	res, err := svr.EstimateActionGasConsumption(context.Background(), request)
 	require.NoError(err)
@@ -1032,6 +1033,7 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 		Action: &iotexapi.EstimateActionGasConsumptionRequest_Transfer{
 			Transfer: tran.Proto(),
 		},
+		CallerAddress: identityset.Address(0).String(),
 	}
 	res, err = svr.EstimateActionGasConsumption(context.Background(), request)
 	require.NoError(err)
