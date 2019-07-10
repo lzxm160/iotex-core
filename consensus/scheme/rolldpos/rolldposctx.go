@@ -7,6 +7,7 @@
 package rolldpos
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -182,6 +183,7 @@ func (ctx *rollDPoSCtx) CheckBlockProposer(
 		return errors.Errorf("invalid block signature")
 	}
 	if proposerAddr != endorserAddr.String() {
+		fmt.Println("hear")
 		round, err := ctx.roundCalc.NewRound(height, en.Timestamp())
 		if err != nil {
 			return err
