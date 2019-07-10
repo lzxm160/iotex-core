@@ -130,6 +130,11 @@ func TestCheckBlockProposer(t *testing.T) {
 	en = endorsement.NewEndorsement(time.Unix(1562382392, 0), identityset.PrivateKey(5).PublicKey(), nil)
 	bp = newBlockProposal(&block, []*endorsement.Endorsement{en})
 	require.Error(rctx.CheckBlockProposer(21, bp, en))
+
+	// case 7:normal
+	block = getBlockforctx(t, 5, true)
+	bp = newBlockProposal(&block, []*endorsement.Endorsement{en})
+	require.Error(rctx.CheckBlockProposer(21, bp, en))
 }
 
 func getBlockforctx(t *testing.T, i int, sign bool) block.Block {
