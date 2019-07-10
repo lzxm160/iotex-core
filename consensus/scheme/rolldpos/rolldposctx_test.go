@@ -111,9 +111,12 @@ func TestCheckBlockProposer(t *testing.T) {
 		rctx.CheckBlockProposer(1, nil, nil)
 	}, "blockproposal is nil")
 
-	// case 2:panic caused by endorsement is nil
+	// case 2:height != proposal.block.Height()
+	require.Error(rctx.CheckBlockProposer(1, bp, nil))
+
+	// case 3:panic caused by endorsement is nil
 	require.Panics(func() {
-		rctx.CheckBlockProposer(1, bp, nil)
+		rctx.CheckBlockProposer(123, bp, nil)
 	}, "endorsement is nil")
 
 	//
