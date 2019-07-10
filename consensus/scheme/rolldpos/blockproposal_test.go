@@ -49,7 +49,7 @@ func getBlock(t *testing.T) block.Block {
 	ts := &timestamp.Timestamp{Seconds: 10, Nanos: 10}
 	hcore := &iotextypes.BlockHeaderCore{
 		Version:          1,
-		Height:           123,
+		Height:           21,
 		Timestamp:        ts,
 		PrevBlockHash:    []byte(""),
 		TxRoot:           []byte(""),

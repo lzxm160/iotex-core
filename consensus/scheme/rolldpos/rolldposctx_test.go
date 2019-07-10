@@ -111,16 +111,16 @@ func TestCheckBlockProposer(t *testing.T) {
 
 	// case 3:panic caused by endorsement is nil
 	require.Panics(func() {
-		rctx.CheckBlockProposer(123, bp, nil)
+		rctx.CheckBlockProposer(21, bp, nil)
 	}, "endorsement is nil")
 
 	// case 4:en's address is not proposer of the corresponding round
-	require.Error(rctx.CheckBlockProposer(123, bp, en))
+	require.Error(rctx.CheckBlockProposer(21, bp, en))
 
 	// case 5:
-	en = endorsement.NewEndorsement(time.Unix(1562385700, 0), identityset.PrivateKey(10).PublicKey(), nil)
-	d, err := rctx.roundCalc.Delegates(123)
+	en = endorsement.NewEndorsement(time.Unix(1562382492, 0), identityset.PrivateKey(10).PublicKey(), nil)
+	d, err := rctx.roundCalc.Delegates(21)
 	fmt.Println(d, ":", err)
-	err = rctx.CheckBlockProposer(123, bp, en)
+	err = rctx.CheckBlockProposer(21, bp, en)
 	fmt.Println(err)
 }
