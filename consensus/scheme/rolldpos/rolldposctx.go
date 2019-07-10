@@ -7,7 +7,6 @@
 package rolldpos
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -204,7 +203,6 @@ func (ctx *rollDPoSCtx) CheckBlockProposer(
 				NewConsensusVote(blkHash[:], COMMIT),
 				e,
 			); err != nil {
-				fmt.Println("xx")
 				return err
 			}
 		}

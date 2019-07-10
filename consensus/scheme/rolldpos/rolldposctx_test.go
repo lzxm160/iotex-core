@@ -137,11 +137,14 @@ func TestCheckBlockProposer(t *testing.T) {
 	en2 := endorsement.NewEndorsement(time.Unix(1562382592, 0), identityset.PrivateKey(7).PublicKey(), nil)
 	bp = newBlockProposal(&block, []*endorsement.Endorsement{en2, en})
 	require.Error(rctx.CheckBlockProposer(21, bp, en2))
-	fmt.Println(rctx.CheckBlockProposer(21, bp, en2))
 
 	// case 8:invalid endorsement for the vote when call AddVoteEndorsement
 	block = getBlockforctx(t, 5, true)
-	en2 = endorsement.NewEndorsement(time.Unix(1562382592, 0), identityset.PrivateKey(7).PublicKey(), nil)
+	hash := block.HashBlock()
+	vote := NewConsensusVote(hash[:], COMMIT)
+	en2, err := endorsement.Endorse(identityset.PrivateKey(7), vote, time.Unix(1562382592, 0))
+	require.NoError(err)
+	//en2 = endorsement.NewEndorsement(time.Unix(1562382592, 0), identityset.PrivateKey(7).PublicKey(), nil)
 	bp = newBlockProposal(&block, []*endorsement.Endorsement{en2})
 	require.Error(rctx.CheckBlockProposer(21, bp, en2))
 	fmt.Println(rctx.CheckBlockProposer(21, bp, en2))
