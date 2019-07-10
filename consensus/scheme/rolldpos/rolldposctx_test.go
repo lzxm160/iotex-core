@@ -93,12 +93,7 @@ func TestCheckVoteEndorser(t *testing.T) {
 func TestCheckBlockProposer(t *testing.T) {
 	require := require.New(t)
 	cfg := config.Default.Consensus.RollDPoS
-	b, _ := makeChain(t)
-	rp := rolldpos.NewProtocol(
-		config.Default.Genesis.NumCandidateDelegates,
-		config.Default.Genesis.NumDelegates,
-		config.Default.Genesis.NumSubEpochs,
-	)
+	b, rp := makeChain(t)
 	c := clock.New()
 	rctx := newRollDPoSCtx(cfg, true, time.Second*20, time.Second, true, b, nil, rp, nil, nil, "", nil, c)
 	require.NotNil(rctx)
