@@ -1037,7 +1037,7 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 	}
 	res, err = svr.EstimateActionGasConsumption(context.Background(), request)
 	require.NoError(err)
-	require.Equal(uint64(0), res.Gas)
+	require.Equal(uint64(10300), res.Gas)
 }
 
 func TestServer_ReadUnclaimedBalance(t *testing.T) {
