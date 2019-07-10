@@ -119,7 +119,11 @@ func TestCheckBlockProposer(t *testing.T) {
 		rctx.CheckBlockProposer(123, bp, nil)
 	}, "endorsement is nil")
 
-	//
+	// case 4:en's address is not proposer of the corresponding round
+	require.Error(rctx.CheckBlockProposer(123, bp, en))
+
+	// case 5:
+	en = endorsement.NewEndorsement(time.Unix(1562383700, 0), identityset.PrivateKey(10).PublicKey(), nil)
 	err := rctx.CheckBlockProposer(123, bp, en)
 	fmt.Println(err)
 }
