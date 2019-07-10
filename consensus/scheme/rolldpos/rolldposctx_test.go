@@ -103,8 +103,8 @@ func TestCheckBlockProposer(t *testing.T) {
 	rctx := newRollDPoSCtx(cfg, true, time.Second*20, time.Second, true, b, nil, rp, nil, nil, "", nil, c)
 	require.NotNil(rctx)
 	block := getBlock(t)
-	bp := newBlockProposal(&block, nil)
 	en := endorsement.NewEndorsement(time.Unix(1562382392, 0), identityset.PrivateKey(10).PublicKey(), nil)
+	bp := newBlockProposal(&block, []*endorsement.Endorsement{en})
 
 	// case 1:panic caused by blockproposal is nil
 	require.Panics(func() {
