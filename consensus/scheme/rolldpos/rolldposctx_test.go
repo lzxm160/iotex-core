@@ -11,6 +11,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/iotexproject/iotex-core/blockchain/block"
+	"github.com/iotexproject/iotex-proto/golang/iotextypes"
+
 	"github.com/iotexproject/iotex-core/endorsement"
 	"github.com/iotexproject/iotex-core/test/identityset"
 
@@ -97,7 +101,7 @@ func TestCheckBlockProposer(t *testing.T) {
 	c := clock.New()
 	rctx := newRollDPoSCtx(cfg, true, time.Second*20, time.Second, true, b, nil, rp, nil, nil, "", nil, c)
 	require.NotNil(rctx)
-	block := getBlock(t)
+	block := getBlockforctx(t, 0)
 	en := endorsement.NewEndorsement(time.Unix(1562382392, 0), identityset.PrivateKey(10).PublicKey(), nil)
 	bp := newBlockProposal(&block, []*endorsement.Endorsement{en})
 
@@ -117,9 +121,33 @@ func TestCheckBlockProposer(t *testing.T) {
 	// case 4:en's address is not proposer of the corresponding round
 	require.Error(rctx.CheckBlockProposer(21, bp, en))
 
-	// case 5:
+	// case 5:endorsor is not proposer of the correpsonding round
 	en = endorsement.NewEndorsement(time.Unix(1562382492, 0), identityset.PrivateKey(22).PublicKey(), nil)
+	require.Error(rctx.CheckBlockProposer(21, bp, en))
+
+	// case 6:invalid block signature
+	block = getBlockforctx(t, 22)
+	en = endorsement.NewEndorsement(time.Unix(1562382392, 0), identityset.PrivateKey(22).PublicKey(), nil)
+	bp = newBlockProposal(&block, []*endorsement.Endorsement{en})
 	err := rctx.CheckBlockProposer(21, bp, en)
-	require.Error(err)
 	fmt.Println(err)
+}
+
+func getBlockforctx(t *testing.T, i int) block.Block {
+	require := require.New(t)
+	ts := &timestamp.Timestamp{Seconds: 10, Nanos: 10}
+	hcore := &iotextypes.BlockHeaderCore{
+		Version:          1,
+		Height:           21,
+		Timestamp:        ts,
+		PrevBlockHash:    []byte(""),
+		TxRoot:           []byte(""),
+		DeltaStateDigest: []byte(""),
+		ReceiptRoot:      []byte(""),
+	}
+	header := block.Header{}
+	require.NoError(header.LoadFromBlockHeaderProto(&iotextypes.BlockHeader{Core: hcore, ProducerPubkey: identityset.PrivateKey(i).PublicKey().Bytes()}))
+
+	b := block.Block{Header: header}
+	return b
 }
