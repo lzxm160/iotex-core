@@ -101,7 +101,7 @@ func TestCheckBlockProposer(t *testing.T) {
 	c := clock.New()
 	rctx := newRollDPoSCtx(cfg, true, time.Second*20, time.Second, true, b, nil, rp, nil, nil, "", nil, c)
 	require.NotNil(rctx)
-	block := getBlockforctx(t, 0)
+	block := getBlockforctx(t, 0, false)
 	en := endorsement.NewEndorsement(time.Unix(1562382392, 0), identityset.PrivateKey(10).PublicKey(), nil)
 	bp := newBlockProposal(&block, []*endorsement.Endorsement{en})
 
@@ -126,17 +126,13 @@ func TestCheckBlockProposer(t *testing.T) {
 	require.Error(rctx.CheckBlockProposer(21, bp, en))
 
 	// case 6:invalid block signature
-	block = getBlockforctx(t, 5)
+	block = getBlockforctx(t, 5, false)
 	en = endorsement.NewEndorsement(time.Unix(1562382392, 0), identityset.PrivateKey(5).PublicKey(), nil)
 	bp = newBlockProposal(&block, []*endorsement.Endorsement{en})
-	err := rctx.CheckBlockProposer(21, bp, en)
-	fmt.Println(err)
-	for i := 0; i < 24; i++ {
-		fmt.Println(i, ":", identityset.Address(i).String())
-	}
+	require.Error(rctx.CheckBlockProposer(21, bp, en))
 }
 
-func getBlockforctx(t *testing.T, i int) block.Block {
+func getBlockforctx(t *testing.T, i int, sign bool) block.Block {
 	require := require.New(t)
 	ts := &timestamp.Timestamp{Seconds: 1562382392, Nanos: 10}
 	hcore := &iotextypes.BlockHeaderCore{
@@ -149,7 +145,16 @@ func getBlockforctx(t *testing.T, i int) block.Block {
 		ReceiptRoot:      []byte(""),
 	}
 	header := block.Header{}
-	require.NoError(header.LoadFromBlockHeaderProto(&iotextypes.BlockHeader{Core: hcore, ProducerPubkey: identityset.PrivateKey(i).PublicKey().Bytes()}))
+	protoHeader := &iotextypes.BlockHeader{Core: hcore, ProducerPubkey: identityset.PrivateKey(i).PublicKey().Bytes()}
+	require.NoError(header.LoadFromBlockHeaderProto(protoHeader))
+
+	if sign {
+		hash := header.HashHeaderCore()
+		sig, err := identityset.PrivateKey(i).Sign(hash[:])
+		require.NoError(err)
+		protoHeader = &iotextypes.BlockHeader{Core: hcore, ProducerPubkey: identityset.PrivateKey(i).PublicKey().Bytes(), Signature: sig}
+		require.NoError(header.LoadFromBlockHeaderProto(protoHeader))
+	}
 
 	b := block.Block{Header: header}
 	return b
