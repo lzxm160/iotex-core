@@ -7,6 +7,7 @@
 package rolldpos
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -82,6 +83,9 @@ func TestCheckVoteEndorser(t *testing.T) {
 	require.Error(rctx.CheckVoteEndorser(0, nil, en))
 
 	// case 3:normal
+	des, err := rctx.roundCalc.Delegates(1)
+	require.NoError(err)
+	fmt.Println(des)
 	en = endorsement.NewEndorsement(time.Now(), identityset.PrivateKey(0).PublicKey(), nil)
 	require.NoError(rctx.CheckVoteEndorser(1, nil, en))
 }
