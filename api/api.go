@@ -1094,12 +1094,14 @@ func (api *Server) estimateActionGasConsumptionForExecution(exec *iotextypes.Exe
 	if err := sc.LoadProto(exec); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-
+	callerAddr, err := address.FromString(sender)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 	caller, err := api.bc.StateByAddr(sender)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-
 	sc, _ = action.NewExecution(
 		sc.Contract(),
 		caller.Nonce+1,
@@ -1108,11 +1110,6 @@ func (api *Server) estimateActionGasConsumptionForExecution(exec *iotextypes.Exe
 		big.NewInt(0),
 		sc.Data(),
 	)
-
-	callerAddr, err := address.FromString(sender)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
 
 	_, receipt, err := api.bc.ExecuteContractRead(callerAddr, sc)
 	if err != nil {
@@ -1128,8 +1125,7 @@ func (api *Server) estimateActionGasConsumptionForExecution(exec *iotextypes.Exe
 
 func (api *Server) estimateActionGasConsumptionForTransfer(transfer *iotextypes.Transfer) (*iotexapi.EstimateActionGasConsumptionResponse, error) {
 	payloadSize := uint64(len(transfer.Payload))
-	gasConsumed := payloadSize*action.TransferPayloadGas + action.TransferBaseIntrinsicGas
 	return &iotexapi.EstimateActionGasConsumptionResponse{
-		Gas: gasConsumed,
+		Gas: payloadSize*action.TransferPayloadGas + action.TransferBaseIntrinsicGas,
 	}, nil
 }
