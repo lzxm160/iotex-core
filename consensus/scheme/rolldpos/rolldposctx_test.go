@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/iotexproject/iotex-core/blockchain/block"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 
@@ -129,6 +128,7 @@ func TestCheckBlockProposer(t *testing.T) {
 	block = getBlockforctx(t, 22)
 	en = endorsement.NewEndorsement(time.Unix(1562382392, 0), identityset.PrivateKey(5).PublicKey(), nil)
 	bp = newBlockProposal(&block, []*endorsement.Endorsement{en})
+	fmt.Println(rctx.roundCalc.Proposer(21, bp.block.Timestamp()))
 	err := rctx.CheckBlockProposer(21, bp, en)
 	fmt.Println(err)
 	for i := 0; i < 24; i++ {
@@ -138,7 +138,7 @@ func TestCheckBlockProposer(t *testing.T) {
 
 func getBlockforctx(t *testing.T, i int) block.Block {
 	require := require.New(t)
-	ts := &timestamp.Timestamp{Seconds: 1562382392, Nanos: 10}
+	ts := time.Unix(1562382392, 0)
 	hcore := &iotextypes.BlockHeaderCore{
 		Version:          1,
 		Height:           21,
