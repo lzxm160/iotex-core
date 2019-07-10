@@ -131,7 +131,7 @@ func fixGasLimit(signer string, execution *action.Execution) (*action.Execution,
 	}
 	res, err := cli.EstimateActionGasConsumption(context.Background(), request)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("error when invoke EstimateActionGasConsumption api")
 	}
 	return action.NewExecution(execution.Contract(), execution.Nonce(), execution.Amount(), res.Gas, execution.GasPrice(), execution.Data())
 }
@@ -164,7 +164,8 @@ func execute(contract string, amount *big.Int, bytecode []byte) (err error) {
 			return
 		}
 	}
-	fmt.Println(tx.GasLimit())
+	gasLimit = tx.GasLimit()
+	fmt.Println(gasLimit)
 	return sendAction(
 		(&action.EnvelopeBuilder{}).
 			SetNonce(nonce).
