@@ -75,9 +75,9 @@ func TestCheckVoteEndorser(t *testing.T) {
 	require.NotNil(rctx)
 
 	// case 1:endorser nil caused panic
-	require.Panics(func() { rctx.CheckBlockProposer(0, nil, nil) }, "")
+	require.Panics(func() { rctx.CheckVoteEndorser(0, nil, nil) }, "")
 
 	//case 2:endorser address error
 	en := endorsement.NewEndorsement(time.Now(), identityset.PrivateKey(0).PublicKey(), nil)
-	require.Error(rctx.CheckBlockProposer(0, nil, en))
+	require.Error(rctx.CheckVoteEndorser(0, nil, en))
 }
