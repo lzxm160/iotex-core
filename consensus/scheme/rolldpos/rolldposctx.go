@@ -187,6 +187,7 @@ func (ctx *rollDPoSCtx) CheckBlockProposer(
 		if err != nil {
 			return err
 		}
+		fmt.Println("xx")
 		if err := round.AddBlock(proposal.block); err != nil {
 			return err
 		}
@@ -205,7 +206,7 @@ func (ctx *rollDPoSCtx) CheckBlockProposer(
 				return err
 			}
 		}
-		fmt.Println("xx")
+
 		if !round.EndorsedByMajority(blkHash[:], []ConsensusVoteTopic{PROPOSAL, COMMIT}) {
 			return errors.Wrap(ErrInsufficientEndorsements, "failed to verify proof of lock")
 		}

@@ -138,10 +138,7 @@ func TestCheckBlockProposer(t *testing.T) {
 	bp = newBlockProposal(&block, []*endorsement.Endorsement{en2, en})
 	require.Error(rctx.CheckBlockProposer(21, bp, en2))
 	fmt.Println(rctx.CheckBlockProposer(21, bp, en2))
-	for i := 0; i < 24; i++ {
-		fmt.Println(i, ":", identityset.Address(i).String())
-	}
-	fmt.Println()
+
 	// case 8:normal
 	block = getBlockforctx(t, 5, true)
 	bp = newBlockProposal(&block, []*endorsement.Endorsement{en})
