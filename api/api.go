@@ -999,11 +999,11 @@ func (api *Server) getAction(actHash hash.Hash256, checkPending bool) (*iotexapi
 }
 
 func (api *Server) getTotalActionsByAddress(address string, start uint64, count uint64) ([]hash.Hash256, error) {
-	actions, err := api.bc.GetActionsFromAddress(address)
+	actions, err := api.bc.GetActionsFromAddressCount(address, start, count)
 	if err != nil {
 		return nil, err
 	}
-	actionsToAddress, err := api.bc.GetActionsToAddress(address)
+	actionsToAddress, err := api.bc.GetActionsToAddressCount(address, start, count)
 	if err != nil {
 		return nil, err
 	}
