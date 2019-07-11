@@ -321,10 +321,10 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 		}
 		deltaRecipient, ok := recipientDelta[dstAddrBytes]
 		if ok {
-			senderDelta[dstAddrBytes]++
+			recipientDelta[dstAddrBytes]++
 		} else {
 			deltaRecipient = 0
-			senderDelta[dstAddrBytes] = 1
+			recipientDelta[dstAddrBytes] = 1
 		}
 		recipientActionCount += deltaRecipient
 		// put new action to recipient
