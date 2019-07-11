@@ -287,13 +287,13 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 		}
 		senderActionCount += delta
 		//fmt.Println(senderActionCount, "############################", delta)
-		addr, _ := address.FromBytes(callerAddrBytes[:])
-		log.L().Info(
-			"############################",
-			zap.String("addr", addr.String()),
-			zap.Uint64("senderActionCount", senderActionCount),
-			zap.Uint64("delta", delta),
-		)
+		//addr, _ := address.FromBytes(callerAddrBytes[:])
+		//log.L().Info(
+		//	"############################",
+		//	zap.String("addr", addr.String()),
+		//	zap.Uint64("senderActionCount", senderActionCount),
+		//	zap.Uint64("delta", delta),
+		//)
 		// put new action to sender
 		senderKey := append(actionFromPrefix, callerAddrBytes[:]...)
 		senderKey = append(senderKey, byteutil.Uint64ToBytes(senderActionCount)...)
