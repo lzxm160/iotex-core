@@ -286,6 +286,12 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 			senderDelta[callerAddrBytes] = 0
 		}
 		senderActionCount += delta
+		//fmt.Println(senderActionCount, "############################", delta)
+		log.L().Info(
+			"############################",
+			zap.Uint64("senderActionCount", senderActionCount),
+			zap.Uint64("delta", delta),
+		)
 		// put new action to sender
 		senderKey := append(actionFromPrefix, callerAddrBytes[:]...)
 		senderKey = append(senderKey, byteutil.Uint64ToBytes(senderActionCount)...)
