@@ -279,13 +279,13 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 		if err != nil {
 			return errors.Wrapf(err, "for sender %x", callerAddrBytes)
 		}
-		if delta, ok := senderDelta[callerAddrBytes]; ok {
-			senderActionCount += delta - 1
+		delta, ok := senderDelta[callerAddrBytes]
+		if ok {
 			senderDelta[callerAddrBytes]++
 		} else {
-			senderDelta[callerAddrBytes] = 1
+			senderDelta[callerAddrBytes] = 0
 		}
-
+		senderActionCount += delta
 		// put new action to sender
 		senderKey := append(actionFromPrefix, callerAddrBytes[:]...)
 		senderKey = append(senderKey, byteutil.Uint64ToBytes(senderActionCount)...)
