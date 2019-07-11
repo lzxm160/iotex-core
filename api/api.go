@@ -760,7 +760,7 @@ func (api *Server) getActionsByAddress(address string, start uint64, count uint6
 	// In the case of contract address, do not sort in order to save db I/O performance
 	// TODO: This is a workaround to keep actions in correct order while not affecting db I/O performance too much
 	//if account.IsContract() {
-	for i := start; i < uint64(len(actions)) && i < start+count*2; i++ {
+	for i := uint64(0); i < uint64(len(actions)); i++ {
 		act, err := api.getAction(actions[i], false)
 		if err != nil {
 			continue
@@ -782,13 +782,13 @@ func (api *Server) getActionsByAddress(address string, start uint64, count uint6
 	//	return res.ActionInfo[i].Timestamp.Seconds < res.ActionInfo[j].Timestamp.Seconds
 	//})
 
-	end := start + count
-	if end > uint64(len(res.ActionInfo)) {
-		end = uint64(len(res.ActionInfo))
-	}
-	res.ActionInfo = res.ActionInfo[start:end]
-
-	return res, nil
+	//end := start + count
+	//if end > uint64(len(res.ActionInfo)) {
+	//	end = uint64(len(res.ActionInfo))
+	//}
+	//res.ActionInfo = res.ActionInfo[start:end]
+	//
+	//return res, nil
 }
 
 // getUnconfirmedActionsByAddress returns all unconfirmed actions in actpool associated with an address
