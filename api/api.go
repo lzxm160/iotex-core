@@ -738,7 +738,6 @@ func (api *Server) getActionsByAddress(address string, start uint64, count uint6
 	if count > api.cfg.API.RangeQueryLimit {
 		return nil, status.Error(codes.InvalidArgument, "range exceeds the limit")
 	}
-
 	actions, err := api.getTotalActionsByAddress(address, start, count)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
@@ -746,20 +745,7 @@ func (api *Server) getActionsByAddress(address string, start uint64, count uint6
 	if len(actions) == 0 {
 		return &iotexapi.GetActionsResponse{}, nil
 	}
-	//if start >= uint64(len(actions)) {
-	//	return nil, status.Error(codes.InvalidArgument, "start exceeds the limit")
-	//}
-
 	res := &iotexapi.GetActionsResponse{Total: uint64(len(actions))}
-
-	//account, err := api.bc.StateByAddr(address)
-	//if err != nil {
-	//	return nil, status.Error(codes.Internal, "failed to get account state by address")
-	//}
-
-	// In the case of contract address, do not sort in order to save db I/O performance
-	// TODO: This is a workaround to keep actions in correct order while not affecting db I/O performance too much
-	//if account.IsContract() {
 	for i := uint64(0); i < uint64(len(actions)); i++ {
 		act, err := api.getAction(actions[i], false)
 		if err != nil {
@@ -768,27 +754,6 @@ func (api *Server) getActionsByAddress(address string, start uint64, count uint6
 		res.ActionInfo = append(res.ActionInfo, act)
 	}
 	return res, nil
-	//}
-
-	// sort action by timestamp
-	//for _, action := range actions {
-	//	act, err := api.getAction(action, false)
-	//	if err != nil {
-	//		continue
-	//	}
-	//	res.ActionInfo = append(res.ActionInfo, act)
-	//}
-	//sort.Slice(res.ActionInfo, func(i, j int) bool {
-	//	return res.ActionInfo[i].Timestamp.Seconds < res.ActionInfo[j].Timestamp.Seconds
-	//})
-
-	//end := start + count
-	//if end > uint64(len(res.ActionInfo)) {
-	//	end = uint64(len(res.ActionInfo))
-	//}
-	//res.ActionInfo = res.ActionInfo[start:end]
-	//
-	//return res, nil
 }
 
 // getUnconfirmedActionsByAddress returns all unconfirmed actions in actpool associated with an address

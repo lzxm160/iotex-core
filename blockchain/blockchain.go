@@ -514,7 +514,6 @@ func (bc *blockchain) GetActionsFromAddressCount(addrStr string, start uint64, c
 	}
 	addrBytes := hash.BytesToHash160(addr.Bytes())
 	var res []hash.Hash256
-
 	for i := start; i < start+count; i++ {
 		key := append(actionFromPrefix, addrBytes[:]...)
 		key = append(key, byteutil.Uint64ToBytes(i)...)
@@ -522,12 +521,10 @@ func (bc *blockchain) GetActionsFromAddressCount(addrStr string, start uint64, c
 		if err != nil {
 			log.L().Warn("failed to get action for index.", zap.Uint64("index", i), zap.Error(err))
 			continue
-			//return res, errors.Wrapf(err, "failed to get action for index %d", i)
 		}
 		if len(value) == 0 {
 			log.L().Warn("action for index missing.", zap.Uint64("index", i), zap.Error(err))
 			continue
-			//return res, errors.Wrapf(db.ErrNotExist, "action for index %d missing", i)
 		}
 		res = append(res, hash.BytesToHash256(value))
 	}
@@ -540,7 +537,6 @@ func (bc *blockchain) GetActionsToAddressCount(addrStr string, start uint64, cou
 	}
 	addrBytes := hash.BytesToHash160(addr.Bytes())
 	var res []hash.Hash256
-
 	for i := start; i < start+count; i++ {
 		key := append(actionToPrefix, addrBytes[:]...)
 		key = append(key, byteutil.Uint64ToBytes(i)...)
@@ -548,12 +544,10 @@ func (bc *blockchain) GetActionsToAddressCount(addrStr string, start uint64, cou
 		if err != nil {
 			log.L().Warn("failed to get action for index.", zap.Uint64("index", i), zap.Error(err))
 			continue
-			//return res, errors.Wrapf(err, "failed to get action for index %d", i)
 		}
 		if len(value) == 0 {
 			log.L().Warn("action for index missing.", zap.Uint64("index", i), zap.Error(err))
 			continue
-			//return res, errors.Wrapf(db.ErrNotExist, "action for index %d missing", i)
 		}
 		res = append(res, hash.BytesToHash256(value))
 	}

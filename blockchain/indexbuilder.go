@@ -283,16 +283,10 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 		if ok {
 			senderDelta[callerAddrBytes]++
 		} else {
+			delta = 0
 			senderDelta[callerAddrBytes] = 1
 		}
 		senderActionCount += delta
-		//addr, _ := address.FromBytes(callerAddrBytes[:])
-		//log.L().Info(
-		//	"############################",
-		//	zap.String("addr", addr.String()),
-		//	zap.Uint64("senderActionCount", senderActionCount),
-		//	zap.Uint64("delta", delta),
-		//)
 		// put new action to sender
 		senderKey := append(actionFromPrefix, callerAddrBytes[:]...)
 		senderKey = append(senderKey, byteutil.Uint64ToBytes(senderActionCount)...)
@@ -325,26 +319,14 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 		if err != nil {
 			return errors.Wrapf(err, "for recipient %x", dstAddrBytes)
 		}
-		//if delta, ok := recipientDelta[dstAddrBytes]; ok {
-		//	recipientActionCount += delta - 1
-		//	recipientDelta[dstAddrBytes]++
-		//} else {
-		//	recipientDelta[dstAddrBytes] = 1
-		//}
 		deltaRecipient, ok := recipientDelta[dstAddrBytes]
 		if ok {
 			senderDelta[dstAddrBytes]++
 		} else {
+			deltaRecipient = 0
 			senderDelta[dstAddrBytes] = 1
 		}
 		recipientActionCount += deltaRecipient
-		//addrRecipient, _ := address.FromBytes(dstAddrBytes[:])
-		//log.L().Info(
-		//	"############################",
-		//	zap.String("addrRecipient", addrRecipient.String()),
-		//	zap.Uint64("recipientActionCount", recipientActionCount),
-		//	zap.Uint64("deltaRecipient", deltaRecipient),
-		//)
 		// put new action to recipient
 		recipientKey := append(actionToPrefix, dstAddrBytes[:]...)
 		recipientKey = append(recipientKey, byteutil.Uint64ToBytes(recipientActionCount)...)
