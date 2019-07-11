@@ -760,7 +760,7 @@ func (api *Server) getActionsByAddress(address string, start uint64, count uint6
 	// In the case of contract address, do not sort in order to save db I/O performance
 	// TODO: This is a workaround to keep actions in correct order while not affecting db I/O performance too much
 	//if account.IsContract() {
-	for i := start; i < uint64(len(actions)) && i < start+count; i++ {
+	for i := start; i < uint64(len(actions)) && i < start+count*2; i++ {
 		act, err := api.getAction(actions[i], false)
 		if err != nil {
 			continue
