@@ -25,16 +25,22 @@ import (
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 )
 
-var batchSizeMtc = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
-		Name: "iotex_indexer_batch_size",
-		Help: "Indexer batch size",
-	},
-	[]string{},
+var (
+	batchSizeMtc = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "iotex_indexer_batch_size",
+			Help: "Indexer batch size",
+		},
+		[]string{},
+	)
+	senderDelta    map[hash.Hash160]uint64
+	recipientDelta map[hash.Hash160]uint64
 )
 
 func init() {
 	prometheus.MustRegister(batchSizeMtc)
+	senderDelta = make(map[hash.Hash160]uint64)
+	recipientDelta = make(map[hash.Hash160]uint64)
 }
 
 // IndexBuilder defines the index builder
@@ -100,6 +106,9 @@ func (ib *IndexBuilder) Start(_ context.Context) error {
 						zap.Error(err),
 					)
 				}
+				// need to clear this global var in normal sync
+				senderDelta = make(map[hash.Hash160]uint64)
+				recipientDelta = make(map[hash.Hash160]uint64)
 				timer.End()
 			}
 		}
@@ -155,6 +164,9 @@ func (ib *IndexBuilder) commitBatchAndClear(tipIndex, tipHeight uint64, batch db
 	if err := ib.store.Commit(batch); err != nil {
 		return err
 	}
+	// clear this for putActions()
+	senderDelta = make(map[hash.Hash160]uint64)
+	recipientDelta = make(map[hash.Hash160]uint64)
 	return nil
 }
 func (ib *IndexBuilder) initAndLoadActions() error {
@@ -258,9 +270,6 @@ func indexBlockHash(startActionsNum uint64, blkHash hash.Hash256, store db.KVSto
 }
 
 func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
-	senderDelta := make(map[hash.Hash160]uint64)
-	recipientDelta := make(map[hash.Hash160]uint64)
-
 	for _, selp := range blk.Actions {
 		actHash := selp.Hash()
 		callerAddrBytes := hash.BytesToHash160(selp.SrcPubkey().Hash())
