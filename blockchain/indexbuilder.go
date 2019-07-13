@@ -283,7 +283,7 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 			senderActionCount += delta.(uint64)
 			senderDelta.Store(callerAddrBytes,delta.(uint64)+1)
 		} else {
-			senderDelta.Store(callerAddrBytes,1)
+			senderDelta.Store(callerAddrBytes,uint64(1))
 		}
 
 		// put new action to sender
@@ -322,7 +322,7 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 			recipientActionCount += delta.(uint64)
 			recipientDelta.Store(dstAddrBytes,delta.(uint64)+1)
 		} else {
-			recipientDelta.Store(dstAddrBytes,1)
+			recipientDelta.Store(dstAddrBytes,uint64(1))
 		}
 
 		// put new action to recipient
