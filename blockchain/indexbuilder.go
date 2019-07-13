@@ -7,6 +7,7 @@
 package blockchain
 
 import (
+	"fmt"
 	"strconv"
 	"sync"
 
@@ -318,6 +319,7 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 		if err != nil {
 			return errors.Wrapf(err, "for recipient %x", dstAddrBytes)
 		}
+		fmt.Println(recipientActionCount)
 		if delta, ok := recipientDelta.Load(dstAddrBytes); ok {
 			recipientActionCount += delta.(uint64)
 			recipientDelta.Store(dstAddrBytes,delta.(uint64)+1)
