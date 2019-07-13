@@ -152,15 +152,15 @@ func TestBlockDAO(t *testing.T) {
 		defer func() {
 			err = dao.Stop(ctx)
 			assert.Nil(t, err)
+
+			// need to clear this delta
+			eraseSyncMap(&senderDelta)
+			eraseSyncMap(&recipientDelta)
 		}()
 
 		height, err := dao.getBlockchainHeight()
 		assert.Nil(t, err)
 		assert.Equal(t, uint64(0), height)
-
-		// need to clear this delta
-		eraseSyncMap(&senderDelta)
-		eraseSyncMap(&recipientDelta)
 
 		// block put order is 0 2 1
 		err = dao.putBlock(blks[0])
@@ -228,11 +228,10 @@ func TestBlockDAO(t *testing.T) {
 		defer func() {
 			err = dao.Stop(ctx)
 			assert.Nil(t, err)
+			// need to clear this delta
+			eraseSyncMap(&senderDelta)
+			eraseSyncMap(&recipientDelta)
 		}()
-
-		// need to clear this delta
-		eraseSyncMap(&senderDelta)
-		eraseSyncMap(&recipientDelta)
 
 		err = dao.putBlock(blks[0])
 		assert.Nil(t, err)
@@ -323,11 +322,11 @@ func TestBlockDAO(t *testing.T) {
 		defer func() {
 			err = dao.Stop(ctx)
 			assert.Nil(t, err)
-		}()
 
-		// need to clear this delta
-		eraseSyncMap(&senderDelta)
-		eraseSyncMap(&recipientDelta)
+			// need to clear this delta
+			eraseSyncMap(&senderDelta)
+			eraseSyncMap(&recipientDelta)
+		}()
 
 		// Put blocks first
 		err = dao.putBlock(blks[0])
@@ -423,6 +422,10 @@ func BenchmarkBlockCache(b *testing.B) {
 				return
 			}
 			require.NoError(b, os.RemoveAll(path))
+
+			// need to clear this delta
+			eraseSyncMap(&senderDelta)
+			eraseSyncMap(&recipientDelta)
 		}()
 		store := db.NewOnDiskDB(cfg)
 
