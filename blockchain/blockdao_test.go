@@ -326,8 +326,8 @@ func TestBlockDAO(t *testing.T) {
 		}()
 
 		// need to clear this delta
-		senderDelta = make(map[hash.Hash160]uint64)
-		recipientDelta = make(map[hash.Hash160]uint64)
+		eraseSyncMap(&senderDelta)
+		eraseSyncMap(&recipientDelta)
 
 		// Put blocks first
 		err = dao.putBlock(blks[0])
