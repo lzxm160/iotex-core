@@ -468,9 +468,8 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	if err := indexBlock(dao.kvstore, blk, batch); err != nil {
 		return err
 	}
-	// need to clear this delta
-	eraseSyncMap(&senderDelta)
-	eraseSyncMap(&recipientDelta)
+	// need to clear delta
+	clearMap()
 	return dao.kvstore.Commit(batch)
 }
 

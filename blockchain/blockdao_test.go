@@ -154,8 +154,7 @@ func TestBlockDAO(t *testing.T) {
 			assert.Nil(t, err)
 
 			// need to clear this delta
-			eraseSyncMap(&senderDelta)
-			eraseSyncMap(&recipientDelta)
+			clearMap()
 		}()
 
 		height, err := dao.getBlockchainHeight()
@@ -229,8 +228,7 @@ func TestBlockDAO(t *testing.T) {
 			err = dao.Stop(ctx)
 			assert.Nil(t, err)
 			// need to clear this delta
-			eraseSyncMap(&senderDelta)
-			eraseSyncMap(&recipientDelta)
+			clearMap()
 		}()
 
 		err = dao.putBlock(blks[0])
@@ -324,8 +322,7 @@ func TestBlockDAO(t *testing.T) {
 			assert.Nil(t, err)
 
 			// need to clear this delta
-			eraseSyncMap(&senderDelta)
-			eraseSyncMap(&recipientDelta)
+			clearMap()
 		}()
 
 		// Put blocks first

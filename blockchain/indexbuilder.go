@@ -7,9 +7,7 @@
 package blockchain
 
 import (
-	"fmt"
 	"strconv"
-	"sync"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
@@ -35,12 +33,13 @@ var (
 		},
 		[]string{},
 	)
-	senderDelta    sync.Map
-	recipientDelta sync.Map
+	senderDelta    map[hash.Hash160]uint64
+	recipientDelta map[hash.Hash160]uint64
 )
 
 func init() {
 	prometheus.MustRegister(batchSizeMtc)
+	clearMap()
 }
 
 // IndexBuilder defines the index builder
@@ -107,9 +106,7 @@ func (ib *IndexBuilder) Start(_ context.Context) error {
 					)
 				}
 				// need to clear this global var in normal sync
-				eraseSyncMap(&senderDelta)
-				eraseSyncMap(&recipientDelta)
-
+				clearMap()
 				timer.End()
 			}
 		}
@@ -166,8 +163,7 @@ func (ib *IndexBuilder) commitBatchAndClear(tipIndex, tipHeight uint64, batch db
 		return err
 	}
 	// clear this for putActions()
-	eraseSyncMap(&senderDelta)
-	eraseSyncMap(&recipientDelta)
+	clearMap()
 	return nil
 }
 func (ib *IndexBuilder) initAndLoadActions() error {
@@ -280,11 +276,11 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 		if err != nil {
 			return errors.Wrapf(err, "for sender %x", callerAddrBytes)
 		}
-		if delta, ok := senderDelta.Load(callerAddrBytes); ok {
-			senderActionCount += delta.(uint64)
-			senderDelta.Store(callerAddrBytes,delta.(uint64)+1)
+		if delta, ok := senderDelta[callerAddrBytes]; ok {
+			senderActionCount += delta
+			senderDelta[callerAddrBytes]++
 		} else {
-			senderDelta.Store(callerAddrBytes,uint64(1))
+			senderDelta[callerAddrBytes] = 1
 		}
 
 		// put new action to sender
@@ -319,12 +315,11 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 		if err != nil {
 			return errors.Wrapf(err, "for recipient %x", dstAddrBytes)
 		}
-		fmt.Println(recipientActionCount)
-		if delta, ok := recipientDelta.Load(dstAddrBytes); ok {
-			recipientActionCount += delta.(uint64)
-			recipientDelta.Store(dstAddrBytes,delta.(uint64)+1)
+		if delta, ok := recipientDelta[dstAddrBytes]; ok {
+			recipientActionCount += delta
+			recipientDelta[dstAddrBytes]++
 		} else {
-			recipientDelta.Store(dstAddrBytes,uint64(1))
+			recipientDelta[dstAddrBytes] = 1
 		}
 
 		// put new action to recipient
@@ -451,10 +446,7 @@ func getActionsByAddress(store db.KVStore, addrBytes hash.Hash160, count uint64,
 
 	return res, nil
 }
-
-func eraseSyncMap(m *sync.Map) {
-	m.Range(func(key interface{}, value interface{}) bool {
-		m.Delete(key)
-		return true
-	})
+func clearMap(){
+	senderDelta = make(map[hash.Hash160]uint64)
+	recipientDelta = make(map[hash.Hash160]uint64)
 }
