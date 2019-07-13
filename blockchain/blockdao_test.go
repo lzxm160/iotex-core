@@ -159,8 +159,8 @@ func TestBlockDAO(t *testing.T) {
 		assert.Equal(t, uint64(0), height)
 
 		// need to clear this delta
-		senderDelta = make(map[hash.Hash160]uint64)
-		recipientDelta = make(map[hash.Hash160]uint64)
+		eraseSyncMap(&senderDelta)
+		eraseSyncMap(&recipientDelta)
 
 		// block put order is 0 2 1
 		err = dao.putBlock(blks[0])
@@ -231,8 +231,8 @@ func TestBlockDAO(t *testing.T) {
 		}()
 
 		// need to clear this delta
-		senderDelta = make(map[hash.Hash160]uint64)
-		recipientDelta = make(map[hash.Hash160]uint64)
+		eraseSyncMap(&senderDelta)
+		eraseSyncMap(&recipientDelta)
 
 		err = dao.putBlock(blks[0])
 		assert.Nil(t, err)
@@ -328,7 +328,7 @@ func TestBlockDAO(t *testing.T) {
 		// need to clear this delta
 		senderDelta = make(map[hash.Hash160]uint64)
 		recipientDelta = make(map[hash.Hash160]uint64)
-		
+
 		// Put blocks first
 		err = dao.putBlock(blks[0])
 		require.NoError(err)
