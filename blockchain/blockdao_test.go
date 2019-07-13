@@ -225,7 +225,9 @@ func TestBlockDAO(t *testing.T) {
 			err = dao.Stop(ctx)
 			assert.Nil(t, err)
 		}()
-
+		// need to clear this delta
+		senderDelta = make(map[hash.Hash160]uint64)
+		recipientDelta = make(map[hash.Hash160]uint64)
 		err = dao.putBlock(blks[0])
 		assert.Nil(t, err)
 		err = dao.putBlock(blks[1])
