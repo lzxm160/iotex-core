@@ -421,8 +421,7 @@ func BenchmarkBlockCache(b *testing.B) {
 			require.NoError(b, os.RemoveAll(path))
 
 			// need to clear this delta
-			eraseSyncMap(&senderDelta)
-			eraseSyncMap(&recipientDelta)
+			clearMap()
 		}()
 		store := db.NewOnDiskDB(cfg)
 
