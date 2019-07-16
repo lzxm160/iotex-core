@@ -325,7 +325,7 @@ func putAddressActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch
 			"failed to put action hash %x for recipient %x", actHash, dstAddrBytes)
 
 		// update recipient action count
-		recipientActionCountKey := append(actionToPrefix, dstAddrBytes[:]...)
+		recipientActionCountKey := append(actionAddressPrefix, dstAddrBytes[:]...)
 		batch.Put(blockAddressActionCountMappingNS, recipientActionCountKey,
 			byteutil.Uint64ToBytes(allActionCount+1), "failed to bump action count %x for recipient %x",
 			actHash, dstAddrBytes)
