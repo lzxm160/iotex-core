@@ -15,8 +15,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	
-
 	"github.com/facebookgo/clock"
 	"github.com/iotexproject/go-pkgs/bloom"
 	"github.com/iotexproject/go-pkgs/hash"
@@ -27,7 +25,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-"github.com/iotexproject/iotex-core/pkg/enc"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
@@ -41,6 +38,7 @@ import (
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/crypto"
 	"github.com/iotexproject/iotex-core/db"
+	"github.com/iotexproject/iotex-core/pkg/enc"
 	"github.com/iotexproject/iotex-core/pkg/lifecycle"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/prometheustimer"
@@ -530,6 +528,9 @@ func (bc *blockchain) GetAllActionsFromAddress(addrStr string, start, count uint
 	addrBytes := hash.BytesToHash160(addr.Bytes())
 	addrActionCountKey := append(actionAddressPrefix, addrBytes[:]...)
 	value, err := bc.dao.kvstore.Get(blockAddressActionCountMappingNS, addrActionCountKey)
+	if err != nil && errors.Cause(err) == db.ErrNotExist {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}
