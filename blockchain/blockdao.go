@@ -52,6 +52,7 @@ var (
 	heightPrefix             = []byte("he.")
 	actionFromPrefix         = []byte("fr.")
 	actionToPrefix           = []byte("to.")
+	actionAddressPrefix      = []byte("ad.")
 )
 
 var (
