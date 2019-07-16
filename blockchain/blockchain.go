@@ -15,7 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/iotexproject/iotex-core/pkg/enc"
+	
 
 	"github.com/facebookgo/clock"
 	"github.com/iotexproject/go-pkgs/bloom"
@@ -27,6 +27,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+"github.com/iotexproject/iotex-core/pkg/enc"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"

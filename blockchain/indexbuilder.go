@@ -8,6 +8,7 @@ package blockchain
 
 import (
 	"strconv"
+	"sync"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
@@ -25,12 +26,17 @@ import (
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 )
 
-var batchSizeMtc = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
-		Name: "iotex_indexer_batch_size",
-		Help: "Indexer batch size",
-	},
-	[]string{},
+var (
+	batchSizeMtc = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "iotex_indexer_batch_size",
+			Help: "Indexer batch size",
+		},
+		[]string{},
+	)
+	senderDelta    sync.Map
+	recipientDelta sync.Map
+	allDelta       sync.Map
 )
 
 func init() {
@@ -100,6 +106,8 @@ func (ib *IndexBuilder) Start(_ context.Context) error {
 						zap.Error(err),
 					)
 				}
+				// need to clear this global var in normal sync
+				clearMap()
 				timer.End()
 			}
 		}
@@ -155,6 +163,8 @@ func (ib *IndexBuilder) commitBatchAndClear(tipIndex, tipHeight uint64, batch db
 	if err := ib.store.Commit(batch); err != nil {
 		return err
 	}
+	// clear this for putActions()
+	clearMap()
 	return nil
 }
 func (ib *IndexBuilder) initAndLoadActions() error {
@@ -258,7 +268,6 @@ func indexBlockHash(startActionsNum uint64, blkHash hash.Hash256, store db.KVSto
 }
 
 func putAddressActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
-	allDelta := make(map[hash.Hash160]uint64)
 	for _, selp := range blk.Actions {
 		actHash := selp.Hash()
 		callerAddrBytes := hash.BytesToHash160(selp.SrcPubkey().Hash())
@@ -266,13 +275,12 @@ func putAddressActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch
 		if err != nil {
 			return errors.Wrapf(err, "for address %x", callerAddrBytes)
 		}
-		if delta, ok := allDelta[callerAddrBytes]; ok {
-			allActionCount += delta
-			allDelta[callerAddrBytes]++
+		if delta, ok := allDelta.Load(callerAddrBytes); ok {
+			allActionCount += delta.(uint64)
+			allDelta.Store(callerAddrBytes, delta.(uint64)+1)
 		} else {
-			allDelta[callerAddrBytes] = 1
+			allDelta.Store(callerAddrBytes, uint64(1))
 		}
-
 		// put new action to this address
 		addressKey := append(actionAddressPrefix, callerAddrBytes[:]...)
 		addressKey = append(addressKey, byteutil.Uint64ToBytes(allActionCount)...)
@@ -304,13 +312,12 @@ func putAddressActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch
 		if err != nil {
 			return errors.Wrapf(err, "for address %x", dstAddrBytes)
 		}
-		if delta, ok := allDelta[dstAddrBytes]; ok {
-			allActionCount += delta
-			allDelta[dstAddrBytes]++
+		if delta, ok := allDelta.Load(dstAddrBytes); ok {
+			allActionCount += delta.(uint64)
+			allDelta.Store(dstAddrBytes, delta.(uint64)+1)
 		} else {
-			allDelta[dstAddrBytes] = 1
+			allDelta.Store(dstAddrBytes, uint64(1))
 		}
-
 		// put new action to recipient
 		recipientKey := append(actionAddressPrefix, dstAddrBytes[:]...)
 		recipientKey = append(recipientKey, byteutil.Uint64ToBytes(allActionCount)...)
@@ -326,9 +333,6 @@ func putAddressActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch
 	return nil
 }
 func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
-	senderDelta := make(map[hash.Hash160]uint64)
-	recipientDelta := make(map[hash.Hash160]uint64)
-
 	for _, selp := range blk.Actions {
 		actHash := selp.Hash()
 		callerAddrBytes := hash.BytesToHash160(selp.SrcPubkey().Hash())
@@ -338,11 +342,11 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 		if err != nil {
 			return errors.Wrapf(err, "for sender %x", callerAddrBytes)
 		}
-		if delta, ok := senderDelta[callerAddrBytes]; ok {
-			senderActionCount += delta
-			senderDelta[callerAddrBytes]++
+		if delta, ok := senderDelta.Load(callerAddrBytes); ok {
+			senderActionCount += delta.(uint64)
+			senderDelta.Store(callerAddrBytes, delta.(uint64)+1)
 		} else {
-			senderDelta[callerAddrBytes] = 1
+			senderDelta.Store(callerAddrBytes, uint64(1))
 		}
 
 		// put new action to sender
@@ -377,11 +381,11 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 		if err != nil {
 			return errors.Wrapf(err, "for recipient %x", dstAddrBytes)
 		}
-		if delta, ok := recipientDelta[dstAddrBytes]; ok {
-			recipientActionCount += delta
-			recipientDelta[dstAddrBytes]++
+		if delta, ok := recipientDelta.Load(dstAddrBytes); ok {
+			recipientActionCount += delta.(uint64)
+			recipientDelta.Store(dstAddrBytes, delta.(uint64)+1)
 		} else {
-			recipientDelta[dstAddrBytes] = 1
+			recipientDelta.Store(dstAddrBytes, uint64(1))
 		}
 
 		// put new action to recipient
@@ -520,4 +524,16 @@ func getActionsByAddress(store db.KVStore, addrBytes hash.Hash160, count uint64,
 	}
 
 	return res, nil
+}
+func clearMap() {
+	eraseSyncMap(&senderDelta)
+	eraseSyncMap(&recipientDelta)
+	eraseSyncMap(&allDelta)
+}
+
+func eraseSyncMap(m *sync.Map) {
+	m.Range(func(key interface{}, value interface{}) bool {
+		m.Delete(key)
+		return true
+	})
 }
