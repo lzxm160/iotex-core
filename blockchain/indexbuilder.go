@@ -322,8 +322,8 @@ func putAddressActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch
 		batch.Put(blockAddressActionCountMappingNS, recipientActionCountKey,
 			byteutil.Uint64ToBytes(allActionCount+1), "failed to bump action count %x for recipient %x",
 			actHash, dstAddrBytes)
-
 	}
+	return nil
 }
 func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
 	senderDelta := make(map[hash.Hash160]uint64)
@@ -444,7 +444,7 @@ func getActionCountBySenderAddress(store db.KVStore, addrBytes hash.Hash160) (ui
 	return enc.MachineEndian.Uint64(value), nil
 }
 
-// getActionCountByAddress returns action count by sender address
+// getActionCountByAddress returns action count by address
 func getActionCountByAddress(store db.KVStore, addrBytes hash.Hash160) (uint64, error) {
 	AddressActionCountKey := append(actionAddressPrefix, addrBytes[:]...)
 	value, err := store.Get(blockAddressActionCountMappingNS, AddressActionCountKey)
@@ -452,7 +452,7 @@ func getActionCountByAddress(store db.KVStore, addrBytes hash.Hash160) (uint64, 
 		return 0, nil
 	}
 	if len(value) == 0 {
-		return 0, errors.New("count of actions by sender is broken")
+		return 0, errors.New("count of actions by address is broken")
 	}
 	return enc.MachineEndian.Uint64(value), nil
 }
