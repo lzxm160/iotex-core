@@ -126,7 +126,7 @@ var (
 			"9999999999999999999999999991",
 			1,
 			6,
-			3,
+			2,
 		},
 	}
 
@@ -194,7 +194,7 @@ var (
 			identityset.Address(27).String(),
 			0,
 			3,
-			1,
+			2,
 		},
 		{
 			identityset.Address(30).String(),
