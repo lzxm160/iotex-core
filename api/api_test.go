@@ -194,7 +194,7 @@ var (
 			identityset.Address(27).String(),
 			0,
 			3,
-			2,
+			3,
 		},
 		{
 			identityset.Address(30).String(),
