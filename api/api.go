@@ -16,12 +16,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-election/committee"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-proto/golang/iotexapi"
@@ -79,16 +77,17 @@ func WithBroadcastOutbound(broadcastHandler BroadcastOutbound) Option {
 
 // Server provides api for user to query blockchain data
 type Server struct {
-	bc               blockchain.Blockchain
-	dp               dispatcher.Dispatcher
-	ap               actpool.ActPool
-	gs               *gasstation.GasStation
-	broadcastHandler BroadcastOutbound
-	cfg              config.Config
-	registry         *protocol.Registry
-	chainListener    Listener
-	grpcserver       *grpc.Server
-	hasActionIndex   bool
+	bc                blockchain.Blockchain
+	dp                dispatcher.Dispatcher
+	ap                actpool.ActPool
+	gs                *gasstation.GasStation
+	broadcastHandler  BroadcastOutbound
+	cfg               config.Config
+	registry          *protocol.Registry
+	chainListener     Listener
+	grpcserver        *grpc.Server
+	hasActionIndex    bool
+	electionCommittee committee.Committee
 }
 
 // NewServer creates a new server
@@ -98,6 +97,7 @@ func NewServer(
 	dispatcher dispatcher.Dispatcher,
 	actPool actpool.ActPool,
 	registry *protocol.Registry,
+	electionCommittee committee.Committee,
 	opts ...Option,
 ) (*Server, error) {
 	apiCfg := Config{}
@@ -117,14 +117,15 @@ func NewServer(
 	}
 
 	svr := &Server{
-		bc:               chain,
-		dp:               dispatcher,
-		ap:               actPool,
-		broadcastHandler: apiCfg.broadcastHandler,
-		cfg:              cfg,
-		registry:         registry,
-		chainListener:    NewChainListener(),
-		gs:               gasstation.NewGasStation(chain, cfg.API),
+		bc:                chain,
+		dp:                dispatcher,
+		ap:                actPool,
+		broadcastHandler:  apiCfg.broadcastHandler,
+		cfg:               cfg,
+		registry:          registry,
+		chainListener:     NewChainListener(),
+		gs:                gasstation.NewGasStation(chain, cfg.API),
+		electionCommittee: electionCommittee,
 	}
 	if _, ok := cfg.Plugins[config.GatewayPlugin]; ok {
 		svr.hasActionIndex = true
@@ -600,35 +601,14 @@ func (api *Server) GetVotes(
 	ctx context.Context,
 	in *iotexapi.GetVotesRequest,
 ) (*iotexapi.GetVotesResponse, error) {
-	//GetBucketsByCandidate
-	var electionCommittee committee.Committee
-	var err error
-	if api.cfg.Genesis.EnableGravityChainVoting {
-		committeeConfig := api.cfg.Chain.Committee
-		committeeConfig.GravityChainStartHeight = api.cfg.Genesis.GravityChainStartHeight
-		committeeConfig.GravityChainHeightInterval = api.cfg.Genesis.GravityChainHeightInterval
-		committeeConfig.RegisterContractAddress = api.cfg.Genesis.RegisterContractAddress
-		committeeConfig.StakingContractAddress = api.cfg.Genesis.StakingContractAddress
-		committeeConfig.VoteThreshold = api.cfg.Genesis.VoteThreshold
-		committeeConfig.ScoreThreshold = api.cfg.Genesis.ScoreThreshold
-		committeeConfig.StakingContractAddress = api.cfg.Genesis.StakingContractAddress
-		committeeConfig.SelfStakingThreshold = api.cfg.Genesis.SelfStakingThreshold
-
-		kvstore := db.NewOnDiskDB(api.cfg.Chain.GravityChainDB)
-		if committeeConfig.GravityChainStartHeight != 0 {
-			if electionCommittee, err = committee.NewCommitteeWithKVStoreWithNamespace(
-				kvstore,
-				committeeConfig,
-			); err != nil {
-				return nil, err
-			}
-		}
+	if api.electionCommittee == nil {
+		return nil, nil
 	}
 	height, err := strconv.ParseUint(in.Height, 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	result, err := electionCommittee.ResultByHeight(height)
+	result, err := api.electionCommittee.ResultByHeight(height)
 	if err != nil {
 		return nil, err
 	}
