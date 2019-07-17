@@ -16,6 +16,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/iotexproject/iotex-core/db"
+	"github.com/iotexproject/iotex-election/committee"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
@@ -590,6 +593,81 @@ func (api *Server) StreamLogs(in *iotexapi.StreamLogsRequest, stream iotexapi.AP
 			return err
 		}
 	}
+}
+
+// GetEpochMeta gets epoch metadata
+func (api *Server) GetVotes(
+	ctx context.Context,
+	in *iotexapi.GetVotesRequest,
+) (*iotexapi.GetVotesResponse, error) {
+	//GetBucketsByCandidate
+	var electionCommittee committee.Committee
+	var err error
+	if api.cfg.Genesis.EnableGravityChainVoting {
+		committeeConfig := api.cfg.Chain.Committee
+		committeeConfig.GravityChainStartHeight = api.cfg.Genesis.GravityChainStartHeight
+		committeeConfig.GravityChainHeightInterval = api.cfg.Genesis.GravityChainHeightInterval
+		committeeConfig.RegisterContractAddress = api.cfg.Genesis.RegisterContractAddress
+		committeeConfig.StakingContractAddress = api.cfg.Genesis.StakingContractAddress
+		committeeConfig.VoteThreshold = api.cfg.Genesis.VoteThreshold
+		committeeConfig.ScoreThreshold = api.cfg.Genesis.ScoreThreshold
+		committeeConfig.StakingContractAddress = api.cfg.Genesis.StakingContractAddress
+		committeeConfig.SelfStakingThreshold = api.cfg.Genesis.SelfStakingThreshold
+
+		kvstore := db.NewOnDiskDB(api.cfg.Chain.GravityChainDB)
+		if committeeConfig.GravityChainStartHeight != 0 {
+			if electionCommittee, err = committee.NewCommitteeWithKVStoreWithNamespace(
+				kvstore,
+				committeeConfig,
+			); err != nil {
+				return nil, err
+			}
+		}
+	}
+	height, err := strconv.ParseUint(in.Height, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	result, err := electionCommittee.ResultByHeight(height)
+	if err != nil {
+		return nil, err
+	}
+	name, err := hex.DecodeString(in.Votee)
+	if err != nil {
+		return nil, err
+	}
+	if len(name) != 12 {
+		return nil, errors.New("invalid candidate name")
+	}
+	votes := result.VotesByDelegate(name)
+	if votes == nil {
+		return nil, errors.New("No buckets for the candidate")
+	}
+	offset := in.Offset
+	if int(offset) >= len(votes) {
+		return nil, errors.New("offset is out of range")
+	}
+	limit := in.Limit
+	// If limit is missing, return all buckets with indices starting from the offset
+	if limit == uint32(0) {
+		limit = math.MaxUint32
+	}
+	if int(offset+limit) >= len(votes) {
+		limit = uint32(len(votes)) - offset
+	}
+	response := &iotexapi.GetVotesResponse{
+		Buckets: make([]*iotexapi.Bucket, limit),
+	}
+	for i := uint32(0); i < limit; i++ {
+		vote := votes[offset+i]
+		response.Buckets[i] = &iotexapi.Bucket{
+			Voter:             hex.EncodeToString(vote.Voter()),
+			Votes:             vote.Amount().Text(10),
+			WeightedVotes:     vote.WeightedAmount().Text(10),
+			RemainingDuration: vote.RemainingTime(result.MintTime()).String(),
+		}
+	}
+	return response, nil
 }
 
 // Start starts the API server
