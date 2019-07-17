@@ -628,6 +628,7 @@ func (api *Server) GetVotes(
 			candidate := candidates[offset+i]
 			ret += ":" + hex.EncodeToString(candidate.Name())
 		}
+		return
 	}
 
 	ret, err := getCandiName()
