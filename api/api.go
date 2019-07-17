@@ -613,14 +613,14 @@ func (api *Server) GetVotes(
 	if err != nil {
 		return nil, err
 	}
-	//name, err := hex.DecodeString(in.Votee)
-	//if err != nil {
-	//	return nil, err
-	//}
+	name, err := hex.DecodeString(in.Votee)
+	if err != nil {
+		return nil, err
+	}
 	//if len(name) != 12 {
 	//	return nil, errors.New("invalid candidate name")
 	//}
-	votes := result.VotesByDelegate([]byte(in.Votee))
+	votes := result.VotesByDelegate(name)
 	if votes == nil {
 		return nil, errors.New("No buckets for the candidate")
 	}
