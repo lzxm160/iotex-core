@@ -602,37 +602,6 @@ func (api *Server) GetVotes(
 	ctx context.Context,
 	in *iotexapi.GetVotesRequest,
 ) (*iotexapi.GetVotesResponse, error) {
-	getCandiName := func() (ret string, err error) {
-		height, err := strconv.ParseUint(in.Height, 10, 64)
-		if err != nil {
-			return
-		}
-		result, err := api.electionCommittee.ResultByHeight(height)
-		if err != nil {
-			return
-		}
-		candidates := result.Delegates()
-		offset := in.Offset
-		if len(candidates) <= int(offset) {
-			err = errors.New("offset is larger than candidate length")
-			return
-		}
-		limit := in.Limit
-		if limit == uint32(0) {
-			limit = math.MaxUint32
-		}
-		if len(candidates) < int(offset+limit) {
-			limit = uint32(len(candidates)) - offset
-		}
-		for i := uint32(0); i < limit; i++ {
-			candidate := candidates[offset+i]
-			ret += ":" + hex.EncodeToString(candidate.Name())
-		}
-		return
-	}
-
-	ret, err := getCandiName()
-	log.L().Info("candidatename:", zap.String("can", ret), zap.Error(err))
 	if api.electionCommittee == nil {
 		return nil, nil
 	}
