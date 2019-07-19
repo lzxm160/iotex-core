@@ -7,56 +7,56 @@
 package account
 
 import (
-	"fmt"
-
-	"github.com/spf13/cobra"
+	"context"
+	"strconv"
 
 	"github.com/iotexproject/iotex-core/ioctl/cmd/config"
-	"github.com/iotexproject/iotex-core/ioctl/output"
 	"github.com/iotexproject/iotex-core/ioctl/util"
+	"github.com/iotexproject/iotex-proto/golang/iotexapi"
+	"github.com/spf13/cobra"
+
+	"github.com/iotexproject/iotex-core/ioctl/output"
 )
 
-// accountSignCmd represents the account sign command
-var accountSignCmd = &cobra.Command{
-	Use:   "sign [ALIAS|ADDRESS] MESSAGE",
-	Short: "Sign message with private key from wallet",
-	Args:  cobra.RangeArgs(1, 2),
+// accountGetVotesCmd represents the account get votes command
+var accountGetVotesCmd = &cobra.Command{
+	Use:   "getvotes VOTEE HEIGHT OFFSET LIMIT",
+	Short: "Get votes of this votee",
+	Args:  cobra.ExactArgs(4),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
-		err := accountSign(args)
+		err := getVotes(args)
 		return err
 	},
 }
 
-func accountSign(args []string) error {
-	var (
-		address string
-		msg     string
-		err     error
+func getVotes(args []string) error {
+	offset, err := strconv.ParseUint(args[3], 10, 32)
+	if err != nil {
+		return output.PrintError(output.InputError, err.Error())
+	}
+	limit, err := strconv.ParseUint(args[4], 10, 32)
+	if err != nil {
+		return output.PrintError(output.InputError, err.Error())
+	}
+	conn, err := util.ConnectToEndpoint(config.ReadConfig.SecureConnect && !config.Insecure)
+	if err != nil {
+		return output.PrintError(output.NetworkError, err.Error())
+	}
+	defer conn.Close()
+
+	res, err := iotexapi.NewAPIServiceClient(conn).GetVotes(
+		context.Background(),
+		&iotexapi.GetVotesRequest{
+			Votee:  args[0],
+			Height: args[1],
+			Offset: uint32(offset),
+			Limit:  uint32(limit),
+		},
 	)
-	if len(args) == 2 {
-		address = args[0]
-		msg = args[1]
-	} else {
-		msg = args[0]
-		address, err = config.GetContextAddressOrAlias()
-		if err != nil {
-			return output.PrintError(output.ConfigError, err.Error())
-		}
-	}
-	addr, err := util.Address(address)
 	if err != nil {
-		return output.PrintError(output.AddressError, err.Error())
+		return err
 	}
-	fmt.Printf("Enter password #%s:\n", addr)
-	password, err := util.ReadSecretFromStdin()
-	if err != nil {
-		return output.PrintError(output.InputError, "failed to get password")
-	}
-	signedMessage, err := Sign(addr, password, msg)
-	if err != nil {
-		return output.PrintError(output.KeystoreError, err.Error())
-	}
-	output.PrintResult(signedMessage)
+	output.PrintResult(res.String())
 	return nil
 }
