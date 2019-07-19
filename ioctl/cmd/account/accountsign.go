@@ -31,11 +31,11 @@ var accountGetVotesCmd = &cobra.Command{
 }
 
 func getVotes(args []string) error {
-	offset, err := strconv.ParseUint(args[3], 10, 32)
+	offset, err := strconv.ParseUint(args[2], 10, 32)
 	if err != nil {
 		return output.PrintError(output.InputError, err.Error())
 	}
-	limit, err := strconv.ParseUint(args[4], 10, 32)
+	limit, err := strconv.ParseUint(args[3], 10, 32)
 	if err != nil {
 		return output.PrintError(output.InputError, err.Error())
 	}
