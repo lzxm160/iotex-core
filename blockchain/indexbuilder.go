@@ -242,7 +242,7 @@ func getNextHeight(store db.KVStore) (uint64, error) {
 	return nextHeight, nil
 }
 func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
-	hash := blk.HashBlock()
+	hashBlock := blk.HashBlock()
 	// get index that already builded
 	startIndex, err := getNextIndex(store)
 	if err != nil {
@@ -257,7 +257,7 @@ func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 		senderDelta:    make(map[hash.Hash160]uint64),
 		recipientDelta: make(map[hash.Hash160]uint64),
 	}
-	if err = indexBlockHash(startIndex, hash, store, blk, batch, actDelta); err != nil {
+	if err = indexBlockHash(startIndex, hashBlock, store, blk, batch, actDelta); err != nil {
 		return err
 	}
 	tipIndexBytes := byteutil.Uint64ToBytes(startIndex + uint64(len(blk.Actions)))
