@@ -47,6 +47,11 @@ type IndexBuilder struct {
 	reindex      bool
 }
 
+type actionDelta struct {
+	senderDelta    map[hash.Hash160]uint64
+	recipientDelta map[hash.Hash160]uint64
+}
+
 // NewIndexBuilder instantiates an index builder
 func NewIndexBuilder(chain Blockchain, reindex bool) (*IndexBuilder, error) {
 	bc, ok := chain.(*blockchain)
@@ -149,7 +154,7 @@ func (ib *IndexBuilder) getStartHeightAndIndex() (startHeight, startIndex uint64
 	}
 	return
 }
-func (ib *IndexBuilder) commitBatchAndClear(tipIndex, tipHeight uint64, batch db.KVStoreBatch) error {
+func (ib *IndexBuilder) commitBatchAndClear(tipIndex, tipHeight uint64, batch db.KVStoreBatch, actDelta *actionDelta) error {
 	tipIndexBytes := byteutil.Uint64ToBytes(tipIndex)
 	batch.Put(blockActionBlockMappingNS, indexActionsTipIndexKey, tipIndexBytes, "failed to put tip index of actions")
 	tipHeightBytes := byteutil.Uint64ToBytes(tipHeight)
@@ -157,6 +162,8 @@ func (ib *IndexBuilder) commitBatchAndClear(tipIndex, tipHeight uint64, batch db
 	if err := ib.store.Commit(batch); err != nil {
 		return err
 	}
+	actDelta.senderDelta = make(map[hash.Hash160]uint64)
+	actDelta.recipientDelta = make(map[hash.Hash160]uint64)
 	return nil
 }
 func (ib *IndexBuilder) initAndLoadActions() error {
@@ -177,6 +184,10 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 	}
 	zap.L().Info("Loading actions", zap.Uint64("startHeight", startHeight), zap.Uint64("startIndex", startIndex))
 	batch := db.NewBatch()
+	actDelta := &actionDelta{
+		senderDelta:    make(map[hash.Hash160]uint64),
+		recipientDelta: make(map[hash.Hash160]uint64),
+	}
 	i := startHeight
 	for ; i <= tipHeight; i++ {
 		hash, err := ib.dao.getBlockHash(i)
@@ -190,7 +201,7 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		blk := &block.Block{
 			Body: *body,
 		}
-		err = indexBlockHash(startIndex, hash, ib.store, blk, batch)
+		err = indexBlockHash(startIndex, hash, ib.store, blk, batch, actDelta)
 		if err != nil {
 			return err
 		}
@@ -203,7 +214,7 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		startIndex += uint64(len(blk.Actions))
 		// commit once every 10000 heights
 		if i%10000 == 0 || i == tipHeight {
-			if err := ib.commitBatchAndClear(startIndex, i, batch); err != nil {
+			if err := ib.commitBatchAndClear(startIndex, i, batch, actDelta); err != nil {
 				return err
 			}
 		}
@@ -242,7 +253,11 @@ func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 	if err != nil {
 		return err
 	}
-	if err = indexBlockHash(startIndex, hash, store, blk, batch); err != nil {
+	actDelta := &actionDelta{
+		senderDelta:    make(map[hash.Hash160]uint64),
+		recipientDelta: make(map[hash.Hash160]uint64),
+	}
+	if err = indexBlockHash(startIndex, hash, store, blk, batch, actDelta); err != nil {
 		return err
 	}
 	tipIndexBytes := byteutil.Uint64ToBytes(startIndex + uint64(len(blk.Actions)))
@@ -251,7 +266,7 @@ func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 	batch.Put(blockActionBlockMappingNS, indexActionsTipHeightKey, tipHeightBytes, "failed to put tip height")
 	return nil
 }
-func indexBlockHash(startActionsNum uint64, blkHash hash.Hash256, store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
+func indexBlockHash(startActionsNum uint64, blkHash hash.Hash256, store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDelta *actionDelta) error {
 	for i, elp := range blk.Actions {
 		actHash := elp.Hash()
 		batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], blkHash[:], "failed to put action hash %x", actHash)
@@ -259,13 +274,12 @@ func indexBlockHash(startActionsNum uint64, blkHash hash.Hash256, store db.KVSto
 		batch.Put(blockActionBlockMappingNS, indexActionsBytes, actHash[:], "failed to put index of actions %x", actHash)
 	}
 
-	return putActions(store, blk, batch)
+	return putActions(store, blk, batch, actDelta)
 }
 
-func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error {
-	senderDelta := make(map[hash.Hash160]uint64)
-	recipientDelta := make(map[hash.Hash160]uint64)
-
+func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDelta *actionDelta) error {
+	senderDelta := actDelta.senderDelta
+	recipientDelta := actDelta.recipientDelta
 	for _, selp := range blk.Actions {
 		actHash := selp.Hash()
 		callerAddrBytes := hash.BytesToHash160(selp.SrcPubkey().Hash())
