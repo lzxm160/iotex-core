@@ -49,10 +49,11 @@ type IndexBuilder struct {
 	cancelChan   chan interface{}
 	timerFactory *prometheustimer.TimerFactory
 	dao          *blockDAO
+	reindex      bool
 }
 
 // NewIndexBuilder instantiates an index builder
-func NewIndexBuilder(chain Blockchain) (*IndexBuilder, error) {
+func NewIndexBuilder(chain Blockchain, reindex bool) (*IndexBuilder, error) {
 	bc, ok := chain.(*blockchain)
 	if !ok {
 		log.S().Panic("unexpected blockchain implementation")
@@ -72,6 +73,7 @@ func NewIndexBuilder(chain Blockchain) (*IndexBuilder, error) {
 		cancelChan:   make(chan interface{}),
 		timerFactory: timerFactory,
 		dao:          bc.dao,
+		reindex:      reindex,
 	}, nil
 }
 
@@ -175,10 +177,14 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 	if err != nil {
 		return err
 	}
-	startHeight, startIndex, err := ib.getStartHeightAndIndex()
-	if err != nil {
-		return err
+	startHeight, startIndex := uint64(1), uint64(0)
+	if !ib.reindex {
+		startHeight, startIndex, err = ib.getStartHeightAndIndex()
+		if err != nil {
+			return err
+		}
 	}
+
 	zap.L().Info("Loading actions", zap.Uint64("startHeight", startHeight), zap.Uint64("startIndex", startIndex))
 	batch := db.NewBatch()
 	i := startHeight
