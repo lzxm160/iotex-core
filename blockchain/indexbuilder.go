@@ -7,6 +7,8 @@
 package blockchain
 
 import (
+	"encoding/hex"
+	"fmt"
 	"strconv"
 
 	"github.com/iotexproject/go-pkgs/hash"
@@ -284,18 +286,20 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDe
 		actHash := selp.Hash()
 		callerAddrBytes := hash.BytesToHash160(selp.SrcPubkey().Hash())
 
-		// get action count for sender
-		senderActionCount, err := getActionCountBySenderAddress(store, callerAddrBytes)
-		if err != nil {
-			return errors.Wrapf(err, "for sender %x", callerAddrBytes)
-		}
-		if delta, ok := senderDelta[callerAddrBytes]; ok {
-			senderActionCount += delta
+		var senderActionCount uint64
+		if _, ok := senderDelta[callerAddrBytes]; ok {
 			senderDelta[callerAddrBytes]++
+			senderActionCount += senderDelta[callerAddrBytes]
 		} else {
-			senderDelta[callerAddrBytes] = 1
+			// get action count for sender
+			senderActionCount, err := getActionCountBySenderAddress(store, callerAddrBytes)
+			if err != nil {
+				return errors.Wrapf(err, "for sender %x", callerAddrBytes)
+			}
+			senderDelta[callerAddrBytes] = senderActionCount
 		}
-
+		str := hex.EncodeToString(callerAddrBytes[:]) + "::::" + fmt.Sprintf("%d", senderActionCount)
+		zap.L().Info(str)
 		// put new action to sender
 		senderKey := append(actionFromPrefix, callerAddrBytes[:]...)
 		senderKey = append(senderKey, byteutil.Uint64ToBytes(senderActionCount)...)
@@ -323,18 +327,20 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDe
 			continue
 		}
 
-		// get action count for recipient
-		recipientActionCount, err := getActionCountByRecipientAddress(store, dstAddrBytes)
-		if err != nil {
-			return errors.Wrapf(err, "for recipient %x", dstAddrBytes)
-		}
-		if delta, ok := recipientDelta[dstAddrBytes]; ok {
-			recipientActionCount += delta
+		var recipientActionCount uint64
+		if _, ok := recipientDelta[dstAddrBytes]; ok {
 			recipientDelta[dstAddrBytes]++
+			recipientActionCount += recipientDelta[dstAddrBytes]
 		} else {
-			recipientDelta[dstAddrBytes] = 1
+			// get action count for recipient
+			recipientActionCount, err := getActionCountByRecipientAddress(store, dstAddrBytes)
+			if err != nil {
+				return errors.Wrapf(err, "for recipient %x", dstAddrBytes)
+			}
+			recipientDelta[dstAddrBytes] = recipientActionCount
 		}
-
+		str = hex.EncodeToString(dstAddrBytes[:]) + "receipt::::" + fmt.Sprintf("%d", recipientActionCount)
+		zap.L().Info(str)
 		// put new action to recipient
 		recipientKey := append(actionToPrefix, dstAddrBytes[:]...)
 		recipientKey = append(recipientKey, byteutil.Uint64ToBytes(recipientActionCount)...)
