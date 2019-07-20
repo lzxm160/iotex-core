@@ -162,8 +162,8 @@ func (ib *IndexBuilder) commitBatchAndClear(tipIndex, tipHeight uint64, batch db
 	if err := ib.store.Commit(batch); err != nil {
 		return err
 	}
-	actDelta.senderDelta = make(map[hash.Hash160]uint64)
-	actDelta.recipientDelta = make(map[hash.Hash160]uint64)
+	//actDelta.senderDelta = make(map[hash.Hash160]uint64)
+	//actDelta.recipientDelta = make(map[hash.Hash160]uint64)
 	return nil
 }
 func (ib *IndexBuilder) initAndLoadActions() error {
