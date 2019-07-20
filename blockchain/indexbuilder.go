@@ -172,14 +172,14 @@ func (ib *IndexBuilder) commitBatchAndClear(tipIndex, tipHeight uint64, batch db
 	}
 	actDelta.senderDelta = make(map[hash.Hash160]deltaReindex)
 	actDelta.recipientDelta = make(map[hash.Hash160]deltaReindex)
-	for k, _ := range actDelta.senderDelta {
-		dr := deltaReindex{0, false}
-		actDelta.senderDelta[k] = dr
-	}
-	for k, _ := range actDelta.recipientDelta {
-		dr := deltaReindex{0, false}
-		actDelta.recipientDelta[k] = dr
-	}
+	//for k, _ := range actDelta.senderDelta {
+	//	dr := deltaReindex{0, false}
+	//	actDelta.senderDelta[k] = dr
+	//}
+	//for k, _ := range actDelta.recipientDelta {
+	//	dr := deltaReindex{0, false}
+	//	actDelta.recipientDelta[k] = dr
+	//}
 	return nil
 }
 func (ib *IndexBuilder) initAndLoadActions() error {
@@ -308,7 +308,7 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDe
 			return errors.Wrapf(err, "for sender %x", callerAddrBytes)
 		}
 		if delta, ok := senderDelta[callerAddrBytes]; ok {
-			senderActionCount += delta.delta
+			senderActionCount = delta.delta
 			dr := deltaReindex{delta.delta + 1, delta.firstCommit}
 			senderDelta[callerAddrBytes] = dr
 		} else {
