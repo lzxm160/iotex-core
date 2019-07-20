@@ -49,9 +49,14 @@ type IndexBuilder struct {
 	reindex      bool
 }
 
+type deltaReindex struct {
+	delta       uint64
+	firstCommit bool
+}
+
 type actionDelta struct {
-	senderDelta    map[hash.Hash160]uint64
-	recipientDelta map[hash.Hash160]uint64
+	senderDelta    map[hash.Hash160]deltaReindex
+	recipientDelta map[hash.Hash160]deltaReindex
 	reindex        bool
 }
 
@@ -165,11 +170,15 @@ func (ib *IndexBuilder) commitBatchAndClear(tipIndex, tipHeight uint64, batch db
 	if err := ib.store.Commit(batch); err != nil {
 		return err
 	}
+	actDelta.senderDelta = make(map[hash.Hash160]deltaReindex)
+	actDelta.recipientDelta = make(map[hash.Hash160]deltaReindex)
 	for k, _ := range actDelta.senderDelta {
-		actDelta.senderDelta[k] = 0
+		dr := deltaReindex{0, false}
+		actDelta.senderDelta[k] = dr
 	}
 	for k, _ := range actDelta.recipientDelta {
-		actDelta.recipientDelta[k] = 0
+		dr := deltaReindex{0, false}
+		actDelta.recipientDelta[k] = dr
 	}
 	return nil
 }
@@ -192,8 +201,8 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 	zap.L().Info("Loading actions", zap.Uint64("startHeight", startHeight), zap.Uint64("startIndex", startIndex))
 	batch := db.NewBatch()
 	actDelta := &actionDelta{
-		senderDelta:    make(map[hash.Hash160]uint64),
-		recipientDelta: make(map[hash.Hash160]uint64),
+		senderDelta:    make(map[hash.Hash160]deltaReindex),
+		recipientDelta: make(map[hash.Hash160]deltaReindex),
 		reindex:        ib.reindex,
 	}
 	i := startHeight
@@ -209,7 +218,7 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		blk := &block.Block{
 			Body: *body,
 		}
-		err = indexBlockHash(startIndex, hash, ib.store, blk, batch, actDelta)
+		err = indexBlockHash(startIndex, hash, ib.store, blk, batch, actDelta, true)
 		if err != nil {
 			return err
 		}
@@ -262,11 +271,11 @@ func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 		return err
 	}
 	actDelta := &actionDelta{
-		senderDelta:    make(map[hash.Hash160]uint64),
-		recipientDelta: make(map[hash.Hash160]uint64),
+		senderDelta:    make(map[hash.Hash160]deltaReindex),
+		recipientDelta: make(map[hash.Hash160]deltaReindex),
 		reindex:        false,
 	}
-	if err = indexBlockHash(startIndex, hashBlock, store, blk, batch, actDelta); err != nil {
+	if err = indexBlockHash(startIndex, hashBlock, store, blk, batch, actDelta, false); err != nil {
 		return err
 	}
 	tipIndexBytes := byteutil.Uint64ToBytes(startIndex + uint64(len(blk.Actions)))
@@ -275,7 +284,7 @@ func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 	batch.Put(blockActionBlockMappingNS, indexActionsTipHeightKey, tipHeightBytes, "failed to put tip height")
 	return nil
 }
-func indexBlockHash(startActionsNum uint64, blkHash hash.Hash256, store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDelta *actionDelta) error {
+func indexBlockHash(startActionsNum uint64, blkHash hash.Hash256, store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDelta *actionDelta, forIndex bool) error {
 	for i, elp := range blk.Actions {
 		actHash := elp.Hash()
 		batch.Put(blockActionBlockMappingNS, actHash[hashOffset:], blkHash[:], "failed to put action hash %x", actHash)
@@ -283,10 +292,10 @@ func indexBlockHash(startActionsNum uint64, blkHash hash.Hash256, store db.KVSto
 		batch.Put(blockActionBlockMappingNS, indexActionsBytes, actHash[:], "failed to put index of actions %x", actHash)
 	}
 
-	return putActions(store, blk, batch, actDelta)
+	return putActions(store, blk, batch, actDelta, forIndex)
 }
 
-func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDelta *actionDelta) error {
+func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDelta *actionDelta, forIndex bool) error {
 	senderDelta := actDelta.senderDelta
 	recipientDelta := actDelta.recipientDelta
 	for _, selp := range blk.Actions {
@@ -299,13 +308,17 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDe
 			return errors.Wrapf(err, "for sender %x", callerAddrBytes)
 		}
 		if delta, ok := senderDelta[callerAddrBytes]; ok {
-			senderActionCount += delta
-			senderDelta[callerAddrBytes]++
+			senderActionCount += delta.delta
+			senderDelta[callerAddrBytes].delta++
 		} else {
-			senderDelta[callerAddrBytes] = 1
+			dr := deltaReindex{delta: 1}
 			if actDelta.reindex {
-				senderActionCount = 0
+				dr.firstCommit = true
 			}
+			senderDelta[callerAddrBytes] = dr
+		}
+		if senderDelta[callerAddrBytes].firstCommit && forIndex {
+			senderActionCount = senderDelta[callerAddrBytes].delta - 1
 		}
 		str := hex.EncodeToString(callerAddrBytes[:]) + "::::" + fmt.Sprintf("%d", senderActionCount)
 		zap.L().Info(str)
@@ -342,15 +355,23 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDe
 			return errors.Wrapf(err, "for recipient %x", dstAddrBytes)
 		}
 		if delta, ok := recipientDelta[dstAddrBytes]; ok {
-			recipientActionCount += delta
-			recipientDelta[dstAddrBytes]++
+			recipientActionCount += delta.delta
+			recipientDelta[dstAddrBytes].delta++
 		} else {
-			recipientDelta[dstAddrBytes] = 1
+			//	recipientDelta[dstAddrBytes] = 1
+			//	if actDelta.reindex {
+			//		recipientActionCount = 0
+			//	}
+			//}
+			dr := deltaReindex{delta: 1}
 			if actDelta.reindex {
-				recipientActionCount = 0
+				dr.firstCommit = true
 			}
+			recipientDelta[dstAddrBytes] = dr
 		}
-
+		if recipientDelta[dstAddrBytes].firstCommit && forIndex {
+			recipientActionCount = recipientDelta[dstAddrBytes].delta - 1
+		}
 		str = hex.EncodeToString(dstAddrBytes[:]) + "receipt::::" + fmt.Sprintf("%d", recipientActionCount)
 		zap.L().Info(str)
 		// put new action to recipient
