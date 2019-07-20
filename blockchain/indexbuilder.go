@@ -290,7 +290,7 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDe
 		var senderActionCount uint64
 		if _, ok := senderDelta[callerAddrBytes]; ok {
 			senderDelta[callerAddrBytes]++
-			senderActionCount += senderDelta[callerAddrBytes]
+			senderActionCount = senderDelta[callerAddrBytes]
 		} else {
 			// get action count for sender
 			senderActionCount, err := getActionCountBySenderAddress(store, callerAddrBytes)
@@ -334,7 +334,7 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDe
 		var recipientActionCount uint64
 		if _, ok := recipientDelta[dstAddrBytes]; ok {
 			recipientDelta[dstAddrBytes]++
-			recipientActionCount += recipientDelta[dstAddrBytes]
+			recipientActionCount = recipientDelta[dstAddrBytes]
 		} else {
 			// get action count for recipient
 			recipientActionCount, err := getActionCountByRecipientAddress(store, dstAddrBytes)
