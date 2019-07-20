@@ -307,7 +307,8 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDe
 				senderActionCount = 0
 			}
 		}
-		fmt.Println(hex.EncodeToString(callerAddrBytes[:]), "::::", senderActionCount)
+		str := hex.EncodeToString(callerAddrBytes[:]) + "::::" + fmt.Sprintf("%d", senderActionCount)
+		zap.L().Info(str)
 		// put new action to sender
 		senderKey := append(actionFromPrefix, callerAddrBytes[:]...)
 		senderKey = append(senderKey, byteutil.Uint64ToBytes(senderActionCount)...)
@@ -349,7 +350,9 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDe
 				recipientActionCount = 0
 			}
 		}
-		fmt.Println(hex.EncodeToString(dstAddrBytes[:]), "receipt::::", recipientActionCount)
+
+		str = hex.EncodeToString(dstAddrBytes[:]) + "receipt::::" + fmt.Sprintf("%d", recipientActionCount)
+		zap.L().Info(str)
 		// put new action to recipient
 		recipientKey := append(actionToPrefix, dstAddrBytes[:]...)
 		recipientKey = append(recipientKey, byteutil.Uint64ToBytes(recipientActionCount)...)
