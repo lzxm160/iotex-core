@@ -309,9 +309,10 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDe
 		}
 		if delta, ok := senderDelta[callerAddrBytes]; ok {
 			senderActionCount += delta.delta
-			senderDelta[callerAddrBytes].delta++
+			dr := deltaReindex{delta.delta+1, delta.firstCommit}
+			senderDelta[callerAddrBytes]=dr
 		} else {
-			dr := deltaReindex{delta: 1}
+
 			if actDelta.reindex {
 				dr.firstCommit = true
 			}
@@ -356,7 +357,8 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDe
 		}
 		if delta, ok := recipientDelta[dstAddrBytes]; ok {
 			recipientActionCount += delta.delta
-			recipientDelta[dstAddrBytes].delta++
+			dr := deltaReindex{delta.delta+1, delta.firstCommit}
+			recipientDelta[dstAddrBytes]=dr
 		} else {
 			//	recipientDelta[dstAddrBytes] = 1
 			//	if actDelta.reindex {
