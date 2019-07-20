@@ -50,6 +50,7 @@ type IndexBuilder struct {
 type actionDelta struct {
 	senderDelta    map[hash.Hash160]uint64
 	recipientDelta map[hash.Hash160]uint64
+	reindex        bool
 }
 
 // NewIndexBuilder instantiates an index builder
@@ -187,6 +188,7 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 	actDelta := &actionDelta{
 		senderDelta:    make(map[hash.Hash160]uint64),
 		recipientDelta: make(map[hash.Hash160]uint64),
+		reindex:        ib.reindex,
 	}
 	i := startHeight
 	for ; i <= tipHeight; i++ {
@@ -256,6 +258,7 @@ func indexBlock(store db.KVStore, blk *block.Block, batch db.KVStoreBatch) error
 	actDelta := &actionDelta{
 		senderDelta:    make(map[hash.Hash160]uint64),
 		recipientDelta: make(map[hash.Hash160]uint64),
+		reindex:        false,
 	}
 	if err = indexBlockHash(startIndex, hashBlock, store, blk, batch, actDelta); err != nil {
 		return err
@@ -289,11 +292,15 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDe
 		if err != nil {
 			return errors.Wrapf(err, "for sender %x", callerAddrBytes)
 		}
+
 		if delta, ok := senderDelta[callerAddrBytes]; ok {
 			senderActionCount += delta
 			senderDelta[callerAddrBytes]++
 		} else {
 			senderDelta[callerAddrBytes] = 1
+			if actDelta.reindex {
+				senderActionCount = 0
+			}
 		}
 
 		// put new action to sender
@@ -328,11 +335,15 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDe
 		if err != nil {
 			return errors.Wrapf(err, "for recipient %x", dstAddrBytes)
 		}
+
 		if delta, ok := recipientDelta[dstAddrBytes]; ok {
 			recipientActionCount += delta
 			recipientDelta[dstAddrBytes]++
 		} else {
 			recipientDelta[dstAddrBytes] = 1
+			if actDelta.reindex {
+				recipientActionCount = 0
+			}
 		}
 
 		// put new action to recipient
