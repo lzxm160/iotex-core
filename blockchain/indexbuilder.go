@@ -296,7 +296,6 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDe
 		if err != nil {
 			return errors.Wrapf(err, "for sender %x", callerAddrBytes)
 		}
-
 		if delta, ok := senderDelta[callerAddrBytes]; ok {
 			senderActionCount += delta
 			senderDelta[callerAddrBytes]++
@@ -339,7 +338,6 @@ func putActions(store db.KVStore, blk *block.Block, batch db.KVStoreBatch, actDe
 		if err != nil {
 			return errors.Wrapf(err, "for recipient %x", dstAddrBytes)
 		}
-
 		if delta, ok := recipientDelta[dstAddrBytes]; ok {
 			recipientActionCount += delta
 			recipientDelta[dstAddrBytes]++
