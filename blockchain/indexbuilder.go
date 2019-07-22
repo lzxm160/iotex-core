@@ -7,6 +7,7 @@
 package blockchain
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strconv"
 
@@ -425,6 +426,12 @@ func getActionsBySenderAddress(store db.KVStore, addrBytes hash.Hash160) ([]hash
 		return nil, err
 	}
 
+	rets := ""
+	for _, v := range res {
+		rets += " " + hex.EncodeToString(v[:])
+	}
+	str := fmt.Sprintf("count:%d ", senderActionCount) + "res::::" + rets
+	zap.L().Info(str)
 	return res, nil
 }
 
@@ -440,7 +447,12 @@ func getActionsByRecipientAddress(store db.KVStore, addrBytes hash.Hash160) ([]h
 	if err != nil {
 		return nil, err
 	}
-
+	rets := ""
+	for _, v := range res {
+		rets += " " + hex.EncodeToString(v[:])
+	}
+	str := fmt.Sprintf("receipt count:%d ", recipientActionCount) + "res::::" + rets
+	zap.L().Info(str)
 	return res, nil
 }
 
