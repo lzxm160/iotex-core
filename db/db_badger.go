@@ -159,10 +159,27 @@ func (m *badgerDB) DeleteBucket(key []byte) error {
 		for it.Rewind(); it.Valid(); it.Next() {
 			item := it.Item()
 			k := item.Key()
-			if err := txn.Delete(k); err != badger.ErrKeyNotFound {
-				return err
+			if sliceEqualBCE(k[:len(key)], key) {
+				if err := txn.Delete(k); err != badger.ErrKeyNotFound {
+					return err
+				}
 			}
 		}
 		return nil
 	})
+}
+func sliceEqualBCE(a, b []byte) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	if (a == nil) != (b == nil) {
+		return false
+	}
+	b = b[:len(a)]
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
 }
