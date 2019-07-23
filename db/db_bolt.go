@@ -166,7 +166,7 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 
 // DeleteBucket delete namespace
 func (b *boltDB) DeleteBucket(key []byte) (err error) {
-	return b.db.View(func(tx *bolt.Tx) error {
+	return b.db.Update(func(tx *bolt.Tx) error {
 		if err := tx.DeleteBucket(key); err != bolt.ErrTxNotWritable {
 			return err
 		}
