@@ -340,7 +340,7 @@ func TestDeleteBucket(t *testing.T) {
 
 		require.NoError(kv.DeleteBucket([]byte(bucket1)))
 		v, _ = kv.Get(bucket1, testK1[0])
-		require.Equal("", v)
+		require.Equal([]uint8([]byte(nil)), v)
 	}
 
 	path := "test-cache-kv.bolt"
