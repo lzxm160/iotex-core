@@ -352,4 +352,15 @@ func TestDeleteBucket(t *testing.T) {
 		defer testutil.CleanupPath(t, testPath)
 		testFunc(NewOnDiskDB(cfg), t)
 	})
+
+	path = "test-cache-kv.badger"
+	testFile, _ = ioutil.TempFile(os.TempDir(), path)
+	testPath = testFile.Name()
+	cfg.DbPath = testPath
+	cfg.UseBadgerDB = true
+	t.Run("Badger DB", func(t *testing.T) {
+		testutil.CleanupPath(t, testPath)
+		defer testutil.CleanupPath(t, testPath)
+		testFunc(NewOnDiskDB(cfg), t)
+	})
 }
