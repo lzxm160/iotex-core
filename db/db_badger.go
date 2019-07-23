@@ -149,7 +149,7 @@ func (b *badgerDB) Commit(batch KVStoreBatch) (err error) {
 	return err
 }
 
-// DeleteBucket deleta a Bucket
+// DeleteBucket delete a Bucket
 func (m *badgerDB) DeleteBucket(key []byte) error {
 	return m.db.Update(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions

@@ -39,7 +39,7 @@ type KVStore interface {
 	Delete(string, []byte) error
 	// Commit commits a batch
 	Commit(KVStoreBatch) error
-	// DeleteBucket deleta a Bucket
+	// DeleteBucket delete a Bucket
 	DeleteBucket(key []byte) error
 }
 
@@ -126,7 +126,7 @@ func (m *memKVStore) Commit(b KVStoreBatch) (e error) {
 	return e
 }
 
-// DeleteBucket deleta a Bucket
+// DeleteBucket delete a Bucket
 func (m *memKVStore) DeleteBucket(key []byte) error {
 	return nil
 }
