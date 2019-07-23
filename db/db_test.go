@@ -334,9 +334,7 @@ func TestDeleteBucket(t *testing.T) {
 			require.Nil(err)
 		}()
 
-		cb := NewCachedBatch()
-		cb.Put(bucket1, testK1[0], testV1[0], "")
-		require.Nil(kv.Commit(cb))
+		require.NoError(kv.Put(bucket1, testK1[0], testV1[0]))
 		v, _ := kv.Get(bucket1, testK1[0])
 		require.Equal(testV1[0], v)
 
