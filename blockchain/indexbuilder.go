@@ -219,8 +219,8 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		}
 		putReceipts(i, receipts, batch)
 		startIndex += uint64(len(blk.Actions))
-		// commit once every 5000 heights
-		if i%5000 == 0 || i == tipHeight {
+		// commit once every 10000 heights
+		if i%10000 == 0 || i == tipHeight {
 			if err := ib.commitBatchAndClear(startIndex, i, batch, actDelta); err != nil {
 				return err
 			}
