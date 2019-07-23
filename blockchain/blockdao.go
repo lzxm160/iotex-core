@@ -9,7 +9,6 @@ package blockchain
 import (
 	"context"
 
-	"github.com/boltdb/bolt"
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
@@ -607,6 +606,11 @@ func (dao *blockDAO) deleteTipBlock() error {
 	return dao.kvstore.Commit(batch)
 }
 
+// deleteBucket
+func (dao *blockDAO) deleteBucket(namespace string) error {
+	return dao.kvstore.DeleteBucket([]byte(namespace))
+}
+
 // deleteReceipts deletes receipt information from db
 func deleteReceipts(blk *block.Block, batch db.KVStoreBatch) error {
 	for _, r := range blk.Receipts {
@@ -700,16 +704,4 @@ func deleteActions(dao *blockDAO, blk *block.Block, batch db.KVStoreBatch) error
 	}
 
 	return nil
-}
-
-// deleteBucket
-func deleteBucket(dao *blockDAO, namespace string) {
-	if err := ib.db.View(func(tx *bolt.Tx) error {
-		if err := tx.DeleteBucket([]byte("foo")); err != bolt.ErrTxNotWritable {
-			t.Fatalf("unexpected error: %s", err)
-		}
-		return nil
-	}); err != nil {
-		t.Fatal(err)
-	}
 }

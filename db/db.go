@@ -39,8 +39,8 @@ type KVStore interface {
 	Delete(string, []byte) error
 	// Commit commits a batch
 	Commit(KVStoreBatch) error
-
-	DeleteBucket(key []byte) (err error)
+	// DeleteBucket deleta a Bucket
+	DeleteBucket(key []byte) error
 }
 
 const (
@@ -124,6 +124,11 @@ func (m *memKVStore) Commit(b KVStoreBatch) (e error) {
 	}
 
 	return e
+}
+
+// DeleteBucket deleta a Bucket
+func (m *memKVStore) DeleteBucket(key []byte) error {
+	return nil
 }
 
 // NewOnDiskDB instantiates an on-disk KV store
