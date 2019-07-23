@@ -152,10 +152,17 @@ func (b *badgerDB) Commit(batch KVStoreBatch) (err error) {
 // DeleteBucket deleta a Bucket
 func (m *badgerDB) DeleteBucket(key []byte) error {
 	return m.db.Update(func(txn *badger.Txn) error {
-		if err := txn.Delete(key); err != badger.ErrKeyNotFound {
-			return err
+		opts := badger.DefaultIteratorOptions
+		opts.PrefetchSize = 10
+		it := txn.NewIterator(opts)
+		defer it.Close()
+		for it.Rewind(); it.Valid(); it.Next() {
+			item := it.Item()
+			k := item.Key()
+			if err := txn.Delete(k); err != badger.ErrKeyNotFound {
+				return err
+			}
 		}
 		return nil
 	})
-	return nil
 }
