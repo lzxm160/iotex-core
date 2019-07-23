@@ -39,6 +39,8 @@ type KVStore interface {
 	Delete(string, []byte) error
 	// Commit commits a batch
 	Commit(KVStoreBatch) error
+
+	DeleteBucket(key []byte) (err error)
 }
 
 const (

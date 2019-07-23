@@ -180,6 +180,8 @@ func (ib *IndexBuilder) initAndLoadActions() error {
 		if err != nil {
 			return err
 		}
+	} else {
+
 	}
 	zap.L().Info("Loading actions", zap.Uint64("startHeight", startHeight), zap.Uint64("startIndex", startIndex))
 	batch := db.NewBatch()
