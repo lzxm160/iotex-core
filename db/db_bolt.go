@@ -8,6 +8,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
@@ -31,11 +32,13 @@ func NewBoltDB(cfg config.DB) KVStore {
 
 // Start opens the BoltDB (creates new file if not existing yet)
 func (b *boltDB) Start(_ context.Context) error {
+	fmt.Println(b.path)
 	db, err := bolt.Open(b.path, fileMode, nil)
 	if err != nil {
 		return errors.Wrap(ErrIO, err.Error())
 	}
 	b.db = db
+	fmt.Println("start ok")
 	return nil
 }
 
