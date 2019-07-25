@@ -453,7 +453,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	batchForBlock.Put(blockBodyNS, hash[:], serBody, "failed to put block body")
 	batchForBlock.Put(blockFooterNS, hash[:], serFooter, "failed to put block footer")
 	whichDB := int(blk.Height() / defaultDBSplitHeight)
-	kv := dao.getNewDB(whichDB, blk)
+	kv := dao.getNewDB(whichDB)
 	err = kv.Commit(batchForBlock)
 	if err != nil {
 		return err
@@ -647,9 +647,9 @@ func (dao *blockDAO) getDBForHash(h hash.Hash256) db.KVStore {
 }
 
 // getNewDB
-func (dao *blockDAO) getNewDB(whichDB int, blk *block.Block) db.KVStore {
-
+func (dao *blockDAO) getNewDB(whichDB int) db.KVStore {
 	kv, ok := dao.kvstore[whichDB]
+	fmt.Println("whichdb:", whichDB)
 	if !ok && whichDB > 0 {
 		cfg := dao.cfg
 		fmt.Println(cfg.DbPath)
