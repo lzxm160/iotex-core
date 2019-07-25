@@ -488,7 +488,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	if !dao.writeIndex {
 		return dao.kvstore[defaultDB].Commit(batch)
 	}
-	if err := indexBlock(dao.kvstore[0], blk, batch); err != nil {
+	if err := indexBlock(dao.kvstore[defaultDB], blk, batch); err != nil {
 		return err
 	}
 	return dao.kvstore[defaultDB].Commit(batch)
@@ -648,8 +648,8 @@ func (dao *blockDAO) getDBForHash(h hash.Hash256) db.KVStore {
 
 // getNewDB
 func (dao *blockDAO) getNewDB(whichDB int) db.KVStore {
-	kv, ok := dao.kvstore[whichDB]
 	fmt.Println("whichdb:", whichDB)
+	kv, ok := dao.kvstore[whichDB]
 	if !ok && whichDB > 0 {
 		cfg := dao.cfg
 		fmt.Println(cfg.DbPath)
