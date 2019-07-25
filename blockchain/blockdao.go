@@ -9,6 +9,8 @@ package blockchain
 import (
 	"context"
 	"fmt"
+	"path"
+	"strings"
 
 	"github.com/iotexproject/iotex-core/config"
 
@@ -451,13 +453,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	batchForBlock.Put(blockBodyNS, hash[:], serBody, "failed to put block body")
 	batchForBlock.Put(blockFooterNS, hash[:], serFooter, "failed to put block footer")
 	whichDB := int(blk.Height() / defaultDBSplitHeight)
-	kv, ok := dao.kvstore[whichDB]
-	if !ok && whichDB > 0 {
-		cfg := dao.cfg
-		cfg.DbPath += fmt.Sprintf("%d", whichDB)
-
-		dao.kvstore[whichDB] = db.NewBoltDB(cfg)
-	}
+	kv := dao.getNewDB(whichDB, blk)
 	err = kv.Commit(batchForBlock)
 	if err != nil {
 		return err
@@ -648,6 +644,30 @@ func (dao *blockDAO) getDBForHash(h hash.Hash256) db.KVStore {
 	}
 	whichDB, _ := dao.kvstore[int(enc.MachineEndian.Uint64(whichDBValue))]
 	return whichDB
+}
+
+// getNewDB
+func (dao *blockDAO) getNewDB(whichDB int, blk *block.Block) db.KVStore {
+
+	kv, ok := dao.kvstore[whichDB]
+	if !ok && whichDB > 0 {
+		cfg := dao.cfg
+		var filenameWithSuffix string
+		filenameWithSuffix = path.Base(cfg.DbPath)
+
+		var fileSuffix string
+		fileSuffix = path.Ext(filenameWithSuffix)
+
+		var filenameOnly string
+		filenameOnly = strings.TrimSuffix(filenameWithSuffix, fileSuffix)
+		fmt.Println("filenameOnly =", filenameOnly)
+		filenameOnly += fmt.Sprintf("%d", whichDB) + ".db"
+		cfg.DbPath = filenameOnly
+		fmt.Println("DbPath =", cfg.DbPath)
+		dao.kvstore[whichDB] = db.NewBoltDB(cfg)
+		kv = dao.kvstore[whichDB]
+	}
+	return kv
 }
 
 // deleteReceipts deletes receipt information from db
