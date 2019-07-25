@@ -171,7 +171,14 @@ func (dao *blockDAO) countActions() error {
 }
 
 // Stop stops block DAO.
-func (dao *blockDAO) Stop(ctx context.Context) error { return dao.lifecycle.OnStop(ctx) }
+func (dao *blockDAO) Stop(ctx context.Context) error {
+	for _, v := range dao.kvstore {
+		if v != nil {
+			v.Stop(context.Background())
+		}
+	}
+	return dao.lifecycle.OnStop(ctx)
+}
 
 // getBlockHash returns the block hash by height
 func (dao *blockDAO) getBlockHash(height uint64) (hash.Hash256, error) {
