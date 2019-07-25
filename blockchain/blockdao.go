@@ -346,6 +346,7 @@ func (dao *blockDAO) footer(h hash.Hash256) (*block.Footer, error) {
 	if dao.footerCache != nil {
 		footer, ok := dao.footerCache.Get(h)
 		if ok {
+			fmt.Println("cache ok:")
 			cacheMtc.WithLabelValues("hit_footer").Inc()
 			return footer.(*block.Footer), nil
 		}
