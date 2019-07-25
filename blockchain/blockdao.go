@@ -109,21 +109,21 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 	}
 
 	// set init height value
-	if _, err = dao.kvstore.Get(blockNS, topHeightKey, 0); err != nil &&
+	if _, err = dao.kvstore.Get(blockNS, topHeightKey); err != nil &&
 		errors.Cause(err) == db.ErrNotExist {
-		if err := dao.kvstore.Put(blockNS, topHeightKey, make([]byte, 8), 0); err != nil {
+		if err := dao.kvstore.Put(blockNS, topHeightKey, make([]byte, 8)); err != nil {
 			return errors.Wrap(err, "failed to write initial value for top height")
 		}
 	}
 
 	// set init total actions to be 0
-	if _, err := dao.kvstore.Get(blockNS, totalActionsKey, 0); err != nil &&
+	if _, err := dao.kvstore.Get(blockNS, totalActionsKey); err != nil &&
 		errors.Cause(err) == db.ErrNotExist {
-		if err = dao.kvstore.Put(blockNS, totalActionsKey, make([]byte, 8), 0); err != nil {
+		if err = dao.kvstore.Put(blockNS, totalActionsKey, make([]byte, 8)); err != nil {
 			return errors.Wrap(err, "failed to write initial value for total actions")
 		}
 	}
-	value, _ := dao.kvstore.Get(blockNS, totalActionsKey, 0)
+	value, _ := dao.kvstore.Get(blockNS, totalActionsKey)
 	totalActions := enc.MachineEndian.Uint64(value)
 	if totalActions != 0 {
 		return nil
@@ -153,7 +153,7 @@ func (dao *blockDAO) countActions() error {
 	totalActionsBytes := byteutil.Uint64ToBytes(totalActions)
 	batch := db.NewBatch()
 	batch.Put(blockNS, totalActionsKey, totalActionsBytes, "failed to put total actions")
-	if err := dao.kvstore.Commit(batch, 0); err != nil {
+	if err := dao.kvstore.Commit(batch); err != nil {
 		return err
 	}
 	return nil
@@ -168,7 +168,7 @@ func (dao *blockDAO) getBlockHash(height uint64) (hash.Hash256, error) {
 		return hash.ZeroHash256, nil
 	}
 	key := append(heightPrefix, byteutil.Uint64ToBytes(height)...)
-	value, err := dao.kvstore.Get(blockHashHeightMappingNS, key, int(height/100000))
+	value, err := dao.kvstore.Get(blockHashHeightMappingNS, key)
 	hash := hash.ZeroHash256
 	if err != nil {
 		return hash, errors.Wrap(err, "failed to get block hash")
@@ -183,7 +183,7 @@ func (dao *blockDAO) getBlockHash(height uint64) (hash.Hash256, error) {
 // getBlockHeight returns the block height by hash
 func (dao *blockDAO) getBlockHeight(hash hash.Hash256) (uint64, error) {
 	key := append(hashPrefix, hash[:]...)
-	value, err := dao.kvstore.Get(blockHashHeightMappingNS, key, 0)
+	value, err := dao.kvstore.Get(blockHashHeightMappingNS, key)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get block height")
 	}
@@ -228,7 +228,7 @@ func (dao *blockDAO) header(h hash.Hash256) (*block.Header, error) {
 		}
 		cacheMtc.WithLabelValues("miss_header").Inc()
 	}
-	value, err := dao.kvstore.Get(blockHeaderNS, h[:], 0)
+	value, err := dao.kvstore.Get(blockHeaderNS, h[:])
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get block header %x", h)
 	}
@@ -268,7 +268,7 @@ func (dao *blockDAO) body(h hash.Hash256) (*block.Body, error) {
 		}
 		cacheMtc.WithLabelValues("miss_body").Inc()
 	}
-	value, err := dao.kvstore.Get(blockBodyNS, h[:], 0)
+	value, err := dao.kvstore.Get(blockBodyNS, h[:])
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get block body %x", h)
 	}
@@ -307,7 +307,7 @@ func (dao *blockDAO) footer(h hash.Hash256) (*block.Footer, error) {
 		}
 		cacheMtc.WithLabelValues("miss_footer").Inc()
 	}
-	value, err := dao.kvstore.Get(blockFooterNS, h[:], 0)
+	value, err := dao.kvstore.Get(blockFooterNS, h[:])
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get block footer %x", h)
 	}
@@ -336,7 +336,7 @@ func (dao *blockDAO) footer(h hash.Hash256) (*block.Footer, error) {
 func (dao *blockDAO) getActionHashFromIndex(index uint64) (hash.Hash256, error) {
 	hash := hash.ZeroHash256
 	indexActionsBytes := byteutil.Uint64ToBytes(index)
-	value, err := dao.kvstore.Get(blockActionBlockMappingNS, indexActionsBytes, 0)
+	value, err := dao.kvstore.Get(blockActionBlockMappingNS, indexActionsBytes)
 	if err != nil {
 		return hash, errors.Wrap(err, "failed to get action hash")
 	}
@@ -349,7 +349,7 @@ func (dao *blockDAO) getActionHashFromIndex(index uint64) (hash.Hash256, error) 
 
 // getBlockchainHeight returns the blockchain height
 func (dao *blockDAO) getBlockchainHeight() (uint64, error) {
-	value, err := dao.kvstore.Get(blockNS, topHeightKey, 0)
+	value, err := dao.kvstore.Get(blockNS, topHeightKey)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get top height")
 	}
@@ -361,7 +361,7 @@ func (dao *blockDAO) getBlockchainHeight() (uint64, error) {
 
 // getTotalActions returns the total number of actions
 func (dao *blockDAO) getTotalActions() (uint64, error) {
-	value, err := dao.kvstore.Get(blockNS, totalActionsKey, 0)
+	value, err := dao.kvstore.Get(blockNS, totalActionsKey)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get total actions")
 	}
@@ -373,11 +373,11 @@ func (dao *blockDAO) getTotalActions() (uint64, error) {
 
 // getReceiptByActionHash returns the receipt by execution hash
 func (dao *blockDAO) getReceiptByActionHash(h hash.Hash256) (*action.Receipt, error) {
-	heightBytes, err := dao.kvstore.Get(blockActionReceiptMappingNS, h[hashOffset:], 0)
+	heightBytes, err := dao.kvstore.Get(blockActionReceiptMappingNS, h[hashOffset:])
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get receipt index for action %x", h)
 	}
-	receiptsBytes, err := dao.kvstore.Get(receiptsNS, heightBytes, 0)
+	receiptsBytes, err := dao.kvstore.Get(receiptsNS, heightBytes)
 	if err != nil {
 		height := enc.MachineEndian.Uint64(heightBytes)
 		return nil, errors.Wrapf(err, "failed to get receipts of block %d", height)
@@ -444,7 +444,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	heightKey := append(heightPrefix, height...)
 	batch.Put(blockHashHeightMappingNS, heightKey, hash[:], "failed to put height -> hash mapping")
 
-	value, err := dao.kvstore.Get(blockNS, topHeightKey, 0)
+	value, err := dao.kvstore.Get(blockNS, topHeightKey)
 	if err != nil {
 		return errors.Wrap(err, "failed to get top height")
 	}
@@ -453,7 +453,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 		batch.Put(blockNS, topHeightKey, height, "failed to put top height")
 	}
 
-	value, err = dao.kvstore.Get(blockNS, totalActionsKey, 0)
+	value, err = dao.kvstore.Get(blockNS, totalActionsKey)
 	if err != nil {
 		return errors.Wrap(err, "failed to get total actions")
 	}
@@ -463,12 +463,12 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	batch.Put(blockNS, totalActionsKey, totalActionsBytes, "failed to put total actions")
 
 	if !dao.writeIndex {
-		return dao.kvstore.Commit(batch, 0)
+		return dao.kvstore.Commit(batch)
 	}
 	if err := indexBlock(dao.kvstore, blk, batch); err != nil {
 		return err
 	}
-	return dao.kvstore.Commit(batch, 0)
+	return dao.kvstore.Commit(batch)
 }
 
 // putReceipts store receipt into db
@@ -498,7 +498,7 @@ func (dao *blockDAO) putReceipts(blkHeight uint64, blkReceipts []*action.Receipt
 		return err
 	}
 	batch.Put(receiptsNS, heightBytes[:], receiptsBytes, "Failed to put receipts of block %d", blkHeight)
-	return dao.kvstore.Commit(batch, int(blkHeight/100000))
+	return dao.kvstore.Commit(batch)
 }
 
 // getReceipts gets receipts
@@ -506,7 +506,7 @@ func (dao *blockDAO) getReceipts(blkHeight uint64) ([]*action.Receipt, error) {
 	var heightBytes [8]byte
 	enc.MachineEndian.PutUint64(heightBytes[:], blkHeight)
 
-	value, err := dao.kvstore.Get(receiptsNS, heightBytes[:], int(blkHeight/100000))
+	value, err := dao.kvstore.Get(receiptsNS, heightBytes[:])
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get receipts")
 	}
@@ -531,7 +531,7 @@ func (dao *blockDAO) deleteTipBlock() error {
 	batch := db.NewBatch()
 
 	// First obtain tip height from db
-	heightValue, err := dao.kvstore.Get(blockNS, topHeightKey, 0)
+	heightValue, err := dao.kvstore.Get(blockNS, topHeightKey)
 	if err != nil {
 		return errors.Wrap(err, "failed to get tip height")
 	}
@@ -576,11 +576,11 @@ func (dao *blockDAO) deleteTipBlock() error {
 	batch.Put(blockNS, topHeightKey, topHeightValue, "failed to put top height")
 
 	if !dao.writeIndex {
-		return dao.kvstore.Commit(batch, 0)
+		return dao.kvstore.Commit(batch)
 	}
 
 	// update total action count
-	value, err := dao.kvstore.Get(blockNS, totalActionsKey, 0)
+	value, err := dao.kvstore.Get(blockNS, totalActionsKey)
 	if err != nil {
 		return errors.Wrap(err, "failed to get total actions")
 	}
@@ -603,7 +603,7 @@ func (dao *blockDAO) deleteTipBlock() error {
 		return err
 	}
 
-	return dao.kvstore.Commit(batch, 0)
+	return dao.kvstore.Commit(batch)
 }
 
 // deleteReceipts deletes receipt information from db
