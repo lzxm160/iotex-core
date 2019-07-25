@@ -232,6 +232,7 @@ func (dao *blockDAO) Header(h hash.Hash256) (*block.Header, error) {
 }
 
 func (dao *blockDAO) header(h hash.Hash256) (*block.Header, error) {
+	fmt.Println("header")
 	whichDB, index, err := dao.getDBForHash(h)
 	if err != nil {
 		return nil, err
@@ -284,6 +285,7 @@ func (dao *blockDAO) Body(h hash.Hash256) (*block.Body, error) {
 }
 
 func (dao *blockDAO) body(h hash.Hash256) (*block.Body, error) {
+	fmt.Println("body")
 	whichDB, index, err := dao.getDBForHash(h)
 	if err != nil {
 		return nil, err
@@ -334,6 +336,7 @@ func (dao *blockDAO) Footer(h hash.Hash256) (*block.Footer, error) {
 }
 
 func (dao *blockDAO) footer(h hash.Hash256) (*block.Footer, error) {
+	fmt.Println("footer")
 	whichDB, index, err := dao.getDBForHash(h)
 	if err != nil {
 		return nil, err
