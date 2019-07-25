@@ -67,7 +67,8 @@ var (
 		},
 		[]string{"result"},
 	)
-	defaultDB = 0
+	defaultDB            = 0
+	defaultDBSplitHeight = uint64(10000)
 )
 
 type blockDAO struct {
@@ -449,7 +450,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	batchForBlock.Put(blockHeaderNS, hash[:], serHeader, "failed to put block header")
 	batchForBlock.Put(blockBodyNS, hash[:], serBody, "failed to put block body")
 	batchForBlock.Put(blockFooterNS, hash[:], serFooter, "failed to put block footer")
-	whichDB := int(blk.Height() / 10000)
+	whichDB := int(blk.Height() / defaultDBSplitHeight)
 	kv, ok := dao.kvstore[whichDB]
 	if !ok {
 		cfg := dao.cfg
