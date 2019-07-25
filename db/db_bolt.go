@@ -8,6 +8,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
@@ -19,36 +20,47 @@ const fileMode = 0600
 
 // boltDB is KVStore implementation based bolt DB
 type boltDB struct {
-	db     *bolt.DB
+	db     map[int]*bolt.DB
 	path   string
 	config config.DB
 }
 
 // Start opens the BoltDB (creates new file if not existing yet)
 func (b *boltDB) Start(_ context.Context) error {
-	db, err := bolt.Open(b.path, fileMode, nil)
+	db, err := bolt.Open(b.path+"-0", fileMode, nil)
 	if err != nil {
 		return errors.Wrap(ErrIO, err.Error())
 	}
-	b.db = db
+	b.db[0] = db
 	return nil
 }
 
 // Stop closes the BoltDB
 func (b *boltDB) Stop(_ context.Context) error {
-	if b.db != nil {
-		if err := b.db.Close(); err != nil {
-			return errors.Wrap(ErrIO, err.Error())
+	for _, v := range b.db {
+		if v != nil {
+			if err := v.Close(); err != nil {
+				return errors.Wrap(ErrIO, err.Error())
+			}
 		}
 	}
+
 	return nil
 }
 
 // Put inserts a <key, value> record
-func (b *boltDB) Put(namespace string, key, value []byte) (err error) {
+func (b *boltDB) Put(namespace string, key, value []byte, whichDB int) (err error) {
+	db, ok := b.db[whichDB]
+	if !ok {
+		db, err = bolt.Open(b.path+"-"+fmt.Sprintf("%d", whichDB), fileMode, nil)
+		if err != nil {
+			return errors.Wrap(ErrIO, err.Error())
+		}
+		b.db[whichDB] = db
+	}
 	numRetries := b.config.NumRetries
 	for c := uint8(0); c < numRetries; c++ {
-		if err = b.db.Update(func(tx *bolt.Tx) error {
+		if err = db.Update(func(tx *bolt.Tx) error {
 			bucket, err := tx.CreateBucketIfNotExists([]byte(namespace))
 			if err != nil {
 				return err
@@ -65,9 +77,13 @@ func (b *boltDB) Put(namespace string, key, value []byte) (err error) {
 }
 
 // Get retrieves a record
-func (b *boltDB) Get(namespace string, key []byte) ([]byte, error) {
+func (b *boltDB) Get(namespace string, key []byte, whichDB int) ([]byte, error) {
+	db, ok := b.db[whichDB]
+	if !ok {
+		return nil, errors.New("db is not exist")
+	}
 	var value []byte
-	err := b.db.View(func(tx *bolt.Tx) error {
+	err := db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(namespace))
 		if bucket == nil {
 			return errors.Wrapf(ErrNotExist, "bucket = %s doesn't exist", namespace)
@@ -91,10 +107,14 @@ func (b *boltDB) Get(namespace string, key []byte) ([]byte, error) {
 }
 
 // Delete deletes a record
-func (b *boltDB) Delete(namespace string, key []byte) (err error) {
+func (b *boltDB) Delete(namespace string, key []byte, whichDB int) (err error) {
+	db, ok := b.db[whichDB]
+	if !ok {
+		return errors.New("db is not exist")
+	}
 	numRetries := b.config.NumRetries
 	for c := uint8(0); c < numRetries; c++ {
-		err = b.db.Update(func(tx *bolt.Tx) error {
+		err = db.Update(func(tx *bolt.Tx) error {
 			bucket := tx.Bucket([]byte(namespace))
 			if bucket == nil {
 				return nil
@@ -113,6 +133,14 @@ func (b *boltDB) Delete(namespace string, key []byte) (err error) {
 
 // Commit commits a batch
 func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
+	//db, ok := b.db[whichDB]
+	//if !ok {
+	//	db, err = bolt.Open(b.path+"-"+fmt.Sprintf("%d", whichDB), fileMode, nil)
+	//	if err != nil {
+	//		return errors.Wrap(ErrIO, err.Error())
+	//	}
+	//	b.db[whichDB] = db
+	//}
 	succeed := true
 	batch.Lock()
 	defer func() {
@@ -126,9 +154,9 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 	}()
 
 	numRetries := b.config.NumRetries
-	for c := uint8(0); c < numRetries; c++ {
-		if err = b.db.Update(func(tx *bolt.Tx) error {
-			for i := 0; i < batch.Size(); i++ {
+	for i := 0; i < batch.Size(); i++ {
+		for c := uint8(0); c < numRetries; c++ {
+			if err = db.Update(func(tx *bolt.Tx) error {
 				write, err := batch.Entry(i)
 				if err != nil {
 					return err
@@ -150,10 +178,11 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 						return errors.Wrapf(err, write.errorFormat, write.errorArgs)
 					}
 				}
+
+				return nil
+			}); err == nil {
+				break
 			}
-			return nil
-		}); err == nil {
-			break
 		}
 	}
 
@@ -169,8 +198,12 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 //======================================
 
 // intentionally fail to test DB can successfully rollback
-func (b *boltDB) batchPutForceFail(namespace string, key [][]byte, value [][]byte) error {
-	return b.db.Update(func(tx *bolt.Tx) error {
+func (b *boltDB) batchPutForceFail(namespace string, key [][]byte, value [][]byte, whichDB int) error {
+	db, ok := b.db[whichDB]
+	if !ok {
+		return errors.New("db is not exist")
+	}
+	return db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists([]byte(namespace))
 		if err != nil {
 			return err

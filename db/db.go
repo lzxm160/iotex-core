@@ -32,13 +32,13 @@ type KVStore interface {
 	lifecycle.StartStopper
 
 	// Put insert or update a record identified by (namespace, key)
-	Put(string, []byte, []byte) error
+	Put(string, []byte, []byte, whichDB int) error
 	// Get gets a record by (namespace, key)
-	Get(string, []byte) ([]byte, error)
+	Get(string, []byte, whichDB int) ([]byte, error)
 	// Delete deletes a record by (namespace, key)
-	Delete(string, []byte) error
+	Delete(string, []byte, whichDB int) error
 	// Commit commits a batch
-	Commit(KVStoreBatch) error
+	Commit(KVStoreBatch, int) error
 }
 
 const (
@@ -64,14 +64,14 @@ func (m *memKVStore) Start(_ context.Context) error { return nil }
 func (m *memKVStore) Stop(_ context.Context) error { return nil }
 
 // Put inserts a <key, value> record
-func (m *memKVStore) Put(namespace string, key, value []byte) error {
+func (m *memKVStore) Put(namespace string, key, value []byte, whichDB int) error {
 	_, _ = m.bucket.LoadOrStore(namespace, struct{}{})
 	m.data.Store(namespace+keyDelimiter+string(key), value)
 	return nil
 }
 
 // Get retrieves a record
-func (m *memKVStore) Get(namespace string, key []byte) ([]byte, error) {
+func (m *memKVStore) Get(namespace string, key []byte, whichDB int) ([]byte, error) {
 	if _, ok := m.bucket.Load(namespace); !ok {
 		return nil, errors.Wrapf(ErrNotExist, "namespace = %s doesn't exist", namespace)
 	}
@@ -83,13 +83,13 @@ func (m *memKVStore) Get(namespace string, key []byte) ([]byte, error) {
 }
 
 // Delete deletes a record
-func (m *memKVStore) Delete(namespace string, key []byte) error {
+func (m *memKVStore) Delete(namespace string, key []byte, whichDB int) error {
 	m.data.Delete(namespace + keyDelimiter + string(key))
 	return nil
 }
 
 // Commit commits a batch
-func (m *memKVStore) Commit(b KVStoreBatch) (e error) {
+func (m *memKVStore) Commit(b KVStoreBatch, whichDB int) (e error) {
 	succeed := false
 	b.Lock()
 	defer func() {
@@ -106,12 +106,12 @@ func (m *memKVStore) Commit(b KVStoreBatch) (e error) {
 			return err
 		}
 		if write.writeType == Put {
-			if err := m.Put(write.namespace, write.key, write.value); err != nil {
+			if err := m.Put(write.namespace, write.key, write.value,whichDB); err != nil {
 				e = err
 				break
 			}
 		} else if write.writeType == Delete {
-			if err := m.Delete(write.namespace, write.key); err != nil {
+			if err := m.Delete(write.namespace, write.key,whichDB); err != nil {
 				e = err
 				break
 			}

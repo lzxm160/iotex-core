@@ -46,7 +46,7 @@ func (b *badgerDB) Stop(_ context.Context) error {
 }
 
 // Put inserts a <key, value> record
-func (b *badgerDB) Put(namespace string, key, value []byte) (err error) {
+func (b *badgerDB) Put(namespace string, key, value []byte, whichDB int) (err error) {
 	for c := uint8(0); c < b.config.NumRetries; c++ {
 		err = b.db.Update(func(txn *badger.Txn) error {
 			k := append([]byte(namespace), key...)
@@ -64,7 +64,7 @@ func (b *badgerDB) Put(namespace string, key, value []byte) (err error) {
 }
 
 // Get retrieves a record
-func (b *badgerDB) Get(namespace string, key []byte) ([]byte, error) {
+func (b *badgerDB) Get(namespace string, key []byte, whichDB int) ([]byte, error) {
 	var value []byte
 	err := b.db.View(func(txn *badger.Txn) error {
 		k := append([]byte(namespace), key...)
@@ -87,7 +87,7 @@ func (b *badgerDB) Get(namespace string, key []byte) ([]byte, error) {
 }
 
 // Delete deletes a record
-func (b *badgerDB) Delete(namespace string, key []byte) (err error) {
+func (b *badgerDB) Delete(namespace string, key []byte, whichDB int) (err error) {
 	for c := uint8(0); c < b.config.NumRetries; c++ {
 		err = b.db.Update(func(txn *badger.Txn) error {
 			k := append([]byte(namespace), key...)
@@ -104,7 +104,7 @@ func (b *badgerDB) Delete(namespace string, key []byte) (err error) {
 }
 
 // Commit commits a batch
-func (b *badgerDB) Commit(batch KVStoreBatch) (err error) {
+func (b *badgerDB) Commit(batch KVStoreBatch, whichDB int) (err error) {
 	succeed := true
 	batch.Lock()
 	defer func() {
