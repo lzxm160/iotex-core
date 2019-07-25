@@ -8,6 +8,7 @@ package blockchain
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"path"
 	"strings"
@@ -336,7 +337,7 @@ func (dao *blockDAO) Footer(h hash.Hash256) (*block.Footer, error) {
 }
 
 func (dao *blockDAO) footer(h hash.Hash256) (*block.Footer, error) {
-	fmt.Println("footer")
+	fmt.Println("footer:", hex.EncodeToString(h[:]))
 	whichDB, index, err := dao.getDBForHash(h)
 	if err != nil {
 		return nil, err
@@ -350,14 +351,17 @@ func (dao *blockDAO) footer(h hash.Hash256) (*block.Footer, error) {
 		cacheMtc.WithLabelValues("miss_footer").Inc()
 	}
 	value, err := whichDB.Get(blockFooterNS, h[:])
+	fmt.Println("footer:", index, err)
 	if errors.Cause(err) == db.ErrNotExist {
 		idx := index - 1
 		if idx < 0 {
 			idx = 0
 		}
+		fmt.Println("footer ErrNotExist:", err)
 		value, err = dao.kvstore[idx].Get(blockFooterNS, h[:])
 	}
 	if err != nil {
+		fmt.Println("footer:", err)
 		return nil, errors.Wrapf(err, "failed to get block footer %x", h)
 	}
 	if dao.compressBlock {
