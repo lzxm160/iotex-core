@@ -682,7 +682,7 @@ func (dao *blockDAO) getNewDB(whichDB int) (db.KVStore, error) {
 		cfg.DbPath = path.Dir(cfg.DbPath) + "/" + filenameOnly
 		dao.kvstore[whichDB] = db.NewBoltDB(cfg)
 		kv = dao.kvstore[whichDB]
-		dao.lifecycle.Add(kv)
+		//dao.lifecycle.Add(kv)
 		err := kv.Start(context.Background())
 		if err != nil {
 			return nil, err
