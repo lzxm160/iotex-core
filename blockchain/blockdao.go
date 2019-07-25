@@ -236,6 +236,7 @@ func (dao *blockDAO) header(h hash.Hash256) (*block.Header, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("nil:", whichDB)
 	if dao.headerCache != nil {
 		header, ok := dao.headerCache.Get(h)
 		if ok {
