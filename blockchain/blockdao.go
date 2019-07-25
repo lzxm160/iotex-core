@@ -686,6 +686,7 @@ func (dao *blockDAO) getNewDB(whichDB int) db.KVStore {
 		fmt.Println("DbPath =", cfg.DbPath)
 		dao.kvstore[whichDB] = db.NewBoltDB(cfg)
 		kv = dao.kvstore[whichDB]
+		dao.lifecycle.Add(kv)
 	}
 	return kv
 }
