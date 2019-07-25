@@ -339,6 +339,7 @@ func (dao *blockDAO) Footer(h hash.Hash256) (*block.Footer, error) {
 func (dao *blockDAO) footer(h hash.Hash256) (*block.Footer, error) {
 	fmt.Println("footer:", hex.EncodeToString(h[:]))
 	whichDB, index, err := dao.getDBForHash(h)
+	fmt.Println("footer:", whichDB, ":", index, ":", err)
 	if err != nil {
 		return nil, err
 	}
