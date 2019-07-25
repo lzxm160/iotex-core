@@ -683,10 +683,14 @@ func (dao *blockDAO) getNewDB(whichDB int) (db.KVStore, error) {
 		dao.kvstore[whichDB] = db.NewBoltDB(cfg)
 		kv = dao.kvstore[whichDB]
 		//dao.lifecycle.Add(kv)
-		err := kv.Start(context.Background())
-		if err != nil {
-			return nil, err
-		}
+		go func() {
+			//err :=
+			kv.Start(context.Background())
+			//if err != nil {
+			//	return nil, err
+			//}
+		}()
+
 	}
 	return kv, nil
 }
