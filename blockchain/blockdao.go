@@ -12,8 +12,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/iotexproject/iotex-core/config"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
@@ -24,6 +22,7 @@ import (
 
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/blockchain/block"
+	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/pkg/cache"
 	"github.com/iotexproject/iotex-core/pkg/compress"
@@ -86,13 +85,14 @@ type blockDAO struct {
 }
 
 // newBlockDAO instantiates a block DAO
-func newBlockDAO(kvstore db.KVStore, writeIndex bool, compressBlock bool, maxCacheSize int) *blockDAO {
+func newBlockDAO(kvstore db.KVStore, writeIndex bool, compressBlock bool, maxCacheSize int, cfg config.DB) *blockDAO {
 	kv := make(map[int]db.KVStore)
 	kv[defaultDB] = kvstore
 	blockDAO := &blockDAO{
 		writeIndex:    writeIndex,
 		compressBlock: compressBlock,
 		kvstore:       kv,
+		cfg:           cfg,
 	}
 	if maxCacheSize > 0 {
 		blockDAO.headerCache = cache.NewThreadSafeLruCache(maxCacheSize)
@@ -652,12 +652,13 @@ func (dao *blockDAO) getNewDB(whichDB int, blk *block.Block) db.KVStore {
 	kv, ok := dao.kvstore[whichDB]
 	if !ok && whichDB > 0 {
 		cfg := dao.cfg
+		fmt.Println(cfg.DbPath)
 		var filenameWithSuffix string
 		filenameWithSuffix = path.Base(cfg.DbPath)
-
+		fmt.Println(filenameWithSuffix)
 		var fileSuffix string
 		fileSuffix = path.Ext(filenameWithSuffix)
-
+		fmt.Println(fileSuffix)
 		var filenameOnly string
 		filenameOnly = strings.TrimSuffix(filenameWithSuffix, fileSuffix)
 		fmt.Println("filenameOnly =", filenameOnly)
