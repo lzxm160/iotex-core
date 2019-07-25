@@ -232,7 +232,7 @@ func (dao *blockDAO) Header(h hash.Hash256) (*block.Header, error) {
 }
 
 func (dao *blockDAO) header(h hash.Hash256) (*block.Header, error) {
-	whichDB, err := dao.getDBForHash(h)
+	whichDB, index, err := dao.getDBForHash(h)
 	if err != nil {
 		return nil, err
 	}
@@ -246,6 +246,13 @@ func (dao *blockDAO) header(h hash.Hash256) (*block.Header, error) {
 		cacheMtc.WithLabelValues("miss_header").Inc()
 	}
 	value, err := whichDB.Get(blockHeaderNS, h[:])
+	if errors.Cause(err) == db.ErrNotExist {
+		idx := index - 1
+		if idx < 0 {
+			idx = 0
+		}
+		value, err = dao.kvstore[idx].Get(blockHeaderNS, h[:])
+	}
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get block header %x", h)
 	}
@@ -277,7 +284,7 @@ func (dao *blockDAO) Body(h hash.Hash256) (*block.Body, error) {
 }
 
 func (dao *blockDAO) body(h hash.Hash256) (*block.Body, error) {
-	whichDB, err := dao.getDBForHash(h)
+	whichDB, index, err := dao.getDBForHash(h)
 	if err != nil {
 		return nil, err
 	}
@@ -290,6 +297,13 @@ func (dao *blockDAO) body(h hash.Hash256) (*block.Body, error) {
 		cacheMtc.WithLabelValues("miss_body").Inc()
 	}
 	value, err := whichDB.Get(blockBodyNS, h[:])
+	if errors.Cause(err) == db.ErrNotExist {
+		idx := index - 1
+		if idx < 0 {
+			idx = 0
+		}
+		value, err = dao.kvstore[idx].Get(blockBodyNS, h[:])
+	}
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get block body %x", h)
 	}
@@ -320,7 +334,7 @@ func (dao *blockDAO) Footer(h hash.Hash256) (*block.Footer, error) {
 }
 
 func (dao *blockDAO) footer(h hash.Hash256) (*block.Footer, error) {
-	whichDB, err := dao.getDBForHash(h)
+	whichDB, index, err := dao.getDBForHash(h)
 	if err != nil {
 		return nil, err
 	}
@@ -333,6 +347,13 @@ func (dao *blockDAO) footer(h hash.Hash256) (*block.Footer, error) {
 		cacheMtc.WithLabelValues("miss_footer").Inc()
 	}
 	value, err := whichDB.Get(blockFooterNS, h[:])
+	if errors.Cause(err) == db.ErrNotExist {
+		idx := index - 1
+		if idx < 0 {
+			idx = 0
+		}
+		value, err = dao.kvstore[idx].Get(blockFooterNS, h[:])
+	}
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get block footer %x", h)
 	}
@@ -596,7 +617,7 @@ func (dao *blockDAO) deleteTipBlock() error {
 		dao.footerCache.Remove(hash)
 	}
 
-	whichDB, err := dao.getDBForHash(hash)
+	whichDB, _, err := dao.getDBForHash(hash)
 	if err != nil {
 		return err
 	}
@@ -650,19 +671,19 @@ func (dao *blockDAO) deleteTipBlock() error {
 }
 
 // getDBForHash
-func (dao *blockDAO) getDBForHash(h hash.Hash256) (db.KVStore, error) {
+func (dao *blockDAO) getDBForHash(h hash.Hash256) (db.KVStore, int, error) {
 	blockHashDBKey := append(blockHashDBPrefix, h[:]...)
 	whichDBValue, err := dao.kvstore[defaultDB].Get(blockHashDBNS, blockHashDBKey)
 	if err != nil {
-		return dao.kvstore[0], nil
+		return dao.kvstore[0], defaultDB, nil
 	}
 	index := int(enc.MachineEndian.Uint64(whichDBValue))
 	fmt.Println("xxxx", index)
 	whichDB, ok := dao.kvstore[index]
 	if !ok {
-		return dao.getNewDB(index), nil
+		return dao.getNewDB(index), index, nil
 	}
-	return whichDB, nil
+	return whichDB, index, nil
 }
 
 // getNewDB
