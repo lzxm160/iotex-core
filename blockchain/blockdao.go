@@ -641,9 +641,13 @@ func (dao *blockDAO) getDBForHash(h hash.Hash256) db.KVStore {
 	blockHashDBKey := append(blockHashDBPrefix, h[:]...)
 	whichDBValue, err := dao.kvstore[defaultDB].Get(blockHashDBNS, blockHashDBKey)
 	if err != nil {
+		fmt.Println(err)
 		return dao.kvstore[0]
 	}
-	whichDB, _ := dao.kvstore[int(enc.MachineEndian.Uint64(whichDBValue))]
+	whichDB, ok := dao.kvstore[int(enc.MachineEndian.Uint64(whichDBValue))]
+	if !ok {
+		fmt.Println("...................not ok:", whichDBValue)
+	}
 	return whichDB
 }
 
