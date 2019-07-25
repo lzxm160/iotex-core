@@ -659,7 +659,7 @@ func (dao *blockDAO) getDBForHash(h hash.Hash256) (db.KVStore, error) {
 	fmt.Println("xxxx", index)
 	whichDB, ok := dao.kvstore[index]
 	if !ok {
-		return nil, errors.New("cannot find db")
+		return dao.getNewDB(index), nil
 	}
 	return whichDB, nil
 }
