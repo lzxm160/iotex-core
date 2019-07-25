@@ -452,7 +452,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	batchForBlock.Put(blockFooterNS, hash[:], serFooter, "failed to put block footer")
 	whichDB := int(blk.Height() / defaultDBSplitHeight)
 	kv, ok := dao.kvstore[whichDB]
-	if !ok {
+	if !ok && whichDB > 0 {
 		cfg := dao.cfg
 		cfg.DbPath += fmt.Sprintf("%d", whichDB)
 
