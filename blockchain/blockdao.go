@@ -681,7 +681,7 @@ func (dao *blockDAO) getNewDB(whichDB int) db.KVStore {
 		filenameOnly = strings.TrimSuffix(filenameWithSuffix, fileSuffix)
 		fmt.Println("filenameOnly =", filenameOnly)
 		filenameOnly += fmt.Sprintf("%d", whichDB) + ".db"
-		cfg.DbPath = filenameOnly
+		cfg.DbPath = path.Dir(cfg.DbPath) + filenameOnly
 		fmt.Println("DbPath =", cfg.DbPath)
 		dao.kvstore[whichDB] = db.NewBoltDB(cfg)
 		kv = dao.kvstore[whichDB]
