@@ -232,7 +232,10 @@ func (dao *blockDAO) Header(h hash.Hash256) (*block.Header, error) {
 }
 
 func (dao *blockDAO) header(h hash.Hash256) (*block.Header, error) {
-	whichDB := dao.getDBForHash(h)
+	whichDB, err := dao.getDBForHash(h)
+	if err != nil {
+		return nil, err
+	}
 	if dao.headerCache != nil {
 		header, ok := dao.headerCache.Get(h)
 		if ok {
@@ -273,7 +276,10 @@ func (dao *blockDAO) Body(h hash.Hash256) (*block.Body, error) {
 }
 
 func (dao *blockDAO) body(h hash.Hash256) (*block.Body, error) {
-	whichDB := dao.getDBForHash(h)
+	whichDB, err := dao.getDBForHash(h)
+	if err != nil {
+		return nil, err
+	}
 	if dao.bodyCache != nil {
 		body, ok := dao.bodyCache.Get(h)
 		if ok {
@@ -313,7 +319,10 @@ func (dao *blockDAO) Footer(h hash.Hash256) (*block.Footer, error) {
 }
 
 func (dao *blockDAO) footer(h hash.Hash256) (*block.Footer, error) {
-	whichDB := dao.getDBForHash(h)
+	whichDB, err := dao.getDBForHash(h)
+	if err != nil {
+		return nil, err
+	}
 	if dao.footerCache != nil {
 		footer, ok := dao.footerCache.Get(h)
 		if ok {
@@ -586,7 +595,10 @@ func (dao *blockDAO) deleteTipBlock() error {
 		dao.footerCache.Remove(hash)
 	}
 
-	whichDB := dao.getDBForHash(hash)
+	whichDB, err := dao.getDBForHash(hash)
+	if err != nil {
+		return err
+	}
 	err = whichDB.Commit(batchForBlock)
 	if err != nil {
 		return err
@@ -637,19 +649,17 @@ func (dao *blockDAO) deleteTipBlock() error {
 }
 
 // getDBForHash
-func (dao *blockDAO) getDBForHash(h hash.Hash256) db.KVStore {
+func (dao *blockDAO) getDBForHash(h hash.Hash256) (db.KVStore, error) {
 	blockHashDBKey := append(blockHashDBPrefix, h[:]...)
 	whichDBValue, err := dao.kvstore[defaultDB].Get(blockHashDBNS, blockHashDBKey)
 	if err != nil {
-		fmt.Println(err)
-		return dao.kvstore[0]
+		return dao.kvstore[0], nil
 	}
-	whichDB := dao.kvstore[0]
 	whichDB, ok := dao.kvstore[int(enc.MachineEndian.Uint64(whichDBValue))]
 	if !ok {
-		fmt.Println("...................not ok:", whichDBValue)
+		return nil, errors.New("cannot find db")
 	}
-	return whichDB
+	return whichDB, nil
 }
 
 // getNewDB
