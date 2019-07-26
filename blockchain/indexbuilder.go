@@ -68,7 +68,7 @@ func NewIndexBuilder(chain Blockchain, reindex bool) (*IndexBuilder, error) {
 		return nil, err
 	}
 	return &IndexBuilder{
-		store:        bc.dao.kvstore[defaultDB],
+		store:        bc.dao.kvstore,
 		pendingBlks:  make(chan *block.Block, 64), // Actually 1 should be enough
 		cancelChan:   make(chan interface{}),
 		timerFactory: timerFactory,
