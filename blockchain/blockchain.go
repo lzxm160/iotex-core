@@ -239,6 +239,7 @@ func BoltDBDaoOption() Option {
 			gateway && !cfg.Chain.EnableAsyncIndexWrite,
 			cfg.Chain.CompressBlock,
 			cfg.Chain.MaxCacheSize,
+			cfg.DB,
 		)
 		return nil
 	}
@@ -253,6 +254,7 @@ func InMemDaoOption() Option {
 			gateway && !cfg.Chain.EnableAsyncIndexWrite,
 			cfg.Chain.CompressBlock,
 			cfg.Chain.MaxCacheSize,
+			cfg.DB,
 		)
 
 		return nil
@@ -499,7 +501,7 @@ func (bc *blockchain) GetActionsFromAddress(addrStr string) ([]hash.Hash256, err
 	if err != nil {
 		return nil, err
 	}
-	return getActionsBySenderAddress(bc.dao.kvstore, hash.BytesToHash160(addr.Bytes()))
+	return getActionsBySenderAddress(bc.dao.kvstore[defaultDB], hash.BytesToHash160(addr.Bytes()))
 }
 
 // GetActionsFromIndex returns actions from index
@@ -513,7 +515,7 @@ func (bc *blockchain) GetActionsToAddress(addrStr string) ([]hash.Hash256, error
 	if err != nil {
 		return nil, err
 	}
-	return getActionsByRecipientAddress(bc.dao.kvstore, hash.BytesToHash160(addr.Bytes()))
+	return getActionsByRecipientAddress(bc.dao.kvstore[defaultDB], hash.BytesToHash160(addr.Bytes()))
 }
 
 // GetActionCountByAddress returns action count by address
@@ -522,11 +524,11 @@ func (bc *blockchain) GetActionCountByAddress(addrStr string) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-	fromCount, err := getActionCountBySenderAddress(bc.dao.kvstore, hash.BytesToHash160(addr.Bytes()))
+	fromCount, err := getActionCountBySenderAddress(bc.dao.kvstore[defaultDB], hash.BytesToHash160(addr.Bytes()))
 	if err != nil {
 		return 0, err
 	}
-	toCount, err := getActionCountByRecipientAddress(bc.dao.kvstore, hash.BytesToHash160(addr.Bytes()))
+	toCount, err := getActionCountByRecipientAddress(bc.dao.kvstore[defaultDB], hash.BytesToHash160(addr.Bytes()))
 	if err != nil {
 		return 0, err
 	}
@@ -534,7 +536,7 @@ func (bc *blockchain) GetActionCountByAddress(addrStr string) (uint64, error) {
 }
 
 func (bc *blockchain) getActionByActionHashHelper(h hash.Hash256) (hash.Hash256, error) {
-	return getBlockHashByActionHash(bc.dao.kvstore, h)
+	return getBlockHashByActionHash(bc.dao.kvstore[defaultDB], h)
 }
 
 // GetActionByActionHash returns action by action hash
@@ -558,7 +560,7 @@ func (bc *blockchain) GetActionByActionHash(h hash.Hash256) (action.SealedEnvelo
 
 // GetBlockHashByActionHash returns Block hash by action hash
 func (bc *blockchain) GetBlockHashByActionHash(h hash.Hash256) (hash.Hash256, error) {
-	return getBlockHashByActionHash(bc.dao.kvstore, h)
+	return getBlockHashByActionHash(bc.dao.kvstore[defaultDB], h)
 }
 
 // GetReceiptsByHeight returns action receipts by block height
