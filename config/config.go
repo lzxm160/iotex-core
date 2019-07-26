@@ -317,7 +317,7 @@ type (
 		SQLITE3 SQLITE3 `yaml:"SQLITE3"`
 
 		// SplitDBLength is the config for DB's split length
-		SplitDBLength int `yaml:"splitDBLength"`
+		SplitDBLength uint64 `yaml:"splitDBLength"`
 	}
 
 	// RDS is the cloud rds config

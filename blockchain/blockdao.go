@@ -43,7 +43,6 @@ const (
 	blockHeaderNS                    = "bhr"
 	blockBodyNS                      = "bbd"
 	blockFooterNS                    = "bfr"
-	blockHashDBNS                    = "bhdb"
 	receiptsNS                       = "rpt"
 
 	hashOffset = 12
@@ -448,7 +447,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	batchForBlock.Put(blockHeaderNS, hash[:], serHeader, "failed to put block header")
 	batchForBlock.Put(blockBodyNS, hash[:], serBody, "failed to put block body")
 	batchForBlock.Put(blockFooterNS, hash[:], serFooter, "failed to put block footer")
-	whichDB := int(blk.Height() / uint64(dao.cfg.SplitDBLength))
+	whichDB := getDBIndex(blk.Height(), dao.cfg.SplitDBLength)
 	kv, err := dao.getDB(whichDB)
 	if err != nil {
 		return err
@@ -458,7 +457,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 		return err
 	}
 	blockHashDBKey := append(blockHashDBPrefix, hash[:]...)
-	batch.Put(blockHashDBNS, blockHashDBKey, byteutil.Uint64ToBytes(uint64(whichDB)), "failed to put block hash -> db mapping")
+	batch.Put(blockNS, blockHashDBKey, byteutil.Uint64ToBytes(uint64(whichDB)), "failed to put block hash -> db mapping")
 
 	hashKey := append(hashPrefix, hash[:]...)
 	batch.Put(blockHashHeightMappingNS, hashKey, height, "failed to put hash -> height mapping")
@@ -640,7 +639,7 @@ func (dao *blockDAO) deleteTipBlock() error {
 // getDBForHash returns db of this block stored
 func (dao *blockDAO) getDBForHash(h hash.Hash256) (db.KVStore, int, error) {
 	blockHashDBKey := append(blockHashDBPrefix, h[:]...)
-	whichDBValue, err := dao.kvstore.Get(blockHashDBNS, blockHashDBKey)
+	whichDBValue, err := dao.kvstore.Get(blockNS, blockHashDBKey)
 	if err != nil {
 		return dao.kvstore, 0, nil
 	}
@@ -800,4 +799,12 @@ func deleteActions(dao *blockDAO, blk *block.Block, batch db.KVStoreBatch) error
 	}
 
 	return nil
+}
+
+// getDBIndex get db index from block height
+func getDBIndex(hei uint64, split uint64) int {
+	if split == 0 {
+		return 0
+	}
+	return int(hei / split)
 }
