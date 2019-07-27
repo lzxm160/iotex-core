@@ -386,9 +386,13 @@ func (dao *blockDAO) getReceiptByActionHash(h hash.Hash256) (*action.Receipt, er
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get receipt index for action %x", h)
 	}
-	receiptsBytes, err := dao.kvstore.Get(receiptsNS, heightBytes)
+	height := enc.MachineEndian.Uint64(heightBytes)
+	kvstore, err := dao.getDBFromHeight(height)
 	if err != nil {
-		height := enc.MachineEndian.Uint64(heightBytes)
+		return nil, err
+	}
+	receiptsBytes, err := kvstore.Get(receiptsNS, heightBytes)
+	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get receipts of block %d", height)
 	}
 	receipts := iotextypes.Receipts{}
@@ -447,7 +451,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	batchForBlock.Put(blockBodyNS, hash[:], serBody, "failed to put block body")
 	batchForBlock.Put(blockFooterNS, hash[:], serFooter, "failed to put block footer")
 	whichDB := getDBIndex(blk.Height(), dao.cfg.SplitDBLength)
-	kv, err := dao.getDB(whichDB)
+	kv, err := dao.getDBFromIndex(whichDB)
 	if err != nil {
 		return err
 	}
@@ -493,11 +497,16 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 
 // putReceipts store receipt into db
 func (dao *blockDAO) putReceipts(blkHeight uint64, blkReceipts []*action.Receipt) error {
+	kvstore, err := dao.getDBFromHeight(blkHeight)
+	if err != nil {
+		return err
+	}
 	if blkReceipts == nil {
 		return nil
 	}
 	receipts := iotextypes.Receipts{}
 	batch := db.NewBatch()
+	batchForReceipt := db.NewBatch()
 	var heightBytes [8]byte
 	enc.MachineEndian.PutUint64(heightBytes[:], blkHeight)
 	for _, r := range blkReceipts {
@@ -517,16 +526,24 @@ func (dao *blockDAO) putReceipts(blkHeight uint64, blkReceipts []*action.Receipt
 	if err != nil {
 		return err
 	}
-	batch.Put(receiptsNS, heightBytes[:], receiptsBytes, "Failed to put receipts of block %d", blkHeight)
+	batchForReceipt.Put(receiptsNS, heightBytes[:], receiptsBytes, "Failed to put receipts of block %d", blkHeight)
+	err = kvstore.Commit(batchForReceipt)
+	if err != nil {
+		return err
+	}
 	return dao.kvstore.Commit(batch)
 }
 
 // getReceipts gets receipts
 func (dao *blockDAO) getReceipts(blkHeight uint64) ([]*action.Receipt, error) {
+	kvstore, err := dao.getDBFromHeight(blkHeight)
+	if err != nil {
+		return nil, err
+	}
 	var heightBytes [8]byte
 	enc.MachineEndian.PutUint64(heightBytes[:], blkHeight)
 
-	value, err := dao.kvstore.Get(receiptsNS, heightBytes[:])
+	value, err := kvstore.Get(receiptsNS, heightBytes[:])
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get receipts")
 	}
@@ -582,7 +599,7 @@ func (dao *blockDAO) deleteTipBlock() error {
 		dao.footerCache.Remove(hash)
 	}
 
-	whichDB, _, err := dao.getDBForHash(hash)
+	whichDB, _, err := dao.getDBFromHash(hash)
 	if err != nil {
 		return err
 	}
@@ -636,7 +653,7 @@ func (dao *blockDAO) deleteTipBlock() error {
 }
 
 // getDBForHash returns db of this block stored
-func (dao *blockDAO) getDBForHash(h hash.Hash256) (db.KVStore, int, error) {
+func (dao *blockDAO) getDBFromHash(h hash.Hash256) (db.KVStore, int, error) {
 	blockHashDBKey := append(blockHashDBPrefix, h[:]...)
 	whichDBValue, err := dao.kvstore.Get(blockNS, blockHashDBKey)
 	if err != nil {
@@ -644,7 +661,7 @@ func (dao *blockDAO) getDBForHash(h hash.Hash256) (db.KVStore, int, error) {
 	}
 	index := int(enc.MachineEndian.Uint64(whichDBValue))
 
-	db, err := dao.getDB(index)
+	db, err := dao.getDBFromIndex(index)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -652,11 +669,11 @@ func (dao *blockDAO) getDBForHash(h hash.Hash256) (db.KVStore, int, error) {
 }
 
 // getDB get db if exists,or will create new db and return
-func (dao *blockDAO) getDB(whichDB int) (kvstore db.KVStore, err error) {
-	if whichDB == 0 {
+func (dao *blockDAO) getDBFromIndex(index int) (kvstore db.KVStore, err error) {
+	if index == 0 {
 		return dao.kvstore, nil
 	}
-	kv, ok := dao.kvstores.Load(whichDB)
+	kv, ok := dao.kvstores.Load(index)
 	if ok {
 		kvstore, ok = kv.(db.KVStore)
 		if !ok {
@@ -671,11 +688,11 @@ func (dao *blockDAO) getDB(whichDB int) (kvstore db.KVStore, err error) {
 	withSuffix = path.Base(cfg.DbPath)
 	suffix = path.Ext(withSuffix)
 	name = strings.TrimSuffix(withSuffix, suffix)
-	name += fmt.Sprintf("-%d", whichDB) + ".db"
+	name += fmt.Sprintf("-%d", index) + ".db"
 	cfg.DbPath = path.Dir(cfg.DbPath) + "/" + name
 
 	kvstore = db.NewBoltDB(cfg)
-	dao.kvstores.Store(whichDB, kvstore)
+	dao.kvstores.Store(index, kvstore)
 	err = kvstore.Start(context.Background())
 	if err != nil {
 		return nil, err
@@ -684,9 +701,15 @@ func (dao *blockDAO) getDB(whichDB int) (kvstore db.KVStore, err error) {
 	return
 }
 
+//getDBFromHeight
+func (dao *blockDAO) getDBFromHeight(blkHeight uint64) (kvstore db.KVStore, err error) {
+	index := getDBIndex(blkHeight, dao.cfg.SplitDBLength)
+	return dao.getDBFromIndex(index)
+}
+
 // getBlockValue get block's data from db,if this db failed,it will try the previous one
 func (dao *blockDAO) getBlockValue(blockNS string, h hash.Hash256) ([]byte, error) {
-	whichDB, index, err := dao.getDBForHash(h)
+	whichDB, index, err := dao.getDBFromHash(h)
 	if err != nil {
 		return nil, err
 	}
@@ -696,7 +719,7 @@ func (dao *blockDAO) getBlockValue(blockNS string, h hash.Hash256) ([]byte, erro
 		if idx < 0 {
 			idx = 0
 		}
-		db, err := dao.getDB(idx)
+		db, err := dao.getDBFromIndex(idx)
 		if err != nil {
 			return nil, err
 		}
