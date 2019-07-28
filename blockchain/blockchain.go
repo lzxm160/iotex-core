@@ -104,7 +104,7 @@ type Blockchain interface {
 	// GetActionsToAddress returns actions to address
 	GetActionsToAddress(address string) ([]hash.Hash256, error)
 	// GetAllActionsFromAddress returns all actions to address
-	GetAllActionsFromAddress(addrStr string, start, end uint64) ([]hash.Hash256, error)
+	GetAllActionsFromAddress(addrStr string, start, end uint64) ([]hash.Hash256, uint64, error)
 	// GetActionCountByAddress returns action count by address
 	GetActionCountByAddress(address string) (uint64, error)
 	// GetActionByActionHash returns action by action hash
@@ -520,43 +520,46 @@ func (bc *blockchain) GetActionsToAddress(addrStr string) ([]hash.Hash256, error
 }
 
 // GetAllActionsFromAddress returns action to address
-func (bc *blockchain) GetAllActionsFromAddress(addrStr string, start, count uint64) ([]hash.Hash256, error) {
+func (bc *blockchain) GetAllActionsFromAddress(addrStr string, start, count uint64) (actions []hash.Hash256, total uint64, err error) {
 	addr, err := address.FromString(addrStr)
 	if err != nil {
-		return nil, err
+		return
 	}
 	addrBytes := hash.BytesToHash160(addr.Bytes())
 	addrActionCountKey := append(actionTotalPrefix, addrBytes[:]...)
 	value, err := bc.dao.kvstore.Get(blockAddressActionCountMappingNS, addrActionCountKey)
 	if err != nil && errors.Cause(err) == db.ErrNotExist {
-		return nil, nil
+		err = nil
+		return
 	}
 	if err != nil {
-		return nil, err
+		return
 	}
 	if len(value) == 0 {
-		return nil, errors.New("count of actions by recipient is broken")
+		err = errors.New("count of actions by recipient is broken")
+		return
 	}
-	total := enc.MachineEndian.Uint64(value)
+	total = enc.MachineEndian.Uint64(value)
 	if start >= total {
-		return nil, errors.New("start exceeds the num of actions")
+		err = errors.New("start exceeds the num of actions")
+		return
 	}
-	var res []hash.Hash256
-
 	for i := start; i < start+count && i < total; i++ {
 		key := append(actionTotalPrefix, addrBytes[:]...)
 		key = append(key, byteutil.Uint64ToBytes(i)...)
 		value, err := bc.dao.kvstore.Get(blockAddressActionMappingNS, key)
 		if err != nil {
-			return res, errors.Wrapf(err, "failed to get action for index %d", i)
+			err = errors.Wrapf(err, "failed to get action for index %d", i)
+			return
 		}
 		if len(value) == 0 {
-			return res, errors.Wrapf(db.ErrNotExist, "action for index %d missing", i)
+			err = errors.Wrapf(db.ErrNotExist, "action for index %d missing", i)
+			return
 		}
-		res = append(res, hash.BytesToHash256(value))
+		actions = append(actions, hash.BytesToHash256(value))
 	}
 
-	return res, nil
+	return
 }
 
 // GetActionCountByAddress returns action count by address

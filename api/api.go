@@ -800,7 +800,7 @@ func (api *Server) getActionsByAddress(address string, start uint64, count uint6
 		return nil, status.Error(codes.InvalidArgument, "range exceeds the limit")
 	}
 
-	actions, err := api.getStartCountActionsByAddress(address, start, count)
+	actions, total, err := api.getStartCountActionsByAddress(address, start, count)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
@@ -808,7 +808,7 @@ func (api *Server) getActionsByAddress(address string, start uint64, count uint6
 		return &iotexapi.GetActionsResponse{}, nil
 	}
 
-	res := &iotexapi.GetActionsResponse{Total: uint64(len(actions))}
+	res := &iotexapi.GetActionsResponse{Total: total}
 
 	for _, action := range actions {
 		act, err := api.getAction(action, false)
@@ -1039,7 +1039,7 @@ func (api *Server) getTotalActionsByAddress(address string) ([]hash.Hash256, err
 	return append(actions, actionsToAddress...), nil
 }
 
-func (api *Server) getStartCountActionsByAddress(address string, start, count uint64) ([]hash.Hash256, error) {
+func (api *Server) getStartCountActionsByAddress(address string, start, count uint64) ([]hash.Hash256, uint64, error) {
 	return api.bc.GetAllActionsFromAddress(address, start, count)
 }
 
