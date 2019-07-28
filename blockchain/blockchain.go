@@ -547,7 +547,7 @@ func (bc *blockchain) GetAllActionsFromAddress(addrStr string, start, count uint
 	for i := start; i < start+count && i < total; i++ {
 		key := append(actionTotalPrefix, addrBytes[:]...)
 		key = append(key, byteutil.Uint64ToBytes(i)...)
-		value, err := bc.dao.kvstore.Get(blockAddressActionMappingNS, key)
+		value, err = bc.dao.kvstore.Get(blockAddressActionMappingNS, key)
 		if err != nil {
 			err = errors.Wrapf(err, "failed to get action for index %d", i)
 			return
