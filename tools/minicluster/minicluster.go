@@ -421,6 +421,9 @@ func newConfig(
 	cfg.Log.Zap.Encoding = "json"
 	cfg.Log.Zap.DisableStacktrace = true
 	fmt.Println(*cfg.Log.StderrRedirectFile)
+	if err := log.InitLoggers(cfg.Log, cfg.SubLogs, nil); err != nil {
+		fmt.Println("Cannot config global logger, use default one: ", err)
+	}
 	//zap:
 	//level: info
 	//encoding: json
