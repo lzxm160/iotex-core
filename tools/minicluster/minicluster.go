@@ -420,7 +420,8 @@ func newConfig(
 	cfg.Log.RedirectStdLog = true
 	cfg.Log.Zap.Encoding = "json"
 	cfg.Log.Zap.DisableStacktrace = true
-
+	cfg.Log.Zap.OutputPaths = []string{"stderr", "stdout"}
+	cfg.Log.Zap.ErrorOutputPaths = []string{"stderr"}
 	fmt.Println(*cfg.Log.StderrRedirectFile)
 	sublog := make(map[string]log.GlobalConfig)
 	if err := log.InitLoggers(cfg.Log, sublog, zap.Fields(
