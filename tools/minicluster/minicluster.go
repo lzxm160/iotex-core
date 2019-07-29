@@ -415,7 +415,7 @@ func newConfig(
 	zapCfg.Level.SetLevel(zap.InfoLevel)
 	cfg.Log.Zap = &zapCfg
 
-	logFile := fmt.Sprintf("/var/log/%d.log", networkPort)
+	logFile := fmt.Sprintf("%d.log", networkPort)
 	cfg.Log.StderrRedirectFile = &logFile
 	cfg.Log.RedirectStdLog = true
 	cfg.Log.Zap.Encoding = "json"
