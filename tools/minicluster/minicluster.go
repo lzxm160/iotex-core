@@ -420,7 +420,7 @@ func newConfig(
 	cfg.Log.RedirectStdLog = true
 	cfg.Log.Zap.Encoding = "json"
 	cfg.Log.Zap.DisableStacktrace = true
-	fmt.Println(cfg.Log)
+	fmt.Println(cfg.Log.StderrRedirectFile)
 	//zap:
 	//level: info
 	//encoding: json
