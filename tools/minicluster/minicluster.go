@@ -361,7 +361,7 @@ func main() {
 
 			log.S().Info("Fp token transfer test pass!")
 		}
-		deleteDBFiles = true
+		//deleteDBFiles = true
 	}
 }
 
