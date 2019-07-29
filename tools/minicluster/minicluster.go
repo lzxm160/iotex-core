@@ -412,7 +412,7 @@ func newConfig(
 	cfg.System.HTTPAdminPort = networkPort + 10000
 	zapCfg := zap.NewDevelopmentConfig()
 	zapCfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	zapCfg.Level.SetLevel(zap.InfoLevel)
+	zapCfg.Level.SetLevel(zap.DebugLevel)
 	cfg.Log.Zap = &zapCfg
 
 	logFile := fmt.Sprintf("%d.log", networkPort)
