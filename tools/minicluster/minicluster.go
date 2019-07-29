@@ -19,8 +19,6 @@ import (
 	"sync"
 	"time"
 
-	"go.uber.org/zap/zapcore"
-
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/iotex-proto/golang/iotexapi"
 	"go.uber.org/zap"
@@ -410,16 +408,16 @@ func newConfig(
 	cfg.Genesis.EnableGravityChainVoting = true
 	cfg.System.EnableExperimentalActions = true
 	cfg.System.HTTPAdminPort = networkPort + 10000
-	zapCfg := zap.NewDevelopmentConfig()
-	zapCfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	zapCfg.Level.SetLevel(zap.InfoLevel)
-	cfg.Log.Zap = &zapCfg
+	//zapCfg := zap.NewDevelopmentConfig()
+	//zapCfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	//zapCfg.Level.SetLevel(zap.InfoLevel)
+	//cfg.Log.Zap = &zapCfg
 
 	logFile := fmt.Sprintf("%d.log", networkPort)
 	cfg.Log.StderrRedirectFile = &logFile
 	cfg.Log.RedirectStdLog = true
-	cfg.Log.Zap.Encoding = "json"
-	cfg.Log.Zap.DisableStacktrace = true
+	//cfg.Log.Zap.Encoding = "json"
+	//cfg.Log.Zap.DisableStacktrace = true
 	fmt.Println(*cfg.Log.StderrRedirectFile)
 	sublog := make(map[string]log.GlobalConfig)
 	if err := log.InitLoggers(cfg.Log, sublog, zap.Fields(
