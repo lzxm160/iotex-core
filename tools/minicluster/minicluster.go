@@ -12,6 +12,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	glog "log"
 	"math"
 	"math/big"
 	"math/rand"
@@ -408,6 +409,13 @@ func newConfig(
 	cfg.Genesis.EnableGravityChainVoting = true
 	cfg.System.EnableExperimentalActions = true
 	cfg.System.HTTPAdminPort = networkPort + 10000
+	addr := cfg.ProducerAddress()
+	if err := log.InitLoggers(cfg.Log, cfg.SubLogs, zap.Fields(
+		zap.String("ioAddr", addr.String()),
+		zap.String("networkAddr", fmt.Sprintf("%s:%d", cfg.Network.Host, cfg.Network.Port)),
+	)); err != nil {
+		glog.Println("Cannot config global logger, use default one: ", err)
+	}
 	logFile := fmt.Sprintf("%d.log", networkPort)
 	cfg.Log.StderrRedirectFile = &logFile
 	cfg.Log.RedirectStdLog = true
