@@ -407,6 +407,7 @@ func newConfig(
 	cfg.Genesis.Delegates = cfg.Genesis.Delegates[3 : numNodes+3]
 	cfg.Genesis.EnableGravityChainVoting = true
 	cfg.System.EnableExperimentalActions = true
+	cfg.System.HTTPAdminPort = networkPort + 10000
 	logFile := fmt.Sprintf("%d.log", networkPort)
 	cfg.Log.StderrRedirectFile = &logFile
 	cfg.Log.RedirectStdLog = true
