@@ -409,5 +409,14 @@ func newConfig(
 	cfg.System.EnableExperimentalActions = true
 	logFile := fmt.Sprintf("%d.log", networkPort)
 	cfg.Log.StderrRedirectFile = &logFile
+	cfg.Log.RedirectStdLog = true
+	//zap:
+	//level: info
+	//encoding: json
+	//disableStacktrace: true
+	//outputPaths: ["stderr", "stdout"]
+	//	errorOutputPaths: ["stderr"]
+	//	stderrRedirectFile: /var/log/s.log
+	//	stdLogRedirect: true
 	return cfg
 }
