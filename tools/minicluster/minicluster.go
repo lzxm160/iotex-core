@@ -421,7 +421,8 @@ func newConfig(
 	cfg.Log.Zap.Encoding = "json"
 	cfg.Log.Zap.DisableStacktrace = true
 	fmt.Println(*cfg.Log.StderrRedirectFile)
-	if err := log.InitLoggers(cfg.Log, cfg.SubLogs, zap.Fields(
+	sublog := make(map[string]log.GlobalConfig)
+	if err := log.InitLoggers(cfg.Log, sublog, zap.Fields(
 		zap.String("networkAddr", fmt.Sprintf("%s:%d", cfg.Network.Host, cfg.Network.Port)))); err != nil {
 		fmt.Println("Cannot config global logger, use default one: ", err)
 	}
