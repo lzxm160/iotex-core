@@ -108,7 +108,7 @@ func InitLoggers(globalCfg GlobalConfig, subCfgs map[string]GlobalConfig, opts .
 		} else {
 			_subLoggers[name] = logger
 		}
-		_logServeMux.HandleFunc("/"+name, cfg.Zap.Level.ServeHTTP)
+		_logServeMux.HandleFunc("/"+name+*cfg.StderrRedirectFile, cfg.Zap.Level.ServeHTTP)
 		_logMu.Unlock()
 	}
 
