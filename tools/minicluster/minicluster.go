@@ -419,7 +419,8 @@ func newConfig(
 	logFile := fmt.Sprintf("%d.log", networkPort)
 	cfg.Log.StderrRedirectFile = &logFile
 	cfg.Log.RedirectStdLog = true
-	cfg.Log.Zap.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
+
+	//cfg.Log.Zap.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
 	cfg.Log.Zap.Encoding = "json"
 	cfg.Log.Zap.DisableStacktrace = true
 	//zap:
