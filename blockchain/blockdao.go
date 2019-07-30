@@ -822,6 +822,8 @@ func getDBIndex(hei, split, splitStartHeight uint64) int {
 	if split == 0 {
 		return 0
 	}
-
-	return int((splitStartHeight - hei) / split)
+	if hei <= splitStartHeight {
+		return 0
+	}
+	return int((hei - splitStartHeight) / split)
 }
