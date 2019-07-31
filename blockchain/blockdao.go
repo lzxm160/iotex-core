@@ -168,6 +168,7 @@ func (dao *blockDAO) initStores() error {
 		if err != nil {
 			continue
 		}
+		fmt.Println(name, "17111111111:", n)
 		dao.openDB(model, uint64(n))
 		if uint64(n) > maxN {
 			maxN = uint64(n)
