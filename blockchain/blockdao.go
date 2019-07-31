@@ -173,6 +173,9 @@ func (dao *blockDAO) initStores() error {
 			maxN = uint64(n)
 		}
 	}
+	if maxN == 0 {
+		maxN = 1
+	}
 	dao.topIndex.Store(maxN)
 	return nil
 }
@@ -720,7 +723,7 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 	longFileName := dir + "/" + file + fmt.Sprintf("-%08d", topIndex) + ".db"
 	dat, err := os.Stat(longFileName)
 	if err != nil {
-		return
+		return dao.openDB(file, topIndex)
 	}
 	if uint64(dat.Size()) > dao.cfg.SplitDBSize {
 		kvstore, index, err = dao.openDB(file, topIndex+1)
