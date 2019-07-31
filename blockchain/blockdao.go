@@ -769,26 +769,6 @@ func (dao *blockDAO) getDBFromHeight(blkHeight uint64, keyPrefix []byte) (kvstor
 	return dao.getDBFromIndex(heiIndex)
 }
 
-//// getNewestDB
-//func (dao *blockDAO) getNewestDB() (kvstore db.KVStore, index uint64, err error) {
-//	// open new file and store to dao.kvstores
-//	cfg := dao.cfg
-//	var model string
-//	var withSuffix, suffix string
-//	withSuffix = path.Base(cfg.DbPath)
-//	suffix = path.Ext(withSuffix)
-//	model = strings.TrimSuffix(withSuffix, suffix)
-//	index, needNewIndex, err := newFileIndex(path.Dir(cfg.DbPath), model, cfg.SplitDBSize)
-//	if err != nil {
-//		return
-//	}
-//	if needNewIndex {
-//		index++
-//	}
-//
-//	return dao.openDB(model, index)
-//}
-
 // getDBFromIndex
 func (dao *blockDAO) getDBFromIndex(ind uint64) (kvstore db.KVStore, index uint64, err error) {
 	if ind == 0 {
@@ -938,38 +918,6 @@ func deleteActions(dao *blockDAO, blk *block.Block, batch db.KVStoreBatch) error
 	}
 
 	return nil
-}
-
-func newFileIndex(dir, model string, fileSize uint64) (maxN uint64, needNewFile bool, err error) {
-	files, err := ioutil.ReadDir(dir)
-	if err != nil {
-		return
-	}
-	var f os.FileInfo
-	for _, file := range files {
-		name := file.Name()
-		lens := len(name)
-		if lens < 11 || !strings.Contains(name, model) {
-			continue
-		}
-		num := name[lens-11 : lens-3]
-		n, err := strconv.Atoi(num)
-		if err != nil {
-			continue
-		}
-		if uint64(n) > maxN {
-			maxN = uint64(n)
-			f = file
-		}
-	}
-	if maxN == 0 {
-		needNewFile = true
-		return
-	}
-	if uint64(f.Size()) > fileSize*1000*1000 {
-		needNewFile = true
-	}
-	return
 }
 
 func getFileNameAndDir(p string) (fileName, dir string) {
