@@ -458,7 +458,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("block file index:", fileindex)
+
 	err = kv.Commit(batchForBlock)
 	if err != nil {
 		return err
@@ -681,11 +681,13 @@ func (dao *blockDAO) getDBFromHeight(blkHeight uint64, keyPrefix []byte) (kvstor
 	}
 	hei := byteutil.Uint64ToBytes(blkHeight)
 	heightToFile := append(keyPrefix, hei...)
+	fmt.Println("block file index:", blkHeight)
 	value, err := dao.kvstore.Get(blockNS, heightToFile[:])
 	if err != nil {
 		return dao.getNewestDB()
 	}
 	heiIndex := enc.MachineEndian.Uint64(value)
+	fmt.Println("heiIndex:", heiIndex)
 	return dao.getDBFromIndex(heiIndex)
 }
 
