@@ -756,7 +756,7 @@ func (dao *blockDAO) openDB(model string, ind uint64) (kvstore db.KVStore, index
 	cfg.DbPath = path.Dir(cfg.DbPath) + "/" + name
 
 	kvstore = db.NewBoltDB(cfg)
-	dao.kvstores.Store(index, kvstore)
+	dao.kvstores.Store(ind, kvstore)
 	err = kvstore.Start(context.Background())
 	if err != nil {
 		return
