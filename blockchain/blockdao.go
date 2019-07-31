@@ -138,15 +138,18 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 			return errors.Wrap(err, "failed to write initial value for total actions")
 		}
 	}
+
+	err = dao.initStores()
+	if err != nil {
+		return err
+	}
+
 	value, _ := dao.kvstore.Get(blockNS, totalActionsKey)
 	totalActions := enc.MachineEndian.Uint64(value)
 	if totalActions != 0 {
 		return nil
 	}
-	err = dao.initStores()
-	if err != nil {
-		return err
-	}
+
 	return dao.countActions()
 }
 func (dao *blockDAO) initStores() error {
