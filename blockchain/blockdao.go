@@ -458,6 +458,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("block file index:", fileindex)
 	err = kv.Commit(batchForBlock)
 	if err != nil {
 		return err
