@@ -727,7 +727,7 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 		return dao.openDB(file, topIndex)
 	}
 	fmt.Println("here///////////////////")
-	if uint64(dat.Size()) > dao.cfg.SplitDBSize {
+	if uint64(dat.Size()) > dao.cfg.SplitDBSize*1000*1000 {
 		fmt.Println(dat.Size(), "///////////////////", dao.cfg.SplitDBSize)
 		kvstore, index, err = dao.openDB(file, topIndex+1)
 		dao.topIndex.Store(index)
