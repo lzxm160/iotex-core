@@ -454,7 +454,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	batchForBlock.Put(blockHeaderNS, hash[:], serHeader, "failed to put block header")
 	batchForBlock.Put(blockBodyNS, hash[:], serBody, "failed to put block body")
 	batchForBlock.Put(blockFooterNS, hash[:], serFooter, "failed to put block footer")
-	kv, fileindex, err := dao.getNewestDB()
+	kv, fileindex, err := dao.getDBFromHeight(blk.Height(), blockHeightToFileKey)
 	if err != nil {
 		return err
 	}
@@ -502,7 +502,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 
 // putReceipts store receipt into db
 func (dao *blockDAO) putReceipts(blkHeight uint64, blkReceipts []*action.Receipt) error {
-	kvstore, fileindex, err := dao.getNewestDB()
+	kvstore, fileindex, err := dao.getDBFromHeight(blkHeight, receiptHeightToFileKey)
 	if err != nil {
 		return err
 	}
@@ -705,23 +705,14 @@ func (dao *blockDAO) getNewestDB() (kvstore db.KVStore, index uint64, err error)
 		index++
 	}
 
-	name := model + fmt.Sprintf("-%08d", index) + ".db"
-
-	// open this db
-	cfg.DbPath = path.Dir(cfg.DbPath) + "/" + name
-
-	kvstore = db.NewBoltDB(cfg)
-	dao.kvstores.Store(name, kvstore)
-	err = kvstore.Start(context.Background())
-	if err != nil {
-		return nil, 0, err
-	}
-	dao.lifecycle.Add(kvstore)
-	return
+	return dao.openDB(model, index)
 }
 
 // getDBFromIndex
 func (dao *blockDAO) getDBFromIndex(ind uint64) (kvstore db.KVStore, index uint64, err error) {
+	if ind == 0 {
+		return dao.kvstore, 0, nil
+	}
 	kv, ok := dao.kvstores.Load(ind)
 	if ok {
 		kvstore, ok = kv.(db.KVStore)
@@ -731,7 +722,10 @@ func (dao *blockDAO) getDBFromIndex(ind uint64) (kvstore db.KVStore, index uint6
 		index = ind
 		return
 	}
-	return dao.getNewestDB()
+	withSuffix := path.Base(dao.cfg.DbPath)
+	suffix := path.Ext(withSuffix)
+	model := strings.TrimSuffix(withSuffix, suffix)
+	return dao.openDB(model, ind)
 }
 
 // getBlockValue get block's data from db,if this db failed,it will try the previous one
@@ -753,6 +747,23 @@ func (dao *blockDAO) getBlockValue(blockNS string, h hash.Hash256) ([]byte, erro
 		value, err = db.Get(blockNS, h[:])
 	}
 	return value, err
+}
+func (dao *blockDAO) openDB(model string, ind uint64) (kvstore db.KVStore, index uint64, err error) {
+	cfg := dao.cfg
+	name := model + fmt.Sprintf("-%08d", ind) + ".db"
+
+	// open this db
+	cfg.DbPath = path.Dir(cfg.DbPath) + "/" + name
+
+	kvstore = db.NewBoltDB(cfg)
+	dao.kvstores.Store(index, kvstore)
+	err = kvstore.Start(context.Background())
+	if err != nil {
+		return
+	}
+	dao.lifecycle.Add(kvstore)
+	index = ind
+	return
 }
 
 // deleteReceipts deletes receipt information from db
