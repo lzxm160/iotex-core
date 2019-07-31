@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/hash"
@@ -79,6 +80,7 @@ type blockDAO struct {
 	compressBlock bool
 	kvstore       db.KVStore
 	kvstores      sync.Map //store like map[index]db.KVStore,index from 1...N
+	topIndex      atomic.Value
 	timerFactory  *prometheustimer.TimerFactory
 	lifecycle     lifecycle.Lifecycle
 	headerCache   *cache.ThreadSafeLruCache
@@ -141,7 +143,47 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 	if totalActions != 0 {
 		return nil
 	}
+	err = dao.initStores()
+	if err != nil {
+		return err
+	}
 	return dao.countActions()
+}
+func (dao *blockDAO) initStores() (err error) {
+	cfg := dao.cfg
+	model, dir := getFileNameAndDir(cfg.DbPath)
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return
+	}
+	var maxN uint64
+	for _, file := range files {
+		name := file.Name()
+		lens := len(name)
+		if lens < 11 || !strings.Contains(name, model) {
+			continue
+		}
+		num := name[lens-11 : lens-3]
+		n, err := strconv.Atoi(num)
+		if err != nil {
+			continue
+		}
+		// open this db
+		cfg.DbPath = dir + "/" + name
+
+		kvstore := db.NewBoltDB(cfg)
+		dao.kvstores.Store(uint64(n), kvstore)
+		err = kvstore.Start(context.Background())
+		if err != nil {
+			return
+		}
+		dao.lifecycle.Add(kvstore)
+		if uint64(n) > maxN {
+			maxN = uint64(n)
+		}
+	}
+	dao.topIndex.Store(maxN)
+	return
 }
 func (dao *blockDAO) countActions() error {
 	totalActions := uint64(0)
@@ -454,7 +496,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	batchForBlock.Put(blockHeaderNS, hash[:], serHeader, "failed to put block header")
 	batchForBlock.Put(blockBodyNS, hash[:], serBody, "failed to put block body")
 	batchForBlock.Put(blockFooterNS, hash[:], serFooter, "failed to put block footer")
-	kv, fileindex, err := dao.getDBFromHeight(blk.Height(), blockHeightToFileKey)
+	kv, fileindex, err := dao.getTopDB(blk.Height())
 	if err != nil {
 		return err
 	}
@@ -503,7 +545,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 
 // putReceipts store receipt into db
 func (dao *blockDAO) putReceipts(blkHeight uint64, blkReceipts []*action.Receipt) error {
-	kvstore, fileindex, err := dao.getDBFromHeight(blkHeight, receiptHeightToFileKey)
+	kvstore, fileindex, err := dao.getTopDB(blkHeight)
 	if err != nil {
 		return err
 	}
@@ -672,6 +714,42 @@ func (dao *blockDAO) getDBFromHash(h hash.Hash256) (db.KVStore, uint64, error) {
 }
 
 //getDBFromHeight
+func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint64, err error) {
+	if dao.cfg.SplitDBSize == 0 {
+		return dao.kvstore, 0, nil
+	}
+	if blkHeight <= dao.cfg.SplitDBHeight {
+		return dao.kvstore, 0, nil
+	}
+	topIndex := dao.topIndex.Load().(uint64)
+	file, dir := getFileNameAndDir(dao.cfg.DbPath)
+	if err != nil {
+		return
+	}
+	longFileName := dir + "/" + file + fmt.Sprintf("-%08d", topIndex) + ".db"
+	dat, err := os.Stat(longFileName)
+	if err != nil {
+		return
+	}
+	if uint64(dat.Size()) > dao.cfg.SplitDBSize {
+		kvstore, index, err = dao.openDB(file, topIndex+1)
+		dao.topIndex.Store(index)
+		return
+	}
+	kv, ok := dao.kvstores.Load(topIndex)
+	if ok {
+		kvstore, ok = kv.(db.KVStore)
+		if !ok {
+			err = errors.New("db convert error")
+		}
+		index = topIndex
+		return
+	}
+
+	return dao.openDB(file, topIndex)
+}
+
+//getDBFromHeight
 func (dao *blockDAO) getDBFromHeight(blkHeight uint64, keyPrefix []byte) (kvstore db.KVStore, index uint64, err error) {
 	if dao.cfg.SplitDBSize == 0 {
 		return dao.kvstore, 0, nil
@@ -684,32 +762,32 @@ func (dao *blockDAO) getDBFromHeight(blkHeight uint64, keyPrefix []byte) (kvstor
 	fmt.Println("block file index:", blkHeight)
 	value, err := dao.kvstore.Get(blockNS, heightToFile[:])
 	if err != nil {
-		return dao.getNewestDB()
+		return
 	}
 	heiIndex := enc.MachineEndian.Uint64(value)
 	fmt.Println("heiIndex:", heiIndex)
 	return dao.getDBFromIndex(heiIndex)
 }
 
-// getNewestDB
-func (dao *blockDAO) getNewestDB() (kvstore db.KVStore, index uint64, err error) {
-	// open new file and store to dao.kvstores
-	cfg := dao.cfg
-	var model string
-	var withSuffix, suffix string
-	withSuffix = path.Base(cfg.DbPath)
-	suffix = path.Ext(withSuffix)
-	model = strings.TrimSuffix(withSuffix, suffix)
-	index, needNewIndex, err := newFileIndex(path.Dir(cfg.DbPath), model, cfg.SplitDBSize)
-	if err != nil {
-		return
-	}
-	if needNewIndex {
-		index++
-	}
-
-	return dao.openDB(model, index)
-}
+//// getNewestDB
+//func (dao *blockDAO) getNewestDB() (kvstore db.KVStore, index uint64, err error) {
+//	// open new file and store to dao.kvstores
+//	cfg := dao.cfg
+//	var model string
+//	var withSuffix, suffix string
+//	withSuffix = path.Base(cfg.DbPath)
+//	suffix = path.Ext(withSuffix)
+//	model = strings.TrimSuffix(withSuffix, suffix)
+//	index, needNewIndex, err := newFileIndex(path.Dir(cfg.DbPath), model, cfg.SplitDBSize)
+//	if err != nil {
+//		return
+//	}
+//	if needNewIndex {
+//		index++
+//	}
+//
+//	return dao.openDB(model, index)
+//}
 
 // getDBFromIndex
 func (dao *blockDAO) getDBFromIndex(ind uint64) (kvstore db.KVStore, index uint64, err error) {
@@ -725,9 +803,7 @@ func (dao *blockDAO) getDBFromIndex(ind uint64) (kvstore db.KVStore, index uint6
 		index = ind
 		return
 	}
-	withSuffix := path.Base(dao.cfg.DbPath)
-	suffix := path.Ext(withSuffix)
-	model := strings.TrimSuffix(withSuffix, suffix)
+	model, _ := getFileNameAndDir(dao.cfg.DbPath)
 	return dao.openDB(model, ind)
 }
 
@@ -757,7 +833,7 @@ func (dao *blockDAO) openDB(model string, ind uint64) (kvstore db.KVStore, index
 
 	// open this db
 	cfg.DbPath = path.Dir(cfg.DbPath) + "/" + name
-
+	fmt.Println("opendb:", cfg.DbPath)
 	kvstore = db.NewBoltDB(cfg)
 	dao.kvstores.Store(ind, kvstore)
 	err = kvstore.Start(context.Background())
@@ -893,5 +969,14 @@ func newFileIndex(dir, model string, fileSize uint64) (maxN uint64, needNewFile 
 	if uint64(f.Size()) > fileSize*1000*1000 {
 		needNewFile = true
 	}
+	return
+}
+
+func getFileNameAndDir(p string) (fileName, dir string) {
+	var withSuffix, suffix string
+	withSuffix = path.Base(p)
+	suffix = path.Ext(withSuffix)
+	fileName = strings.TrimSuffix(withSuffix, suffix)
+	dir = path.Dir(p)
 	return
 }
