@@ -149,12 +149,12 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 	}
 	return dao.countActions()
 }
-func (dao *blockDAO) initStores() (err error) {
+func (dao *blockDAO) initStores() error {
 	cfg := dao.cfg
 	model, dir := getFileNameAndDir(cfg.DbPath)
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
-		return
+		return err
 	}
 	var maxN uint64
 	for _, file := range files {
@@ -168,22 +168,13 @@ func (dao *blockDAO) initStores() (err error) {
 		if err != nil {
 			continue
 		}
-		// open this db
-		cfg.DbPath = dir + "/" + name
-
-		kvstore := db.NewBoltDB(cfg)
-		dao.kvstores.Store(uint64(n), kvstore)
-		err = kvstore.Start(context.Background())
-		if err != nil {
-			return
-		}
-		dao.lifecycle.Add(kvstore)
+		dao.openDB(model, uint64(n))
 		if uint64(n) > maxN {
 			maxN = uint64(n)
 		}
 	}
 	dao.topIndex.Store(maxN)
-	return
+	return nil
 }
 func (dao *blockDAO) countActions() error {
 	totalActions := uint64(0)
