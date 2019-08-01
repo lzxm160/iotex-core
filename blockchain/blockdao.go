@@ -758,13 +758,11 @@ func (dao *blockDAO) getDBFromHeight(blkHeight uint64, keyPrefix []byte) (kvstor
 	}
 	hei := byteutil.Uint64ToBytes(blkHeight)
 	heightToFile := append(keyPrefix, hei...)
-	fmt.Println("block Height:", blkHeight)
 	value, err := dao.kvstore.Get(blockNS, heightToFile[:])
 	if err != nil {
 		return
 	}
 	heiIndex := enc.MachineEndian.Uint64(value)
-	fmt.Println("heiIndex:", heiIndex)
 	return dao.getDBFromIndex(heiIndex)
 }
 
@@ -815,7 +813,6 @@ func (dao *blockDAO) openDB(idx uint64) (kvstore db.KVStore, index uint64, err e
 
 	// open or create this db file
 	cfg.DbPath = path.Dir(cfg.DbPath) + "/" + name
-	fmt.Println("opendb:", cfg.DbPath)
 	kvstore = db.NewBoltDB(cfg)
 	dao.kvstores.Store(idx, kvstore)
 	err = kvstore.Start(context.Background())
