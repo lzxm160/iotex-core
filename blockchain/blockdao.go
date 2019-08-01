@@ -171,8 +171,7 @@ func (dao *blockDAO) initStores() error {
 		if err != nil {
 			continue
 		}
-		fmt.Println(name, "17111111111:", n)
-		dao.openDB(model, uint64(n))
+		dao.openDB(uint64(n))
 		if uint64(n) > maxN {
 			maxN = uint64(n)
 		}
@@ -728,12 +727,12 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 	dat, err := os.Stat(longFileName)
 	if err != nil {
 		fmt.Println("stat error:", err)
-		return dao.openDB(file, topIndex)
+		return dao.openDB(topIndex)
 	}
 	fmt.Println("here///////////////////")
 	if uint64(dat.Size()) > dao.cfg.SplitDBSize*1024*1024 {
 		fmt.Println(dat.Size(), "///////////////////", dao.cfg.SplitDBSize)
-		kvstore, index, err = dao.openDB(file, topIndex+1)
+		kvstore, index, err = dao.openDB(topIndex + 1)
 		dao.topIndex.Store(index)
 		return
 	}
@@ -747,7 +746,7 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 		return
 	}
 
-	return dao.openDB(file, topIndex)
+	return dao.openDB(topIndex)
 }
 
 //getDBFromHeight
@@ -771,21 +770,21 @@ func (dao *blockDAO) getDBFromHeight(blkHeight uint64, keyPrefix []byte) (kvstor
 }
 
 // getDBFromIndex
-func (dao *blockDAO) getDBFromIndex(ind uint64) (kvstore db.KVStore, index uint64, err error) {
-	if ind == 0 {
+func (dao *blockDAO) getDBFromIndex(idx uint64) (kvstore db.KVStore, index uint64, err error) {
+	if idx == 0 {
 		return dao.kvstore, 0, nil
 	}
-	kv, ok := dao.kvstores.Load(ind)
+	kv, ok := dao.kvstores.Load(idx)
 	if ok {
 		kvstore, ok = kv.(db.KVStore)
 		if !ok {
 			err = errors.New("db convert error")
 		}
-		index = ind
+		index = idx
 		return
 	}
-	model, _ := getFileNameAndDir(dao.cfg.DbPath)
-	return dao.openDB(model, ind)
+
+	return dao.openDB(idx)
 }
 
 // getBlockValue get block's data from db,if this db failed,it will try the previous one
@@ -808,21 +807,24 @@ func (dao *blockDAO) getBlockValue(blockNS string, h hash.Hash256) ([]byte, erro
 	}
 	return value, err
 }
-func (dao *blockDAO) openDB(model string, ind uint64) (kvstore db.KVStore, index uint64, err error) {
-	cfg := dao.cfg
-	name := model + fmt.Sprintf("-%08d", ind) + ".db"
 
-	// open this db
+// open file if exists, or create new file
+func (dao *blockDAO) openDB(idx uint64) (kvstore db.KVStore, index uint64, err error) {
+	cfg := dao.cfg
+	model, _ := getFileNameAndDir(cfg.DbPath)
+	name := model + fmt.Sprintf("-%08d", idx) + ".db"
+
+	// open or create this db file
 	cfg.DbPath = path.Dir(cfg.DbPath) + "/" + name
 	fmt.Println("opendb:", cfg.DbPath)
 	kvstore = db.NewBoltDB(cfg)
-	dao.kvstores.Store(ind, kvstore)
+	dao.kvstores.Store(idx, kvstore)
 	err = kvstore.Start(context.Background())
 	if err != nil {
 		return
 	}
 	dao.lifecycle.Add(kvstore)
-	index = ind
+	index = idx
 	return
 }
 
