@@ -322,6 +322,7 @@ func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, e
 	} else {
 		err = sdb.state(pkHash, &account)
 	}
+	fmt.Println("//////////////////here")
 	if err != nil {
 		if errors.Cause(err) == state.ErrStateNotExist {
 			acc := state.EmptyAccount()
