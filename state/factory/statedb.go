@@ -316,8 +316,8 @@ func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, e
 	}
 
 	pkHash := hash.BytesToHash160(addr.Bytes())
-	account = &state.Account{}
-
+	acc := state.EmptyAccount()
+	account = &acc
 	if height != 0 {
 		err = sdb.stateHeight(pkHash, height, account)
 	} else {
@@ -328,7 +328,7 @@ func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, e
 	fmt.Println("//////////////////here")
 	if err != nil {
 		if errors.Cause(err) == state.ErrStateNotExist {
-			acc := state.EmptyAccount()
+			acc = state.EmptyAccount()
 			account = &acc
 			return
 		}
