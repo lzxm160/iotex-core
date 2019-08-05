@@ -31,7 +31,6 @@ var (
 		API: API{
 			Url: "api.testnet.iotex.one:80",
 		},
-		KeyStore: "",
 	}
 
 	// ErrInvalidCfg indicates the invalid config value
@@ -48,7 +47,6 @@ type (
 	Config struct {
 		API         API              `yaml:"api"`
 		Log         log.GlobalConfig `yaml:"log"`
-		KeyStore    string           `yaml:"keyStore"`
 		RunInterval uint64           `yaml:"runInterval"`
 		Transfer    transfer         `yaml:"transfer"`
 		Wallet      string           `yaml:"wallet"`

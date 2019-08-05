@@ -57,6 +57,9 @@ func (s *Server) Start(ctx context.Context) error {
 // Stop stops the server
 func (s *Server) Stop() error {
 	s.cancel()
+	for _, service := range s.runServices {
+		service.Stop()
+	}
 	return nil
 }
 
