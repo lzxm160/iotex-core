@@ -43,6 +43,11 @@ const (
 	AccountTrieRootKey = "accountTrieRoot"
 )
 
+var (
+	//AccountIndexPrefix
+	AccountMaxVersionPrefix = []byte("vp.")
+)
+
 type (
 	// Factory defines an interface for managing states
 	Factory interface {

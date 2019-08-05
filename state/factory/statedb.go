@@ -7,12 +7,15 @@
 package factory
 
 import (
+	"bytes"
 	"context"
+	"encoding/binary"
 	"fmt"
 	"math/big"
 	"strconv"
 	"sync"
 
+	"github.com/boltdb/bolt"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -254,20 +257,73 @@ func (sdb *stateDB) state(addr hash.Hash160, s interface{}) error {
 	return nil
 }
 
-func (sdb *stateDB) accountState(encodedAddr string) (*state.Account, error) {
+func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{}) error {
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, height)
+	key := append(addr[:], heightBytes...)
+
+	maxVersion := uint64(0)
+	indexKey := append(AccountMaxVersionPrefix, addr[:]...)
+	value, err := sdb.dao.Get(AccountKVNameSpace, indexKey)
+	if err == nil {
+		maxVersion = binary.BigEndian.Uint64(value)
+	}
+	db := sdb.dao.DB()
+	boltdb, ok :=
+		sdb.dao.DB().View(func(tx *bolt.Tx) error {
+			c := tx.Bucket([]byte("MyBucket")).Cursor()
+			bytess := make([]byte, 8)
+			binary.BigEndian.PutUint64(bytess, 100000)
+			max := append([]byte("1111"), bytess...)
+			for k, v := c.Seek(max); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Prev() {
+				key := binary.BigEndian.Uint64(k[4:])
+				fmt.Printf("%d: %s\n", key, v)
+			}
+			return nil
+		})
+
+	data, err := sdb.dao.Get(AccountKVNameSpace, addr[:])
+	if err != nil {
+		if errors.Cause(err) == db.ErrNotExist {
+			return errors.Wrapf(state.ErrStateNotExist, "state of %x doesn't exist", addr)
+		}
+		return errors.Wrapf(err, "error when getting the state of %x", addr)
+	}
+	if err := state.Deserialize(s, data); err != nil {
+		return errors.Wrapf(err, "error when deserializing state data into %T", s)
+	}
+	return nil
+}
+
+func (sdb *stateDB) accountState(encodedAddr string) (account *state.Account, err error) {
 	// TODO: state db shouldn't serve this function
+	height := uint64(0)
+	if len(encodedAddr) > 41 {
+		height, err = strconv.ParseUint(encodedAddr[41:], 10, 64)
+		if err != nil {
+			return
+		}
+	}
 	addr, err := address.FromString(encodedAddr)
 	if err != nil {
 		return nil, err
 	}
 	pkHash := hash.BytesToHash160(addr.Bytes())
-	var account state.Account
-	if err := sdb.state(pkHash, &account); err != nil {
-		if errors.Cause(err) == state.ErrStateNotExist {
-			account = state.EmptyAccount()
-			return &account, nil
-		}
-		return nil, errors.Wrapf(err, "error when loading state of %x", pkHash)
+	account = &state.Account{}
+
+	if height != 0 {
+		err = sdb.stateHeight(pkHash, height, &account)
+	} else {
+		err = sdb.state(pkHash, &account)
 	}
-	return &account, nil
+	if err != nil {
+		if errors.Cause(err) == state.ErrStateNotExist {
+			acc := state.EmptyAccount()
+			account = &acc
+			return
+		}
+		err = errors.Wrapf(err, "error when loading state of %x", pkHash)
+		return
+	}
+	return
 }
