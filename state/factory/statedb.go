@@ -295,15 +295,19 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 	return errors.New("cannot find state")
 }
 
-func (sdb *stateDB) accountState(encodedAddr string) (account *state.Account, err error) {
+func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, err error) {
 	// TODO: state db shouldn't serve this function
+	fmt.Println("////////////////", encodedAddrs)
+	var encodedAddr string
 	height := uint64(0)
-	if len(encodedAddr) > 41 {
-		height, err = strconv.ParseUint(encodedAddr[41:], 10, 64)
+	if len(encodedAddrs) > 41 {
+		height, err = strconv.ParseUint(encodedAddrs[41:], 10, 64)
 		if err != nil {
 			return
 		}
+		encodedAddr = encodedAddrs[:41]
 	}
+	fmt.Println("////////////////", encodedAddr)
 	addr, err := address.FromString(encodedAddr)
 	if err != nil {
 		return nil, err
