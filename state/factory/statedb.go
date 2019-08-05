@@ -314,6 +314,7 @@ func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, e
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("//////////////////317here")
 	pkHash := hash.BytesToHash160(addr.Bytes())
 	account = &state.Account{}
 
