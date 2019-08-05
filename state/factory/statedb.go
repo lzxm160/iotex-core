@@ -322,7 +322,7 @@ func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, e
 		err = sdb.stateHeight(pkHash, height, account)
 	} else {
 		fmt.Println("//////////////////320here")
-		err = sdb.state(pkHash, &account)
+		err = sdb.state(pkHash, account)
 		fmt.Println("errrrrrrrrrrrrrrrrrr", err)
 	}
 	fmt.Println("//////////////////here")
