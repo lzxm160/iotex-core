@@ -306,6 +306,8 @@ func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, e
 			return
 		}
 		encodedAddr = encodedAddrs[:41]
+	} else {
+		encodedAddr = encodedAddrs
 	}
 	fmt.Println("////////////////", encodedAddr)
 	addr, err := address.FromString(encodedAddr)
