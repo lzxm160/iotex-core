@@ -8,5 +8,7 @@ Before run bot, we need deploy xrc20 and multisend contract and write addresses 
 
 The two contracts is in server/bot/contract.
 
+run "make build" to build
+
 ## License
 This project is licensed under the [Apache License 2.0](LICENSE).
