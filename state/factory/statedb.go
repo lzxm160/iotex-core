@@ -314,10 +314,10 @@ func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, e
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("//////////////////317here")
+
 	pkHash := hash.BytesToHash160(addr.Bytes())
 	account = &state.Account{}
-
+	fmt.Println("//////////////////320here")
 	if height != 0 {
 		err = sdb.stateHeight(pkHash, height, &account)
 	} else {
