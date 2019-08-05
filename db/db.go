@@ -58,7 +58,9 @@ func NewMemKVStore() KVStore {
 		data:   &sync.Map{},
 	}
 }
-
+func (m *memKVStore) DB() interface{} {
+	return nil
+}
 func (m *memKVStore) Start(_ context.Context) error { return nil }
 
 func (m *memKVStore) Stop(_ context.Context) error { return nil }

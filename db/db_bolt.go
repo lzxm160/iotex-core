@@ -68,7 +68,7 @@ func (b *boltDB) Put(namespace string, key, value []byte) (err error) {
 	}
 	return err
 }
-func (b *boltDB) DB() *bolt.DB {
+func (b *boltDB) DB() interface{} {
 	return b.db
 }
 

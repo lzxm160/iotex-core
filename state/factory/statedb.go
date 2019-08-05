@@ -15,8 +15,8 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/boltdb/bolt"
 	"github.com/pkg/errors"
+	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
 
 	"github.com/iotexproject/go-pkgs/hash"
@@ -260,7 +260,7 @@ func (sdb *stateDB) state(addr hash.Hash160, s interface{}) error {
 func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{}) error {
 	heightBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(heightBytes, height)
-	key := append(addr[:], heightBytes...)
+	heightKey := append(addr[:], heightBytes...)
 
 	maxVersion := uint64(0)
 	indexKey := append(AccountMaxVersionPrefix, addr[:]...)
@@ -268,31 +268,31 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 	if err == nil {
 		maxVersion = binary.BigEndian.Uint64(value)
 	}
-	db := sdb.dao.DB()
-	boltdb, ok :=
-		sdb.dao.DB().View(func(tx *bolt.Tx) error {
-			c := tx.Bucket([]byte("MyBucket")).Cursor()
-			bytess := make([]byte, 8)
-			binary.BigEndian.PutUint64(bytess, 100000)
-			max := append([]byte("1111"), bytess...)
-			for k, v := c.Seek(max); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Prev() {
-				key := binary.BigEndian.Uint64(k[4:])
-				fmt.Printf("%d: %s\n", key, v)
-			}
-			return nil
-		})
+	if maxVersion == 0 || height > maxVersion {
+		return errors.New("cannot find state")
+	}
 
-	data, err := sdb.dao.Get(AccountKVNameSpace, addr[:])
-	if err != nil {
-		if errors.Cause(err) == db.ErrNotExist {
-			return errors.Wrapf(state.ErrStateNotExist, "state of %x doesn't exist", addr)
+	db := sdb.dao.DB()
+	boltdb, ok := db.(*bolt.DB)
+	if !ok {
+		return errors.New("convert error")
+	}
+	boltdb.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
+		bytess := make([]byte, 8)
+		binary.BigEndian.PutUint64(bytess, maxVersion)
+		stateKey := append(addr[:], bytess...)
+		for k, v := c.Seek(stateKey); k != nil && bytes.Compare(k, stateKey) <= 0; k, v = c.Prev() {
+			if bytes.Compare(heightKey, k) >= 0 {
+				if err := state.Deserialize(s, v); err != nil {
+					return errors.Wrapf(err, "error when deserializing state data into %T", s)
+				}
+			}
 		}
-		return errors.Wrapf(err, "error when getting the state of %x", addr)
-	}
-	if err := state.Deserialize(s, data); err != nil {
-		return errors.Wrapf(err, "error when deserializing state data into %T", s)
-	}
-	return nil
+		return nil
+	})
+
+	return errors.New("cannot find state")
 }
 
 func (sdb *stateDB) accountState(encodedAddr string) (account *state.Account, err error) {
