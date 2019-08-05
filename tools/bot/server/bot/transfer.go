@@ -105,7 +105,7 @@ func (s *Transfer) checkAndAlert(hs string) {
 	}
 }
 func (s *Transfer) transfer(pri crypto.PrivateKey) (txhash string, err error) {
-	nonce, err := grpcutil.GetNonce(s.cfg.API.Url, false, s.cfg.Xrc20.From[0])
+	nonce, err := grpcutil.GetNonce(s.cfg.API.Url, false, s.cfg.Transfer.From[0])
 	if err != nil {
 		return
 	}
