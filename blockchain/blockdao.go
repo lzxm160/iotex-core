@@ -727,10 +727,11 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, topIndex ui
 	longFileName := dir + "/" + file + fmt.Sprintf("-%08d", topIndex) + ".db"
 	dat, err := os.Stat(longFileName)
 	if err != nil && os.IsExist(err) {
+		fmt.Println("7300000000000000000000000")
 		// open this index if db not exsists
 		return dao.openDB(topIndex)
 	}
-	fmt.Println("7333333333333333")
+
 	if uint64(dat.Size()) > dao.cfg.SplitDBSize() {
 		// open next index if db size is bigger than SplitDBSize
 		kvstore, topIndex, err = dao.openDB(topIndex + 1)
@@ -826,7 +827,7 @@ func (dao *blockDAO) openDB(idx uint64) (kvstore db.KVStore, index uint64, err e
 	cfg := dao.cfg
 	model, _ := getFileNameAndDir(cfg.DbPath)
 	name := model + fmt.Sprintf("-%08d", idx) + ".db"
-
+	fmt.Println("830000000000000000000", name)
 	// open or create this db file
 	cfg.DbPath = path.Dir(cfg.DbPath) + "/" + name
 	kvstore = db.NewBoltDB(cfg)
