@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 
-	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/go-pkgs/hash"
+
+	"github.com/iotexproject/iotex-core/action"
+
+	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/iotex-antenna-go/v2/account"
 	"github.com/iotexproject/iotex-antenna-go/v2/iotex"
 	"github.com/iotexproject/iotex-proto/golang/iotexapi"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 	"google.golang.org/grpc"
-
-	"github.com/iotexproject/iotex-core/action"
 )
 
 // ConnectToEndpoint connect to endpoint
@@ -43,7 +44,9 @@ func GetReceiptByActionHash(url, hs string) error {
 	}
 	caller := cli.GetReceipt(hash)
 	response, err := caller.Call(context.Background())
-
+	if err != nil {
+		return err
+	}
 	if response.ReceiptInfo.Receipt.Status != action.SuccessReceiptStatus {
 		return errors.New("action fail:" + hs)
 	}
