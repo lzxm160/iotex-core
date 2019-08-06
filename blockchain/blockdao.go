@@ -548,6 +548,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 func (dao *blockDAO) putReceipts(blkHeight uint64, blkReceipts []*action.Receipt) error {
 	kvstore, _, err := dao.getTopDBOfOpened(blkHeight)
 	if err != nil {
+		fmt.Println("55111111111111111", err)
 		return err
 	}
 	if blkReceipts == nil {
