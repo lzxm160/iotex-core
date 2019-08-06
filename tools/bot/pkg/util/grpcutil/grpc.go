@@ -3,7 +3,6 @@ package grpcutil
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/go-pkgs/hash"
@@ -27,8 +26,7 @@ func ConnectToEndpoint(url string) (*grpc.ClientConn, error) {
 }
 
 // GetReceiptByActionHash get receipt by action hash
-func GetReceiptByActionHash(url string, hs string) error {
-	fmt.Println(url, ":", hs)
+func GetReceiptByActionHash(url, hs string) error {
 	conn, err := ConnectToEndpoint(url)
 	if err != nil {
 		return err
