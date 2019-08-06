@@ -721,10 +721,6 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, topIndex ui
 	topIndex = dao.topIndex.Load().(uint64)
 	fmt.Println("xxxxxxxxxxxxxxx", topIndex)
 	file, dir := getFileNameAndDir(dao.cfg.DbPath)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
 	fmt.Println("7222222222222222222222222222")
 	longFileName := dir + "/" + file + fmt.Sprintf("-%08d", topIndex) + ".db"
 	dat, err := os.Stat(longFileName)
