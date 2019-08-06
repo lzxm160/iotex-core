@@ -123,10 +123,9 @@ func (s *Transfer) transfer(pri crypto.PrivateKey) (txhash string, err error) {
 		return
 	}
 	transfer := cli.Transfer(to, amount)
-	transfer.SetNonce(nonce).
+	shash, err := transfer.SetNonce(nonce).
 		SetGasLimit(s.cfg.Transfer.GasLimit).
-		SetGasPrice(gasprice)
-	shash, err := transfer.Call(context.Background())
+		SetGasPrice(gasprice).Call(context.Background())
 	txhash = hex.EncodeToString(shash[:])
 	log.L().Info("transfer:", zap.String("transfer hash", txhash), zap.Uint64("nonce", nonce), zap.String("from", s.cfg.Transfer.From[0]), zap.String("to", s.cfg.Transfer.To[0]))
 	return

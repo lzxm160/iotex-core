@@ -1,6 +1,6 @@
 
 api:
-  url: api.testnet.iotex.one:80
+  url: api.testnet.iotex.one:443
 log:
   zap:
     level: info
