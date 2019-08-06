@@ -726,13 +726,15 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, topIndex ui
 	}
 	longFileName := dir + "/" + file + fmt.Sprintf("-%08d", topIndex) + ".db"
 	dat, err := os.Stat(longFileName)
-
 	if err != nil && os.IsNotExist(err) {
 		fmt.Println("7300000000000000000000000")
 		// open this index if db not exsists
 		return dao.openDB(topIndex)
 	}
-
+	fmt.Println("73333333333333333333333")
+	if err != nil {
+		return
+	}
 	if uint64(dat.Size()) > dao.cfg.SplitDBSize() {
 		// open next index if db size is bigger than SplitDBSize
 		kvstore, topIndex, err = dao.openDB(topIndex + 1)
