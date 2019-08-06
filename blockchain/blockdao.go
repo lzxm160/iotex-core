@@ -725,7 +725,7 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, topIndex ui
 	}
 	// open next index if db size is bigger than SplitDBSize
 	if err != nil && errors.Cause(err) == ErrNeedSplit {
-		fmt.Println("need split ")
+		fmt.Println("vvvvvvvvvvvvvvvvvvvvvvvvneed split ")
 		kvstore, topIndex, err = dao.openDB(topIndex + 1)
 		dao.topIndex.Store(topIndex)
 		return
