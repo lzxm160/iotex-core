@@ -12,13 +12,15 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/iotexproject/iotex-address/address"
-
+	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/crypto"
+	"github.com/iotexproject/go-pkgs/hash"
+	"github.com/iotexproject/iotex-core/action"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
 	"github.com/iotexproject/iotex-core/pkg/log"
+	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 	"github.com/iotexproject/iotex-core/tools/bot/config"
 	"github.com/iotexproject/iotex-core/tools/bot/pkg/util"
 	"github.com/iotexproject/iotex-core/tools/bot/pkg/util/grpcutil"
@@ -104,10 +106,6 @@ func (s *Transfer) checkAndAlert(hs string) {
 	}
 }
 func (s *Transfer) transfer(pri crypto.PrivateKey) (txhash string, err error) {
-	cli, err := grpcutil.GetAuthedClient(s.cfg.API.URL, pri)
-	if err != nil {
-		return
-	}
 	gasprice := big.NewInt(0).SetUint64(s.cfg.Transfer.GasPrice)
 	nonce, err := grpcutil.GetNonce(s.cfg.API.URL, s.cfg.Transfer.From[0])
 	if err != nil {
@@ -118,14 +116,25 @@ func (s *Transfer) transfer(pri crypto.PrivateKey) (txhash string, err error) {
 		err = errors.New("amount convert error")
 		return
 	}
-	to, err := address.FromString(s.cfg.Transfer.To[0])
+	tx, err := action.NewTransfer(nonce, amount, s.cfg.Transfer.To[0], nil,
+		s.cfg.Transfer.GasLimit, gasprice)
 	if err != nil {
 		return
 	}
-	transfer := cli.Transfer(to, amount)
-	shash, err := transfer.SetNonce(nonce).
-		SetGasLimit(s.cfg.Transfer.GasLimit).
-		SetGasPrice(gasprice).Call(context.Background())
+	bd := &action.EnvelopeBuilder{}
+	elp := bd.SetNonce(nonce).
+		SetGasLimit(s.cfg.Execution.GasLimit).
+		SetGasPrice(gasprice).
+		SetAction(tx).Build()
+	selp, err := action.Sign(elp, pri)
+	if err != nil {
+		return
+	}
+	err = grpcutil.SendAction(s.cfg.API.URL, selp.Proto())
+	if err != nil {
+		return
+	}
+	shash := hash.Hash256b(byteutil.Must(proto.Marshal(selp.Proto())))
 	txhash = hex.EncodeToString(shash[:])
 	log.L().Info("transfer:", zap.String("transfer hash", txhash), zap.Uint64("nonce", nonce), zap.String("from", s.cfg.Transfer.From[0]), zap.String("to", s.cfg.Transfer.To[0]))
 	return
