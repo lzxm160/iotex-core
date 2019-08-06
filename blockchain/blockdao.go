@@ -74,7 +74,7 @@ var (
 	)
 	patternLen = len("00000000.db")
 	suffixLen  = len(".db")
-	// ErrNotExist indicates certain item does not exist in Blockchain database
+	// ErrNotOpened indicates db is not opened
 	ErrNotOpened = errors.New("DB is not opened")
 )
 
