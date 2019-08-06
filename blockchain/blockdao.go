@@ -76,6 +76,8 @@ var (
 	suffixLen  = len(".db")
 	// ErrNotOpened indicates db is not opened
 	ErrNotOpened = errors.New("DB is not opened")
+	// ErrNeedSplit indicates db need to open
+	ErrNeedSplit = errors.New("DB need to open")
 )
 
 type blockDAO struct {
@@ -716,31 +718,18 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, topIndex ui
 	if (err != nil && errors.Cause(err) != ErrNotOpened) || (topIndex == 0) {
 		return
 	}
-	// err is nil,need to check size
-	if err == nil {
-		fmt.Println("xxxxxxxxxxxxxxx", topIndex)
-		topIndex = dao.topIndex.Load().(uint64)
-		file, dir := getFileNameAndDir(dao.cfg.DbPath)
-		longFileName := dir + "/" + file + fmt.Sprintf("-%08d", topIndex) + ".db"
-		dat, errs := os.Stat(longFileName)
-		if errs != nil && os.IsNotExist(errs) {
-			// open this index if db not exsists
-			return dao.openDB(topIndex)
-		}
-		if errs != nil {
-			err = errs
-			return
-		}
-		if uint64(dat.Size()) > dao.cfg.SplitDBSize() {
-			// open next index if db size is bigger than SplitDBSize
-			kvstore, topIndex, err = dao.openDB(topIndex + 1)
-			dao.topIndex.Store(topIndex)
-			return
-		}
+	topIndex = dao.topIndex.Load().(uint64)
+	if err != nil && (os.IsNotExist(err)) || errors.Cause(err) == ErrNotOpened {
+		return dao.openDB(topIndex)
+	}
+	// open next index if db size is bigger than SplitDBSize
+	if err != nil && errors.Cause(err) == ErrNeedSplit {
+		kvstore, topIndex, err = dao.openDB(topIndex + 1)
+		dao.topIndex.Store(topIndex)
+		return
 	}
 
-	// err is not opened,need to open db and db file already exists
-	return dao.openDB(topIndex)
+	return
 }
 
 func (dao *blockDAO) getTopDBOfOpened(blkHeight uint64) (kvstore db.KVStore, topIndex uint64, err error) {
@@ -757,6 +746,22 @@ func (dao *blockDAO) getTopDBOfOpened(blkHeight uint64) (kvstore db.KVStore, top
 		if !ok {
 			err = errors.New("db convert error")
 		}
+		return
+	}
+
+	// check if it need to split
+	topIndex = dao.topIndex.Load().(uint64)
+	file, dir := getFileNameAndDir(dao.cfg.DbPath)
+	longFileName := dir + "/" + file + fmt.Sprintf("-%08d", topIndex) + ".db"
+	dat, err := os.Stat(longFileName)
+	if err != nil {
+		return
+	}
+	if uint64(dat.Size()) > dao.cfg.SplitDBSize() {
+		// open next index if db size is bigger than SplitDBSize
+		//kvstore, topIndex, err = dao.openDB(topIndex + 1)
+		//dao.topIndex.Store(topIndex)
+		err = ErrNeedSplit
 		return
 	}
 	err = ErrNotOpened
