@@ -716,6 +716,7 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, topIndex ui
 	if (err != nil && errors.Cause(err) != ErrNotOpened) || (topIndex == 0) || (err == nil) {
 		return
 	}
+	fmt.Println("xxxxxxxxxxxxxxx", blkHeight)
 	// err is not opened,need to open db
 	topIndex = dao.topIndex.Load().(uint64)
 	file, dir := getFileNameAndDir(dao.cfg.DbPath)
