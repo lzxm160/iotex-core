@@ -3,6 +3,7 @@ package grpcutil
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/go-pkgs/hash"
@@ -27,17 +28,19 @@ func ConnectToEndpoint(url string) (*grpc.ClientConn, error) {
 
 // GetReceiptByActionHash get receipt by action hash
 func GetReceiptByActionHash(url string, hs string) error {
+	fmt.Println(url, ":", hs)
 	conn, err := ConnectToEndpoint(url)
 	if err != nil {
 		return err
 	}
+	fmt.Println("3600000000000000")
 	defer conn.Close()
 	c := iotexapi.NewAPIServiceClient(conn)
 	if c == nil {
 		return errors.New("NewAPIServiceClient error")
 	}
 	cli := iotex.NewReadOnlyClient(c)
-
+	fmt.Println("430000000000000000000000")
 	hash, err := hash.HexStringToHash256(hs)
 	if err != nil {
 		return err
