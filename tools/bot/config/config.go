@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 	uconfig "go.uber.org/config"
 
-	"github.com/iotexproject/iotex-core/tools/bot/pkg/log"
+	"github.com/iotexproject/iotex-core/pkg/log"
 )
 
 func init() {
@@ -44,13 +44,14 @@ type (
 	}
 	// Config is the root config struct, each package's config should be put as its sub struct
 	Config struct {
-		API         API              `yaml:"api"`
-		Log         log.GlobalConfig `yaml:"log"`
-		RunInterval uint64           `yaml:"runInterval"`
-		Transfer    transfer         `yaml:"transfer"`
-		Wallet      string           `yaml:"wallet"`
-		Xrc20       xrc20            `yaml:"xrc20"`
-		Execution   execution        `yaml:"execution"`
+		API         API                         `yaml:"api"`
+		Log         log.GlobalConfig            `yaml:"log"`
+		SubLogs     map[string]log.GlobalConfig `yaml:"subLogs"`
+		RunInterval uint64                      `yaml:"runInterval"`
+		Transfer    transfer                    `yaml:"transfer"`
+		Wallet      string                      `yaml:"wallet"`
+		Xrc20       xrc20                       `yaml:"xrc20"`
+		Execution   execution                   `yaml:"execution"`
 	}
 	transfer struct {
 		From           []string `yaml:"from"`

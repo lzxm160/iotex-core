@@ -12,16 +12,14 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/golang/protobuf/proto"
+	"github.com/iotexproject/iotex-address/address"
+
 	"github.com/iotexproject/go-pkgs/crypto"
-	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
-	"github.com/iotexproject/iotex-core/action"
-	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
+	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/tools/bot/config"
-	"github.com/iotexproject/iotex-core/tools/bot/pkg/log"
 	"github.com/iotexproject/iotex-core/tools/bot/pkg/util"
 	"github.com/iotexproject/iotex-core/tools/bot/pkg/util/grpcutil"
 )
@@ -94,7 +92,7 @@ func (s *Transfer) checkAndAlert(hs string) {
 
 	select {
 	case <-t.C:
-		err := grpcutil.GetReceiptByActionHash(s.cfg.API.URL, false, hs)
+		err := grpcutil.GetReceiptByActionHash(s.cfg.API.URL, hs)
 		if err != nil {
 			log.L().Error("transfer timeout:", zap.String("transfer hash", hs), zap.Error(err))
 			if s.alert != nil {
@@ -106,36 +104,29 @@ func (s *Transfer) checkAndAlert(hs string) {
 	}
 }
 func (s *Transfer) transfer(pri crypto.PrivateKey) (txhash string, err error) {
-	nonce, err := grpcutil.GetNonce(s.cfg.API.URL, false, s.cfg.Transfer.From[0])
+	cli, err := grpcutil.GetAuthedClient(s.cfg.API.URL, pri)
 	if err != nil {
 		return
 	}
-
 	gasprice := big.NewInt(0).SetUint64(s.cfg.Transfer.GasPrice)
+	nonce, err := grpcutil.GetNonce(s.cfg.API.URL, s.cfg.Transfer.From[0])
+	if err != nil {
+		return
+	}
 	amount, ok := big.NewInt(0).SetString(s.cfg.Transfer.AmountInRau, 10)
 	if !ok {
 		err = errors.New("amount convert error")
 		return
 	}
-	tx, err := action.NewTransfer(nonce, amount,
-		s.cfg.Transfer.To[0], nil, s.cfg.Transfer.GasLimit, gasprice)
+	to, err := address.FromString(s.cfg.Transfer.To[0])
 	if err != nil {
 		return
 	}
-	bd := &action.EnvelopeBuilder{}
-	elp := bd.SetNonce(nonce).
+	transfer := cli.Transfer(to, amount)
+	transfer.SetNonce(nonce).
 		SetGasLimit(s.cfg.Transfer.GasLimit).
-		SetGasPrice(gasprice).
-		SetAction(tx).Build()
-	selp, err := action.Sign(elp, pri)
-	if err != nil {
-		return
-	}
-	err = grpcutil.SendAction(s.cfg.API.URL, false, selp.Proto())
-	if err != nil {
-		return
-	}
-	shash := hash.Hash256b(byteutil.Must(proto.Marshal(selp.Proto())))
+		SetGasPrice(gasprice)
+	shash, err := transfer.Call(context.Background())
 	txhash = hex.EncodeToString(shash[:])
 	log.L().Info("transfer:", zap.String("transfer hash", txhash), zap.Uint64("nonce", nonce), zap.String("from", s.cfg.Transfer.From[0]), zap.String("to", s.cfg.Transfer.To[0]))
 	return
