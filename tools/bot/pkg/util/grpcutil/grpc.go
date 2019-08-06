@@ -8,8 +8,6 @@ import (
 
 	"github.com/iotexproject/iotex-core/action"
 
-	"github.com/iotexproject/go-pkgs/crypto"
-	"github.com/iotexproject/iotex-antenna-go/v2/account"
 	"github.com/iotexproject/iotex-antenna-go/v2/iotex"
 	"github.com/iotexproject/iotex-proto/golang/iotexapi"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
@@ -51,19 +49,6 @@ func GetReceiptByActionHash(url, hs string) error {
 		return errors.New("action fail:" + hs)
 	}
 	return nil
-}
-func GetAuthedClient(url string, pri crypto.PrivateKey) (cli iotex.AuthedClient, err error) {
-	conn, err := ConnectToEndpoint(url)
-	if err != nil {
-		return
-	}
-	defer conn.Close()
-	acc, err := account.PrivateKeyToAccount(pri)
-	if err != nil {
-		return
-	}
-	cli = iotex.NewAuthedClient(iotexapi.NewAPIServiceClient(conn), acc)
-	return
 }
 
 // SendAction send action to endpoint

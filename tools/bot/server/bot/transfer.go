@@ -12,6 +12,10 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/iotexproject/iotex-antenna-go/v2/account"
+	"github.com/iotexproject/iotex-antenna-go/v2/iotex"
+	"github.com/iotexproject/iotex-proto/golang/iotexapi"
+
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
@@ -113,10 +117,16 @@ func (s *Transfer) transfer(pri crypto.PrivateKey) (txhash string, err error) {
 		err = errors.New("amount convert error")
 		return
 	}
-	cli, err := grpcutil.GetAuthedClient(s.cfg.API.URL, pri)
+	conn, err := grpcutil.ConnectToEndpoint(s.cfg.API.URL)
 	if err != nil {
 		return
 	}
+	defer conn.Close()
+	acc, err := account.PrivateKeyToAccount(pri)
+	if err != nil {
+		return
+	}
+	cli := iotex.NewAuthedClient(iotexapi.NewAPIServiceClient(conn), acc)
 	addr, err := address.FromString(s.cfg.Transfer.To[0])
 	if err != nil {
 		return
