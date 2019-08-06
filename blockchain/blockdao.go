@@ -710,9 +710,9 @@ func (dao *blockDAO) getDBFromHash(h hash.Hash256) (db.KVStore, uint64, error) {
 	return dao.getDBFromHeight(height)
 }
 
-func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint64, err error) {
-	kvstore, topIndex, err := dao.getTopDBOfOpened(blkHeight)
-	if err != nil && errors.Cause(err) != ErrNotOpened {
+func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, topIndex uint64, err error) {
+	kvstore, topIndex, err = dao.getTopDBOfOpened(blkHeight)
+	if (err != nil && errors.Cause(err) != ErrNotOpened) || (topIndex == 0) {
 		return
 	}
 	file, dir := getFileNameAndDir(dao.cfg.DbPath)
@@ -727,8 +727,8 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 
 	if uint64(dat.Size()) > dao.cfg.SplitDBSize() {
 		// create new db file
-		kvstore, index, err = dao.openDB(topIndex + 1)
-		dao.topIndex.Store(index)
+		kvstore, topIndex, err = dao.openDB(topIndex + 1)
+		dao.topIndex.Store(topIndex)
 		return
 	}
 	return dao.openDB(topIndex)
