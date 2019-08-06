@@ -800,8 +800,8 @@ func (dao *blockDAO) getDBFromIndex(idx uint64) (kvstore db.KVStore, index uint6
 		index = idx
 		return
 	}
-	err = ErrNotOpened
-	return
+	// if user rm some db files manully,then call this method will create new file
+	return dao.openDB(idx)
 }
 
 // getBlockValue get block's data from db,if this db failed,it will try the previous one
