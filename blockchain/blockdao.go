@@ -713,33 +713,32 @@ func (dao *blockDAO) getDBFromHash(h hash.Hash256) (db.KVStore, uint64, error) {
 
 func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, topIndex uint64, err error) {
 	kvstore, topIndex, err = dao.getTopDBOfOpened(blkHeight)
-	if (err != nil && errors.Cause(err) != ErrNotOpened) || (topIndex == 0) || (err == nil) {
+	if (err != nil && errors.Cause(err) != ErrNotOpened) || (topIndex == 0) {
 		return
+	}
+	// err is nil,need to check size
+	if err == nil {
+		fmt.Println("xxxxxxxxxxxxxxx", topIndex)
+		topIndex = dao.topIndex.Load().(uint64)
+		file, dir := getFileNameAndDir(dao.cfg.DbPath)
+		longFileName := dir + "/" + file + fmt.Sprintf("-%08d", topIndex) + ".db"
+		dat, err := os.Stat(longFileName)
+		if err != nil && os.IsNotExist(err) {
+			// open this index if db not exsists
+			return dao.openDB(topIndex)
+		}
+		if err != nil {
+			return
+		}
+		if uint64(dat.Size()) > dao.cfg.SplitDBSize() {
+			// open next index if db size is bigger than SplitDBSize
+			kvstore, topIndex, err = dao.openDB(topIndex + 1)
+			dao.topIndex.Store(topIndex)
+			return
+		}
 	}
 
-	// err is not opened,need to open db
-	topIndex = dao.topIndex.Load().(uint64)
-	fmt.Println("xxxxxxxxxxxxxxx", topIndex)
-	file, dir := getFileNameAndDir(dao.cfg.DbPath)
-	fmt.Println("7222222222222222222222222222")
-	longFileName := dir + "/" + file + fmt.Sprintf("-%08d", topIndex) + ".db"
-	dat, err := os.Stat(longFileName)
-	if err != nil && os.IsNotExist(err) {
-		fmt.Println("7300000000000000000000000")
-		// open this index if db not exsists
-		return dao.openDB(topIndex)
-	}
-	fmt.Println("73333333333333333333333")
-	if err != nil {
-		return
-	}
-	if uint64(dat.Size()) > dao.cfg.SplitDBSize() {
-		// open next index if db size is bigger than SplitDBSize
-		kvstore, topIndex, err = dao.openDB(topIndex + 1)
-		dao.topIndex.Store(topIndex)
-		return
-	}
-	// open this index and db file already exists
+	// err is not opened,need to open db and db file already exists
 	return dao.openDB(topIndex)
 }
 
