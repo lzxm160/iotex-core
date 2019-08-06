@@ -17,12 +17,12 @@ import (
 
 // ConnectToEndpoint connect to endpoint
 func ConnectToEndpoint(url string) (*grpc.ClientConn, error) {
-	//endpoint := url
-	//if endpoint == "" {
-	//	return nil, errors.New(`endpoint is empty`)
-	//}
-	//return grpc.Dial(endpoint, grpc.WithInsecure())
-	return iotex.NewDefaultGRPCConn(url)
+	endpoint := url
+	if endpoint == "" {
+		return nil, errors.New(`endpoint is empty`)
+	}
+	return grpc.Dial(endpoint, grpc.WithInsecure())
+	//return iotex.NewDefaultGRPCConn(url)
 }
 
 // GetReceiptByActionHash get receipt by action hash
