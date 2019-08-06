@@ -180,9 +180,9 @@ func (dao *blockDAO) initStores() error {
 			maxN = uint64(n)
 		}
 	}
-	//if maxN == 0 {
-	//	maxN = 1
-	//}
+	if maxN == 0 {
+		maxN = 1
+	}
 	dao.topIndex.Store(maxN)
 	return nil
 }
@@ -712,25 +712,29 @@ func (dao *blockDAO) getDBFromHash(h hash.Hash256) (db.KVStore, uint64, error) {
 
 func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, topIndex uint64, err error) {
 	kvstore, topIndex, err = dao.getTopDBOfOpened(blkHeight)
-	if (err != nil && errors.Cause(err) != ErrNotOpened) || (topIndex == 0) {
+	if (err != nil && errors.Cause(err) != ErrNotOpened) || (topIndex == 0) || (err == nil) {
 		return
 	}
+	// err is not opened,need to open db
+	topIndex = dao.topIndex.Load().(uint64)
 	file, dir := getFileNameAndDir(dao.cfg.DbPath)
 	if err != nil {
 		return
 	}
 	longFileName := dir + "/" + file + fmt.Sprintf("-%08d", topIndex) + ".db"
 	dat, err := os.Stat(longFileName)
-	if err != nil {
-		return
+	if err != nil && os.IsExist(err) {
+		// open this index if db not exsists
+		return dao.openDB(topIndex)
 	}
 
 	if uint64(dat.Size()) > dao.cfg.SplitDBSize() {
-		// create new db file
+		// open next index if db size is bigger than SplitDBSize
 		kvstore, topIndex, err = dao.openDB(topIndex + 1)
 		dao.topIndex.Store(topIndex)
 		return
 	}
+	// open this index and db file already exists
 	return dao.openDB(topIndex)
 }
 
