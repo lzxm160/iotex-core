@@ -732,7 +732,7 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 	if err != nil {
 		return
 	}
-	// file exists,but need create new db,only here create new db
+	// file exists,but need create new db
 	if uint64(dat.Size()) > dao.cfg.SplitDBSize() {
 		kvstore, index, err = dao.openDB(topIndex + 1)
 		dao.topIndex.Store(index)
