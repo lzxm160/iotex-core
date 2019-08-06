@@ -32,7 +32,12 @@ func GetReceiptByActionHash(url string, hs string) error {
 		return err
 	}
 	defer conn.Close()
-	cli := iotex.NewReadOnlyClient(iotexapi.NewAPIServiceClient(conn))
+	c := iotexapi.NewAPIServiceClient(conn)
+	if c == nil {
+		return errors.New("NewAPIServiceClient error")
+	}
+	cli := iotex.NewReadOnlyClient(c)
+
 	hash, err := hash.HexStringToHash256(hs)
 	if err != nil {
 		return err
