@@ -258,8 +258,8 @@ func (sdb *stateDB) state(addr hash.Hash160, s interface{}) error {
 }
 
 func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{}) error {
-	heightBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(heightBytes, height)
+	//heightBytes := make([]byte, 8)
+	//binary.BigEndian.PutUint64(heightBytes, height)
 	//heightKey := append(addr[:], heightBytes...)
 
 	maxVersion := uint64(0)
@@ -284,11 +284,12 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 		stateKey := append(addr[:], bytess...)
 		for k, v := c.Seek(stateKey); k != nil && bytes.Compare(k, stateKey) <= 0; k, v = c.Prev() {
 			kHeight := binary.BigEndian.Uint64(k[20:])
-			log.L().Info("////////////////", zap.Uint64("k", kHeight))
+			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
 			if kHeight == 0 {
 				return errors.New("cannot find state")
 			}
 			if kHeight <= height {
+				log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
 				if err := state.Deserialize(s, v); err != nil {
 					return errors.Wrapf(err, "error when deserializing state data into %T", s)
 				}
