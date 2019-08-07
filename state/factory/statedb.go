@@ -303,19 +303,17 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, err error) {
 	// TODO: state db shouldn't serve this function
 	log.L().Info("////////////////", zap.String("address", encodedAddrs))
-	var encodedAddr string
+
 	height := uint64(0)
 	if len(encodedAddrs) > 41 {
 		height, err = strconv.ParseUint(encodedAddrs[41:], 10, 64)
 		if err != nil {
 			return
 		}
-		encodedAddr = encodedAddrs[:41]
-	} else {
-		encodedAddr = encodedAddrs
+		encodedAddrs = encodedAddrs[:41]
 	}
-	log.L().Info("////////////////", zap.Uint64("height", height))
-	addr, err := address.FromString(encodedAddr)
+	log.L().Info("////////////////", zap.Uint64("height", height), zap.String("address", encodedAddrs))
+	addr, err := address.FromString(encodedAddrs)
 	if err != nil {
 		return nil, err
 	}
