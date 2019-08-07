@@ -53,7 +53,7 @@ func main() {
 	// xrc20
 	xrc20, err := bot.NewXrc20(cfg, "xrc20")
 	if err != nil {
-		log.L().Fatal("new transfer:", zap.Error(err))
+		log.L().Fatal("new xrc20 transfer:", zap.Error(err))
 	}
 
 	// multisend

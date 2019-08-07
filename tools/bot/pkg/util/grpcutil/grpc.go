@@ -5,13 +5,12 @@ import (
 	"errors"
 
 	"github.com/iotexproject/go-pkgs/hash"
-
-	"github.com/iotexproject/iotex-core/action"
-
 	"github.com/iotexproject/iotex-antenna-go/v2/iotex"
 	"github.com/iotexproject/iotex-proto/golang/iotexapi"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 	"google.golang.org/grpc"
+
+	"github.com/iotexproject/iotex-core/action"
 )
 
 // ConnectToEndpoint connect to endpoint
@@ -21,7 +20,6 @@ func ConnectToEndpoint(url string) (*grpc.ClientConn, error) {
 		return nil, errors.New(`endpoint is empty`)
 	}
 	return grpc.Dial(endpoint, grpc.WithInsecure())
-	//return iotex.NewDefaultGRPCConn(url)
 }
 
 // GetReceiptByActionHash get receipt by action hash

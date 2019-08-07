@@ -12,12 +12,11 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/iotexproject/go-pkgs/crypto"
+	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-antenna-go/v2/account"
 	"github.com/iotexproject/iotex-antenna-go/v2/iotex"
 	"github.com/iotexproject/iotex-proto/golang/iotexapi"
-
-	"github.com/iotexproject/go-pkgs/crypto"
-	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -135,25 +134,6 @@ func (s *Transfer) transfer(pri crypto.PrivateKey) (txhash string, err error) {
 	if err != nil {
 		return
 	}
-	//tx, err := action.NewTransfer(nonce, amount, s.cfg.Transfer.To[0], nil,
-	//	s.cfg.Transfer.GasLimit, gasprice)
-	//if err != nil {
-	//	return
-	//}
-	//bd := &action.EnvelopeBuilder{}
-	//elp := bd.SetNonce(nonce).
-	//	SetGasLimit(s.cfg.Execution.GasLimit).
-	//	SetGasPrice(gasprice).
-	//	SetAction(tx).Build()
-	//selp, err := action.Sign(elp, pri)
-	//if err != nil {
-	//	return
-	//}
-	//err = grpcutil.SendAction(s.cfg.API.URL, selp.Proto())
-	//if err != nil {
-	//	return
-	//}
-	//shash := hash.Hash256b(byteutil.Must(proto.Marshal(selp.Proto())))
 	txhash = hex.EncodeToString(shash[:])
 	log.L().Info("transfer:", zap.String("transfer hash", txhash), zap.Uint64("nonce", nonce), zap.String("from", s.cfg.Transfer.From[0]), zap.String("to", s.cfg.Transfer.To[0]))
 	return
