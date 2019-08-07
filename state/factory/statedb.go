@@ -260,7 +260,7 @@ func (sdb *stateDB) state(addr hash.Hash160, s interface{}) error {
 func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{}) error {
 	heightBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(heightBytes, height)
-	heightKey := append(addr[:], heightBytes...)
+	//heightKey := append(addr[:], heightBytes...)
 
 	maxVersion := uint64(0)
 	indexKey := append(AccountMaxVersionPrefix, addr[:]...)
