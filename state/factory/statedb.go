@@ -277,7 +277,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 	if !ok {
 		return errors.New("convert error")
 	}
-	boltdb.View(func(tx *bolt.Tx) error {
+	err = boltdb.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
 		bytess := make([]byte, 8)
 		binary.BigEndian.PutUint64(bytess, maxVersion)
@@ -296,10 +296,10 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 				return nil
 			}
 		}
-		return nil
+		return errors.New("cannot find state")
 	})
 
-	return errors.New("cannot find state")
+	return err
 }
 
 func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, err error) {
