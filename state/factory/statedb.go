@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -284,10 +283,9 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 		binary.BigEndian.PutUint64(bytess, maxVersion)
 		stateKey := append(addr[:], bytess...)
 		for k, v := c.Seek(stateKey); k != nil && bytes.Compare(k, stateKey) <= 0; k, v = c.Prev() {
-			if len(k) < 20 {
+			if len(k) <= 20 {
 				return errors.New("cannot find state")
 			}
-			fmt.Println(hex.EncodeToString(k))
 			kHeight := binary.BigEndian.Uint64(k[20:])
 			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
 			if kHeight == 0 {
