@@ -148,6 +148,9 @@ func (api *Server) GetAccount(ctx context.Context, in *iotexapi.GetAccountReques
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
+	if len(in.Address) > 41 {
+		in.Address = in.Address[:41]
+	}
 	pendingNonce, err := api.ap.GetPendingNonce(in.Address)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())

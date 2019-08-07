@@ -68,6 +68,9 @@ func (b *boltDB) Put(namespace string, key, value []byte) (err error) {
 	}
 	return err
 }
+func (b *boltDB) DB() interface{} {
+	return b.db
+}
 
 // Get retrieves a record
 func (b *boltDB) Get(namespace string, key []byte) ([]byte, error) {
