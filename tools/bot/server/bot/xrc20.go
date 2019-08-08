@@ -9,7 +9,6 @@ package bot
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"strings"
 	"time"
@@ -144,13 +143,10 @@ func (s *Xrc20) transfer(pri crypto.PrivateKey) (txhash string, err error) {
 	if err != nil {
 		return
 	}
-
-	fmt.Println("148888888888888888888")
 	gas, err := grpcutil.EstimateActionGas(s.cfg.API.URL, s.cfg.Xrc20.Sender[0], tx)
 	if err != nil {
 		return
 	}
-	fmt.Println("1600000000000000")
 	bd := &action.EnvelopeBuilder{}
 	elp := bd.SetNonce(nonce).
 		SetGasLimit(gas).
@@ -160,6 +156,7 @@ func (s *Xrc20) transfer(pri crypto.PrivateKey) (txhash string, err error) {
 	if err != nil {
 		return
 	}
+
 	err = grpcutil.SendAction(s.cfg.API.URL, selp.Proto())
 	if err != nil {
 		return

@@ -3,6 +3,7 @@ package grpcutil
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-antenna-go/v2/iotex"
@@ -95,10 +96,12 @@ func EstimateActionGas(url, caller string, execution *action.Execution) (gas uin
 		},
 		CallerAddress: caller,
 	}
+	fmt.Println("999999999999999999")
 	res, err := cli.EstimateActionGasConsumption(context.Background(), request)
 	if err != nil {
 		return
 	}
+	fmt.Println("1044444444444444444")
 	gas = res.Gas
 	return
 }
