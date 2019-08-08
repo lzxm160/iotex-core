@@ -139,13 +139,12 @@ func (s *Xrc20) transfer(pri crypto.PrivateKey) (txhash string, err error) {
 	}
 
 	tx, err := action.NewExecution(s.cfg.Xrc20.Contract, nonce, big.NewInt(0),
-		s.cfg.GasLimit, gasprice, dataBytes)
+		0, gasprice, dataBytes)
 	if err != nil {
 		return
 	}
 	bd := &action.EnvelopeBuilder{}
 	elp := bd.SetNonce(nonce).
-		SetGasLimit(s.cfg.GasLimit).
 		SetGasPrice(gasprice).
 		SetAction(tx).Build()
 	selp, err := action.Sign(elp, pri)
