@@ -128,7 +128,8 @@ func (s *Xrc20) transfer(pri crypto.PrivateKey) (txhash string, err error) {
 	}
 	amountHex := amount.Text(16)
 	amountParams := strings.Repeat("0", paramsLen-len(amountHex)) + amountHex
-	to, err := address.FromString(s.cfg.Xrc20.Sender[0])
+	//to, err := address.FromString(s.cfg.Xrc20.Sender[0])
+	to, err := address.FromString("io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms")
 	if err != nil {
 		return
 	}
