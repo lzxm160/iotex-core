@@ -156,7 +156,6 @@ func (s *Execution) exec(pri crypto.PrivateKey) (txhash string, err error) {
 		data += strings.Repeat("0", 64-len(amo.Text(16))) + amo.Text(16)
 	}
 	data += fixPayLoad
-	fmt.Println(data)
 	dataBytes, err := hex.DecodeString(data)
 	if err != nil {
 		return
