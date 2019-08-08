@@ -9,6 +9,7 @@ package bot
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"strings"
 	"time"
@@ -138,6 +139,8 @@ func (s *Xrc20) transfer(pri crypto.PrivateKey) (txhash string, err error) {
 	if err != nil {
 		return
 	}
+	//a9059cbb0000000000000000000000006356908ace09268130dee2b7de643314bbeb36830000000000000000000000000000000000000000000000000de0b6b3a7640000
+	fmt.Println(data)
 	tx, err := action.NewExecution(s.cfg.Xrc20.Contract, nonce, big.NewInt(0),
 		s.cfg.GasLimit, gasprice, dataBytes)
 	if err != nil {
