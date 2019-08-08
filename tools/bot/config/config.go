@@ -44,16 +44,17 @@ type (
 	}
 	// Config is the root config struct, each package's config should be put as its sub struct
 	Config struct {
-		API            API              `yaml:"api"`
-		Log            log.GlobalConfig `yaml:"log"`
-		RunInterval    uint64           `yaml:"runInterval"`
-		Transfer       transfer         `yaml:"transfer"`
-		Wallet         string           `yaml:"wallet"`
-		Xrc20          xrc20            `yaml:"xrc20"`
-		Execution      execution        `yaml:"execution"`
-		GasLimit       uint64           `yaml:"gaslimit"`
-		GasPrice       uint64           `yaml:"gasprice"`
-		AlertThreshold uint64           `yaml:"alertThreshold"`
+		API            API                         `yaml:"api"`
+		Log            log.GlobalConfig            `yaml:"log"`
+		SubLogs        map[string]log.GlobalConfig `yaml:"subLogs"`
+		RunInterval    uint64                      `yaml:"runInterval"`
+		Wallet         string                      `yaml:"wallet"`
+		GasLimit       uint64                      `yaml:"gaslimit"`
+		GasPrice       uint64                      `yaml:"gasprice"`
+		AlertThreshold uint64                      `yaml:"alertThreshold"`
+		Transfer       transfer                    `yaml:"transfer"`
+		Xrc20          xrc20                       `yaml:"xrc20"`
+		Execution      execution                   `yaml:"execution"`
 	}
 	transfer struct {
 		Sender      []string `yaml:"address"`
