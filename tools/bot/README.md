@@ -28,14 +28,17 @@ After this command, target bin files will be placed in this folder.
 First we need to deploy two contracts,one for xrc20,one for multisend,those two contracts is in server/bot/contract
 
 # modify config.yaml
-We need to add two contracts's address and a signer with iotx.
+We need to add two contracts's address and a signer with iotx to config.yaml.
 
 # run
 bot -config-path=/etc/iotex/config.yaml
 
 # docker run
 docker build -t iotex-bot:latest .
-docker run -d -P --name bot -v /etc/iotex/config.yaml:/etc/iotex/config.yaml iotex-bot bot -config-path=/etc/iotex/config.yaml
+
+#put config.yaml and keystore in /etc/config.yaml(default path),set the right path to config.yaml
+
+docker run -d -P --name bot -v /etc/iotex:/etc/iotex  iotex-bot bot -config-path=/etc/iotex/config.yaml
 
 ## License
 This project is licensed under the [Apache License 2.0](LICENSE).
