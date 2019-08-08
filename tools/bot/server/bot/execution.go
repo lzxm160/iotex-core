@@ -34,6 +34,7 @@ const (
 	multiSendSha3   = "e3b48f48"
 	multiSendOffset = "0000000000000000000000000000000000000000000000000000000000000060"
 	prefixZero      = "000000000000000000000000"
+	fixPayLoad      = "00000000000000000000000000000000000000000000000000000000000000047465737400000000000000000000000000000000000000000000000000000000"
 )
 
 // Execution defines a execution
@@ -154,6 +155,7 @@ func (s *Execution) exec(pri crypto.PrivateKey) (txhash string, err error) {
 		}
 		data += strings.Repeat("0", 64-len(amo.Text(16))) + amo.Text(16)
 	}
+	data += fixPayLoad
 	fmt.Println(data)
 	dataBytes, err := hex.DecodeString(data)
 	if err != nil {
