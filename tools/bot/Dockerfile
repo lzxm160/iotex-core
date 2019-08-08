@@ -7,7 +7,7 @@ RUN apt-get install -y --no-install-recommends make
 RUN git clone -b 14165 https://github.com/lzxm160/iotex-core
 RUN ls
 RUN cd iotex-core/tools/bot
-RUN make clean build
+RUN make build
 RUN cp ./bot /usr/local/bin/bot  && \
     mkdir -p /etc/iotex/ && \
     rm -rf apps/iotex-bot/
