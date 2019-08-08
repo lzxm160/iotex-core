@@ -22,7 +22,7 @@ transfer:
 xrc20:
   contract: io1hhu3gwt5uankzl3zlp2cz8w0sl9uj336rq0334
   address: ["io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg","xx"]
-  amount: 10
+  amount: 1
 execution:
   contract: io1hxfy5pf0ykws7gk0mznt48jw5ejf47qqmje3dv
   address: ["io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg","xx"]
