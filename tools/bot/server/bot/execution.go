@@ -138,8 +138,9 @@ func (s *Execution) exec(pri crypto.PrivateKey) (txhash string, err error) {
 	lenOfAddress := fmt.Sprintf("%x", len(s.cfg.Execution.To.Address))
 	data += strings.Repeat("0", 64-len(lenOfAddress)) + lenOfAddress
 	for _, addr := range s.cfg.Execution.To.Address {
-		a, err := address.FromString(addr)
-		if err != nil {
+		a, errs := address.FromString(addr)
+		if errs != nil {
+			err = errs
 			return
 		}
 		data += prefixZero + hex.EncodeToString(a.Bytes())
