@@ -24,7 +24,7 @@ import (
 func init() {
 	flag.Usage = func() {
 		_, _ = fmt.Fprintf(os.Stderr,
-			"usage: server -config-path=[string]\n")
+			"usage: bot -config-path=[string]\n")
 		flag.PrintDefaults()
 		os.Exit(2)
 	}
@@ -35,6 +35,7 @@ func main() {
 	cfg, err := config.New()
 	if err != nil {
 		fmt.Println("Failed to new config.", zap.Error(err))
+		return
 	}
 	err = initLogger(cfg)
 	if err != nil {
