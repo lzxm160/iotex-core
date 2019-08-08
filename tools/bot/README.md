@@ -30,7 +30,12 @@ First we need to deploy two contracts,one for xrc20,one for multisend,those two 
 # modify config.yaml
 We need to add two contracts's address and a signer with iotx.
 
+# run
+bot -config-path=/etc/iotex/config.yaml
 
+# docker run
+docker build -t iotex-bot:latest .
+docker run -d -P --name web -v /webapp iotex-bot bot -config-path=/etc/iotex/config.yaml
 
 ## License
 This project is licensed under the [Apache License 2.0](LICENSE).
