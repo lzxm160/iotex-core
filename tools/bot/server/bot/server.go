@@ -96,7 +96,6 @@ func (s *Server) startTicker() error {
 				log.L().Info("exit :")
 				return
 			}
-
 		}
 	}()
 	return nil
