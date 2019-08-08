@@ -171,9 +171,13 @@ func (s *Execution) exec(pri crypto.PrivateKey) (txhash string, err error) {
 	if err != nil {
 		return
 	}
+	tx, err = grpcutil.FixGasLimit(s.cfg.API.URL, s.cfg.Execution.Sender[0], tx)
+	if err != nil {
+		return
+	}
 	bd := &action.EnvelopeBuilder{}
 	elp := bd.SetNonce(nonce).
-		SetGasLimit(s.cfg.GasLimit).
+		SetGasLimit(tx.GasLimit()).
 		SetGasPrice(gasprice).
 		SetAction(tx).Build()
 	selp, err := action.Sign(elp, pri)

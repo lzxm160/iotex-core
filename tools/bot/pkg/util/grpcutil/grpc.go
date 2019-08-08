@@ -80,3 +80,22 @@ func GetNonce(url string, address string) (nonce uint64, err error) {
 	nonce = response.AccountMeta.PendingNonce
 	return
 }
+func FixGasLimit(url string, caller string, execution *action.Execution) (exec *action.Execution, err error) {
+	conn, err := ConnectToEndpoint(url)
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+	cli := iotexapi.NewAPIServiceClient(conn)
+	request := &iotexapi.EstimateActionGasConsumptionRequest{
+		Action: &iotexapi.EstimateActionGasConsumptionRequest_Execution{
+			Execution: execution.Proto(),
+		},
+		CallerAddress: caller,
+	}
+	res, err := cli.EstimateActionGasConsumption(context.Background(), request)
+	if err != nil {
+		return
+	}
+	return action.NewExecution(execution.Contract(), execution.Nonce(), execution.Amount(), res.Gas, execution.GasPrice(), execution.Data())
+}
