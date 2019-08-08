@@ -9,6 +9,7 @@ package bot
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"strings"
 	"time"
@@ -156,10 +157,12 @@ func (s *Xrc20) transfer(pri crypto.PrivateKey) (txhash string, err error) {
 	if err != nil {
 		return
 	}
+	fmt.Println("1600000000000000")
 	err = grpcutil.SendAction(s.cfg.API.URL, selp.Proto())
 	if err != nil {
 		return
 	}
+	fmt.Println("1644444444444444444444444444")
 	shash := hash.Hash256b(byteutil.Must(proto.Marshal(selp.Proto())))
 	txhash = hex.EncodeToString(shash[:])
 	log.L().Info("xrc20 transfer:", zap.String("xrc20 transfer hash", txhash), zap.Uint64("nonce", nonce), zap.String("from", s.cfg.Xrc20.Sender[0]), zap.String("to", s.cfg.Xrc20.Sender[0]))
