@@ -145,7 +145,7 @@ func (s *Xrc20) transfer(pri crypto.PrivateKey) (txhash string, err error) {
 	}
 	bd := &action.EnvelopeBuilder{}
 	elp := bd.SetNonce(nonce).
-		SetGasLimit(50000).
+		SetGasLimit(100000).
 		SetGasPrice(gasprice).
 		SetAction(tx).Build()
 	selp, err := action.Sign(elp, pri)
