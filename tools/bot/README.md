@@ -35,7 +35,7 @@ bot -config-path=/etc/iotex/config.yaml
 
 # docker run
 docker build -t iotex-bot:latest .
-docker run -d -P --name web -v /webapp iotex-bot bot -config-path=/etc/iotex/config.yaml
+docker run -d -P --name bot -v /etc/iotex/config.yaml:/etc/iotex/config.yaml iotex-bot bot -config-path=/etc/iotex/config.yaml
 
 ## License
 This project is licensed under the [Apache License 2.0](LICENSE).
