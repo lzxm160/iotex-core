@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 	uconfig "go.uber.org/config"
 
-	"github.com/iotexproject/iotex-core/tools/bot/pkg/log"
+	"github.com/iotexproject/iotex-core/pkg/log"
 )
 
 func init() {
