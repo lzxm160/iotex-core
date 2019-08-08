@@ -44,39 +44,31 @@ type (
 	}
 	// Config is the root config struct, each package's config should be put as its sub struct
 	Config struct {
-		API         API              `yaml:"api"`
-		Log         log.GlobalConfig `yaml:"log"`
-		RunInterval uint64           `yaml:"runInterval"`
-		Transfer    transfer         `yaml:"transfer"`
-		Wallet      string           `yaml:"wallet"`
-		Xrc20       xrc20            `yaml:"xrc20"`
-		Execution   execution        `yaml:"execution"`
+		API            API              `yaml:"api"`
+		Log            log.GlobalConfig `yaml:"log"`
+		RunInterval    uint64           `yaml:"runInterval"`
+		Transfer       transfer         `yaml:"transfer"`
+		Wallet         string           `yaml:"wallet"`
+		Xrc20          xrc20            `yaml:"xrc20"`
+		Execution      execution        `yaml:"execution"`
+		GasLimit       uint64           `yaml:"gaslimit"`
+		GasPrice       uint64           `yaml:"gasprice"`
+		AlertThreshold uint64           `yaml:"alertThreshold"`
 	}
 	transfer struct {
-		From           []string `yaml:"from"`
-		To             []string `yaml:"to"`
-		AmountInRau    string   `yaml:"amountInRau"`
-		GasLimit       uint64   `yaml:"gaslimit"`
-		GasPrice       uint64   `yaml:"gasprice"`
-		AlertThreshold uint64   `yaml:"alertThreshold"`
+		Sender      []string `yaml:"address"`
+		AmountInRau string   `yaml:"amountInRau"`
 	}
 	xrc20 struct {
-		Contract       string   `yaml:"contract"`
-		From           []string `yaml:"from"`
-		To             []string `yaml:"to"`
-		Amount         string   `yaml:"amount"` // amount in smallest unit
-		GasLimit       uint64   `yaml:"gaslimit"`
-		GasPrice       uint64   `yaml:"gasprice"`
-		AlertThreshold uint64   `yaml:"alertThreshold"`
+		Contract string   `yaml:"contract"`
+		Sender   []string `yaml:"address"`
+		Amount   string   `yaml:"amount"` // amount in smallest unit
 	}
 	execution struct {
-		Contract       string   `yaml:"contract"`
-		From           []string `yaml:"from"`
-		Amount         string   `yaml:"amount"` // amount in smallest unit
-		GasLimit       uint64   `yaml:"gaslimit"`
-		GasPrice       uint64   `yaml:"gasprice"`
-		AlertThreshold uint64   `yaml:"alertThreshold"`
-		Data           string   `yaml:"data"`
+		Contract string   `yaml:"contract"`
+		Sender   []string `yaml:"address"`
+		Amount   string   `yaml:"amount"` // amount in smallest unit
+		Data     string   `yaml:"data"`
 	}
 )
 
