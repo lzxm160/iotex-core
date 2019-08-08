@@ -9,8 +9,12 @@ package bot
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"math/big"
+	"strings"
 	"time"
+
+	"github.com/iotexproject/iotex-address/address"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/crypto"
@@ -24,6 +28,12 @@ import (
 	"github.com/iotexproject/iotex-core/tools/bot/config"
 	"github.com/iotexproject/iotex-core/tools/bot/pkg/util"
 	"github.com/iotexproject/iotex-core/tools/bot/pkg/util/grpcutil"
+)
+
+const (
+	multiSendSha3   = "e3b48f48"
+	multiSendOffset = "0000000000000000000000000000000000000000000000000000000000000060"
+	prefixZero      = "000000000000000000000000"
 )
 
 // Execution defines a execution
@@ -112,7 +122,39 @@ func (s *Execution) exec(pri crypto.PrivateKey) (txhash string, err error) {
 	}
 	gasprice := big.NewInt(0).SetUint64(s.cfg.GasPrice)
 
-	dataBytes, err := hex.DecodeString(s.cfg.Execution.Data)
+	if len(s.cfg.Execution.To.Address) != len(s.cfg.Execution.To.Amount) {
+		err = errors.New("address len is not equal to amount len")
+		return
+	}
+	data := multiSendSha3 + multiSendOffset
+	params2Offset := 32*3 + 1*32 + len(s.cfg.Execution.To.Address)*32
+	params := fmt.Sprintf("%x", params2Offset)
+	data += strings.Repeat("0", 64-len(params)) + params
+
+	params3Offset := params2Offset + 1*32 + len(s.cfg.Execution.To.Address)*32
+	params = fmt.Sprintf("%x", params3Offset)
+	data += strings.Repeat("0", 64-len(params)) + params
+
+	lenOfAddress := fmt.Sprintf("%x", len(s.cfg.Execution.To.Address))
+	data += strings.Repeat("0", 64-len(lenOfAddress)) + lenOfAddress
+	for _, addr := range s.cfg.Execution.To.Address {
+		a, err := address.FromString(addr)
+		if err != nil {
+			return
+		}
+		data += prefixZero + hex.EncodeToString(a.Bytes())
+	}
+	data += strings.Repeat("0", 64-len(lenOfAddress)) + lenOfAddress
+	for _, amount := range s.cfg.Execution.To.Amount {
+		amo, ok := big.NewInt(0).SetString(amount, 10)
+		if !ok {
+			err = errors.New("amount convert error")
+			return
+		}
+		data += strings.Repeat("0", 64-len(amo.Text(16))) + amo.Text(16)
+	}
+	fmt.Println(data)
+	dataBytes, err := hex.DecodeString(data)
 	if err != nil {
 		return
 	}
