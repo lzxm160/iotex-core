@@ -4,8 +4,9 @@ WORKDIR apps/iotex-bot
 
 RUN apt-get install -y --no-install-recommends make
 
-RUN git clone https://github.com/iotexproject/iotex-core && \
-    cd iotex-core/tools/bot && \
+RUN git clone https://github.com/iotexproject/iotex-core
+RUN ls
+RUN cd iotex-core/tools/bot && \
     make clean build && \
     cp ./bot /usr/local/bin/bot  && \
     mkdir -p /etc/iotex/ && \

@@ -13,7 +13,7 @@ log:
 
 runInterval: 20 #run once every 20 seconds
 wallet: . # dir which keystore file in
-gaslimit: 8000000
+gaslimit: 5000000
 gasprice: 1000000000000
 alertThreshold: 20
 transfer:
