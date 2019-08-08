@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/iotexproject/iotex-address/address"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/go-pkgs/hash"

@@ -80,6 +80,8 @@ func GetNonce(url string, address string) (nonce uint64, err error) {
 	nonce = response.AccountMeta.PendingNonce
 	return
 }
+
+// FixGasLimit estimate action gas
 func FixGasLimit(url string, caller string, execution *action.Execution) (exec *action.Execution, err error) {
 	conn, err := ConnectToEndpoint(url)
 	if err != nil {
