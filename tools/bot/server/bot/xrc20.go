@@ -9,16 +9,14 @@ package bot
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"strings"
 	"time"
 
-	"github.com/iotexproject/iotex-address/address"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/go-pkgs/hash"
+	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -139,16 +137,19 @@ func (s *Xrc20) transfer(pri crypto.PrivateKey) (txhash string, err error) {
 	if err != nil {
 		return
 	}
-	//a9059cbb0000000000000000000000006356908ace09268130dee2b7de643314bbeb36830000000000000000000000000000000000000000000000000de0b6b3a7640000
-	fmt.Println(data)
+
 	tx, err := action.NewExecution(s.cfg.Xrc20.Contract, nonce, big.NewInt(0),
 		s.cfg.GasLimit, gasprice, dataBytes)
 	if err != nil {
 		return
 	}
+	gas, err := grpcutil.EstimateActionGas(s.cfg.API.URL, s.cfg.Xrc20.Sender[0], tx)
+	if err != nil {
+		return
+	}
 	bd := &action.EnvelopeBuilder{}
 	elp := bd.SetNonce(nonce).
-		SetGasLimit(s.cfg.GasLimit).
+		SetGasLimit(gas).
 		SetGasPrice(gasprice).
 		SetAction(tx).Build()
 	selp, err := action.Sign(elp, pri)
