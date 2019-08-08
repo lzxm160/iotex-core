@@ -58,14 +58,14 @@ func main() {
 	}
 
 	// multisend
-	//multisend, err := bot.NewExecution(cfg, "multisend")
-	//if err != nil {
-	//	log.L().Fatal("new multisend:", zap.Error(err))
-	//}
+	multisend, err := bot.NewExecution(cfg, "multisend")
+	if err != nil {
+		log.L().Fatal("new multisend:", zap.Error(err))
+	}
 
 	b.Register(transfer)
 	b.Register(xrc20)
-	//b.Register(multisend)
+	b.Register(multisend)
 
 	if err := b.Start(context.Background()); err != nil {
 		log.L().Fatal("Failed to start server.", zap.Error(err))
