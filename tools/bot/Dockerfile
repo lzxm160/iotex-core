@@ -11,4 +11,4 @@ RUN git clone https://github.com/iotexproject/iotex-core && \
     mkdir -p /etc/iotex/ && \
     rm -rf apps/iotex-bot/
 
-CMD [ "bot "]
+CMD [ "bot -config-path=/etc/iotex/config.yaml"]
