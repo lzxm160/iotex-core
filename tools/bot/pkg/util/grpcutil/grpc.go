@@ -82,21 +82,16 @@ func GetNonce(url string, address string) (nonce uint64, err error) {
 }
 
 // EstimateActionGas estimate action gas
-func EstimateActionGas(url, caller string, execution *action.Execution) (gas uint64, err error) {
+func EstimateActionGas(url string, act *action.SealedEnvelope) (gas uint64, err error) {
 	conn, err := ConnectToEndpoint(url)
 	if err != nil {
 		return
 	}
 	defer conn.Close()
 	cli := iotexapi.NewAPIServiceClient(conn)
-	request := &iotexapi.EstimateActionGasConsumptionRequest{
-		Action: &iotexapi.EstimateActionGasConsumptionRequest_Execution{
-			Execution: execution.Proto(),
-		},
-		CallerAddress: caller,
-	}
+	request := &iotexapi.EstimateGasForActionRequest{Action: act.Proto()}
 
-	res, err := cli.EstimateActionGasConsumption(context.Background(), request)
+	res, err := cli.EstimateGasForAction(context.Background(), request)
 	if err != nil {
 		return
 	}
