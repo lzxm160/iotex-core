@@ -17,7 +17,7 @@ gaslimit: 8000000
 gasprice: 1000000000000
 alertThreshold: 20
 transfer:
-  address: ["io1mflp9m6hcgm2qcghchsdqj3z3eccrnekx9p0ms","xx"]
+  address: ["io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg","xx"]
   amountInRau: 0
 xrc20:
   contract: io1hhu3gwt5uankzl3zlp2cz8w0sl9uj336rq0334
