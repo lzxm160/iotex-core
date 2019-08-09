@@ -1,0 +1,32 @@
+
+api:
+  url: api.testnet.iotex.one:80
+log:
+  zap:
+    level: info
+    encoding: json
+    disableStacktrace: true
+    outputPaths: ["stderr", "stdout"]
+    errorOutputPaths: ["stderr"]
+  stderrRedirectFile: /var/log/s.log
+  stdLogRedirect: true
+
+runInterval: 20 #run once every 20 seconds
+wallet: /etc/iotex # dir which keystore file in
+gaslimit: 5000000
+gasprice: 1000000000000
+alertThreshold: 20
+transfer:
+  address: ["io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg","xx"]
+  amountInRau: 0
+xrc20:
+  contract: io1hhu3gwt5uankzl3zlp2cz8w0sl9uj336rq0334
+  address: ["io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg","xx"]
+  amount: 1
+execution:
+  contract: io1hxfy5pf0ykws7gk0mznt48jw5ejf47qqmje3dv
+  address: ["io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg","xx"]
+  amount: 5 #amount should be bigger than sum of to's amount
+  to:
+    address: ["io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg","io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg"]
+    amount: [1,1]
