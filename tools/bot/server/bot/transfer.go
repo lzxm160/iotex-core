@@ -95,7 +95,7 @@ func (s *Transfer) checkAndAlert(hs string) {
 	case <-t.C:
 		err := grpcutil.GetReceiptByActionHash(s.cfg.API.URL, hs)
 		if err != nil {
-			log.L().Error("transfer timeout:", zap.String("transfer hash", hs), zap.Error(err))
+			log.L().Fatal("transfer timeout:", zap.String("transfer hash", hs), zap.Error(err))
 			return
 		}
 		log.L().Info("transfer success:", zap.String("transfer hash", hs))

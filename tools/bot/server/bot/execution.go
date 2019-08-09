@@ -105,7 +105,7 @@ func (s *Execution) checkAndAlert(hs string) {
 	case <-t.C:
 		err := grpcutil.GetReceiptByActionHash(s.cfg.API.URL, hs)
 		if err != nil {
-			log.L().Error("Execution timeout:", zap.String("Execution hash", hs), zap.Error(err))
+			log.L().Fatal("Execution timeout:", zap.String("Execution hash", hs), zap.Error(err))
 			return
 		}
 		log.L().Info("Execution success:", zap.String("Execution hash", hs))

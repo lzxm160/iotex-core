@@ -104,7 +104,7 @@ func (s *Xrc20) checkAndAlert(hs string) {
 	case <-t.C:
 		err := grpcutil.GetReceiptByActionHash(s.cfg.API.URL, hs)
 		if err != nil {
-			log.L().Error("xrc20 transfer timeout:", zap.String("xrc20 transfer hash", hs), zap.Error(err))
+			log.L().Fatal("xrc20 transfer timeout:", zap.String("xrc20 transfer hash", hs), zap.Error(err))
 			return
 		}
 		log.L().Info("xrc20 transfer success:", zap.String("xrc20 transfer hash", hs))
