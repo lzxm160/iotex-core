@@ -46,16 +46,16 @@ func main() {
 	}
 
 	// transfer
-	transfer, err := bot.NewTransfer(cfg, "transfer")
-	if err != nil {
-		log.L().Fatal("new transfer:", zap.Error(err))
-	}
-
-	// xrc20
-	xrc20, err := bot.NewXrc20(cfg, "xrc20")
-	if err != nil {
-		log.L().Fatal("new xrc20 transfer:", zap.Error(err))
-	}
+	//transfer, err := bot.NewTransfer(cfg, "transfer")
+	//if err != nil {
+	//	log.L().Fatal("new transfer:", zap.Error(err))
+	//}
+	//
+	//// xrc20
+	//xrc20, err := bot.NewXrc20(cfg, "xrc20")
+	//if err != nil {
+	//	log.L().Fatal("new xrc20 transfer:", zap.Error(err))
+	//}
 
 	// multisend
 	multisend, err := bot.NewExecution(cfg, "multisend")
@@ -63,14 +63,14 @@ func main() {
 		log.L().Fatal("new multisend:", zap.Error(err))
 	}
 
-	err = b.Register(transfer)
-	if err != nil {
-		log.L().Fatal("Register transfer:", zap.Error(err))
-	}
-	err = b.Register(xrc20)
-	if err != nil {
-		log.L().Fatal("Register xrc20 transfer:", zap.Error(err))
-	}
+	//err = b.Register(transfer)
+	//if err != nil {
+	//	log.L().Fatal("Register transfer:", zap.Error(err))
+	//}
+	//err = b.Register(xrc20)
+	//if err != nil {
+	//	log.L().Fatal("Register xrc20 transfer:", zap.Error(err))
+	//}
 	err = b.Register(multisend)
 	if err != nil {
 		log.L().Fatal("Register multisend:", zap.Error(err))
