@@ -25,6 +25,15 @@ var (
 	_overwritePath string
 )
 
+var (
+	// Default is the default config
+	Default = Config{
+		API: API{
+			URL: "api.testnet.iotex.one:80",
+		},
+	}
+)
+
 type (
 	// API is the api service config
 	API struct {
@@ -67,6 +76,7 @@ type (
 // New create config
 func New() (Config, error) {
 	opts := make([]uconfig.YAMLOption, 0)
+	opts = append(opts, uconfig.Static(Default))
 	opts = append(opts, uconfig.Expand(os.LookupEnv))
 	if _overwritePath != "" {
 		opts = append(opts, uconfig.File(_overwritePath))
