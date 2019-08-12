@@ -14,6 +14,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/db/trie"
 
@@ -395,10 +397,8 @@ func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager
 	if err = tr.Start(context.Background()); err != nil {
 		return
 	}
-	hashKey, err := hash.HexStringToHash256(key)
-	if err != nil {
-		return
-	}
+	keyHash := common.HexToHash(key)
+	hashKey := hash.BytesToHash256(keyHash[:])
 
 	log.L().Info(
 		"keyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
