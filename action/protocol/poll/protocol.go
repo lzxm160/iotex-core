@@ -399,7 +399,11 @@ func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager
 	if err != nil {
 		return
 	}
-	fmt.Println(hex.EncodeToString(hashKey[:]))
+
+	log.L().Info(
+		"keyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+		zap.String("key", hex.EncodeToString(hashKey[:])),
+	)
 	return tr.Get(hashKey[:])
 }
 
