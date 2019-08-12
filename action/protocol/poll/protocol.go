@@ -8,6 +8,7 @@ package poll
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -394,7 +395,12 @@ func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager
 	if err = tr.Start(context.Background()); err != nil {
 		return
 	}
-	return tr.Get([]byte(key))
+	hashKey, err := hash.HexStringToHash160(key)
+	if err != nil {
+		return
+	}
+	fmt.Println(hex.EncodeToString(hashKey[:]))
+	return tr.Get(hashKey[:])
 }
 
 func (p *governanceChainCommitteeProtocol) readDelegatesByEpoch(epochNum uint64) (state.CandidateList, error) {
