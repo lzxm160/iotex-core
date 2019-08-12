@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"strconv"
 	"time"
 
 	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
@@ -337,14 +338,18 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 		}
 		addr := string(args[0])
 		key := string(args[1])
-		height := byteutil.BytesToUint64(args[2])
+		height := string(args[2])
+		hei, err := strconv.ParseUint(height, 10, 64)
+		if err != nil {
+			return nil, err
+		}
 		log.L().Info(
 			"get gravity chain height by time",
 			zap.String("addr", addr),
 			zap.String("key", key),
-			zap.Uint64("height", height),
+			zap.Uint64("height", hei),
 		)
-		data, err := p.getStorageAt(sm, addr, key, height)
+		data, err := p.getStorageAt(sm, addr, key, hei)
 		if err != nil {
 			return nil, err
 		}
