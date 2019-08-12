@@ -363,7 +363,7 @@ func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager
 	addrHash := hash.BytesToHash160(a.Bytes())
 	var account state.Account
 	//this will add a height
-	if err := sm.State(addrHash, &account); err != nil {
+	if err = sm.State(addrHash, &account); err != nil {
 		return
 	}
 	dao := sm.GetDB()
@@ -387,7 +387,7 @@ func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager
 	if err != nil {
 		return
 	}
-	if err := tr.Start(context.Background()); err != nil {
+	if err = tr.Start(context.Background()); err != nil {
 		return
 	}
 	return tr.Get([]byte(key))
