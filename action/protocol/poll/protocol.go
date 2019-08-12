@@ -395,7 +395,7 @@ func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager
 	if err = tr.Start(context.Background()); err != nil {
 		return
 	}
-	hashKey, err := hash.HexStringToHash160(key)
+	hashKey, err := hash.HexStringToHash256(key)
 	if err != nil {
 		return
 	}
