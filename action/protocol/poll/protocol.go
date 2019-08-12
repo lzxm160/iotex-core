@@ -374,10 +374,16 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 }
 func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager, addr address.Address, key string, height uint64) (data []byte, err error) {
 	addrHash := hash.BytesToHash160(addr.Bytes())
-	var account state.Account
+	//var account state.Account
 	//this will add a height
-	if err = sm.State(addrHash, &account); err != nil {
-		return
+	//addrHeight:=append(addrHash)
+
+	//if err = sm.State(addrHash, &account); err != nil {
+	//	return
+	//}
+	account, err := p.cm.StateByAddr(addr.String() + fmt.Sprintf("%d", height))
+	if err != nil {
+		return nil, err
 	}
 	dao := sm.GetDB()
 	batch := sm.GetCachedBatch()
