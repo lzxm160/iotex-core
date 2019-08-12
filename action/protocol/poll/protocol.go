@@ -359,6 +359,11 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 		if err != nil {
 			return nil, err
 		}
+		log.L().Info(
+			"getStorageAt",
+			zap.String("data", hex.EncodeToString(data)),
+			zap.String("data2", string(data)),
+		)
 		return data, nil
 
 	default:
