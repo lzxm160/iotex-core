@@ -12,6 +12,9 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
+	"github.com/iotexproject/iotex-core/db/trie"
+
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-election/committee"
@@ -327,10 +330,67 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 			return nil, err
 		}
 		return byteutil.Uint64ToBytes(gravityStartheight), nil
+
+	case "GetStorageAt":
+		if len(args) != 3 {
+			return nil, errors.Errorf("invalid number of arguments %d", len(args))
+		}
+		addr := string(args[0])
+		key := string(args[1])
+		height := byteutil.BytesToUint64(args[2])
+		log.L().Info(
+			"get gravity chain height by time",
+			zap.String("addr", addr),
+			zap.String("key", key),
+			zap.Uint64("height", height),
+		)
+		data, err := p.getStorageAt(sm, addr, key, height)
+		if err != nil {
+			return nil, err
+		}
+		return data, nil
+
 	default:
 		return nil, errors.New("corresponding method isn't found")
 
 	}
+}
+func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager, addr, key string, height uint64) (data []byte, err error) {
+	a, err := address.FromString(addr)
+	if err != nil {
+		return
+	}
+	addrHash := hash.BytesToHash160(a.Bytes())
+	var account state.Account
+	//this will add a height
+	if err := sm.State(addrHash, &account); err != nil {
+		return
+	}
+	dao := sm.GetDB()
+	batch := sm.GetCachedBatch()
+	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, dao, db.CachedBatchOption(batch))
+	if err != nil {
+		return
+	}
+	options := []trie.Option{
+		trie.KVStoreOption(dbForTrie),
+		trie.KeyLengthOption(len(hash.Hash256{})),
+		trie.HashFuncOption(func(data []byte) []byte {
+			return trie.DefaultHashFunc(append(addrHash[:], data...))
+		}),
+	}
+	if account.Root != hash.ZeroHash256 { //root is storage root
+		options = append(options, trie.RootHashOption(account.Root[:]))
+	}
+
+	tr, err := trie.NewTrie(options...)
+	if err != nil {
+		return
+	}
+	if err := tr.Start(context.Background()); err != nil {
+		return
+	}
+	return tr.Get([]byte(key))
 }
 
 func (p *governanceChainCommitteeProtocol) readDelegatesByEpoch(epochNum uint64) (state.CandidateList, error) {
