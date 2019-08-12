@@ -7,8 +7,15 @@
 package factory
 
 import (
+	"bytes"
 	"context"
 	"encoding/binary"
+	"encoding/hex"
+	"strconv"
+
+	"github.com/iotexproject/iotex-core/pkg/log"
+	bolt "go.etcd.io/bbolt"
+	"go.uber.org/zap"
 
 	"github.com/pkg/errors"
 
@@ -151,6 +158,54 @@ func (stx *stateTX) GetDB() db.KVStore {
 // GetCachedBatch returns the cached batch for pending writes
 func (stx *stateTX) GetCachedBatch() db.CachedBatch {
 	return stx.cb
+}
+func (stx *stateTX) State2(hash []byte, s interface{}) error {
+	addr := hash[:20]
+	height, err := strconv.ParseUint(hex.EncodeToString(hash[20:]), 10, 64)
+	if err != nil {
+		return err
+	}
+	maxVersion := uint64(0)
+	indexKey := append(AccountMaxVersionPrefix, addr[:]...)
+	value, err := stx.dao.Get(AccountKVNameSpace, indexKey)
+	if err == nil {
+		maxVersion = binary.BigEndian.Uint64(value)
+	}
+
+	if maxVersion == 0 || height > maxVersion {
+		return errors.New("cannot find state")
+	}
+	log.L().Info("////////////////", zap.Uint64("maxVersion", maxVersion))
+	db := stx.dao.DB()
+	boltdb, ok := db.(*bolt.DB)
+	if !ok {
+		return errors.New("convert error")
+	}
+	err = boltdb.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
+		bytess := make([]byte, 8)
+		binary.BigEndian.PutUint64(bytess, maxVersion)
+		stateKey := append(addr[:], bytess...)
+		for k, v := c.Seek(stateKey); k != nil && bytes.Compare(k, stateKey) <= 0; k, v = c.Prev() {
+			if len(k) <= 20 {
+				return errors.New("cannot find state")
+			}
+			kHeight := binary.BigEndian.Uint64(k[20:])
+			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
+			if kHeight == 0 {
+				return errors.New("cannot find state")
+			}
+			if kHeight <= height {
+				log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
+				if err := state.Deserialize(s, v); err != nil {
+					return errors.Wrapf(err, "error when deserializing state data into %T", s)
+				}
+				return nil
+			}
+		}
+		return errors.New("cannot find state")
+	})
+	return err
 }
 
 // State pulls a state from DB

@@ -69,6 +69,7 @@ type StateManager interface {
 	Snapshot() int
 	Revert(int) error
 	// General state
+	State2([]byte, interface{}) error
 	State(hash.Hash160, interface{}) error
 	PutState(hash.Hash160, interface{}) error
 	DelState(pkHash hash.Hash160) error
