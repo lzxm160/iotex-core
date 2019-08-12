@@ -364,6 +364,7 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 			zap.String("data", hex.EncodeToString(data)),
 			zap.String("data2", string(data)),
 		)
+		data = []byte(hex.EncodeToString(data))
 		return data, nil
 
 	default:
