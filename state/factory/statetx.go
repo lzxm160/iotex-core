@@ -171,11 +171,10 @@ func (stx *stateTX) State2(hash []byte, s interface{}) error {
 	if err == nil {
 		maxVersion = binary.BigEndian.Uint64(value)
 	}
-
+	log.L().Info("////////////////", zap.Uint64("maxVersion", maxVersion), zap.Uint64("height", height))
 	if maxVersion == 0 || height > maxVersion {
 		return errors.New("cannot find state")
 	}
-	log.L().Info("////////////////", zap.Uint64("maxVersion", maxVersion))
 	db := stx.dao.DB()
 	boltdb, ok := db.(*bolt.DB)
 	if !ok {
