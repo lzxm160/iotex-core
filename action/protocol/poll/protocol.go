@@ -8,7 +8,6 @@ package poll
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -337,11 +336,7 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 		if len(args) != 3 {
 			return nil, errors.Errorf("invalid number of arguments %d", len(args))
 		}
-		addr, err := hex.DecodeString(string(args[0]))
-		if err != nil {
-			return nil, err
-		}
-		addrs, err := address.FromBytes(addr)
+		addrs, err := address.FromString(string(args[0]))
 		if err != nil {
 			return nil, err
 		}
