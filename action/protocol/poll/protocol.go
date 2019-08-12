@@ -8,6 +8,7 @@ package poll
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -336,7 +337,14 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 		if len(args) != 3 {
 			return nil, errors.Errorf("invalid number of arguments %d", len(args))
 		}
-		addr := string(args[0])
+		addr, err := hex.DecodeString(string(args[0]))
+		if err != nil {
+			return nil, err
+		}
+		addrs, err := address.FromBytes(addr)
+		if err != nil {
+			return nil, err
+		}
 		key := string(args[1])
 		height := string(args[2])
 		hei, err := strconv.ParseUint(height, 10, 64)
@@ -345,11 +353,11 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 		}
 		log.L().Info(
 			"get gravity chain height by time",
-			zap.String("addr", addr),
+			zap.String("addr", addrs.String()),
 			zap.String("key", key),
 			zap.Uint64("height", hei),
 		)
-		data, err := p.getStorageAt(sm, addr, key, hei)
+		data, err := p.getStorageAt(sm, addrs, key, hei)
 		if err != nil {
 			return nil, err
 		}
@@ -360,12 +368,8 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 
 	}
 }
-func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager, addr, key string, height uint64) (data []byte, err error) {
-	a, err := address.FromString(addr)
-	if err != nil {
-		return
-	}
-	addrHash := hash.BytesToHash160(a.Bytes())
+func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager, addr address.Address, key string, height uint64) (data []byte, err error) {
+	addrHash := hash.BytesToHash160(addr.Bytes())
 	var account state.Account
 	//this will add a height
 	if err = sm.State(addrHash, &account); err != nil {
