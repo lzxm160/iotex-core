@@ -159,17 +159,16 @@ func (stx *stateTX) GetDB() db.KVStore {
 func (stx *stateTX) GetCachedBatch() db.CachedBatch {
 	return stx.cb
 }
-func (stx *stateTX) State2(hash []byte, s interface{}) error {
-	addr := hash[:20]
-	height, err := strconv.ParseUint(hex.EncodeToString(hash[20:]), 10, 64)
+func (stx *stateTX) State2(hs []byte, s interface{}) error {
+	addr := hs[:20]
+	height, err := strconv.ParseUint(hex.EncodeToString(hs[20:]), 10, 64)
 	if err != nil {
 		return err
 	}
-	maxVersion := uint64(0)
-	indexKey := append(AccountMaxVersionPrefix, addr[:]...)
-	value, err := stx.dao.Get(AccountKVNameSpace, indexKey)
-	if err == nil {
-		maxVersion = binary.BigEndian.Uint64(value)
+	h160 := hash.BytesToHash160(addr)
+	maxVersion, err := stx.getMaxVersion(h160)
+	if err != nil {
+		return err
 	}
 	log.L().Info("////////////////", zap.Uint64("maxVersion", maxVersion), zap.Uint64("height", height))
 	if maxVersion == 0 || height > maxVersion {
