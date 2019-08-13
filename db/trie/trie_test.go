@@ -75,7 +75,7 @@ func TestSameKey(t *testing.T) {
 	tr.SetRootHash(root)
 	v, err = tr.Get(cat)
 	require.Nil(err)
-	require.Equal(testV[2], v)
+	require.Equal(testV[1], v)
 
 }
 func Test2Roots(t *testing.T) {
