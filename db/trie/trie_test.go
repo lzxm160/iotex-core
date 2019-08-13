@@ -49,7 +49,35 @@ func TestEmptyTrie(t *testing.T) {
 	require.True(tr.isEmptyRootHash(tr.RootHash()))
 	require.Nil(tr.Stop(context.Background()))
 }
+func TestSameKey(t *testing.T) {
+	require := require.New(t)
 
+	// first trie
+	trieDB := newInMemKVStore()
+	tr, err := NewTrie(KVStoreOption(trieDB), KeyLengthOption(8))
+	require.Nil(err)
+	require.Nil(tr.Start(context.Background()))
+	require.Nil(tr.Upsert(cat, testV[2]))
+	v, err := tr.Get(cat)
+	require.Nil(err)
+	require.Equal(testV[2], v)
+
+	//save root hash
+	root := tr.RootHash()
+
+	require.Nil(tr.Upsert(cat, testV[1]))
+	v, err = tr.Get(cat)
+	require.Nil(err)
+	require.Equal(testV[1], v)
+
+	require.NotEqual(root, tr.RootHash())
+
+	tr.SetRootHash(root)
+	v, err = tr.Get(cat)
+	require.Nil(err)
+	require.Equal(testV[2], v)
+
+}
 func Test2Roots(t *testing.T) {
 	require := require.New(t)
 

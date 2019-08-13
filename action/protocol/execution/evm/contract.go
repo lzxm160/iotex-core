@@ -120,6 +120,9 @@ func (c *contract) Commit() error {
 		// purge the committed value cache
 		c.committed = nil
 		c.committed = make(map[hash.Hash256][]byte)
+		// I think history storage should be stored here
+		//c.trie.(*branchRootTrie)
+		//c.trie.
 	}
 	if c.dirtyCode {
 		// put the code into storage DB
