@@ -389,6 +389,7 @@ func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager
 	if err = sm.State2(input, &account); err != nil {
 		return
 	}
+	log.L().Info("returned account:", zap.String("root", hex.EncodeToString(account.Root[:])))
 	//p.
 	//account, err := p.cm.StateByAddr(addr.String() + fmt.Sprintf("%d", height))
 	//if err != nil {
