@@ -13,11 +13,11 @@ import (
 	"encoding/hex"
 	"strconv"
 
+	"github.com/boltdb/bolt"
+	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/pkg/log"
-	bolt "go.etcd.io/bbolt"
-	"go.uber.org/zap"
-
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
@@ -180,11 +180,11 @@ func (stx *stateTX) State2(hs []byte, s interface{}) error {
 		return errors.New("convert error")
 	}
 	err = boltdb.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
+		c := tx.Bucket([]byte(evm.PreimageKVNameSpace)).Cursor()
 		bytess := make([]byte, 8)
 		binary.BigEndian.PutUint64(bytess, maxVersion)
 		stateKey := append(addr[:], bytess...)
-		for k, v := c.Seek(stateKey); k != nil && bytes.Compare(k, stateKey) <= 0; k, v = c.Prev() {
+		for k, _ := c.Seek(stateKey); k != nil && bytes.Compare(k, stateKey) <= 0; k, _ = c.Prev() {
 			if len(k) <= 20 {
 				return errors.New("cannot find state")
 			}
@@ -195,9 +195,7 @@ func (stx *stateTX) State2(hs []byte, s interface{}) error {
 			}
 			if kHeight <= height {
 				log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
-				if err := state.Deserialize(s, v); err != nil {
-					return errors.Wrapf(err, "error when deserializing state data into %T", s)
-				}
+				s = kHeight
 				return nil
 			}
 		}
@@ -205,6 +203,53 @@ func (stx *stateTX) State2(hs []byte, s interface{}) error {
 	})
 	return err
 }
+
+//func (stx *stateTX) State2(hs []byte, s interface{}) error {
+//	addr := hs[:20]
+//	height, err := strconv.ParseUint(hex.EncodeToString(hs[20:]), 10, 64)
+//	if err != nil {
+//		return err
+//	}
+//	h160 := hash.BytesToHash160(addr)
+//	maxVersion, err := stx.getMaxVersion(h160)
+//	if err != nil {
+//		return err
+//	}
+//	log.L().Info("////////////////", zap.Uint64("maxVersion", maxVersion), zap.Uint64("height", height))
+//	if maxVersion == 0 {
+//		return errors.New("cannot find state")
+//	}
+//	db := stx.dao.DB()
+//	boltdb, ok := db.(*bolt.DB)
+//	if !ok {
+//		return errors.New("convert error")
+//	}
+//	err = boltdb.View(func(tx *bolt.Tx) error {
+//		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
+//		bytess := make([]byte, 8)
+//		binary.BigEndian.PutUint64(bytess, maxVersion)
+//		stateKey := append(addr[:], bytess...)
+//		for k, v := c.Seek(stateKey); k != nil && bytes.Compare(k, stateKey) <= 0; k, v = c.Prev() {
+//			if len(k) <= 20 {
+//				return errors.New("cannot find state")
+//			}
+//			kHeight := binary.BigEndian.Uint64(k[20:])
+//			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
+//			if kHeight == 0 {
+//				return errors.New("cannot find state")
+//			}
+//			if kHeight <= height {
+//				log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
+//				if err := state.Deserialize(s, v); err != nil {
+//					return errors.Wrapf(err, "error when deserializing state data into %T", s)
+//				}
+//				return nil
+//			}
+//		}
+//		return errors.New("cannot find state")
+//	})
+//	return err
+//}
 
 // State pulls a state from DB
 func (stx *stateTX) State(hash hash.Hash160, s interface{}) error {
