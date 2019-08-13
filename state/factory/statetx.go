@@ -171,7 +171,7 @@ func (stx *stateTX) State2(hs []byte, s interface{}) error {
 		return err
 	}
 	log.L().Info("////////////////", zap.Uint64("maxVersion", maxVersion), zap.Uint64("height", height))
-	if maxVersion == 0 || height > maxVersion {
+	if maxVersion == 0 {
 		return errors.New("cannot find state")
 	}
 	db := stx.dao.DB()
