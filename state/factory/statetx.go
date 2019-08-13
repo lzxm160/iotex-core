@@ -13,10 +13,10 @@ import (
 	"encoding/hex"
 	"strconv"
 
-	"github.com/boltdb/bolt"
 	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/pkg/errors"
+	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
 
 	"github.com/iotexproject/go-pkgs/hash"
