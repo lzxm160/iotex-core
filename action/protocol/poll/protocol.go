@@ -357,6 +357,10 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 		)
 		data, err := p.getStorageAt(sm, addrs, key, hei)
 		if err != nil {
+			log.L().Info(
+				"getStorageAt err",
+				zap.Error(err),
+			)
 			return nil, err
 		}
 		log.L().Info(
