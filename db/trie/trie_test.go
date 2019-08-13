@@ -8,6 +8,8 @@ package trie
 
 import (
 	"context"
+	"encoding/hex"
+	"fmt"
 	"testing"
 	"time"
 
@@ -63,7 +65,8 @@ func TestSameKey(t *testing.T) {
 	require.Equal(testV[2], v)
 
 	//save root hash
-	root := tr.RootHash()
+	root := make([]byte, 32)
+	copy(root, tr.RootHash())
 
 	require.Nil(tr.Upsert(cat, testV[1]))
 	v, err = tr.Get(cat)
@@ -71,12 +74,12 @@ func TestSameKey(t *testing.T) {
 	require.Equal(testV[1], v)
 
 	require.NotEqual(root, tr.RootHash())
-
+	fmt.Println("root:", hex.EncodeToString(root))
+	fmt.Println("tx:", hex.EncodeToString(tr.RootHash()))
 	tr.SetRootHash(root)
 	v, err = tr.Get(cat)
 	require.Nil(err)
-	require.Equal(testV[1], v)
-
+	require.Equal(testV[2], v)
 }
 func Test2Roots(t *testing.T) {
 	require := require.New(t)
