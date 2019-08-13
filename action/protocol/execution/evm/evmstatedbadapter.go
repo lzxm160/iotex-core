@@ -8,6 +8,7 @@ package evm
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -22,7 +23,7 @@ import (
 
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/db/trie"
@@ -662,7 +663,8 @@ func (stateDB *StateDBAdapter) CommitContracts() error {
 		addrStrs = append(addrStrs, hex.EncodeToString(addr[:]))
 	}
 	sort.Strings(addrStrs)
-
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, stateDB.blockHeight)
 	for _, addrStr := range addrStrs {
 		var k common.Hash
 		addrBytes, err := hex.DecodeString(addrStr)
@@ -674,6 +676,8 @@ func (stateDB *StateDBAdapter) CommitContracts() error {
 		h := make([]byte, len(k))
 		copy(h, k[:])
 		stateDB.cb.Put(PreimageKVNameSpace, h, v, "failed to put hash %x preimage %x", k, v)
+		addHeight := append(h, heightBytes...)
+		stateDB.cb.Put(PreimageKVNameSpace, addHeight, v, "failed to put hash %x preimage %x", k, v)
 	}
 	return nil
 }

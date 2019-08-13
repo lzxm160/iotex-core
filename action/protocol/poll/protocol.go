@@ -397,7 +397,8 @@ func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager
 	//}
 	dao := sm.GetDB()
 	batch := sm.GetCachedBatch()
-	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, dao, db.CachedBatchOption(batch))
+	//dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, dao, db.CachedBatchOption(batch))
+	dbForTrie, err := db.NewKVStoreForTrie(evm.PreimageKVNameSpace, dao, db.CachedBatchOption(batch))
 	if err != nil {
 		return
 	}
@@ -409,7 +410,9 @@ func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager
 		}),
 	}
 	if account.Root != hash.ZeroHash256 { //root is storage root
-		options = append(options, trie.RootHashOption(account.Root[:]))
+		//rootHei := append(account.Root[:], hei...)
+
+		options = append(options, trie.RootHashOption(input))
 	}
 
 	tr, err := trie.NewTrie(options...)
