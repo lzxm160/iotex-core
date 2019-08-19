@@ -213,7 +213,8 @@ func (stx *stateTX) State2(hs []byte, s interface{}) error {
 	h160 := hash.BytesToHash160(addr)
 	maxVersion, err := stx.getMaxVersion(h160)
 	if err != nil {
-		return err
+		// this account still dont have version
+		return stx.State(h160, s)
 	}
 	log.L().Info("////////////////", zap.Uint64("maxVersion", maxVersion), zap.Uint64("height", height))
 	if maxVersion == 0 {
