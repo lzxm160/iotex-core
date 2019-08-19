@@ -248,7 +248,10 @@ func (stx *stateTX) State2(hs []byte, s interface{}) error {
 		}
 		return errors.New("cannot find state")
 	})
-	return err
+	if err != nil {
+		return stx.State(h160, s)
+	}
+	return nil
 }
 
 // State pulls a state from DB
