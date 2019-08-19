@@ -137,9 +137,9 @@ func (tr *branchRootTrie) DB() KVStore {
 }
 
 func (tr *branchRootTrie) deleteNodeFromDB(tn Node) error {
-	h := tr.nodeHash(tn)
-	return tr.kvStore.Delete(h)
-	//return nil
+	//h := tr.nodeHash(tn)
+	//return tr.kvStore.Delete(h)
+	return nil
 }
 
 func (tr *branchRootTrie) putNodeIntoDB(tn Node) error {
