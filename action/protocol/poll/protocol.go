@@ -8,9 +8,16 @@ package poll
 
 import (
 	"context"
+	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strconv"
 	"time"
+	"github.com/ethereum/go-ethereum/common"
+
+	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
+	"github.com/iotexproject/iotex-core/db/trie"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
@@ -328,10 +335,105 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 			return nil, err
 		}
 		return byteutil.Uint64ToBytes(gravityStartheight), nil
+
+	case "GetStorageAt":
+		if len(args) != 3 {
+			return nil, errors.Errorf("invalid number of arguments %d", len(args))
+		}
+		addrs, err := address.FromString(string(args[0]))
+		if err != nil {
+			return nil, err
+		}
+		key := string(args[1])
+		height := string(args[2])
+		hei, err := strconv.ParseUint(height, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		log.L().Info(
+			"get gravity chain height by time",
+			zap.String("addr", addrs.String()),
+			zap.String("key", key),
+			zap.Uint64("height", hei),
+		)
+		data, err := p.getStorageAt(sm, addrs, key, hei)
+		if err != nil {
+			log.L().Info(
+				"getStorageAt err",
+				zap.Error(err),
+			)
+			return nil, err
+		}
+		log.L().Info(
+			"getStorageAt",
+			zap.String("data", hex.EncodeToString(data)),
+			zap.String("data2", string(data)),
+		)
+		data = []byte(hex.EncodeToString(data))
+		return data, nil
+
 	default:
 		return nil, errors.New("corresponding method isn't found")
 
 	}
+}
+func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager, addr address.Address, key string, height uint64) (data []byte, err error) {
+	addrHash := hash.BytesToHash160(addr.Bytes())
+	//var account state.Account
+	//this will add a height
+	//addrHeight:=append(addrHash)
+	hei, err := hex.DecodeString(fmt.Sprintf("%d", height))
+	if err != nil {
+		return nil, err
+	}
+	input := append(addrHash[:], hei...)
+	var savedHei uint64
+	if err = sm.State2(input, &savedHei); err != nil {
+		return
+	}
+	log.L().Info("returned savedHei:", zap.Uint64("savedHei", savedHei))
+	//p.
+	//account, err := p.cm.StateByAddr(addr.String() + fmt.Sprintf("%d", height))
+	//if err != nil {
+	//	return nil, err
+	//}
+	dao := sm.GetDB()
+	batch := sm.GetCachedBatch()
+	//dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, dao, db.CachedBatchOption(batch))
+	dbForTrie, err := db.NewKVStoreForTrie(evm.PreimageKVNameSpace, dao, db.CachedBatchOption(batch))
+	if err != nil {
+		return
+	}
+	options := []trie.Option{
+		trie.KVStoreOption(dbForTrie),
+		trie.KeyLengthOption(len(hash.Hash256{})),
+		trie.HashFuncOption(func(data []byte) []byte {
+			return trie.DefaultHashFunc(append(addrHash[:], data...))
+		}),
+	}
+	//if account.Root != hash.ZeroHash256 { //root is storage root
+	//rootHei := append(account.Root[:], hei...)
+	heiBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heiBytes, savedHei)
+	addrHei := append(addrHash[:], heiBytes...)
+	options = append(options, trie.RootHashOption(addrHei))
+	//}
+
+	tr, err := trie.NewTrie(options...)
+	if err != nil {
+		return
+	}
+	if err = tr.Start(context.Background()); err != nil {
+		return
+	}
+	keyHash := common.HexToHash(key)
+	hashKey := hash.BytesToHash256(keyHash[:])
+
+	log.L().Info(
+		"keyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+		zap.String("key", hex.EncodeToString(hashKey[:])),
+	)
+	return tr.Get(hashKey[:])
 }
 
 func (p *governanceChainCommitteeProtocol) readDelegatesByEpoch(epochNum uint64) (state.CandidateList, error) {

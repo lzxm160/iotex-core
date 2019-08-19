@@ -7,17 +7,23 @@
 package factory
 
 import (
+	"bytes"
 	"context"
-
-	"github.com/pkg/errors"
+	"encoding/binary"
+	"encoding/hex"
+	"strconv"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/db"
+	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 	"github.com/iotexproject/iotex-core/state"
+	"github.com/pkg/errors"
+	bolt "go.etcd.io/bbolt"
+	"go.uber.org/zap"
 )
 
 // stateTX implements stateTX interface, tracks pending changes to account/contract in local cache
@@ -152,6 +158,99 @@ func (stx *stateTX) GetCachedBatch() db.CachedBatch {
 	return stx.cb
 }
 
+//func (stx *stateTX) State2(hs []byte, s interface{}) error {
+//	addr := hs[:20]
+//	height, err := strconv.ParseUint(hex.EncodeToString(hs[20:]), 10, 64)
+//	if err != nil {
+//		return err
+//	}
+//	h160 := hash.BytesToHash160(addr)
+//	maxVersion, err := stx.getMaxVersion(h160)
+//	if err != nil {
+//		return err
+//	}
+//	log.L().Info("////////////////", zap.Uint64("maxVersion", maxVersion), zap.Uint64("height", height))
+//	if maxVersion == 0 {
+//		return errors.New("cannot find state")
+//	}
+//	db := stx.dao.DB()
+//	boltdb, ok := db.(*bolt.DB)
+//	if !ok {
+//		return errors.New("convert error")
+//	}
+//
+//	err = boltdb.View(func(tx *bolt.Tx) error {
+//		c := tx.Bucket([]byte(evm.PreimageKVNameSpace)).Cursor()
+//		bytess := make([]byte, 8)
+//		binary.BigEndian.PutUint64(bytess, maxVersion)
+//		stateKey := append(addr[:], bytess...)
+//		for k, _ := c.Seek(stateKey); k != nil && bytes.Compare(k, stateKey) <= 0; k, _ = c.Prev() {
+//			if len(k) <= 20 {
+//				return errors.New("cannot find state")
+//			}
+//			kHeight := binary.BigEndian.Uint64(k[20:])
+//			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
+//			if kHeight == 0 {
+//				return errors.New("cannot find state")
+//			}
+//			if kHeight <= height {
+//				log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
+//				s = kHeight
+//				return nil
+//			}
+//		}
+//		return errors.New("cannot find state")
+//	})
+//	return err
+//}
+
+func (stx *stateTX) State2(hs []byte, s interface{}) error {
+	addr := hs[:20]
+	height, err := strconv.ParseUint(hex.EncodeToString(hs[20:]), 10, 64)
+	if err != nil {
+		return err
+	}
+	h160 := hash.BytesToHash160(addr)
+	maxVersion, err := stx.getMaxVersion(h160)
+	if err != nil {
+		return err
+	}
+	log.L().Info("////////////////", zap.Uint64("maxVersion", maxVersion), zap.Uint64("height", height))
+	if maxVersion == 0 {
+		return errors.New("cannot find state")
+	}
+	db := stx.dao.DB()
+	boltdb, ok := db.(*bolt.DB)
+	if !ok {
+		return errors.New("convert error")
+	}
+	err = boltdb.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
+		bytess := make([]byte, 8)
+		binary.BigEndian.PutUint64(bytess, maxVersion)
+		stateKey := append(addr[:], bytess...)
+		for k, v := c.Seek(stateKey); k != nil && bytes.Compare(k, stateKey) <= 0; k, v = c.Prev() {
+			if len(k) <= 20 {
+				return errors.New("cannot find state")
+			}
+			kHeight := binary.BigEndian.Uint64(k[20:])
+			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
+			if kHeight == 0 {
+				return errors.New("cannot find state")
+			}
+			if kHeight <= height {
+				log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
+				if err := state.Deserialize(s, v); err != nil {
+					return errors.Wrapf(err, "error when deserializing state data into %T", s)
+				}
+				return nil
+			}
+		}
+		return errors.New("cannot find state")
+	})
+	return err
+}
+
 // State pulls a state from DB
 func (stx *stateTX) State(hash hash.Hash160, s interface{}) error {
 	stateDBMtc.WithLabelValues("get").Inc()
@@ -178,7 +277,31 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 		return errors.Wrapf(err, "failed to convert account %v to bytes", s)
 	}
 	stx.cb.Put(AccountKVNameSpace, pkHash[:], ss, "error when putting k = %x", pkHash)
+	stx.putIndex(pkHash, ss)
 	return nil
+}
+func (stx *stateTX) getMaxVersion(pkHash hash.Hash160) (uint64, error) {
+	indexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
+	value, err := stx.dao.Get(AccountKVNameSpace, indexKey)
+	if err != nil {
+		return 0, err
+	}
+	return binary.BigEndian.Uint64(value), nil
+}
+
+func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
+	currentVersion := make([]byte, 8)
+	//stx.ver is last height,should be this block to pack action
+	binary.BigEndian.PutUint64(currentVersion, stx.ver+1)
+
+	indexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
+	err := stx.dao.Put(AccountKVNameSpace, indexKey, currentVersion)
+	if err != nil {
+		return err
+	}
+	stateKey := append(pkHash[:], currentVersion...)
+
+	return stx.dao.Put(AccountKVNameSpace, stateKey, ss)
 }
 
 // DelState deletes a state from DB
