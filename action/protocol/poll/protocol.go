@@ -387,10 +387,10 @@ func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager
 		return nil, err
 	}
 	input := append(addrHash[:], hei...)
-	var trieRoot hash.Hash256
-	if err = sm.State2(input, &trieRoot); err != nil {
-		return
-	}
+	//var trieRoot hash.Hash256
+	//if err = sm.State2(input, &trieRoot); err != nil {
+	//	return
+	//}
 
 	dao := sm.GetDB()
 	batch := sm.GetCachedBatch()

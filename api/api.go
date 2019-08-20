@@ -7,6 +7,7 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"encoding/hex"
 	"math"
@@ -15,6 +16,11 @@ import (
 	"sort"
 	"strconv"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
+	"github.com/iotexproject/iotex-core/db"
+	"github.com/iotexproject/iotex-core/db/trie"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
@@ -687,6 +693,87 @@ func (api *Server) Stop() error {
 	return api.chainListener.Stop()
 }
 
+func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *iotexapi.ReadStateResponse, err error) {
+	log.L().Info("enter getstorageAt/////////////////////////")
+	if len(args) != 3 {
+		return nil, errors.Errorf("invalid number of arguments %d", len(args))
+	}
+	addrs, err := address.FromString(string(args[0]))
+	if err != nil {
+		return nil, err
+	}
+	key := string(args[1])
+	height := string(args[2])
+	//hei, err := strconv.ParseUint(height, 10, 64)
+	//if err != nil {
+	//	return nil, err
+	//}
+	log.L().Info(
+		"get gravity chain height by time",
+		zap.String("addr", addrs.String()),
+		zap.String("key", key),
+		zap.String("height", height),
+	)
+	//addrHash := hash.BytesToHash160(addrs.Bytes())
+	//heiBytes, err := hex.DecodeString(fmt.Sprintf("%d", hei))
+	//if err != nil {
+	//	return nil, err
+	//}
+	//input := append(addrHash[:], heiBytes...)
+	addrHash := hash.BytesToHash160(addrs.Bytes())
+	acc, err := api.bc.StateByAddr(addrs.String() + height)
+	if err != nil {
+		return nil, err
+	}
+	dao := ws.GetDB()
+	batch := ws.GetCachedBatch()
+	dbForTrie, err := db.NewKVStoreForTrie(evm.PreimageKVNameSpace, dao, db.CachedBatchOption(batch))
+	if err != nil {
+		return nil, err
+	}
+	options := []trie.Option{
+		trie.KVStoreOption(dbForTrie),
+		trie.KeyLengthOption(len(hash.Hash256{})),
+		trie.HashFuncOption(func(data []byte) []byte {
+			return trie.DefaultHashFunc(append(addrHash[:], data...))
+		}),
+	}
+
+	options = append(options, trie.RootHashOption(acc.Root[:]))
+
+	tr, err := trie.NewTrie(options...)
+	if err != nil {
+		return
+	}
+	if err = tr.Start(context.Background()); err != nil {
+		return
+	}
+	keyHash := common.HexToHash(key)
+	hashKey := hash.BytesToHash256(keyHash[:])
+
+	log.L().Info(
+		"keyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+		zap.String("key", hex.EncodeToString(hashKey[:])),
+	)
+	data, err := tr.Get(hashKey[:])
+	if err != nil {
+		log.L().Info(
+			"getStorageAt err",
+			zap.Error(err),
+		)
+		return nil, err
+	}
+	log.L().Info(
+		"getStorageAt",
+		zap.String("data", hex.EncodeToString(data)),
+		zap.String("data2", string(data)),
+	)
+	data = []byte(hex.EncodeToString(data))
+	out := iotexapi.ReadStateResponse{
+		Data: data,
+	}
+	return &out, nil
+}
 func (api *Server) readState(ctx context.Context, in *iotexapi.ReadStateRequest) (*iotexapi.ReadStateResponse, error) {
 	p, ok := api.registry.Find(string(in.ProtocolID))
 	if !ok {
@@ -700,6 +787,9 @@ func (api *Server) readState(ctx context.Context, in *iotexapi.ReadStateRequest)
 	ws, err := api.bc.GetFactory().NewWorkingSet()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
+	}
+	if bytes.Equal(in.MethodName, []byte("GetStorageAt")) {
+		return api.getstorageAt(ws)
 	}
 	data, err := p.ReadState(ctx, ws, in.MethodName, in.Arguments...)
 	// TODO: need to distinguish user error and system error
