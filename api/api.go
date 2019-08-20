@@ -727,7 +727,7 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 	//dao := ws.GetDB()
 	//batch := ws.GetCachedBatch()
 	cfg := api.cfg.DB
-	cfg.DbPath = api.cfg.Chain.TrieDBPath
+	cfg.DbPath = "/var/data/triebak.db"
 	dao := db.NewBoltDB(cfg)
 	dao.Start(context.Background())
 	log.L().Info("dao start:")
