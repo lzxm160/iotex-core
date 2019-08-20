@@ -1460,6 +1460,9 @@ func TestSameKey2(t *testing.T) {
 	cfg.DbPath = testTrieFile.Name()
 
 	trieDB := db.NewBoltDB(cfg)
+	require.NoError(trieDB.Start(context.Background()))
+	defer trieDB.Stop(context.Background())
+
 	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, trieDB, db.CachedBatchOption(db.NewCachedBatch()))
 	require.NoError(err)
 
