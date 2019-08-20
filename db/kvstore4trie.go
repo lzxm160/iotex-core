@@ -80,13 +80,13 @@ func (s *KVStoreForTrie) Delete(key []byte) error {
 	trieKeystoreMtc.WithLabelValues("delete").Inc()
 	// flush to db file
 	value, err := s.Get(key)
-	if err != nil {
-		return err
+	if err == nil {
+		err = s.dao.Put(s.bucket, key, value)
+		if err != nil {
+			return err
+		}
 	}
-	err = s.dao.Put(s.bucket, key, value)
-	if err != nil {
-		return err
-	}
+
 	s.cb.Delete(s.bucket, key, "failed to delete key %x", key)
 	// TODO: bug, need to mark key as deleted
 
