@@ -747,7 +747,7 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 		}),
 	}
 
-	options = append(options, trie.RootHashOption(acc.Root[:]))
+	//options = append(options, trie.RootHashOption(acc.Root[:]))
 
 	tr, err := trie.NewTrie(options...)
 	if err != nil {
@@ -761,6 +761,10 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 	defer tr.Stop(context.Background())
 	//keyHash := common.HexToHash(key)
 	//hashKey := hash.BytesToHash256(keyHash[:])
+	err = tr.SetRootHash(acc.Root[:])
+	if err != nil {
+		return
+	}
 	hashKey, err := hash.HexStringToHash256(key)
 	if err != nil {
 		return
