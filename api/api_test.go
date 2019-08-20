@@ -1525,13 +1525,10 @@ func TestSameKey2(t *testing.T) {
 
 	options2 = append(options2, trie.RootHashOption(root))
 
-	tr2, err := trie.NewTrie(options...)
+	tr2, err := trie.NewTrie(options2...)
 	require.NoError(err)
 	require.NoError(tr2.Start(context.Background()))
 	defer tr2.Stop(context.Background())
-	require.NoError(tr2.Start(context.Background()))
-	require.Nil(err)
-	require.Nil(tr2.Start(context.Background()))
 	v2, err := tr.Get(key[:])
 	require.Nil(err)
 	require.Equal([]byte("xxxxx"), v2)
