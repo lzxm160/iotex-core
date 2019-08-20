@@ -100,7 +100,6 @@ func (s *KVStoreForTrie) Delete(key []byte) error {
 
 // Delete deletes key
 func (s *KVStoreForTrie) FlushOldRoot(key []byte) error {
-	trieKeystoreMtc.WithLabelValues("delete").Inc()
 	// flush to db file
 	value, err := s.Get(key)
 	if err == nil {
