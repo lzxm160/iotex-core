@@ -126,6 +126,7 @@ func (s *KVStoreForTrie) Get(key []byte) ([]byte, error) {
 	v, err := s.cb.Get(s.bucket, key)
 	if errors.Cause(err) == ErrNotExist {
 		if v, err = s.dao.Get(s.bucket, key); errors.Cause(err) == ErrNotExist {
+			log.L().Info("gettttttttttttt:", zap.String("key", hex.EncodeToString(key)), zap.String("bucket:", s.bucket))
 			return nil, errors.Wrapf(ErrNotExist, "failed to get key %x", key)
 		}
 		// TODO: put it back to cache
