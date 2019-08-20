@@ -268,7 +268,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 	if err == nil {
 		maxVersion = binary.BigEndian.Uint64(value)
 	}
-	if maxVersion == 0 || height > maxVersion {
+	if maxVersion == 0 {
 		return errors.New("cannot find state")
 	}
 	log.L().Info("////////////////", zap.Uint64("maxVersion", maxVersion))
