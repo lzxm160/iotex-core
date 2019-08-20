@@ -1504,7 +1504,7 @@ func TestSameKey2(t *testing.T) {
 	fmt.Println("root:", hex.EncodeToString(root))
 	fmt.Println("tx:", hex.EncodeToString(tr.RootHash()))
 	tr.SetRootHash(root)
-	v, err = tr.Get([]byte("cat"))
+	v, err = tr.Get(key[:])
 	require.Nil(err)
 	require.Equal([]byte("xxxxx"), v)
 }
