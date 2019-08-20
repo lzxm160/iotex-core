@@ -73,3 +73,6 @@ func (s *inMemKVStore) Delete(k []byte) error {
 
 	return nil
 }
+func (s *inMemKVStore) FlushOldRoot([]byte) error {
+	return nil
+}
