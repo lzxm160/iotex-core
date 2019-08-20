@@ -17,14 +17,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/db/trie"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-election/committee"
@@ -757,9 +755,12 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 		log.L().Info("tr.Start:", zap.Error(err))
 		return
 	}
-	keyHash := common.HexToHash(key)
-	hashKey := hash.BytesToHash256(keyHash[:])
-
+	//keyHash := common.HexToHash(key)
+	//hashKey := hash.BytesToHash256(keyHash[:])
+	hashKey, err := hash.HexStringToHash256(key)
+	if err != nil {
+		return
+	}
 	log.L().Info(
 		"keyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
 		zap.String("key", hex.EncodeToString(hashKey[:])),
