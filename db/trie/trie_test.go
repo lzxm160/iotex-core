@@ -77,6 +77,7 @@ func TestSameKey(t *testing.T) {
 	require.NotEqual(root, tr.RootHash())
 	fmt.Println("root:", hex.EncodeToString(root))
 	fmt.Println("tx:", hex.EncodeToString(tr.RootHash()))
+
 	tr.SetRootHash(root)
 	v, err = tr.Get(cat)
 	require.Nil(err)

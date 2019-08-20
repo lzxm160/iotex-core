@@ -1503,10 +1503,36 @@ func TestSameKey2(t *testing.T) {
 	require.NotEqual(root, tr.RootHash())
 	fmt.Println("xxxxx root:", hex.EncodeToString(root))
 	fmt.Println("yyyyy root:", hex.EncodeToString(tr.RootHash()))
-	tr.SetRootHash(root)
-	v, err = tr.Get(key[:])
+
+	// open another trie
+	trieDB2 := db.NewBoltDB(cfg)
+	require.NoError(trieDB2.Start(context.Background()))
+	defer trieDB2.Stop(context.Background())
+
+	dbForTrie2, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, trieDB2, db.CachedBatchOption(db.NewCachedBatch()))
+	require.NoError(err)
+
+	addrHash2 := hash.Hash160b([]byte("xx"))
+	options2 := []trie.Option{
+		trie.KVStoreOption(dbForTrie2),
+		trie.KeyLengthOption(len(hash.Hash256{})),
+		trie.HashFuncOption(func(data []byte) []byte {
+			return trie.DefaultHashFunc(append(addrHash2[:], data...))
+		}),
+	}
+
+	options2 = append(options2, trie.RootHashOption(root))
+
+	tr2, err := trie.NewTrie(options...)
+	require.NoError(err)
+	require.NoError(tr2.Start(context.Background()))
+	defer tr2.Stop(context.Background())
+	require.NoError(tr2.Start(context.Background()))
 	require.Nil(err)
-	require.Equal([]byte("xxxxx"), v)
+	require.Nil(tr2.Start(context.Background()))
+	v2, err := tr.Get(key[:])
+	require.Nil(err)
+	require.Equal([]byte("xxxxx"), v2)
 }
 func addProducerToFactory(sf factory.Factory) error {
 	ws, err := sf.NewWorkingSet()
