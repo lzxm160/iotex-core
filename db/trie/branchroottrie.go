@@ -190,7 +190,9 @@ func (tr *branchRootTrie) nodeHash(tn Node) []byte {
 }
 
 func (tr *branchRootTrie) resetRoot(newRoot *branchNode) {
-	tr.deleteNodeFromDB(tr.root)
+	if tr.root != nil {
+		tr.deleteNodeFromDB(tr.root)
+	}
 
 	tr.root = newRoot
 	h := tr.nodeHash(newRoot)
