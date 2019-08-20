@@ -1481,12 +1481,13 @@ func TestSameKey2(t *testing.T) {
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
 	defer tr.Stop(context.Background())
+	key := hash.Hash256b([]byte("cat"))
 
 	require.NoError(tr.Start(context.Background()))
 	require.Nil(err)
 	require.Nil(tr.Start(context.Background()))
-	require.Nil(tr.Upsert([]byte("cat"), []byte("xxxxx")))
-	v, err := tr.Get([]byte("cat"))
+	require.Nil(tr.Upsert(key[:], []byte("xxxxx")))
+	v, err := tr.Get(key[:])
 	require.Nil(err)
 	require.Equal([]byte("xxxxx"), v)
 
@@ -1494,8 +1495,8 @@ func TestSameKey2(t *testing.T) {
 	root := make([]byte, 32)
 	copy(root, tr.RootHash())
 
-	require.Nil(tr.Upsert([]byte("cat"), []byte("yyyyy")))
-	v, err = tr.Get([]byte("cat"))
+	require.Nil(tr.Upsert(key[:], []byte("yyyyy")))
+	v, err = tr.Get(key[:])
 	require.Nil(err)
 	require.Equal([]byte("yyyyy"), v)
 
