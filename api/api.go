@@ -19,6 +19,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
@@ -28,7 +29,6 @@ import (
 	"github.com/iotexproject/iotex-proto/golang/iotexapi"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 	"github.com/pkg/errors"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -724,13 +724,13 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 		return nil, err
 	}
 	log.L().Info("account root:", zap.String("root", hex.EncodeToString(acc.Root[:])))
-	dao := ws.GetDB()
+	//dao := ws.GetDB()
 	//batch := ws.GetCachedBatch()
-	//cfg := api.cfg.DB
-	//cfg.DbPath = api.cfg.Chain.TrieDBPath
-	//dao := db.NewBoltDB(cfg)
-	//dao.Start(context.Background())
-	//defer dao.Stop(context.Background())
+	cfg := api.cfg.DB
+	cfg.DbPath = api.cfg.Chain.TrieDBPath
+	dao := db.NewBoltDB(cfg)
+	dao.Start(context.Background())
+	defer dao.Stop(context.Background())
 	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, dao, db.CachedBatchOption(db.NewCachedBatch()))
 	if err != nil {
 		return nil, err
@@ -755,6 +755,7 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 		log.L().Info("tr.Start:", zap.Error(err))
 		return
 	}
+	defer tr.Stop(context.Background())
 	//keyHash := common.HexToHash(key)
 	//hashKey := hash.BytesToHash256(keyHash[:])
 	hashKey, err := hash.HexStringToHash256(key)
