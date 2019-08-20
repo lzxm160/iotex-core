@@ -8,6 +8,10 @@ package db
 
 import (
 	"context"
+	"encoding/hex"
+
+	"github.com/iotexproject/iotex-core/pkg/log"
+	"go.uber.org/zap"
 
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
@@ -85,6 +89,7 @@ func (s *KVStoreForTrie) Delete(key []byte) error {
 		if err != nil {
 			return err
 		}
+		log.L().Info("KVStoreForTrie Delete:", zap.String("key", hex.EncodeToString(key)), zap.String("value", hex.EncodeToString(value)))
 	}
 
 	s.cb.Delete(s.bucket, key, "failed to delete key %x", key)
@@ -103,6 +108,7 @@ func (s *KVStoreForTrie) FlushOldRoot(key []byte) error {
 		if err != nil {
 			return err
 		}
+		log.L().Info("FlushOldRoot:", zap.String("key", hex.EncodeToString(key)), zap.String("value", hex.EncodeToString(value)))
 	}
 	return nil
 }
