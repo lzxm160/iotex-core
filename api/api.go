@@ -730,6 +730,7 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 	cfg.DbPath = api.cfg.Chain.TrieDBPath
 	dao := db.NewBoltDB(cfg)
 	dao.Start(context.Background())
+	log.L().Info("dao start:")
 	defer dao.Stop(context.Background())
 	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, dao, db.CachedBatchOption(db.NewCachedBatch()))
 	if err != nil {
