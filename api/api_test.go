@@ -17,14 +17,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
+	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/db/trie"
-	"github.com/iotexproject/iotex-core/pkg/log"
-	"go.uber.org/zap"
-
-	"github.com/golang/mock/gomock"
-	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -33,7 +30,7 @@ import (
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
 	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
@@ -1465,8 +1462,8 @@ func TestSameKey2(t *testing.T) {
 	trieDB := db.NewBoltDB(cfg)
 	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, trieDB, db.CachedBatchOption(db.NewCachedBatch()))
 	require.NoError(err)
-	log.L().Info("NewKVStoreForTrie:", zap.Error(err))
-	addrHash := []byte("xx")
+
+	addrHash := hash.Hash160b([]byte("xx"))
 	options := []trie.Option{
 		trie.KVStoreOption(dbForTrie),
 		trie.KeyLengthOption(len(hash.Hash256{})),
