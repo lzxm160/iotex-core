@@ -21,7 +21,6 @@ import (
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"go.uber.org/zap"
 
-	"github.com/iotexproject/iotex-core/db"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
@@ -52,8 +51,8 @@ func TestSameKey2(t *testing.T) {
 	cfg := config.Default.DB
 	cfg.DbPath = testTrieFile.Name()
 
-	trieDB := db.NewBoltDB(cfg)
-	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, trieDB, db.CachedBatchOption(db.NewCachedBatch()))
+	trieDB := NewBoltDB(cfg)
+	dbForTrie, err := NewKVStoreForTrie(evm.ContractKVNameSpace, trieDB, CachedBatchOption(NewCachedBatch()))
 	require.NoError(err)
 	log.L().Info("NewKVStoreForTrie:", zap.Error(err))
 	addrHash := []byte("xx")
