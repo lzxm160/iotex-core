@@ -726,11 +726,12 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 		return nil, err
 	}
 	log.L().Info("account root:", zap.String("root", hex.EncodeToString(acc.Root[:])))
-	//dao := ws.GetDB()
+	dao := ws.GetDB()
 	//batch := ws.GetCachedBatch()
-	cfg := api.cfg.DB
-	cfg.DbPath = api.cfg.Chain.TrieDBPath
-	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, db.NewBoltDB(cfg), db.CachedBatchOption(db.NewCachedBatch()))
+	//cfg := api.cfg.DB
+	//cfg.DbPath = api.cfg.Chain.TrieDBPath
+	//dao:=db.NewBoltDB(cfg)
+	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, dao, db.CachedBatchOption(db.NewCachedBatch()))
 	if err != nil {
 		return nil, err
 	}
