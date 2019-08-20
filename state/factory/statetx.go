@@ -225,6 +225,8 @@ func (stx *stateTX) State2(hs []byte, s interface{}) error {
 	if !ok {
 		return errors.New("convert error")
 	}
+	acc := state.EmptyAccount()
+	account := &acc
 	err = boltdb.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
 		bytess := make([]byte, 8)
@@ -241,7 +243,7 @@ func (stx *stateTX) State2(hs []byte, s interface{}) error {
 			}
 			if kHeight <= height {
 				log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
-				if err := state.Deserialize(s, v); err != nil {
+				if err := state.Deserialize(account, v); err != nil {
 					return errors.Wrapf(err, "error when deserializing state data into %T", s)
 				}
 				return nil
@@ -249,6 +251,7 @@ func (stx *stateTX) State2(hs []byte, s interface{}) error {
 		}
 		return errors.New("cannot find state")
 	})
+	s = account.Root
 	if err != nil {
 		return stx.State(h160, s)
 	}

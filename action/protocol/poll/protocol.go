@@ -8,12 +8,12 @@ package poll
 
 import (
 	"context"
-	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strconv"
 	"time"
+
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
@@ -387,16 +387,11 @@ func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager
 		return nil, err
 	}
 	input := append(addrHash[:], hei...)
-	var savedHei uint64
-	if err = sm.State2(input, &savedHei); err != nil {
+	var trieRoot hash.Hash256
+	if err = sm.State2(input, &trieRoot); err != nil {
 		return
 	}
-	log.L().Info("returned savedHei:", zap.Uint64("savedHei", savedHei))
-	//p.
-	//account, err := p.cm.StateByAddr(addr.String() + fmt.Sprintf("%d", height))
-	//if err != nil {
-	//	return nil, err
-	//}
+
 	dao := sm.GetDB()
 	batch := sm.GetCachedBatch()
 	//dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, dao, db.CachedBatchOption(batch))
@@ -411,13 +406,8 @@ func (p *governanceChainCommitteeProtocol) getStorageAt(sm protocol.StateManager
 			return trie.DefaultHashFunc(append(addrHash[:], data...))
 		}),
 	}
-	//if account.Root != hash.ZeroHash256 { //root is storage root
-	//rootHei := append(account.Root[:], hei...)
-	heiBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(heiBytes, savedHei)
-	addrHei := append(addrHash[:], heiBytes...)
-	options = append(options, trie.RootHashOption(addrHei))
-	//}
+
+	options = append(options, trie.RootHashOption(trieRoot[:]))
 
 	tr, err := trie.NewTrie(options...)
 	if err != nil {
