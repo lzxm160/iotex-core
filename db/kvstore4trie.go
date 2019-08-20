@@ -104,7 +104,7 @@ func (s *KVStoreForTrie) Delete(key []byte) error {
 // Delete deletes key
 func (s *KVStoreForTrie) FlushOldRoot(key []byte) error {
 	// flush to db file
-	value, err := s.dao.Get(s.bucket, key)
+	value, err := s.Get(key)
 	if err == nil {
 		err = s.dao.Put(s.bucket, key, value)
 		if err != nil {
