@@ -1455,7 +1455,7 @@ func TestServer_GetLogs(t *testing.T) {
 }
 func TestSameKey2(t *testing.T) {
 	require := require.New(t)
-	testTrieFile, err := ioutil.TempFile(os.TempDir(), "trie")
+	testTrieFile, err := ioutil.TempFile(os.TempDir(), "trie.db")
 	require.NoError(err)
 
 	// first trie
