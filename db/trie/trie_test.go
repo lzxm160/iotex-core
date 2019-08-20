@@ -10,8 +10,17 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"testing"
 	"time"
+
+	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
+	"github.com/iotexproject/iotex-core/db"
+	"github.com/iotexproject/iotex-core/pkg/log"
+	"go.uber.org/zap"
+
+	"github.com/iotexproject/iotex-core/config"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -51,12 +60,65 @@ func TestEmptyTrie(t *testing.T) {
 	require.True(tr.isEmptyRootHash(tr.RootHash()))
 	require.Nil(tr.Stop(context.Background()))
 }
+
 func TestSameKey(t *testing.T) {
 	require := require.New(t)
 
 	// first trie
 	trieDB := newInMemKVStore()
 	tr, err := NewTrie(KVStoreOption(trieDB), KeyLengthOption(8))
+	require.Nil(err)
+	require.Nil(tr.Start(context.Background()))
+	require.Nil(tr.Upsert(cat, testV[2]))
+	v, err := tr.Get(cat)
+	require.Nil(err)
+	require.Equal(testV[2], v)
+
+	//save root hash
+	root := make([]byte, 32)
+	copy(root, tr.RootHash())
+
+	require.Nil(tr.Upsert(cat, testV[1]))
+	v, err = tr.Get(cat)
+	require.Nil(err)
+	require.Equal(testV[1], v)
+
+	require.NotEqual(root, tr.RootHash())
+	fmt.Println("root:", hex.EncodeToString(root))
+	fmt.Println("tx:", hex.EncodeToString(tr.RootHash()))
+	tr.SetRootHash(root)
+	v, err = tr.Get(cat)
+	require.Nil(err)
+	require.Equal(testV[2], v)
+}
+func TestSameKey2(t *testing.T) {
+	require := require.New(t)
+	testTrieFile, err := ioutil.TempFile(os.TempDir(), "trie")
+	require.NoError(err)
+
+	// first trie
+	cfg := config.Default.DB
+	cfg.DbPath = testTrieFile.Name()
+
+	trieDB := db.NewBoltDB(cfg)
+	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, trieDB, db.CachedBatchOption(db.NewCachedBatch()))
+	require.NoError(err)
+	log.L().Info("NewKVStoreForTrie:", zap.Error(err))
+	addrHash := []byte("xx")
+	options := []Option{
+		KVStoreOption(dbForTrie),
+		KeyLengthOption(len(hash.Hash256{})),
+		HashFuncOption(func(data []byte) []byte {
+			return DefaultHashFunc(append(addrHash[:], data...))
+		}),
+	}
+
+	options = append(options, RootHashOption([]byte("")))
+
+	tr, err := NewTrie(options...)
+	require.NoError(err)
+
+	require.NoError(tr.Start(context.Background()))
 	require.Nil(err)
 	require.Nil(tr.Start(context.Background()))
 	require.Nil(tr.Upsert(cat, testV[2]))
