@@ -138,5 +138,19 @@ func (s *KVStoreForTrie) Get(key []byte) ([]byte, error) {
 
 // Flush flushs the data in cache layer to db
 func (s *KVStoreForTrie) Flush() error {
-	return s.dao.Commit(s.cb)
+	batch := NewCachedBatch()
+	for i := 0; i < s.cb.Size(); i++ {
+		write, err := s.cb.Entry(i)
+		if err != nil {
+			return err
+		}
+		if write.writeType != Delete {
+			batch.Put(write.namespace, write.key, write.value, "failed to put key %x value %x", write.key, write.value)
+		}
+	}
+	err := s.dao.Commit(batch)
+	if err == nil {
+		s.cb.Clear()
+	}
+	return err
 }
