@@ -728,7 +728,7 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 	log.L().Info("account root:", zap.String("root", hex.EncodeToString(acc.Root[:])))
 	//dao := ws.GetDB()
 	//batch := ws.GetCachedBatch()
-	dbPath := "/var/data/trie.db"
+	dbPath := api.cfg.Chain.TrieDBPath
 
 	api.cfg.DB.DbPath = dbPath
 	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, db.NewBoltDB(api.cfg.DB), db.CachedBatchOption(db.NewCachedBatch()))
