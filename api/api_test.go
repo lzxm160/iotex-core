@@ -1529,7 +1529,7 @@ func TestSameKey2(t *testing.T) {
 	require.NoError(err)
 	require.NoError(tr2.Start(context.Background()))
 	defer tr2.Stop(context.Background())
-	v2, err := tr.Get(key[:])
+	v2, err := tr2.Get(key[:])
 	require.Nil(err)
 	require.Equal([]byte("xxxxx"), v2)
 }
