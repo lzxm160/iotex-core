@@ -89,7 +89,7 @@ func (s *KVStoreForTrie) Delete(key []byte) error {
 		if err != nil {
 			return err
 		}
-		log.L().Info("KVStoreForTrie Delete:", zap.String("key", hex.EncodeToString(key)), zap.String("value", hex.EncodeToString(value)))
+		log.L().Info("KVStoreForTrie Delete:", zap.String("key", hex.EncodeToString(key)), zap.String("value", hex.EncodeToString(value)), zap.String("bucket:", s.bucket))
 	}
 
 	s.cb.Delete(s.bucket, key, "failed to delete key %x", key)
@@ -108,7 +108,7 @@ func (s *KVStoreForTrie) FlushOldRoot(key []byte) error {
 		if err != nil {
 			return err
 		}
-		log.L().Info("FlushOldRoot:", zap.String("key", hex.EncodeToString(key)), zap.String("value", hex.EncodeToString(value)))
+		log.L().Info("FlushOldRoot:", zap.String("key", hex.EncodeToString(key)), zap.String("value", hex.EncodeToString(value)), zap.String("bucket:", s.bucket))
 	}
 	return nil
 }
