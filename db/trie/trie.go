@@ -55,6 +55,7 @@ type Trie interface {
 	Get([]byte) ([]byte, error)
 	// Delete deletes an entry
 	Delete([]byte) error
+
 	// RootHash returns trie's root hash
 	RootHash() []byte
 	// SetRootHash sets a new root to trie

@@ -93,6 +93,20 @@ func (s *KVStoreForTrie) Delete(key []byte) error {
 	return nil
 }
 
+// Delete deletes key
+func (s *KVStoreForTrie) FlushOldRoot(key []byte) error {
+	trieKeystoreMtc.WithLabelValues("delete").Inc()
+	// flush to db file
+	value, err := s.Get(key)
+	if err == nil {
+		err = s.dao.Put(s.bucket, key, value)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Put puts value for key
 func (s *KVStoreForTrie) Put(key []byte, value []byte) error {
 	trieKeystoreMtc.WithLabelValues("put").Inc()

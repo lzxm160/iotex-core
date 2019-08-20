@@ -191,7 +191,8 @@ func (tr *branchRootTrie) nodeHash(tn Node) []byte {
 
 func (tr *branchRootTrie) resetRoot(newRoot *branchNode) {
 	if tr.root != nil {
-		tr.deleteNodeFromDB(tr.root)
+		h := tr.nodeHash(tr.root)
+		tr.kvStore.FlushOldRoot(h)
 	}
 
 	tr.root = newRoot
