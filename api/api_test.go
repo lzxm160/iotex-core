@@ -1479,6 +1479,8 @@ func TestSameKey2(t *testing.T) {
 
 	tr, err := trie.NewTrie(options...)
 	require.NoError(err)
+	require.NoError(tr.Start(context.Background()))
+	defer tr.Stop(context.Background())
 
 	require.NoError(tr.Start(context.Background()))
 	require.Nil(err)
