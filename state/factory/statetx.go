@@ -7,23 +7,17 @@
 package factory
 
 import (
-	"bytes"
 	"context"
 	"encoding/binary"
-	"encoding/hex"
-	"strconv"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/db"
-	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 	"github.com/iotexproject/iotex-core/state"
 	"github.com/pkg/errors"
-	bolt "go.etcd.io/bbolt"
-	"go.uber.org/zap"
 )
 
 // stateTX implements stateTX interface, tracks pending changes to account/contract in local cache
@@ -156,106 +150,6 @@ func (stx *stateTX) GetDB() db.KVStore {
 // GetCachedBatch returns the cached batch for pending writes
 func (stx *stateTX) GetCachedBatch() db.CachedBatch {
 	return stx.cb
-}
-
-//func (stx *stateTX) State2(hs []byte, s interface{}) error {
-//	addr := hs[:20]
-//	height, err := strconv.ParseUint(hex.EncodeToString(hs[20:]), 10, 64)
-//	if err != nil {
-//		return err
-//	}
-//	h160 := hash.BytesToHash160(addr)
-//	maxVersion, err := stx.getMaxVersion(h160)
-//	if err != nil {
-//		return err
-//	}
-//	log.L().Info("////////////////", zap.Uint64("maxVersion", maxVersion), zap.Uint64("height", height))
-//	if maxVersion == 0 {
-//		return errors.New("cannot find state")
-//	}
-//	db := stx.dao.DB()
-//	boltdb, ok := db.(*bolt.DB)
-//	if !ok {
-//		return errors.New("convert error")
-//	}
-//
-//	err = boltdb.View(func(tx *bolt.Tx) error {
-//		c := tx.Bucket([]byte(evm.PreimageKVNameSpace)).Cursor()
-//		bytess := make([]byte, 8)
-//		binary.BigEndian.PutUint64(bytess, maxVersion)
-//		stateKey := append(addr[:], bytess...)
-//		for k, _ := c.Seek(stateKey); k != nil && bytes.Compare(k, stateKey) <= 0; k, _ = c.Prev() {
-//			if len(k) <= 20 {
-//				return errors.New("cannot find state")
-//			}
-//			kHeight := binary.BigEndian.Uint64(k[20:])
-//			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
-//			if kHeight == 0 {
-//				return errors.New("cannot find state")
-//			}
-//			if kHeight <= height {
-//				log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
-//				s = kHeight
-//				return nil
-//			}
-//		}
-//		return errors.New("cannot find state")
-//	})
-//	return err
-//}
-
-func (stx *stateTX) State2(hs []byte, s interface{}) error {
-	addr := hs[:20]
-	height, err := strconv.ParseUint(hex.EncodeToString(hs[20:]), 10, 64)
-	if err != nil {
-		return err
-	}
-	h160 := hash.BytesToHash160(addr)
-	maxVersion, err := stx.getMaxVersion(h160)
-	if err != nil {
-		// this account still dont have version
-		return stx.State(h160, s)
-	}
-	log.L().Info("////////////////", zap.Uint64("maxVersion", maxVersion), zap.Uint64("height", height))
-	if maxVersion == 0 {
-		return errors.New("cannot find state")
-	}
-	db := stx.dao.DB()
-	boltdb, ok := db.(*bolt.DB)
-	if !ok {
-		return errors.New("convert error")
-	}
-	acc := state.EmptyAccount()
-	account := &acc
-	err = boltdb.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
-		bytess := make([]byte, 8)
-		binary.BigEndian.PutUint64(bytess, maxVersion)
-		stateKey := append(addr[:], bytess...)
-		for k, v := c.Seek(stateKey); k != nil && bytes.Compare(k, stateKey) <= 0; k, v = c.Prev() {
-			if len(k) <= 20 {
-				return errors.New("cannot find state")
-			}
-			kHeight := binary.BigEndian.Uint64(k[20:])
-			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
-			if kHeight == 0 {
-				return errors.New("cannot find state")
-			}
-			if kHeight <= height {
-				log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
-				if err := state.Deserialize(account, v); err != nil {
-					return errors.Wrapf(err, "error when deserializing state data into %T", s)
-				}
-				return nil
-			}
-		}
-		return errors.New("cannot find state")
-	})
-	s = account.Root
-	if err != nil {
-		return stx.State(h160, s)
-	}
-	return nil
 }
 
 // State pulls a state from DB
