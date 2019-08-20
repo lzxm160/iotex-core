@@ -83,14 +83,17 @@ func (s *KVStoreForTrie) Stop(ctx context.Context) error {
 func (s *KVStoreForTrie) Delete(key []byte) error {
 	trieKeystoreMtc.WithLabelValues("delete").Inc()
 	// flush to db file
-	value, err := s.Get(key)
-	if err == nil {
-		err = s.dao.Put(s.bucket, key, value)
-		if err != nil {
-			return err
-		}
-		log.L().Info("KVStoreForTrie Delete:", zap.String("key", hex.EncodeToString(key)), zap.String("value", hex.EncodeToString(value)), zap.String("bucket:", s.bucket))
-	}
+	//value, err := s.dao.Get(s.bucket, key);
+	//if errors.Cause(err) == ErrNotExist {
+	//	log.L().Info("gettttttttttttt:", zap.String("key", hex.EncodeToString(key)), zap.String("bucket:", s.bucket))
+	//}
+	//if err == nil {
+	//	err = s.dao.Put(s.bucket, key, value)
+	//	if err != nil {
+	//		return err
+	//	}
+	//	log.L().Info("KVStoreForTrie Delete:", zap.String("key", hex.EncodeToString(key)), zap.String("value", hex.EncodeToString(value)), zap.String("bucket:", s.bucket))
+	//}
 
 	s.cb.Delete(s.bucket, key, "failed to delete key %x", key)
 	// TODO: bug, need to mark key as deleted
@@ -101,7 +104,7 @@ func (s *KVStoreForTrie) Delete(key []byte) error {
 // Delete deletes key
 func (s *KVStoreForTrie) FlushOldRoot(key []byte) error {
 	// flush to db file
-	value, err := s.Get(key)
+	value, err := s.dao.Get(s.bucket, key)
 	if err == nil {
 		err = s.dao.Put(s.bucket, key, value)
 		if err != nil {
