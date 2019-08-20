@@ -725,6 +725,7 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 	if err != nil {
 		return nil, err
 	}
+	log.L().Info("account root:", zap.String("root", hex.EncodeToString(acc.Root[:])))
 	dao := ws.GetDB()
 	batch := ws.GetCachedBatch()
 	dbForTrie, err := db.NewKVStoreForTrie(evm.PreimageKVNameSpace, dao, db.CachedBatchOption(batch))
