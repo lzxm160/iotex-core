@@ -732,6 +732,7 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 	if err != nil {
 		return nil, err
 	}
+	log.L().Info("NewKVStoreForTrie:", zap.Error(err))
 	options := []trie.Option{
 		trie.KVStoreOption(dbForTrie),
 		trie.KeyLengthOption(len(hash.Hash256{})),
@@ -744,9 +745,11 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 
 	tr, err := trie.NewTrie(options...)
 	if err != nil {
+		log.L().Info("NewTrie:", zap.Error(err))
 		return
 	}
 	if err = tr.Start(context.Background()); err != nil {
+		log.L().Info("tr.Start:", zap.Error(err))
 		return
 	}
 	keyHash := common.HexToHash(key)
