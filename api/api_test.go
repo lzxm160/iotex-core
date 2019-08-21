@@ -1478,7 +1478,7 @@ func TestSameKey2(t *testing.T) {
 	tr, err := trie.NewTrie(options...)
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
-	defer tr.Stop(context.Background())
+	//defer tr.Stop(context.Background())
 
 	key := hash.Hash256b([]byte("cat"))
 	key2 := hash.Hash256b([]byte("car"))
@@ -1509,7 +1509,7 @@ func TestSameKey2(t *testing.T) {
 
 	fmt.Println("xxxxx root:", hex.EncodeToString(root))
 	fmt.Println("yyyyy root:", hex.EncodeToString(tr.RootHash()))
-	//require.NoError(tr.Stop(context.Background()))
+	require.NoError(tr.Stop(context.Background()))
 	//require.NoError(trieDB.Stop(context.Background()))
 
 	// open another trie
