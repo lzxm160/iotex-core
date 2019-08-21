@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
-	"fmt"
 	"math"
 	"math/big"
 	"net"
@@ -719,12 +718,12 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 	//	return nil, err
 	//}
 	//input := append(addrHash[:], heiBytes...)
-	heiBytes, err := hex.DecodeString(fmt.Sprintf("%d", height))
-	if err != nil {
-		return nil, err
-	}
-	addrHeiBytes := append(addrs.Bytes(), heiBytes...)
-	addrHash := hash.BytesToHash160(addrHeiBytes)
+	//heiBytes, err := hex.DecodeString(fmt.Sprintf("%d", height))
+	//if err != nil {
+	//	return nil, err
+	//}
+	//addrHeiBytes := append(addrs.Bytes(), heiBytes...)
+	addrHash := hash.BytesToHash160(addrs.Bytes())
 	acc, err := api.bc.StateByAddr(addrs.String() + height)
 	if err != nil {
 		return nil, err
