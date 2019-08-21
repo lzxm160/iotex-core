@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"fmt"
 	"math"
 	"math/big"
 	"net"
@@ -718,12 +719,18 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 	//	return nil, err
 	//}
 	//input := append(addrHash[:], heiBytes...)
-	addrHash := hash.BytesToHash160(addrs.Bytes())
+	heiBytes, err := hex.DecodeString(fmt.Sprintf("%d", height))
+	if err != nil {
+		return nil, err
+	}
+	addrHeiBytes := append(addrs.Bytes(), heiBytes...)
+	addrHash := hash.BytesToHash160(addrHeiBytes)
 	acc, err := api.bc.StateByAddr(addrs.String() + height)
 	if err != nil {
 		return nil, err
 	}
 	log.L().Info("account root:", zap.String("root", hex.EncodeToString(acc.Root[:])))
+
 	dao := ws.GetDB()
 	//batch := ws.GetCachedBatch()
 	//cfg := api.cfg.DB
@@ -743,11 +750,16 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 		trie.KVStoreOption(dbForTrie),
 		trie.KeyLengthOption(len(hash.Hash256{})),
 		trie.HashFuncOption(func(data []byte) []byte {
-			return trie.DefaultHashFunc(append(addrHash[:], data...))
+			key := append(addrHash[:], data...)
+			newKey := trie.DefaultHashFunc(key)
+			keySuffix := append(newKey, []byte("history")...)
+
+			return trie.DefaultHashFunc(keySuffix)
 		}),
 	}
-
-	options = append(options, trie.RootHashOption(acc.Root[:]))
+	keySuffix := append(acc.Root[:], []byte("history")...)
+	newKey := trie.DefaultHashFunc(keySuffix)
+	options = append(options, trie.RootHashOption(newKey))
 
 	tr, err := trie.NewTrie(options...)
 	if err != nil {

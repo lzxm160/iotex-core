@@ -10,6 +10,8 @@ import (
 	"context"
 	"encoding/hex"
 
+	"github.com/iotexproject/iotex-core/db/trie"
+
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"go.uber.org/zap"
 
@@ -87,13 +89,16 @@ func (s *KVStoreForTrie) Delete(key []byte) error {
 	//if errors.Cause(err) == ErrNotExist {
 	//	log.L().Info("gettttttttttttt:", zap.String("key", hex.EncodeToString(key)), zap.String("bucket:", s.bucket))
 	//}
+	keySuffix := append(key, []byte("history")...)
+	newKey := trie.DefaultHashFunc(keySuffix)
+
 	value, err := s.Get(key)
 	if err == nil {
-		err = s.dao.Put(s.bucket, key, value)
+		err = s.dao.Put(s.bucket, newKey, value)
 		if err != nil {
 			return err
 		}
-		log.L().Info("KVStoreForTrie Delete:", zap.String("key", hex.EncodeToString(key)), zap.String("value", hex.EncodeToString(value)), zap.String("bucket:", s.bucket))
+		log.L().Info("KVStoreForTrie Delete:", zap.String("origin key", hex.EncodeToString(key)), zap.String("new key", hex.EncodeToString(newKey)), zap.String("value", hex.EncodeToString(value)), zap.String("bucket:", s.bucket))
 	}
 
 	s.cb.Delete(s.bucket, key, "failed to delete key %x", key)
@@ -105,13 +110,15 @@ func (s *KVStoreForTrie) Delete(key []byte) error {
 // Delete deletes key
 func (s *KVStoreForTrie) FlushOldRoot(key []byte) error {
 	// flush to db file
+	keySuffix := append(key, []byte("history")...)
+	newKey := trie.DefaultHashFunc(keySuffix)
 	value, err := s.Get(key)
 	if err == nil {
-		err = s.dao.Put(s.bucket, key, value)
+		err = s.dao.Put(s.bucket, newKey, value)
 		if err != nil {
 			return err
 		}
-		log.L().Info("FlushOldRoot:", zap.String("key", hex.EncodeToString(key)), zap.String("value", hex.EncodeToString(value)), zap.String("bucket:", s.bucket))
+		log.L().Info("FlushOldRoot:", zap.String("origin key", hex.EncodeToString(key)), zap.String("new key", hex.EncodeToString(newKey)), zap.String("value", hex.EncodeToString(value)), zap.String("bucket:", s.bucket))
 	}
 	return nil
 }
