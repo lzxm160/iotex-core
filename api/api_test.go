@@ -1524,11 +1524,16 @@ func TestSameKey2(t *testing.T) {
 		trie.KVStoreOption(dbForTrie2),
 		trie.KeyLengthOption(len(hash.Hash256{})),
 		trie.HashFuncOption(func(data []byte) []byte {
-			return trie.DefaultHashFunc(append(addrHash2[:], data...))
+			key := append(addrHash2[:], data...)
+			newKey := trie.DefaultHashFunc(key)
+			keySuffix := append(newKey, []byte("history")...)
+
+			return trie.DefaultHashFunc(keySuffix)
 		}),
 	}
-
-	options2 = append(options2, trie.RootHashOption(root))
+	keySuffix := append(root[:], []byte("history")...)
+	newKey := trie.DefaultHashFunc(keySuffix)
+	options2 = append(options2, trie.RootHashOption(newKey))
 
 	tr2, err := trie.NewTrie(options2...)
 	require.NoError(err)
