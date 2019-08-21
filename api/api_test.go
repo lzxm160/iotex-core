@@ -1461,6 +1461,7 @@ func TestSameKey2(t *testing.T) {
 
 	trieDB := db.NewBoltDB(cfg)
 	require.NoError(trieDB.Start(context.Background()))
+	defer trieDB.Stop(context.Background())
 
 	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, trieDB, db.CachedBatchOption(db.NewCachedBatch()))
 	require.NoError(err)
@@ -1474,11 +1475,10 @@ func TestSameKey2(t *testing.T) {
 		}),
 	}
 
-	options = append(options, trie.RootHashOption([]byte("")))
-
 	tr, err := trie.NewTrie(options...)
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
+	defer tr.Stop(context.Background())
 
 	key := hash.Hash256b([]byte("cat"))
 	key2 := hash.Hash256b([]byte("car"))
@@ -1487,8 +1487,8 @@ func TestSameKey2(t *testing.T) {
 	require.Nil(err)
 	require.Nil(tr.Start(context.Background()))
 	require.Nil(tr.Upsert(key[:], []byte("xxxxx")))
-	require.Nil(tr.Upsert(key2[:], []byte("xxxxx")))
-	require.Nil(tr.Upsert(key3[:], []byte("xxxxx")))
+	require.Nil(tr.Upsert(key2[:], []byte("xx2222xxx")))
+	require.Nil(tr.Upsert(key3[:], []byte("33333")))
 
 	v, err := tr.Get(key[:])
 	require.Nil(err)
@@ -1504,10 +1504,11 @@ func TestSameKey2(t *testing.T) {
 	require.Equal([]byte("yyyyy"), v)
 
 	require.NotEqual(root, tr.RootHash())
+	require.NoError(tr.Delete(key[:]))
+	require.NoError(tr.Delete(key2[:]))
+
 	fmt.Println("xxxxx root:", hex.EncodeToString(root))
 	fmt.Println("yyyyy root:", hex.EncodeToString(tr.RootHash()))
-
-	require.NoError(tr.Delete(key[:]))
 	//require.NoError(tr.Stop(context.Background()))
 	//require.NoError(trieDB.Stop(context.Background()))
 
@@ -1538,7 +1539,6 @@ func TestSameKey2(t *testing.T) {
 	v2, err := tr2.Get(key[:])
 	require.Nil(err)
 	require.Equal([]byte("xxxxx"), v2)
-
 }
 func addProducerToFactory(sf factory.Factory) error {
 	ws, err := sf.NewWorkingSet()
