@@ -749,16 +749,17 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 		trie.KVStoreOption(dbForTrie),
 		trie.KeyLengthOption(len(hash.Hash256{})),
 		trie.HashFuncOption(func(data []byte) []byte {
-			key := append(addrHash[:], data...)
-			newKey := trie.DefaultHashFunc(key)
-			keySuffix := append(newKey, []byte("history")...)
-
-			return trie.DefaultHashFunc(keySuffix)
+			//key := append(addrHash[:], data...)
+			//newKey := trie.DefaultHashFunc(key)
+			//keySuffix := append(newKey, []byte("history")...)
+			//
+			//return trie.DefaultHashFunc(keySuffix)
+			return trie.DefaultHashFunc(append(addrHash[:], data...))
 		}),
 	}
-	keySuffix := append(acc.Root[:], []byte("history")...)
-	newKey := trie.DefaultHashFunc(keySuffix)
-	options = append(options, trie.RootHashOption(newKey))
+	//keySuffix := append(acc.Root[:], []byte("history")...)
+	//newKey := trie.DefaultHashFunc(keySuffix)
+	options = append(options, trie.RootHashOption(acc.Root[:]))
 
 	tr, err := trie.NewTrie(options...)
 	if err != nil {
