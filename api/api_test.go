@@ -1503,6 +1503,7 @@ func TestSameKey2(t *testing.T) {
 	fmt.Println("xxxxx root:", hex.EncodeToString(root))
 	fmt.Println("yyyyy root:", hex.EncodeToString(tr.RootHash()))
 
+	require.NoError(tr.Delete(key[:]))
 	require.NoError(tr.Stop(context.Background()))
 	require.NoError(trieDB.Stop(context.Background()))
 
@@ -1532,6 +1533,7 @@ func TestSameKey2(t *testing.T) {
 	v2, err := tr2.Get(key[:])
 	require.Nil(err)
 	require.Equal([]byte("xxxxx"), v2)
+
 }
 func addProducerToFactory(sf factory.Factory) error {
 	ws, err := sf.NewWorkingSet()

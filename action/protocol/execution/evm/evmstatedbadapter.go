@@ -138,6 +138,7 @@ func (stateDB *StateDBAdapter) SubBalance(evmAddr common.Address, amount *big.In
 		stateDB.logError(err)
 		return
 	}
+	// sm is statetx is chain.db
 	if err := accountutil.StoreAccount(stateDB.sm, addr.String(), state); err != nil {
 		log.L().Error("Failed to update pending account changes to trie.", zap.Error(err))
 		stateDB.logError(err)
