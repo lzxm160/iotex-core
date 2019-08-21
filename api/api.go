@@ -370,6 +370,10 @@ func (api *Server) ReadContract(ctx context.Context, in *iotexapi.ReadContractRe
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+	if receipt.Status != 1 {
+		err = errors.New("status error")
+		return nil, status.Error(codes.Internal, err.Error())
+	}
 	return &iotexapi.ReadContractResponse{
 		Data:    hex.EncodeToString(retval),
 		Receipt: receipt.ConvertToReceiptPb(),
