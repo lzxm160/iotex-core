@@ -1481,11 +1481,15 @@ func TestSameKey2(t *testing.T) {
 	require.NoError(tr.Start(context.Background()))
 
 	key := hash.Hash256b([]byte("cat"))
-
+	key2 := hash.Hash256b([]byte("car"))
+	key3 := hash.Hash256b([]byte("cas"))
 	require.NoError(tr.Start(context.Background()))
 	require.Nil(err)
 	require.Nil(tr.Start(context.Background()))
 	require.Nil(tr.Upsert(key[:], []byte("xxxxx")))
+	require.Nil(tr.Upsert(key2[:], []byte("xxxxx")))
+	require.Nil(tr.Upsert(key3[:], []byte("xxxxx")))
+
 	v, err := tr.Get(key[:])
 	require.Nil(err)
 	require.Equal([]byte("xxxxx"), v)
