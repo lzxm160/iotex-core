@@ -538,6 +538,7 @@ func (api *Server) GetLogs(
 	switch {
 	case in.GetByBlock() != nil:
 		req := in.GetByBlock()
+		log.L().Info("GetLogs", zap.String("BlockHash", hex.EncodeToString(req.BlockHash)))
 		h, err := api.bc.GetHeightByHash(hash.BytesToHash256(req.BlockHash))
 		if err != nil {
 			return nil, status.Error(codes.InvalidArgument, "invalid block hash")
