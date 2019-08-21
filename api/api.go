@@ -543,6 +543,7 @@ func (api *Server) GetLogs(
 		if err != nil {
 			return nil, status.Error(codes.InvalidArgument, "invalid block hash")
 		}
+		log.L().Info("GetLogs height", zap.Uint64("GetLogs height", h))
 		filter, ok := NewLogFilter(in.Filter, nil, nil).(*LogFilter)
 		if !ok {
 			return nil, status.Error(codes.Internal, "cannot convert to *LogFilter")
