@@ -1504,15 +1504,15 @@ func TestSameKey2(t *testing.T) {
 	fmt.Println("yyyyy root:", hex.EncodeToString(tr.RootHash()))
 
 	require.NoError(tr.Delete(key[:]))
-	require.NoError(tr.Stop(context.Background()))
-	require.NoError(trieDB.Stop(context.Background()))
+	//require.NoError(tr.Stop(context.Background()))
+	//require.NoError(trieDB.Stop(context.Background()))
 
 	// open another trie
-	trieDB2 := db.NewBoltDB(cfg)
-	require.NoError(trieDB2.Start(context.Background()))
-	defer trieDB2.Stop(context.Background())
+	//trieDB2 := db.NewBoltDB(cfg)
+	//require.NoError(trieDB2.Start(context.Background()))
+	//defer trieDB2.Stop(context.Background())
 
-	dbForTrie2, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, trieDB2, db.CachedBatchOption(db.NewCachedBatch()))
+	dbForTrie2, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, trieDB, db.CachedBatchOption(db.NewCachedBatch()))
 	require.NoError(err)
 
 	addrHash2 := hash.Hash160b([]byte("xx"))
