@@ -420,7 +420,7 @@ func newConfig(
 	//	errorOutputPaths: ["stderr"]
 	//	stderrRedirectFile: /var/log/s.log
 	//	stdLogRedirect: true
-	cfg.Log.Zap.OutputPaths = []string{"stderr", "stdout"}
+	//cfg.Log.Zap.OutputPaths = []string{"stderr", "stdout"}
 
 	cfg.Log.RedirectStdLog = true
 	cfg.Log.StderrRedirectFile = &logPath
