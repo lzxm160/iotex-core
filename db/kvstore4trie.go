@@ -73,7 +73,7 @@ func NewKVStoreForTrie(bucket string, dao KVStore, options ...Option) (*KVStoreF
 func (s *KVStoreForTrie) Start(ctx context.Context) error {
 	return s.lc.OnStart(ctx)
 }
-func (s *KVStoreForTrie) Start(ctx context.Context, options *bolt.Options) error {
+func (s *KVStoreForTrie) Start2(ctx context.Context, options *bolt.Options) error {
 	return s.lc.OnStart(ctx)
 }
 
