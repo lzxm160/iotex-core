@@ -23,7 +23,7 @@ type KVStore interface {
 	Put([]byte, []byte) error
 	// Delete deletes record from KVStore by key
 	Delete([]byte) error
-	FlushOldRoot([]byte) error
+	FlushOldRoot([]byte, []byte) error
 	// Get gets the value from KVStore by key
 	Get([]byte) ([]byte, error)
 }
