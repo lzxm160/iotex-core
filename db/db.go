@@ -62,9 +62,9 @@ func NewMemKVStore() KVStore {
 func (m *memKVStore) DB() interface{} {
 	return nil
 }
-func (m *memKVStore) Start(_ context.Context) error { return nil }
-
-func (m *memKVStore) Stop(_ context.Context) error { return nil }
+func (m *memKVStore) Start(_ context.Context) error                         { return nil }
+func (m *memKVStore) Start2(_ context.Context, options *bolt.Options) error { return nil }
+func (m *memKVStore) Stop(_ context.Context) error                          { return nil }
 
 // Put inserts a <key, value> record
 func (m *memKVStore) Put(namespace string, key, value []byte) error {
