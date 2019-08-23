@@ -10,8 +10,6 @@ import (
 	"context"
 	"strings"
 
-	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
-
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 
@@ -170,7 +168,7 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 						return errors.Wrapf(err, write.errorFormat, write.errorArgs)
 					}
 				} else if write.writeType == Delete {
-					if !strings.EqualFold(write.namespace, evm.ContractKVNameSpace) {
+					if !strings.EqualFold(write.namespace, "Contract") {
 						bucket := tx.Bucket([]byte(write.namespace))
 						if bucket == nil {
 							continue
