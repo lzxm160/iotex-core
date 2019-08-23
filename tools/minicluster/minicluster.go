@@ -89,6 +89,8 @@ func main() {
 		apiPort := 14014 + i
 		config := newConfig(chainDBPath, trieDBPath, chainAddrs[i].PriKey,
 			networkPort, apiPort)
+		config.System.HTTPStatsPort = 9009 + i
+		config.System.HTTPAdminPort = 8080 + i
 		if i == 0 {
 			config.Network.BootstrapNodes = []string{}
 			config.Network.MasterKey = "bootnode"
