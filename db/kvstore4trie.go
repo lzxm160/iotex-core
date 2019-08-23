@@ -11,10 +11,10 @@ import (
 	"encoding/hex"
 
 	"github.com/iotexproject/iotex-core/pkg/log"
-	"go.uber.org/zap"
-
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
+	bolt "go.etcd.io/bbolt"
+	"go.uber.org/zap"
 
 	"github.com/iotexproject/iotex-core/pkg/lifecycle"
 )
@@ -71,6 +71,9 @@ func NewKVStoreForTrie(bucket string, dao KVStore, options ...Option) (*KVStoreF
 
 // Start starts the kv store
 func (s *KVStoreForTrie) Start(ctx context.Context) error {
+	return s.lc.OnStart(ctx)
+}
+func (s *KVStoreForTrie) Start(ctx context.Context, options *bolt.Options) error {
 	return s.lc.OnStart(ctx)
 }
 
