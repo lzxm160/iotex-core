@@ -412,6 +412,17 @@ func newConfig(
 	cfg.Genesis.EnableGravityChainVoting = true
 	cfg.System.EnableExperimentalActions = true
 	logPath := "s" + fmt.Sprintf("%d", apiPort) + ".log"
+	//zap:
+	//level: info
+	//encoding: json
+	//disableStacktrace: true
+	//outputPaths: ["stderr", "stdout"]
+	//	errorOutputPaths: ["stderr"]
+	//	stderrRedirectFile: /var/log/s.log
+	//	stdLogRedirect: true
+	cfg.Log.Zap.OutputPaths = []string{"stderr", "stdout"}
+
+	cfg.Log.RedirectStdLog = true
 	cfg.Log.StderrRedirectFile = &logPath
 	return cfg
 }
