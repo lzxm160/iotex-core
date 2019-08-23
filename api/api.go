@@ -739,7 +739,7 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 	log.L().Info("path:", zap.String("path", cfg.DbPath))
 	dao := db.NewBoltDB(cfg)
 	opt := bolt.Options{ReadOnly: true}
-	dao.Start2(context.Background(), opt)
+	dao.Start2(context.Background(), &opt)
 	log.L().Info("dao start:")
 
 	defer dao.Stop(context.Background())
