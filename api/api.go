@@ -149,6 +149,9 @@ func (api *Server) GetAccount(ctx context.Context, in *iotexapi.GetAccountReques
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
+	if len(in.Address) > 41 {
+		in.Address = in.Address[:41]
+	}
 	pendingNonce, err := api.ap.GetPendingNonce(in.Address)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -685,6 +688,117 @@ func (api *Server) Stop() error {
 	return api.chainListener.Stop()
 }
 
+func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *iotexapi.ReadStateResponse, err error) {
+	log.L().Info("enter getstorageAt/////////////////////////")
+	if len(args) != 3 {
+		return nil, errors.Errorf("invalid number of arguments %d", len(args))
+	}
+	addrs, err := address.FromString(string(args[0]))
+	if err != nil {
+		return nil, err
+	}
+	key := string(args[1])
+	height := string(args[2])
+	//hei, err := strconv.ParseUint(height, 10, 64)
+	//if err != nil {
+	//	return nil, err
+	//}
+	log.L().Info(
+		"get gravity chain height by time",
+		zap.String("addr", addrs.String()),
+		zap.String("key", key),
+		zap.String("height", height),
+	)
+	//addrHash := hash.BytesToHash160(addrs.Bytes())
+	//heiBytes, err := hex.DecodeString(fmt.Sprintf("%d", hei))
+	//if err != nil {
+	//	return nil, err
+	//}
+	//input := append(addrHash[:], heiBytes...)
+	//heiBytes, err := hex.DecodeString(fmt.Sprintf("%d", height))
+	//if err != nil {
+	//	return nil, err
+	//}
+	//addrHeiBytes := append(addrs.Bytes(), heiBytes...)
+	addrHash := hash.BytesToHash160(addrs.Bytes())
+	acc, err := api.bc.StateByAddr(addrs.String() + height)
+	if err != nil {
+		return nil, err
+	}
+	log.L().Info("account root:", zap.String("root", hex.EncodeToString(acc.Root[:])))
+
+	dao := ws.GetDB()
+	//batch := ws.GetCachedBatch()
+	//cfg := api.cfg.DB
+	//cfg.DbPath = api.cfg.Chain.TrieDBPath
+	////cfg.DbPath = "/var/data/triebak.db"
+	//log.L().Info("path:", zap.String("path", cfg.DbPath))
+	//dao := db.NewBoltDB(cfg)
+	//opt := bolt.Options{ReadOnly: true}
+	//dao.Start2(context.Background(), &opt)
+	//log.L().Info("dao start:")
+	//
+	//defer dao.Stop(context.Background())
+	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, dao, db.CachedBatchOption(db.NewCachedBatch()))
+	if err != nil {
+		return nil, err
+	}
+	log.L().Info("NewKVStoreForTrie:", zap.Error(err))
+	options := []trie.Option{
+		trie.KVStoreOption(dbForTrie),
+		trie.KeyLengthOption(len(hash.Hash256{})),
+		trie.HashFuncOption(func(data []byte) []byte {
+			//key := append(addrHash[:], data...)
+			//newKey := trie.DefaultHashFunc(key)
+			//keySuffix := append(newKey, []byte("history")...)
+			//
+			//return trie.DefaultHashFunc(keySuffix)
+			return trie.DefaultHashFunc(append(addrHash[:], data...))
+		}),
+	}
+	//keySuffix := append(acc.Root[:], []byte("history")...)
+	//newKey := trie.DefaultHashFunc(keySuffix)
+	options = append(options, trie.RootHashOption(acc.Root[:]))
+
+	tr, err := trie.NewTrie(options...)
+	if err != nil {
+		log.L().Info("NewTrie:", zap.Error(err))
+		return
+	}
+	if err = tr.Start(context.Background()); err != nil {
+		log.L().Info("tr.Start:", zap.Error(err))
+		return
+	}
+	defer tr.Stop(context.Background())
+	//keyHash := common.HexToHash(key)
+	//hashKey := hash.BytesToHash256(keyHash[:])
+	hashKey, err := hash.HexStringToHash256(key)
+	if err != nil {
+		return
+	}
+	log.L().Info(
+		"keyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+		zap.String("key", hex.EncodeToString(hashKey[:])),
+	)
+	data, err := tr.Get(hashKey[:])
+	if err != nil {
+		log.L().Info(
+			"getStorageAt err",
+			zap.Error(err),
+		)
+		return nil, err
+	}
+	log.L().Info(
+		"getStorageAt",
+		zap.String("data", hex.EncodeToString(data)),
+		zap.String("data2", string(data)),
+	)
+	data = []byte(hex.EncodeToString(data))
+	out := iotexapi.ReadStateResponse{
+		Data: data,
+	}
+	return &out, nil
+}
 func (api *Server) readState(ctx context.Context, in *iotexapi.ReadStateRequest) (*iotexapi.ReadStateResponse, error) {
 	p, ok := api.registry.Find(string(in.ProtocolID))
 	if !ok {
@@ -698,6 +812,9 @@ func (api *Server) readState(ctx context.Context, in *iotexapi.ReadStateRequest)
 	ws, err := api.bc.GetFactory().NewWorkingSet()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
+	}
+	if bytes.Equal(in.MethodName, []byte("GetStorageAt")) {
+		return api.getstorageAt(ws, in.Arguments...)
 	}
 	data, err := p.ReadState(ctx, ws, in.MethodName, in.Arguments...)
 	// TODO: need to distinguish user error and system error
