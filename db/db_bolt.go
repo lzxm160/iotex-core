@@ -38,6 +38,14 @@ func (b *boltDB) Start(_ context.Context) error {
 	b.db = db
 	return nil
 }
+func (b *boltDB) Start2(_ context.Context, options *bolt.Options) error {
+	db, err := bolt.Open(b.path, fileMode, options)
+	if err != nil {
+		return errors.Wrap(ErrIO, err.Error())
+	}
+	b.db = db
+	return nil
+}
 
 // Stop closes the BoltDB
 func (b *boltDB) Stop(_ context.Context) error {

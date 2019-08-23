@@ -8,12 +8,15 @@ package trie
 
 import (
 	"context"
+
+	bolt "go.etcd.io/bbolt"
 )
 
 // KVStore defines an interface for storing trie data as key-value pair
 type KVStore interface {
 	// Start starts the KVStore
 	Start(context.Context) error
+	Start2(context.Context, *bolt.Options) error
 	// Stop stops the KVStore
 	Stop(context.Context) error
 	// Put puts key, value pair into KVStore
@@ -46,7 +49,9 @@ func newInMemKVStore() KVStore {
 func (s *inMemKVStore) Start(ctx context.Context) error {
 	return nil
 }
-
+func (s *inMemKVStore) Start2(ctx context.Context, options *bolt.Options) error {
+	return nil
+}
 func (s *inMemKVStore) Stop(ctx context.Context) error {
 	return nil
 }
