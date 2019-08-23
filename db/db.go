@@ -10,9 +10,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/pkg/errors"
-
 	"github.com/iotexproject/iotex-core/pkg/lifecycle"
+	"github.com/pkg/errors"
+	bolt "go.etcd.io/bbolt"
 )
 
 var (
@@ -39,6 +39,7 @@ type KVStore interface {
 	// Commit commits a batch
 	Commit(KVStoreBatch) error
 	DB() interface{}
+	Start2(context.Context, *bolt.Options) error
 }
 
 const (
