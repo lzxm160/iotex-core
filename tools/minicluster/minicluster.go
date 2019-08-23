@@ -411,5 +411,7 @@ func newConfig(
 	cfg.Genesis.Delegates = cfg.Genesis.Delegates[3 : numNodes+3]
 	cfg.Genesis.EnableGravityChainVoting = true
 	cfg.System.EnableExperimentalActions = true
+	logPath := "s" + fmt.Sprintf("%d", apiPort) + ".log"
+	cfg.Log.StderrRedirectFile = &logPath
 	return cfg
 }
