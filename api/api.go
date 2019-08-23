@@ -29,7 +29,6 @@ import (
 	"github.com/iotexproject/iotex-proto/golang/iotexapi"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 	"github.com/pkg/errors"
-	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -731,18 +730,18 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 	}
 	log.L().Info("account root:", zap.String("root", hex.EncodeToString(acc.Root[:])))
 
-	//dao := ws.GetDB()
+	dao := ws.GetDB()
 	//batch := ws.GetCachedBatch()
-	cfg := api.cfg.DB
-	cfg.DbPath = api.cfg.Chain.TrieDBPath
-	//cfg.DbPath = "/var/data/triebak.db"
-	log.L().Info("path:", zap.String("path", cfg.DbPath))
-	dao := db.NewBoltDB(cfg)
-	opt := bolt.Options{ReadOnly: true}
-	dao.Start2(context.Background(), &opt)
-	log.L().Info("dao start:")
-
-	defer dao.Stop(context.Background())
+	//cfg := api.cfg.DB
+	//cfg.DbPath = api.cfg.Chain.TrieDBPath
+	////cfg.DbPath = "/var/data/triebak.db"
+	//log.L().Info("path:", zap.String("path", cfg.DbPath))
+	//dao := db.NewBoltDB(cfg)
+	//opt := bolt.Options{ReadOnly: true}
+	//dao.Start2(context.Background(), &opt)
+	//log.L().Info("dao start:")
+	//
+	//defer dao.Stop(context.Background())
 	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, dao, db.CachedBatchOption(db.NewCachedBatch()))
 	if err != nil {
 		return nil, err
