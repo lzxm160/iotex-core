@@ -394,7 +394,7 @@ func (m *ConsensusFSM) calibrate(evt fsm.Event) (fsm.State, error) {
 
 func (m *ConsensusFSM) prepare(_ fsm.Event) (fsm.State, error) {
 	if err := m.ctx.Prepare(); err != nil {
-		m.ctx.Logger().Error("Error during prepare", zap.Error(err))
+		m.ctx.Logger().Debug("Error during prepare", zap.Error(err))
 		return m.BackToPrepare(0)
 	}
 	if !m.ctx.IsDelegate() {
