@@ -93,14 +93,14 @@ func (s *KVStoreForTrie) Delete(key []byte) error {
 	//keySuffix := append(key, []byte("history")...)
 	//newKey := hash.Hash256b(keySuffix)
 
-	value, err := s.Get(key)
-	if err == nil {
-		err = s.dao.Put(s.bucket, key[:], value)
-		if err != nil {
-			return err
-		}
-		log.L().Info("KVStoreForTrie Delete:", zap.String("origin key", hex.EncodeToString(key)), zap.String("new key", hex.EncodeToString(key[:])), zap.String("value", hex.EncodeToString(value)), zap.String("bucket:", s.bucket))
-	}
+	//value, err := s.Get(key)
+	//if err == nil {
+	//	err = s.dao.Put(s.bucket, key[:], value)
+	//	if err != nil {
+	//		return err
+	//	}
+	//	log.L().Info("KVStoreForTrie Delete:", zap.String("origin key", hex.EncodeToString(key)), zap.String("new key", hex.EncodeToString(key[:])), zap.String("value", hex.EncodeToString(value)), zap.String("bucket:", s.bucket))
+	//}
 
 	s.cb.Delete(s.bucket, key, "failed to delete key %x", key)
 	// TODO: bug, need to mark key as deleted
@@ -114,12 +114,12 @@ func (s *KVStoreForTrie) FlushOldRoot(key []byte, value []byte) error {
 	//keySuffix := append(key, []byte("history")...)
 	//newKey := hash.Hash256b(keySuffix)
 
-	err := s.dao.Put(s.bucket, key[:], value)
-	if err != nil {
-		//ignore error
-		return err
-	}
-	log.L().Info("FlushOldRoot:", zap.String("origin key", hex.EncodeToString(key)), zap.String("new key", hex.EncodeToString(key[:])), zap.String("value", hex.EncodeToString(value)), zap.String("bucket:", s.bucket))
+	//err := s.dao.Put(s.bucket, key[:], value)
+	//if err != nil {
+	//	//ignore error
+	//	return err
+	//}
+	//log.L().Info("FlushOldRoot:", zap.String("origin key", hex.EncodeToString(key)), zap.String("new key", hex.EncodeToString(key[:])), zap.String("value", hex.EncodeToString(value)), zap.String("bucket:", s.bucket))
 
 	return nil
 }
@@ -150,19 +150,20 @@ func (s *KVStoreForTrie) Get(key []byte) ([]byte, error) {
 
 // Flush flushs the data in cache layer to db
 func (s *KVStoreForTrie) Flush() error {
-	batch := NewCachedBatch()
-	for i := 0; i < s.cb.Size(); i++ {
-		write, err := s.cb.Entry(i)
-		if err != nil {
-			return err
-		}
-		if write.writeType != Delete {
-			batch.Put(write.namespace, write.key, write.value, "failed to put key %x value %x", write.key, write.value)
-		}
-	}
-	err := s.dao.Commit(batch)
-	if err == nil {
-		s.cb.Clear()
-	}
-	return err
+	//batch := NewCachedBatch()
+	//for i := 0; i < s.cb.Size(); i++ {
+	//	write, err := s.cb.Entry(i)
+	//	if err != nil {
+	//		return err
+	//	}
+	//	if write.writeType != Delete {
+	//		batch.Put(write.namespace, write.key, write.value, "failed to put key %x value %x", write.key, write.value)
+	//	}
+	//}
+	//err := s.dao.Commit(batch)
+	//if err == nil {
+	//	s.cb.Clear()
+	//}
+	//return err
+	return s.dao.Commit(s.cb)
 }
