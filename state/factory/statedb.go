@@ -277,12 +277,16 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 	if !ok {
 		return errors.New("convert error")
 	}
+	bytess := make([]byte, 8)
+	binary.BigEndian.PutUint64(bytess, maxVersion)
+	maxStateKey := append(addr[:], bytess...)
+
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, height)
+	heightStateKey := append(addr[:], heightBytes...)
 	err = boltdb.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
-		bytess := make([]byte, 8)
-		binary.BigEndian.PutUint64(bytess, maxVersion)
-		stateKey := append(addr[:], bytess...)
-		for k, v := c.Seek(stateKey); k != nil && bytes.Compare(k, stateKey) <= 0; k, v = c.Prev() {
+		for k, v := c.Seek(maxStateKey); k != nil && bytes.Compare(k, heightStateKey) >= 0; k, v = c.Prev() {
 			if len(k) <= 20 {
 				return errors.New("cannot find state")
 			}
@@ -304,6 +308,28 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 		}
 		return errors.New("cannot find state")
 	})
+	//	for k, v := c.Seek(stateKey); k != nil && bytes.Compare(k, stateKey) <= 0; k, v = c.Prev() {
+	//		if len(k) <= 20 {
+	//			return errors.New("cannot find state")
+	//		}
+	//		if bytes.Compare(k[:20], addr[:20]) != 0 {
+	//			return errors.New("address is diff,cannot find state")
+	//		}
+	//		kHeight := binary.BigEndian.Uint64(k[20:])
+	//		log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
+	//		if kHeight == 0 || kHeight == 1 {
+	//			return errors.New("cannot find state")
+	//		}
+	//		if kHeight <= height {
+	//			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
+	//			if err := state.Deserialize(s, v); err != nil {
+	//				return errors.Wrapf(err, "error when deserializing state data into %T", s)
+	//			}
+	//			return nil
+	//		}
+	//	}
+	//	return errors.New("cannot find state")
+	//})
 
 	return err
 }
