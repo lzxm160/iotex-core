@@ -195,7 +195,7 @@ func (stx *stateTX) getMaxVersion(pkHash hash.Hash160) (uint64, error) {
 
 func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	maxVersion, _ := stx.getMaxVersion(pkHash)
-	if maxVersion != 1 && maxVersion >= stx.ver+1 {
+	if maxVersion != 0 && maxVersion != 1 && maxVersion >= stx.ver+1 {
 		return nil
 	}
 	currentVersion := make([]byte, 8)
