@@ -199,8 +199,8 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	//binary.BigEndian.PutUint64(currentVersion, stx.ver+1)
 	log.L().Info(
 		"putIndex",
-		zap.Uint64("stx.ver+2", stx.ver+2))
-	version := stx.ver + 2
+		zap.Uint64("stx.ver+1", stx.ver+1))
+	version := stx.ver + 1
 
 	binary.BigEndian.PutUint64(currentVersion, version)
 	indexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
