@@ -16,10 +16,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
-	"github.com/iotexproject/iotex-core/db"
-	"github.com/iotexproject/iotex-core/db/trie"
-
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
@@ -30,7 +26,7 @@ import (
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	"github.com/iotexproject/iotex-core/action/protocol/account/util"
+	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
 	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
@@ -1462,78 +1458,7 @@ func TestServer_GetLogs(t *testing.T) {
 		require.Equal(test.numLogs, len(logs))
 	}
 }
-func TestUpdateTrie(t *testing.T) {
-	require := require.New(t)
-	testTrieFile, err := ioutil.TempFile(os.TempDir(), "trie.db")
-	require.NoError(err)
 
-	// first trie
-	cfg := config.Default.DB
-	cfg.DbPath = testTrieFile.Name()
-
-	trieDB := db.NewBoltDB(cfg)
-	require.NoError(trieDB.Start(context.Background()))
-	defer trieDB.Stop(context.Background())
-
-	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, trieDB, db.CachedBatchOption(db.NewCachedBatch()))
-	require.NoError(err)
-
-	addrHash := hash.Hash160b([]byte("xx"))
-	options := []trie.Option{
-		trie.KVStoreOption(dbForTrie),
-		trie.KeyLengthOption(len(hash.Hash256{})),
-		trie.HashFuncOption(func(data []byte) []byte {
-			return trie.DefaultHashFunc(append(addrHash[:], data...))
-		}),
-	}
-
-	tr, err := trie.NewTrie(options...)
-	require.NoError(err)
-	require.NoError(tr.Start(context.Background()))
-	defer tr.Stop(context.Background())
-
-	key := hash.Hash256b([]byte("cat"))
-	value1 := []byte("cat")
-	value2 := []byte("car")
-	require.Nil(err)
-	require.Nil(tr.Upsert(key[:], value1))
-
-	v, err := tr.Get(key[:])
-	require.Nil(err)
-	require.Equal(value1, v)
-
-	//save root hash
-	root := make([]byte, 32)
-	copy(root, tr.RootHash())
-
-	require.Nil(tr.Upsert(key[:], value2))
-	v, err = tr.Get(key[:])
-	require.Nil(err)
-	require.Equal(value2, v)
-
-	require.NotEqual(root, tr.RootHash())
-	require.NoError(tr.Delete(key[:]))
-
-	// second trie
-	dbForTrie2, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, trieDB, db.CachedBatchOption(db.NewCachedBatch()))
-	require.NoError(err)
-
-	options2 := []trie.Option{
-		trie.KVStoreOption(dbForTrie2),
-		trie.KeyLengthOption(len(hash.Hash256{})),
-		trie.HashFuncOption(func(data []byte) []byte {
-			return trie.DefaultHashFunc(append(addrHash[:], data...))
-		}),
-	}
-	options2 = append(options2, trie.RootHashOption(root))
-	tr2, err := trie.NewTrie(options2...)
-	require.NoError(err)
-	require.NoError(tr2.Start(context.Background()))
-	defer tr2.Stop(context.Background())
-	v2, err := tr2.Get(key[:])
-	require.Nil(err)
-	require.Equal(value1, v2)
-}
 func addProducerToFactory(sf factory.Factory) error {
 	ws, err := sf.NewWorkingSet()
 	if err != nil {
