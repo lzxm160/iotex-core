@@ -10,6 +10,9 @@ import (
 	"context"
 	"encoding/binary"
 
+	"github.com/iotexproject/iotex-core/pkg/log"
+	"go.uber.org/zap"
+
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
@@ -194,7 +197,14 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	currentVersion := make([]byte, 8)
 	//stx.ver is last height,should be this block to pack action
 	//binary.BigEndian.PutUint64(currentVersion, stx.ver+1)
-	binary.BigEndian.PutUint64(currentVersion, stx.blkHeight)
+	log.L().Info(
+		"putIndex",
+		zap.Uint64("height", stx.blkHeight))
+	version := stx.blkHeight
+	if version == 0 {
+		version = 1
+	}
+	binary.BigEndian.PutUint64(currentVersion, version)
 	indexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
 	err := stx.dao.Put(AccountKVNameSpace, indexKey, currentVersion)
 	if err != nil {
