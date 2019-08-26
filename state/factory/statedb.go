@@ -291,7 +291,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 			}
 			kHeight := binary.BigEndian.Uint64(k[20:])
 			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
-			if kHeight == 0 {
+			if kHeight == 0 || kHeight == 1 {
 				return errors.New("cannot find state")
 			}
 			if kHeight <= height {
