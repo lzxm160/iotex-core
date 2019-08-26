@@ -181,8 +181,8 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 		return errors.Wrapf(err, "failed to convert account %v to bytes", s)
 	}
 	stx.cb.Put(AccountKVNameSpace, pkHash[:], ss, "error when putting k = %x", pkHash)
-	stx.putIndex(pkHash, ss)
-	return nil
+	err = stx.putIndex(pkHash, ss)
+	return err
 }
 func (stx *stateTX) getMaxVersion(pkHash hash.Hash160) (uint64, error) {
 	indexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
@@ -194,6 +194,10 @@ func (stx *stateTX) getMaxVersion(pkHash hash.Hash160) (uint64, error) {
 }
 
 func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
+	maxVersion, _ := stx.getMaxVersion(pkHash)
+	if maxVersion != 1 && maxVersion >= stx.ver+1 {
+		return nil
+	}
 	currentVersion := make([]byte, 8)
 	//stx.ver is last height,should be this block to pack action
 	//binary.BigEndian.PutUint64(currentVersion, stx.ver+1)

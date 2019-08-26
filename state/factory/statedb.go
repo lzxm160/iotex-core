@@ -365,6 +365,7 @@ func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, e
 		fmt.Println("errrrrrrrrrrrrrrrrrr", err)
 	}
 	fmt.Println("//////////////////here")
+
 	if err != nil {
 		if errors.Cause(err) == state.ErrStateNotExist {
 			acc = state.EmptyAccount()
