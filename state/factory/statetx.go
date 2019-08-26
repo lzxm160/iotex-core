@@ -194,7 +194,7 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	currentVersion := make([]byte, 8)
 	//stx.ver is last height,should be this block to pack action
 	//binary.BigEndian.PutUint64(currentVersion, stx.ver+1)
-	binary.BigEndian.PutUint64(currentVersion, stx.blkHeight+1)
+	binary.BigEndian.PutUint64(currentVersion, stx.blkHeight)
 	indexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
 	err := stx.dao.Put(AccountKVNameSpace, indexKey, currentVersion)
 	if err != nil {
