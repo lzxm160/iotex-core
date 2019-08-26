@@ -1493,23 +1493,25 @@ func TestUpdateTrie(t *testing.T) {
 	defer tr.Stop(context.Background())
 
 	key := hash.Hash256b([]byte("cat"))
+	value1 := []byte("cat")
+	value2 := []byte("car")
 	require.NoError(tr.Start(context.Background()))
 	require.Nil(err)
 	require.Nil(tr.Start(context.Background()))
-	require.Nil(tr.Upsert(key[:], []byte("cat")))
+	require.Nil(tr.Upsert(key[:], value1))
 
 	v, err := tr.Get(key[:])
 	require.Nil(err)
-	require.Equal([]byte("cat"), v)
+	require.Equal(value1, v)
 
 	//save root hash
 	root := make([]byte, 32)
 	copy(root, tr.RootHash())
 
-	require.Nil(tr.Upsert(key[:], []byte("car")))
+	require.Nil(tr.Upsert(key[:], value2))
 	v, err = tr.Get(key[:])
 	require.Nil(err)
-	require.Equal([]byte("car"), v)
+	require.Equal(value2, v)
 
 	require.NotEqual(root, tr.RootHash())
 	require.NoError(tr.Delete(key[:]))
@@ -1533,7 +1535,7 @@ func TestUpdateTrie(t *testing.T) {
 	defer tr2.Stop(context.Background())
 	v2, err := tr2.Get(key[:])
 	require.Nil(err)
-	require.Equal([]byte("cat"), v2)
+	require.Equal(value1, v2)
 }
 func addProducerToFactory(sf factory.Factory) error {
 	ws, err := sf.NewWorkingSet()
