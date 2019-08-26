@@ -159,6 +159,7 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 						return errors.Wrapf(err, write.errorFormat, write.errorArgs)
 					}
 				} else if write.writeType == Delete {
+					// ignore delete for contract state
 					if !strings.EqualFold(write.namespace, ContractKVNameSpace) {
 						bucket := tx.Bucket([]byte(write.namespace))
 						if bucket == nil {
