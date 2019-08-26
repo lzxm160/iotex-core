@@ -1495,9 +1495,7 @@ func TestUpdateTrie(t *testing.T) {
 	key := hash.Hash256b([]byte("cat"))
 	value1 := []byte("cat")
 	value2 := []byte("car")
-	require.NoError(tr.Start(context.Background()))
 	require.Nil(err)
-	require.Nil(tr.Start(context.Background()))
 	require.Nil(tr.Upsert(key[:], value1))
 
 	v, err := tr.Get(key[:])
@@ -1515,7 +1513,6 @@ func TestUpdateTrie(t *testing.T) {
 
 	require.NotEqual(root, tr.RootHash())
 	require.NoError(tr.Delete(key[:]))
-	require.NoError(tr.Stop(context.Background()))
 
 	// second trie
 	dbForTrie2, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, trieDB, db.CachedBatchOption(db.NewCachedBatch()))
