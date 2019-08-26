@@ -281,12 +281,12 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 	binary.BigEndian.PutUint64(bytess, maxVersion)
 	maxStateKey := append(addr[:], bytess...)
 
-	heightBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(heightBytes, height)
-	heightStateKey := append(addr[:], heightBytes...)
+	//heightBytes := make([]byte, 8)
+	//binary.BigEndian.PutUint64(heightBytes, height)
+	//heightStateKey := append(addr[:], heightBytes...)
 	err = boltdb.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
-		for k, v := c.Seek(maxStateKey); k != nil && bytes.Compare(k, heightStateKey) >= 0; k, v = c.Prev() {
+		for k, v := c.Seek(maxStateKey); k != nil; k, v = c.Prev() {
 			if len(k) <= 20 {
 				return errors.New("cannot find state")
 			}
