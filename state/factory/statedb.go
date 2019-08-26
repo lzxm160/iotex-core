@@ -284,7 +284,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 	//heightBytes := make([]byte, 8)
 	//binary.BigEndian.PutUint64(heightBytes, height)
 	//heightStateKey := append(addr[:], heightBytes...)
-	height -= 2
+	//height -= 2
 	err = boltdb.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
 		for k, v := c.Seek(maxStateKey); k != nil; k, v = c.Prev() {
