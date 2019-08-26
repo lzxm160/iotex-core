@@ -201,7 +201,7 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 		zap.Uint64("stx.ver+1", stx.ver+1))
 	version := stx.ver + 1
 	maxVersion, _ := stx.getMaxVersion(pkHash)
-	if (maxVersion != 0) && (maxVersion != 1) && (maxVersion >= version) {
+	if (maxVersion != 0) && (maxVersion != 1) && (maxVersion > version) {
 		return nil
 	}
 
