@@ -12,6 +12,9 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/iotexproject/iotex-core/pkg/log"
+	"go.uber.org/zap"
+
 	"github.com/pkg/errors"
 
 	"github.com/iotexproject/go-pkgs/hash"
@@ -80,6 +83,8 @@ func (b BalanceChange) handle(tx *sql.Tx, blockHeight uint64) error {
 	if blockHeight != 0 {
 		epochNumber = (blockHeight-1)/genesis.Default.NumDelegates/genesis.Default.NumSubEpochs + 1
 	}
+
+	log.L().Info("BalanceChange", zap.String("BalanceChange", b.Amount+":"+hex.EncodeToString(b.ActionHash[:])+":"+b.InAddr+":"+b.OutAddr))
 	if b.InAddr != "" {
 		insertQuery := fmt.Sprintf("INSERT INTO %s (epoch_number, block_height, action_hash, address, `in`) VALUES (?, ?, ?, ?, ?)",
 			AccountHistoryTableName)
@@ -87,6 +92,7 @@ func (b BalanceChange) handle(tx *sql.Tx, blockHeight uint64) error {
 		if _, err := result, e; err != nil {
 			return errors.Wrapf(err, "failed to update account history for address %s", b.InAddr)
 		}
+		log.L().Info("mysql insert", zap.String("in", insertQuery))
 	}
 	if b.OutAddr != "" {
 		insertQuery := fmt.Sprintf("INSERT INTO %s (epoch_number, block_height, action_hash, address, `out`) VALUES (?, ?, ?, ?, ?)",
@@ -94,6 +100,7 @@ func (b BalanceChange) handle(tx *sql.Tx, blockHeight uint64) error {
 		if _, err := tx.Exec(insertQuery, epochNumber, blockHeight, hex.EncodeToString(b.ActionHash[:]), b.OutAddr, b.Amount); err != nil {
 			return errors.Wrapf(err, "failed to update account history for address %s", b.OutAddr)
 		}
+		log.L().Info("mysql insert", zap.String("out", insertQuery))
 	}
 	return nil
 }
