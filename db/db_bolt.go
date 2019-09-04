@@ -8,6 +8,7 @@ package db
 
 import (
 	"context"
+	"strings"
 
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
@@ -16,6 +17,9 @@ import (
 )
 
 const fileMode = 0600
+
+// ContractKVNameSpace for ignore delete
+var ContractKVNameSpace = "Contract"
 
 // boltDB is KVStore implementation based bolt DB
 type boltDB struct {
@@ -67,6 +71,9 @@ func (b *boltDB) Put(namespace string, key, value []byte) (err error) {
 		err = errors.Wrap(ErrIO, err.Error())
 	}
 	return err
+}
+func (b *boltDB) DB() interface{} {
+	return b.db
 }
 
 // Get retrieves a record
@@ -156,12 +163,15 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 						return errors.Wrapf(err, write.errorFormat, write.errorArgs)
 					}
 				} else if write.writeType == Delete {
-					bucket := tx.Bucket([]byte(write.namespace))
-					if bucket == nil {
-						continue
-					}
-					if err := bucket.Delete(write.key); err != nil {
-						return errors.Wrapf(err, write.errorFormat, write.errorArgs)
+					// ignore delete for contract state
+					if !strings.EqualFold(write.namespace, ContractKVNameSpace) {
+						bucket := tx.Bucket([]byte(write.namespace))
+						if bucket == nil {
+							continue
+						}
+						if err := bucket.Delete(write.key); err != nil {
+							return errors.Wrapf(err, write.errorFormat, write.errorArgs)
+						}
 					}
 				}
 			}

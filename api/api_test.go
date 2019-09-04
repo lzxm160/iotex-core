@@ -1458,7 +1458,96 @@ func TestServer_GetLogs(t *testing.T) {
 		require.Equal(test.numLogs, len(logs))
 	}
 }
+func TestSameKey2(t *testing.T) {
+	require := require.New(t)
+	testTrieFile, err := ioutil.TempFile(os.TempDir(), "trie.db")
+	require.NoError(err)
 
+	// first trie
+	cfg := config.Default.DB
+	cfg.DbPath = testTrieFile.Name()
+
+	trieDB := db.NewBoltDB(cfg)
+	require.NoError(trieDB.Start(context.Background()))
+	defer trieDB.Stop(context.Background())
+
+	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, trieDB, db.CachedBatchOption(db.NewCachedBatch()))
+	require.NoError(err)
+
+	addrHash := hash.Hash160b([]byte("xx"))
+	options := []trie.Option{
+		trie.KVStoreOption(dbForTrie),
+		trie.KeyLengthOption(len(hash.Hash256{})),
+		trie.HashFuncOption(func(data []byte) []byte {
+			return trie.DefaultHashFunc(append(addrHash[:], data...))
+		}),
+	}
+
+	tr, err := trie.NewTrie(options...)
+	require.NoError(err)
+	require.NoError(tr.Start(context.Background()))
+	//defer tr.Stop(context.Background())
+
+	key := hash.Hash256b([]byte("cat"))
+	key2 := hash.Hash256b([]byte("car"))
+	key3 := hash.Hash256b([]byte("cas"))
+	require.NoError(tr.Start(context.Background()))
+	require.Nil(err)
+	require.Nil(tr.Start(context.Background()))
+	require.Nil(tr.Upsert(key[:], []byte("xxxxx")))
+	require.Nil(tr.Upsert(key2[:], []byte("xx2222xxx")))
+	require.Nil(tr.Upsert(key3[:], []byte("33333")))
+
+	v, err := tr.Get(key[:])
+	require.Nil(err)
+	require.Equal([]byte("xxxxx"), v)
+
+	//save root hash
+	root := make([]byte, 32)
+	copy(root, tr.RootHash())
+
+	require.Nil(tr.Upsert(key[:], []byte("yyyyy")))
+	v, err = tr.Get(key[:])
+	require.Nil(err)
+	require.Equal([]byte("yyyyy"), v)
+
+	require.NotEqual(root, tr.RootHash())
+	require.NoError(tr.Delete(key[:]))
+	require.NoError(tr.Delete(key2[:]))
+
+	fmt.Println("xxxxx root:", hex.EncodeToString(root))
+	fmt.Println("yyyyy root:", hex.EncodeToString(tr.RootHash()))
+	require.NoError(tr.Stop(context.Background()))
+	//require.NoError(trieDB.Stop(context.Background()))
+
+	// open another trie
+	//trieDB2 := db.NewBoltDB(cfg)
+	//require.NoError(trieDB2.Start(context.Background()))
+	//defer trieDB2.Stop(context.Background())
+
+	dbForTrie2, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, trieDB, db.CachedBatchOption(db.NewCachedBatch()))
+	require.NoError(err)
+
+	addrHash2 := hash.Hash160b([]byte("xx"))
+	options2 := []trie.Option{
+		trie.KVStoreOption(dbForTrie2),
+		trie.KeyLengthOption(len(hash.Hash256{})),
+		trie.HashFuncOption(func(data []byte) []byte {
+			return trie.DefaultHashFunc(append(addrHash2[:], data...))
+		}),
+	}
+	//keySuffix := append(root[:], []byte("history")...)
+	//newKey := trie.DefaultHashFunc(keySuffix)
+	options2 = append(options2, trie.RootHashOption(root))
+
+	tr2, err := trie.NewTrie(options2...)
+	require.NoError(err)
+	require.NoError(tr2.Start(context.Background()))
+	defer tr2.Stop(context.Background())
+	v2, err := tr2.Get(key[:])
+	require.Nil(err)
+	require.Equal([]byte("xxxxx"), v2)
+}
 func addProducerToFactory(sf factory.Factory) error {
 	ws, err := sf.NewWorkingSet()
 	if err != nil {
