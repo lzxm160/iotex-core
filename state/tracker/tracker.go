@@ -91,16 +91,19 @@ func (t *stateTracker) Revert(snapshot int) error {
 func (t *stateTracker) Commit(height uint64) error {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
-	if err := t.store.Transact(func(tx *sql.Tx) error {
-		for _, c := range t.changes {
-			if err := c.handle(tx, height); err != nil {
-				return errors.Wrap(err, "failed to handle state change")
+	if t.store != nil {
+		if err := t.store.Transact(func(tx *sql.Tx) error {
+			for _, c := range t.changes {
+				if err := c.handle(tx, height); err != nil {
+					return errors.Wrap(err, "failed to handle state change")
+				}
 			}
+			return nil
+		}); err != nil {
+			return errors.Wrap(err, "failed to store state changes")
 		}
-		return nil
-	}); err != nil {
-		return errors.Wrap(err, "failed to store state changes")
 	}
+
 	t.changes = make([]StateChange, 0)
 	t.snapshots = make([]int, 0)
 	return nil

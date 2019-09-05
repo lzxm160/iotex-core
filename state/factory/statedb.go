@@ -191,7 +191,7 @@ func (sdb *stateDB) NewWorkingSet() (WorkingSet, error) {
 	return newStateTX(sdb.currentChainHeight, sdb.dao, sdb.actionHandlers, sdb.store), nil
 }
 
-// Commit persists all changes in RunActions() into the DB
+// Commit persists all changesnewStateTX in RunActions() into the DB
 func (sdb *stateDB) Commit(ws WorkingSet) error {
 	if ws == nil {
 		return errors.New("working set doesn't exist")
