@@ -7,11 +7,11 @@
 package factory
 
 import (
-	"bytes"
 	"context"
 	"encoding/binary"
-	"encoding/hex"
-	"strconv"
+
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
@@ -21,9 +21,6 @@ import (
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 	"github.com/iotexproject/iotex-core/state"
-	"github.com/pkg/errors"
-	bolt "go.etcd.io/bbolt"
-	"go.uber.org/zap"
 )
 
 // stateTX implements stateTX interface, tracks pending changes to account/contract in local cache
