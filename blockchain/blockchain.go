@@ -769,7 +769,7 @@ func (bc *blockchain) ExecuteContractRead2(caller address.Address, ex *action.Ex
 		GasPrice:       big.NewInt(0),
 		IntrinsicGas:   0,
 	})
-	return evm.ExecuteContract(
+	return evm.ExecuteContract2(
 		ctx,
 		ws,
 		ex,

@@ -8,6 +8,7 @@ package evm
 
 import (
 	"context"
+	"encoding/hex"
 	"math"
 	"math/big"
 
@@ -189,7 +190,33 @@ func ExecuteContract(
 	log.S().Debugf("Receipt: %+v, %v", receipt, err)
 	return retval, receipt, nil
 }
-
+func ExecuteContract2(
+	ctx context.Context,
+	sm protocol.StateManager,
+	execution *action.Execution,
+	cm protocol.ChainManager,
+	hu config.HeightUpgrade,
+) ([]byte, *action.Receipt, error) {
+	raCtx := protocol.MustGetRunActionsCtx(ctx)
+	stateDB := NewStateDBAdapter(cm, sm, hu, raCtx.BlockHeight, execution.Hash())
+	ps, err := NewParams(raCtx, execution, stateDB, hu)
+	if err != nil {
+		return nil, nil, err
+	}
+	retval, _, remainingGas, contractAddress, statusCode, err := executeInEVM2(ps, stateDB, raCtx.GasLimit, raCtx.BlockHeight)
+	if err != nil {
+		return nil, nil, err
+	}
+	receipt := &action.Receipt{
+		GasConsumed:     ps.gas - remainingGas,
+		BlockHeight:     raCtx.BlockHeight,
+		ActionHash:      execution.Hash(),
+		ContractAddress: contractAddress,
+	}
+	receipt.Status = statusCode
+	log.S().Info("Receipt: %+v, %v", receipt, err)
+	return retval, receipt, nil
+}
 func getChainConfig() *params.ChainConfig {
 	var chainConfig params.ChainConfig
 	// chainConfig.ChainID
@@ -257,6 +284,37 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64, b
 	if evmErr != nil {
 		return ret, evmParams.gas, remainingGas, contractRawAddress, evmErrToErrStatusCode(evmErr, isBering), nil
 	}
+	return ret, evmParams.gas, remainingGas, contractRawAddress, uint64(iotextypes.ReceiptStatus_Success), nil
+}
+func executeInEVM2(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64, blockHeight uint64) ([]byte, uint64, uint64, string, uint64, error) {
+	remainingGas := evmParams.gas
+	var config vm.Config
+	chainConfig := getChainConfig()
+	evm := vm.NewEVM(evmParams.context, stateDB, chainConfig, config)
+	intriGas, err := intrinsicGas(evmParams.data)
+	if err != nil {
+		log.L().Info("intrinsicGas", zap.Error(err))
+		return nil, evmParams.gas, remainingGas, action.EmptyAddress, uint64(iotextypes.ReceiptStatus_Failure), err
+	}
+	remainingGas -= intriGas
+	contractRawAddress := action.EmptyAddress
+	executor := vm.AccountRef(evmParams.context.Origin)
+	var ret []byte
+	var evmErr error
+	if evmParams.contract == nil {
+		// create contract
+		log.L().Info("evmParams.contract", zap.Error(err))
+		return nil, 0, 0, "", 0, errors.New("contract is not exist")
+	} else {
+		stateDB.SetNonce(evmParams.context.Origin, stateDB.GetNonce(evmParams.context.Origin)+1)
+		// process contract
+		ret, remainingGas, evmErr = evm.Call(executor, *evmParams.contract, evmParams.data, remainingGas, evmParams.amount)
+	}
+	if evmErr != nil {
+		log.L().Info("evm.Call", zap.Error(err))
+		return nil, 0, 0, "", 0, errors.New("evm.Call error")
+	}
+	log.L().Info("executeInEVM2", zap.String("ret", hex.EncodeToString(ret)))
 	return ret, evmParams.gas, remainingGas, contractRawAddress, uint64(iotextypes.ReceiptStatus_Success), nil
 }
 
