@@ -60,6 +60,9 @@ func (b BalanceChange) init(db *sql.DB, tx *sql.Tx) error {
 		return err
 	}
 	if exist == 0 {
+		fmt.Println(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s "+
+			"(epoch_number DECIMAL(65, 0) NOT NULL, block_height DECIMAL(65, 0) NOT NULL, action_hash VARCHAR(64) NOT NULL, "+
+			"address VARCHAR(41) NOT NULL, `in` DECIMAL(65, 0) DEFAULT 0, `out` DECIMAL(65, 0) DEFAULT 0)", AccountHistoryTableName))
 		if _, err := db.Exec(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s "+
 			"(epoch_number DECIMAL(65, 0) NOT NULL, block_height DECIMAL(65, 0) NOT NULL, action_hash VARCHAR(64) NOT NULL, "+
 			"address VARCHAR(41) NOT NULL, `in` DECIMAL(65, 0) DEFAULT 0, `out` DECIMAL(65, 0) DEFAULT 0)", AccountHistoryTableName)); err != nil {
