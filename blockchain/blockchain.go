@@ -745,6 +745,8 @@ func (bc *blockchain) RemoveSubscriber(s BlockCreationSubscriber) error {
 // internal functions
 //=====================================
 func (bc *blockchain) ExecuteContractRead2(caller address.Address, ex *action.Execution, height uint64) ([]byte, *action.Receipt, error) {
+	log.L().Info("ExecuteContractRead2", zap.Uint64("height", height))
+
 	header, err := bc.BlockHeaderByHeight(height)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to get block in ExecuteContractRead")
