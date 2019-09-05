@@ -82,6 +82,10 @@ func (b BalanceChange) init(db *sql.DB, tx *sql.Tx) error {
 			if _, err := tx.Exec(insertQuery, uint64(0), uint64(0), hex.EncodeToString(specialActionHash[:]), addr, amount); err != nil {
 				return errors.Wrapf(err, "failed to update account history for address %s", addr)
 			}
+			fmt.Println(insertQuery)
+			fmt.Println(hex.EncodeToString(specialActionHash[:]))
+			fmt.Println(addr)
+			fmt.Println(amount)
 		}
 	}
 	return nil
