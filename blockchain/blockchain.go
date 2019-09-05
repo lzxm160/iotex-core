@@ -153,7 +153,7 @@ type Blockchain interface {
 	// ExecuteContractRead runs a read-only smart contract operation, this is done off the network since it does not
 	// cause any state change
 	ExecuteContractRead(caller address.Address, ex *action.Execution) ([]byte, *action.Receipt, error)
-
+	ExecuteContractRead2(caller address.Address, ex *action.Execution, height uint64) ([]byte, *action.Receipt, error)
 	// AddSubscriber make you listen to every single produced block
 	AddSubscriber(BlockCreationSubscriber) error
 
@@ -324,7 +324,7 @@ func NewBlockchain(cfg config.Config, opts ...Option) Blockchain {
 		sf:                        chain.sf,
 		validatorAddr:             cfg.ProducerAddress().String(),
 		enableExperimentalActions: chain.enableExperimentalActions,
-		senderBlackList: 		   senderBlackList,
+		senderBlackList:           senderBlackList,
 	}
 
 	if chain.dao != nil {
@@ -744,6 +744,37 @@ func (bc *blockchain) RemoveSubscriber(s BlockCreationSubscriber) error {
 //======================================
 // internal functions
 //=====================================
+func (bc *blockchain) ExecuteContractRead2(caller address.Address, ex *action.Execution, height uint64) ([]byte, *action.Receipt, error) {
+	header, err := bc.BlockHeaderByHeight(height)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to get block in ExecuteContractRead")
+	}
+	ws, err := bc.sf.NewWorkingSet()
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to obtain working set from state factory")
+	}
+	producer, err := address.FromString(header.ProducerAddress())
+	if err != nil {
+		return nil, nil, err
+	}
+	gasLimit := bc.config.Genesis.BlockGasLimit
+	ctx := protocol.WithRunActionsCtx(context.Background(), protocol.RunActionsCtx{
+		BlockHeight:    header.Height(),
+		BlockTimeStamp: header.Timestamp(),
+		Producer:       producer,
+		Caller:         caller,
+		GasLimit:       gasLimit,
+		GasPrice:       big.NewInt(0),
+		IntrinsicGas:   0,
+	})
+	return evm.ExecuteContract(
+		ctx,
+		ws,
+		ex,
+		bc,
+		config.NewHeightUpgrade(bc.config),
+	)
+}
 
 // ExecuteContractRead runs a read-only smart contract operation, this is done off the network since it does not
 // cause any state change

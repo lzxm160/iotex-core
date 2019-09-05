@@ -375,11 +375,24 @@ func (api *Server) ReadContract(ctx context.Context, in *iotexapi.ReadContractRe
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-
-	retval, receipt, err := api.bc.ExecuteContractRead(callerAddr, sc)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+	var retval []byte
+	var receipt *action.Receipt
+	if len(in.CallerAddress) > 41 {
+		hei, err := strconv.ParseUint(string(in.CallerAddress[41:]), 10, 64)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "convert error")
+		}
+		retval, receipt, err = api.bc.ExecuteContractRead2(callerAddr, sc, hei)
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	} else {
+		retval, receipt, err = api.bc.ExecuteContractRead(callerAddr, sc)
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
 	}
+
 	return &iotexapi.ReadContractResponse{
 		Data:    hex.EncodeToString(retval),
 		Receipt: receipt.ConvertToReceiptPb(),
