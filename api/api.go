@@ -368,8 +368,12 @@ func (api *Server) ReadContract(ctx context.Context, in *iotexapi.ReadContractRe
 		big.NewInt(0),
 		sc.Data(),
 	)
+	var heightString string
+	var haveHei bool
 	if len(in.CallerAddress) > 41 {
+		heightString = in.CallerAddress[41:]
 		in.CallerAddress = in.CallerAddress[:41]
+		haveHei = true
 	}
 	callerAddr, err := address.FromString(in.CallerAddress)
 	if err != nil {
@@ -377,11 +381,12 @@ func (api *Server) ReadContract(ctx context.Context, in *iotexapi.ReadContractRe
 	}
 	var retval []byte
 	var receipt *action.Receipt
-	if len(in.CallerAddress) > 41 {
-		hei, err := strconv.ParseUint(string(in.CallerAddress[41:]), 10, 64)
+	if haveHei {
+		hei, err := strconv.ParseUint(heightString, 10, 64)
 		if err != nil {
 			return nil, status.Error(codes.Internal, "convert error")
 		}
+		log.L().Info("api before read2", zap.Uint64("height", hei))
 		retval, receipt, err = api.bc.ExecuteContractRead2(callerAddr, sc, hei)
 		if err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
