@@ -158,53 +158,6 @@ func (stx *stateTX) GetCachedBatch() db.CachedBatch {
 	return stx.cb
 }
 
-func (stx *stateTX) State2(hs []byte, s interface{}) error {
-	addr := hs[:20]
-	height, err := strconv.ParseUint(hex.EncodeToString(hs[20:]), 10, 64)
-	if err != nil {
-		return err
-	}
-	h160 := hash.BytesToHash160(addr)
-	maxVersion, err := stx.getMaxVersion(h160)
-	if err != nil {
-		return err
-	}
-	log.L().Info("////////////////", zap.Uint64("maxVersion", maxVersion), zap.Uint64("height", height))
-	if maxVersion == 0 {
-		return errors.New("cannot find state")
-	}
-	db := stx.dao.DB()
-	boltdb, ok := db.(*bolt.DB)
-	if !ok {
-		return errors.New("convert error")
-	}
-	err = boltdb.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
-		bytess := make([]byte, 8)
-		binary.BigEndian.PutUint64(bytess, maxVersion)
-		stateKey := append(addr[:], bytess...)
-		for k, v := c.Seek(stateKey); k != nil && bytes.Compare(k, stateKey) <= 0; k, v = c.Prev() {
-			if len(k) <= 20 {
-				return errors.New("cannot find state")
-			}
-			kHeight := binary.BigEndian.Uint64(k[20:])
-			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
-			if kHeight == 0 {
-				return errors.New("cannot find state")
-			}
-			if kHeight <= height {
-				log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
-				if err := state.Deserialize(s, v); err != nil {
-					return errors.Wrapf(err, "error when deserializing state data into %T", s)
-				}
-				return nil
-			}
-		}
-		return errors.New("cannot find state")
-	})
-	return err
-}
-
 // State pulls a state from DB
 func (stx *stateTX) State(hash hash.Hash160, s interface{}) error {
 	stateDBMtc.WithLabelValues("get").Inc()
@@ -244,7 +197,17 @@ func (stx *stateTX) getMaxVersion(pkHash hash.Hash160) (uint64, error) {
 }
 
 func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
+	//stx.ver is last height,should be this block to pack action
+	//binary.BigEndian.PutUint64(currentVersion, stx.ver+1)
+	log.L().Info(
+		"putIndex",
+		zap.Uint64("stx.ver+1", stx.ver+1))
 	version := stx.ver + 1
+	maxVersion, _ := stx.getMaxVersion(pkHash)
+	if (maxVersion != 0) && (maxVersion != 1) && (maxVersion > version) {
+		return nil
+	}
+
 	currentVersion := make([]byte, 8)
 	binary.BigEndian.PutUint64(currentVersion, version)
 	indexKey := append(AccountMaxVersionPrefix, pkHash[:]...)

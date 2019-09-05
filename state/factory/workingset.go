@@ -61,7 +61,6 @@ type (
 		Version() uint64
 		Height() uint64
 		// General state
-		State2([]byte, interface{}) error
 		State(hash.Hash160, interface{}) error
 		PutState(hash.Hash160, interface{}) error
 		DelState(pkHash hash.Hash160) error
@@ -250,9 +249,6 @@ func (ws *workingSet) GetDB() db.KVStore {
 // GetCachedBatch returns the cached batch for pending writes
 func (ws *workingSet) GetCachedBatch() db.CachedBatch {
 	return ws.cb
-}
-func (ws *workingSet) State2(hash []byte, s interface{}) error {
-	return nil
 }
 
 // State pulls a state from DB
