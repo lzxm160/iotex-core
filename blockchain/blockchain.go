@@ -778,6 +778,7 @@ func (bc *blockchain) ExecuteContractRead2(caller address.Address, ex *action.Ex
 	return evm.ExecuteContract2(
 		ctx,
 		ws,
+		sf,
 		ex,
 		bc,
 		config.NewHeightUpgrade(bc.config),
