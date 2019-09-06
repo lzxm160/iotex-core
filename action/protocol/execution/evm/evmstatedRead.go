@@ -21,7 +21,6 @@ import (
 
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
-	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/db/trie"
@@ -283,21 +282,22 @@ func (stateDB *StateDBAdapterRead) GetCodeHash(evmAddr common.Address) common.Ha
 
 // GetCode returns contract's code
 func (stateDB *StateDBAdapterRead) GetCode(evmAddr common.Address) []byte {
-	addr := hash.BytesToHash160(evmAddr[:])
-	if contract, ok := stateDB.cachedContract[addr]; ok {
-		code, err := contract.GetCode()
-		if err != nil {
-			log.L().Error("Failed to get code hash.", zap.Error(err))
-			return nil
-		}
-		return code
-	}
-	account, err := accountutil.LoadAccount(stateDB.sm, addr)
-	if err != nil {
-		log.L().Error("Failed to load account state for address.", log.Hex("addrHash", addr[:]))
-		return nil
-	}
-	code, err := stateDB.dao.Get(CodeKVNameSpace, account.CodeHash[:])
+	//addr := hash.BytesToHash160(evmAddr[:])
+	//if contract, ok := stateDB.cachedContract[addr]; ok {
+	//	code, err := contract.GetCode()
+	//	if err != nil {
+	//		log.L().Error("Failed to get code hash.", zap.Error(err))
+	//		return nil
+	//	}
+	//	return code
+	//}
+	//account, err := accountutil.LoadAccount(stateDB.sm, addr)
+	//if err != nil {
+	//	log.L().Error("Failed to load account state for address.", log.Hex("addrHash", addr[:]))
+	//	return nil
+	//}
+	h := stateDB.GetCodeHash(evmAddr)
+	code, err := stateDB.dao.Get(CodeKVNameSpace, h[:])
 	if err != nil {
 		// TODO: Suppress the as it's too much now
 		//log.L().Error("Failed to get code from trie.", zap.Error(err))
