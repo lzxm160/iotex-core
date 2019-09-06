@@ -694,7 +694,7 @@ func (bc *blockchain) StateByAddr(address string) (*state.Account, error) {
 	if bc.sf != nil {
 		s, err := bc.sf.AccountState(address)
 		if err != nil {
-			log.L().Warn("Failed to get account.", zap.String("address", address), zap.Error(err))
+			log.L().Error("Failed to get account.", zap.String("address", address), zap.Error(err))
 			return nil, err
 		}
 		return s, nil

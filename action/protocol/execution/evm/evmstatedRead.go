@@ -7,6 +7,7 @@
 package evm
 
 import (
+	"bytes"
 	"fmt"
 	"math/big"
 
@@ -194,6 +195,9 @@ func (stateDB *StateDBAdapterRead) GetCodeHash(evmAddr common.Address) common.Ha
 		return codeHash
 	}
 	account, err := stateDB.AccountState(addr.String())
+	if err != nil {
+		return codeHash
+	}
 	copy(codeHash[:], account.CodeHash)
 	return codeHash
 }
@@ -201,6 +205,10 @@ func (stateDB *StateDBAdapterRead) GetCodeHash(evmAddr common.Address) common.Ha
 // GetCode returns contract's code
 func (stateDB *StateDBAdapterRead) GetCode(evmAddr common.Address) []byte {
 	h := stateDB.GetCodeHash(evmAddr)
+	codeHash := common.Hash{}
+	if bytes.Equal(h[:], codeHash[:]) {
+		return nil
+	}
 	code, err := stateDB.dao.Get(CodeKVNameSpace, h[:])
 	if err != nil {
 		log.L().Error("Called GetCode.", zap.Error(err))
