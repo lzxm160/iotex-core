@@ -255,6 +255,7 @@ func ExecuteContract2(
 	cm protocol.ChainManager,
 	hu config.HeightUpgrade,
 ) ([]byte, *action.Receipt, error) {
+	log.L().Info("enter ExecuteContract2")
 	raCtx := protocol.MustGetRunActionsCtx(ctx)
 	stateDB := NewStateDBAdapterRead(cm, sm, sf, hu, raCtx.BlockHeight, execution.Hash())
 	ps, err := NewParamsRead(raCtx, execution, stateDB, hu)
@@ -345,6 +346,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64, b
 	return ret, evmParams.gas, remainingGas, contractRawAddress, uint64(iotextypes.ReceiptStatus_Success), nil
 }
 func executeInEVM2(evmParams *Params, stateDB *StateDBAdapterRead, gasLimit uint64, blockHeight uint64) ([]byte, uint64, uint64, string, uint64, error) {
+	log.L().Info("enter executeInEVM2")
 	remainingGas := evmParams.gas
 	var config vm.Config
 	chainConfig := getChainConfig()
@@ -366,6 +368,7 @@ func executeInEVM2(evmParams *Params, stateDB *StateDBAdapterRead, gasLimit uint
 	} else {
 		//stateDB.SetNonce(evmParams.context.Origin, stateDB.GetNonce(evmParams.context.Origin)+1)
 		// process contract
+		log.L().Info("evm.Call")
 		ret, remainingGas, evmErr = evm.Call(executor, *evmParams.contract, evmParams.data, remainingGas, evmParams.amount)
 	}
 	if evmErr != nil {

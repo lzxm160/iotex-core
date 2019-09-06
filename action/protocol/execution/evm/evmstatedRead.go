@@ -109,25 +109,28 @@ func (stateDB *StateDBAdapterRead) CreateAccount(evmAddr common.Address) {
 	////log.L().Debug("Called CreateAccount.", log.Hex("addrHash", evmAddr[:]))
 	//hei := fmt.Sprintf("%d", stateDB.blockHeight)
 	//stateDB.sm, _ = stateDB.sf.AccountState(addr.String() + hei)
+	log.L().Info("StateDBAdapterRead Called CreateAccount.")
 }
 
 // SubBalance subtracts balance from account
 func (stateDB *StateDBAdapterRead) SubBalance(evmAddr common.Address, amount *big.Int) {
-
+	log.L().Info("StateDBAdapterRead Called SubBalance.")
 }
 
 // AddBalance adds balance to account
 func (stateDB *StateDBAdapterRead) AddBalance(evmAddr common.Address, amount *big.Int) {
-
+	log.L().Info("StateDBAdapterRead Called AddBalance.")
 }
 
 // GetBalance gets the balance of account
 func (stateDB *StateDBAdapterRead) GetBalance(evmAddr common.Address) *big.Int {
+	log.L().Info("StateDBAdapterRead Called GetBalance.")
 	return big.NewInt(9999999999999999)
 }
 
 // GetNonce gets the nonce of account
 func (stateDB *StateDBAdapterRead) GetNonce(evmAddr common.Address) uint64 {
+	log.L().Info("StateDBAdapterRead Called GetNonce.")
 	addr, err := address.FromBytes(evmAddr.Bytes())
 	if err != nil {
 		log.L().Error("Failed to convert evm address.", zap.Error(err))
@@ -147,18 +150,22 @@ func (stateDB *StateDBAdapterRead) GetNonce(evmAddr common.Address) uint64 {
 
 // SetNonce sets the nonce of account
 func (stateDB *StateDBAdapterRead) SetNonce(evmAddr common.Address, nonce uint64) {
+	log.L().Info("StateDBAdapterRead Called SetNonce.")
 }
 
 // SubRefund subtracts refund
 func (stateDB *StateDBAdapterRead) SubRefund(gas uint64) {
+	log.L().Info("StateDBAdapterRead Called SubRefund.")
 }
 
 // AddRefund adds refund
 func (stateDB *StateDBAdapterRead) AddRefund(gas uint64) {
+	log.L().Info("StateDBAdapterRead Called AddRefund.")
 }
 
 // GetRefund gets refund
 func (stateDB *StateDBAdapterRead) GetRefund() uint64 {
+	log.L().Info("StateDBAdapterRead Called GetRefund.")
 	return 0
 }
 
@@ -174,6 +181,7 @@ func (stateDB *StateDBAdapterRead) HasSuicided(evmAddr common.Address) bool {
 
 // Exist checks the existence of an address
 func (stateDB *StateDBAdapterRead) Exist(evmAddr common.Address) bool {
+	log.L().Info("StateDBAdapterRead Called Exist.")
 	return true
 }
 
@@ -206,6 +214,7 @@ func (stateDB *StateDBAdapterRead) AddPreimage(hash common.Hash, preimage []byte
 
 // ForEachStorage loops each storage
 func (stateDB *StateDBAdapterRead) ForEachStorage(addr common.Address, cb func(common.Hash, common.Hash) bool) error {
+	log.L().Info("StateDBAdapterRead Called ForEachStorage.")
 	addrs, err := address.FromBytes(addr[:])
 	if err != nil {
 		log.L().Error("ForEachStorage.", zap.Error(err), zap.String("addr", addr.String()))
@@ -244,6 +253,7 @@ func (stateDB *StateDBAdapterRead) ForEachStorage(addr common.Address, cb func(c
 
 // AccountState returns an account state
 func (stateDB *StateDBAdapterRead) AccountState(encodedAddr string) (*state.Account, error) {
+	log.L().Info("StateDBAdapterRead Called AccountState.")
 	//addr, err := address.FromString(encodedAddr)
 	//if err != nil {
 	//	return nil, errors.Wrap(err, "failed to get public key hash from encoded address")
@@ -335,6 +345,7 @@ func (stateDB *StateDBAdapterRead) GetCommittedState(evmAddr common.Address, k c
 
 // GetState gets state
 func (stateDB *StateDBAdapterRead) GetState(evmAddr common.Address, k common.Hash) common.Hash {
+	log.L().Info("StateDBAdapterRead Called GetState.")
 	//addr := hash.BytesToHash160(evmAddr[:])
 	//	//contract, err := stateDB.getContract(addr)
 	//	//if err != nil {
@@ -377,6 +388,7 @@ func (stateDB *StateDBAdapterRead) getNewContract(addr string) (Contract, error)
 	//if err != nil {
 	//	return nil, errors.Wrapf(err, "failed to load account state for address %x", addr)
 	//}
+	log.L().Info("StateDBAdapterRead Called getNewContract.")
 	account, err := stateDB.AccountState(addr)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load account state for address %s", addr)
