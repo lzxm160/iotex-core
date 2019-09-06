@@ -260,8 +260,9 @@ func (stateDB *StateDBAdapterRead) AccountState(encodedAddr string) (*state.Acco
 	//}
 	//addrHash := hash.BytesToHash160(addr.Bytes())
 	hei := fmt.Sprintf("%d", stateDB.blockHeight)
-	return stateDB.sf.AccountState(encodedAddr + hei)
+	//return stateDB.sf.AccountState(encodedAddr + hei)
 	//return accountutil.LoadAccount(stateDB.sm, addrHash)
+	return stateDB.cm.StateByAddr(encodedAddr + hei)
 }
 
 //======================================
