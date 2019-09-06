@@ -752,12 +752,12 @@ func (bc *blockchain) ExecuteContractRead2(caller address.Address, ex *action.Ex
 		return nil, nil, errors.Wrap(err, "failed to get block in ExecuteContractRead")
 	}
 	// make new statefactory
-	//ws, err := bc.sf.NewWorkingSet()
-	sf, err := factory.NewStateDB(bc.config, factory.DefaultStateDBOption())
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to NewStateDB")
-	}
-	ws, err := sf.NewWorkingSet()
+	ws, err := bc.sf.NewWorkingSet()
+	//sf, err := factory.NewStateDB(bc.config, factory.DefaultStateDBOption())
+	//if err != nil {
+	//	return nil, nil, errors.Wrap(err, "failed to NewStateDB")
+	//}
+	//ws, err := sf.NewWorkingSet()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to obtain working set from state factory")
 	}
@@ -778,7 +778,7 @@ func (bc *blockchain) ExecuteContractRead2(caller address.Address, ex *action.Ex
 	return evm.ExecuteContract2(
 		ctx,
 		ws,
-		sf,
+		bc.sf,
 		ex,
 		bc,
 		config.NewHeightUpgrade(bc.config),

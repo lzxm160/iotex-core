@@ -61,6 +61,7 @@ func NewStateDBAdapterRead(
 	blockHeight uint64,
 	executionHash hash.Hash256,
 ) *StateDBAdapterRead {
+
 	return &StateDBAdapterRead{
 		cm:               cm,
 		sm:               sm,
