@@ -10,8 +10,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/iotexproject/iotex-core/state/factory"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/iotexproject/go-pkgs/hash"
@@ -21,9 +19,7 @@ import (
 
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
-	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
-	"github.com/iotexproject/iotex-core/db/trie"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/state"
 )
@@ -32,23 +28,14 @@ type (
 
 	// StateDBAdapterRead represents the state db adapter for evm to access iotx blockchain
 	StateDBAdapterRead struct {
-		cm               protocol.ChainManager
-		sm               protocol.StateManager
-		sf               factory.Factory
-		logs             []*action.Log
-		err              error
-		blockHeight      uint64
-		executionHash    hash.Hash256
-		refund           uint64
-		cachedContract   contractMap
-		contractSnapshot map[int]contractMap   // snapshots of contracts
-		suicided         deleteAccount         // account/contract calling Suicide
-		suicideSnapshot  map[int]deleteAccount // snapshots of suicide accounts
-		preimages        preimageMap
-		preimageSnapshot map[int]preimageMap
-		dao              db.KVStore
-		cb               db.CachedBatch
-		hu               config.HeightUpgrade
+		cm            protocol.ChainManager
+		sm            protocol.StateManager
+		logs          []*action.Log
+		err           error
+		blockHeight   uint64
+		executionHash hash.Hash256
+		dao           db.KVStore
+		cb            db.CachedBatch
 	}
 )
 
@@ -56,29 +43,18 @@ type (
 func NewStateDBAdapterRead(
 	cm protocol.ChainManager,
 	sm protocol.StateManager,
-	sf factory.Factory,
-	hu config.HeightUpgrade,
 	blockHeight uint64,
 	executionHash hash.Hash256,
 ) *StateDBAdapterRead {
-
 	return &StateDBAdapterRead{
-		cm:               cm,
-		sm:               sm,
-		sf:               sf,
-		logs:             []*action.Log{},
-		err:              nil,
-		blockHeight:      blockHeight,
-		executionHash:    executionHash,
-		cachedContract:   make(contractMap),
-		contractSnapshot: make(map[int]contractMap),
-		suicided:         make(deleteAccount),
-		suicideSnapshot:  make(map[int]deleteAccount),
-		preimages:        make(preimageMap),
-		preimageSnapshot: make(map[int]preimageMap),
-		dao:              sm.GetDB(),
-		cb:               sm.GetCachedBatch(),
-		hu:               hu,
+		cm:            cm,
+		sm:            sm,
+		logs:          []*action.Log{},
+		err:           nil,
+		blockHeight:   blockHeight,
+		executionHash: executionHash,
+		dao:           sm.GetDB(),
+		cb:            sm.GetCachedBatch(),
 	}
 }
 
@@ -95,20 +71,6 @@ func (stateDB *StateDBAdapterRead) Error() error {
 
 // CreateAccount creates an account in iotx blockchain
 func (stateDB *StateDBAdapterRead) CreateAccount(evmAddr common.Address) {
-	//addr, err := address.FromBytes(evmAddr.Bytes())
-	//if err != nil {
-	//	log.L().Error("Failed to convert evm address.", zap.Error(err))
-	//	return
-	//}
-	//_, err = accountutil.LoadOrCreateAccount(stateDB.sm, addr.String(), big.NewInt(0))
-	////if err != nil {
-	////	log.L().Error("Failed to create account.", zap.Error(err))
-	////	stateDB.logError(err)
-	////	return
-	////}
-	////log.L().Debug("Called CreateAccount.", log.Hex("addrHash", evmAddr[:]))
-	//hei := fmt.Sprintf("%d", stateDB.blockHeight)
-	//stateDB.sm, _ = stateDB.sf.AccountState(addr.String() + hei)
 	log.L().Info("StateDBAdapterRead Called CreateAccount.")
 }
 
@@ -142,9 +104,6 @@ func (stateDB *StateDBAdapterRead) GetNonce(evmAddr common.Address) uint64 {
 		// stateDB.logError(err)
 		return 0
 	}
-	log.L().Debug("Called GetNonce.",
-		zap.String("address", addr.String()),
-		zap.Uint64("nonce", state.Nonce))
 	return state.Nonce
 }
 
@@ -215,53 +174,13 @@ func (stateDB *StateDBAdapterRead) AddPreimage(hash common.Hash, preimage []byte
 // ForEachStorage loops each storage
 func (stateDB *StateDBAdapterRead) ForEachStorage(addr common.Address, cb func(common.Hash, common.Hash) bool) error {
 	log.L().Info("StateDBAdapterRead Called ForEachStorage.")
-	addrs, err := address.FromBytes(addr[:])
-	if err != nil {
-		log.L().Error("ForEachStorage.", zap.Error(err), zap.String("addr", addr.String()))
-		return err
-	}
-	ctt, err := stateDB.getContract(addrs.String())
-	if err != nil {
-		// stateDB.err = err
-		return err
-	}
-	iter, err := ctt.Iterator()
-	if err != nil {
-		// stateDB.err = err
-		return err
-	}
-
-	for {
-		key, value, err := iter.Next()
-		if err == trie.ErrEndOfIterator {
-			// hit the end of the iterator, exit now
-			return nil
-		}
-		if err != nil {
-			return err
-		}
-		ckey := common.Hash{}
-		copy(ckey[:], key[:])
-		cvalue := common.Hash{}
-		copy(cvalue[:], value[:])
-		if !cb(ckey, cvalue) {
-			return nil
-		}
-	}
 	return nil
 }
 
 // AccountState returns an account state
 func (stateDB *StateDBAdapterRead) AccountState(encodedAddr string) (*state.Account, error) {
 	log.L().Info("StateDBAdapterRead Called AccountState.")
-	//addr, err := address.FromString(encodedAddr)
-	//if err != nil {
-	//	return nil, errors.Wrap(err, "failed to get public key hash from encoded address")
-	//}
-	//addrHash := hash.BytesToHash160(addr.Bytes())
 	hei := fmt.Sprintf("%d", stateDB.blockHeight)
-	//return stateDB.sf.AccountState(encodedAddr + hei)
-	//return accountutil.LoadAccount(stateDB.sm, addrHash)
 	return stateDB.cm.StateByAddr(encodedAddr + hei)
 }
 
@@ -283,25 +202,10 @@ func (stateDB *StateDBAdapterRead) GetCodeHash(evmAddr common.Address) common.Ha
 
 // GetCode returns contract's code
 func (stateDB *StateDBAdapterRead) GetCode(evmAddr common.Address) []byte {
-	//addr := hash.BytesToHash160(evmAddr[:])
-	//if contract, ok := stateDB.cachedContract[addr]; ok {
-	//	code, err := contract.GetCode()
-	//	if err != nil {
-	//		log.L().Error("Failed to get code hash.", zap.Error(err))
-	//		return nil
-	//	}
-	//	return code
-	//}
-	//account, err := accountutil.LoadAccount(stateDB.sm, addr)
-	//if err != nil {
-	//	log.L().Error("Failed to load account state for address.", log.Hex("addrHash", addr[:]))
-	//	return nil
-	//}
 	h := stateDB.GetCodeHash(evmAddr)
 	code, err := stateDB.dao.Get(CodeKVNameSpace, h[:])
 	if err != nil {
-		// TODO: Suppress the as it's too much now
-		//log.L().Error("Failed to get code from trie.", zap.Error(err))
+		log.L().Error("Called GetCode.", zap.Error(err))
 		return nil
 	}
 	return code
@@ -325,36 +229,11 @@ func (stateDB *StateDBAdapterRead) SetCode(evmAddr common.Address, code []byte) 
 func (stateDB *StateDBAdapterRead) GetCommittedState(evmAddr common.Address, k common.Hash) common.Hash {
 	codeHash := common.Hash{}
 	return codeHash
-	//addr, err := address.FromBytes(evmAddr[:])
-	//if err != nil {
-	//	return codeHash
-	//}
-	////addr := hash.BytesToHash160(evmAddr[:])
-	//contract, err := stateDB.getContract(addr.String())
-	//if err != nil {
-	//	log.L().Error("Failed to get contract.", zap.Error(err), zap.String("addrHash", addr.String()))
-	//	stateDB.logError(err)
-	//	return common.Hash{}
-	//}
-	//v, err := contract.GetCommittedState(hash.BytesToHash256(k[:]))
-	//if err != nil {
-	//	log.L().Error("Failed to get committed state.", zap.Error(err))
-	//	stateDB.logError(err)
-	//	return common.Hash{}
-	//}
-	//return common.BytesToHash(v)
 }
 
 // GetState gets state
 func (stateDB *StateDBAdapterRead) GetState(evmAddr common.Address, k common.Hash) common.Hash {
 	log.L().Info("StateDBAdapterRead Called GetState.")
-	//addr := hash.BytesToHash160(evmAddr[:])
-	//	//contract, err := stateDB.getContract(addr)
-	//	//if err != nil {
-	//	//	log.L().Error("Failed to get contract.", zap.Error(err), log.Hex("addrHash", addr[:]))
-	//	//	stateDB.logError(err)
-	//	//	return common.Hash{}
-	//	//}
 	codeHash := common.Hash{}
 	addr, err := address.FromBytes(evmAddr[:])
 	if err != nil {
@@ -386,10 +265,6 @@ func (stateDB *StateDBAdapterRead) getContract(addr string) (Contract, error) {
 }
 
 func (stateDB *StateDBAdapterRead) getNewContract(addr string) (Contract, error) {
-	//account, err := accountutil.LoadAccount(stateDB.sm, addr)
-	//if err != nil {
-	//	return nil, errors.Wrapf(err, "failed to load account state for address %x", addr)
-	//}
 	log.L().Info("StateDBAdapterRead Called getNewContract.")
 	account, err := stateDB.AccountState(addr)
 	if err != nil {

@@ -12,8 +12,6 @@ import (
 	"math"
 	"math/big"
 
-	"github.com/iotexproject/iotex-core/state/factory"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/params"
@@ -114,25 +112,18 @@ func NewParamsRead(
 	raCtx protocol.RunActionsCtx,
 	execution *action.Execution,
 	stateDB *StateDBAdapterRead,
-	hu config.HeightUpgrade,
 ) (*Params, error) {
+	if execution.Contract() == action.EmptyAddress {
+		return nil, errors.New("contract's address is empty")
+	}
 	executorAddr := common.BytesToAddress(raCtx.Caller.Bytes())
 	var contractAddrPointer *common.Address
-	if execution.Contract() != action.EmptyAddress {
-		contract, err := address.FromString(execution.Contract())
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to convert encoded contract address to address")
-		}
-		contractAddr := common.BytesToAddress(contract.Bytes())
-		contractAddrPointer = &contractAddr
+	contract, err := address.FromString(execution.Contract())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to convert encoded contract address to address")
 	}
-
-	gasLimit := execution.GasLimit()
-	// Reset gas limit to the system wide action gas limit cap if it's greater than it
-	if hu.IsPre(config.Aleutian, raCtx.BlockHeight) && gasLimit > preAleutianActionGasLimit {
-		gasLimit = preAleutianActionGasLimit
-	}
-
+	contractAddr := common.BytesToAddress(contract.Bytes())
+	contractAddrPointer = &contractAddr
 	context := vm.Context{
 		CanTransfer: CanTransfer,
 		Transfer:    MakeTransfer,
@@ -142,7 +133,6 @@ func NewParamsRead(
 		BlockNumber: new(big.Int).SetUint64(raCtx.BlockHeight),
 		Time:        new(big.Int).SetInt64(raCtx.BlockTimeStamp.Unix()),
 		Difficulty:  new(big.Int).SetUint64(uint64(50)),
-		GasLimit:    gasLimit,
 		GasPrice:    execution.GasPrice(),
 	}
 
@@ -152,7 +142,7 @@ func NewParamsRead(
 		raCtx.Caller.String(),
 		execution.Amount(),
 		contractAddrPointer,
-		gasLimit,
+		0,
 		execution.Data(),
 	}, nil
 }
@@ -250,15 +240,13 @@ func ExecuteContract(
 func ExecuteContract2(
 	ctx context.Context,
 	sm protocol.StateManager,
-	sf factory.Factory,
 	execution *action.Execution,
 	cm protocol.ChainManager,
-	hu config.HeightUpgrade,
 ) ([]byte, *action.Receipt, error) {
 	log.L().Info("enter ExecuteContract2")
 	raCtx := protocol.MustGetRunActionsCtx(ctx)
-	stateDB := NewStateDBAdapterRead(cm, sm, sf, hu, raCtx.BlockHeight, execution.Hash())
-	ps, err := NewParamsRead(raCtx, execution, stateDB, hu)
+	stateDB := NewStateDBAdapterRead(cm, sm, raCtx.BlockHeight, execution.Hash())
+	ps, err := NewParamsRead(raCtx, execution, stateDB)
 	if err != nil {
 		return nil, nil, err
 	}

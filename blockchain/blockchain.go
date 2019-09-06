@@ -746,18 +746,12 @@ func (bc *blockchain) RemoveSubscriber(s BlockCreationSubscriber) error {
 //=====================================
 func (bc *blockchain) ExecuteContractRead2(caller address.Address, ex *action.Execution, height uint64) ([]byte, *action.Receipt, error) {
 	log.L().Info("ExecuteContractRead2", zap.Uint64("height", height))
-
 	header, err := bc.BlockHeaderByHeight(height)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to get block in ExecuteContractRead")
 	}
 	// make new statefactory
 	ws, err := bc.sf.NewWorkingSet()
-	//sf, err := factory.NewStateDB(bc.config, factory.DefaultStateDBOption())
-	//if err != nil {
-	//	return nil, nil, errors.Wrap(err, "failed to NewStateDB")
-	//}
-	//ws, err := sf.NewWorkingSet()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to obtain working set from state factory")
 	}
@@ -778,10 +772,8 @@ func (bc *blockchain) ExecuteContractRead2(caller address.Address, ex *action.Ex
 	return evm.ExecuteContract2(
 		ctx,
 		ws,
-		bc.sf,
 		ex,
 		bc,
-		config.NewHeightUpgrade(bc.config),
 	)
 }
 
