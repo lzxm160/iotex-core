@@ -386,8 +386,8 @@ func (api *Server) ReadContract(ctx context.Context, in *iotexapi.ReadContractRe
 		if err != nil {
 			return nil, status.Error(codes.Internal, "convert error")
 		}
-		log.L().Info("api before read2", zap.Uint64("height", hei))
-		retval, receipt, err = api.bc.ExecuteContractRead2(callerAddr, sc, hei)
+		log.L().Info("api before ExecuteContractReadHistory", zap.Uint64("height", hei))
+		retval, receipt, err = api.bc.ExecuteContractReadHistory(callerAddr, sc, hei)
 		if err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
 		}

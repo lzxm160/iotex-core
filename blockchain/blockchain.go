@@ -750,7 +750,7 @@ func (bc *blockchain) ExecuteContractReadHistory(caller address.Address, ex *act
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to get block in ExecuteContractRead")
 	}
-	// make new statefactory
+
 	ws, err := bc.sf.NewWorkingSet()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to obtain working set from state factory")
