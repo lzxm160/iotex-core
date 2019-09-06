@@ -153,7 +153,7 @@ type Blockchain interface {
 	// ExecuteContractRead runs a read-only smart contract operation, this is done off the network since it does not
 	// cause any state change
 	ExecuteContractRead(caller address.Address, ex *action.Execution) ([]byte, *action.Receipt, error)
-	ExecuteContractRead2(caller address.Address, ex *action.Execution, height uint64) ([]byte, *action.Receipt, error)
+	ExecuteContractReadHistory(caller address.Address, ex *action.Execution, height uint64) ([]byte, *action.Receipt, error)
 	// AddSubscriber make you listen to every single produced block
 	AddSubscriber(BlockCreationSubscriber) error
 
@@ -744,8 +744,8 @@ func (bc *blockchain) RemoveSubscriber(s BlockCreationSubscriber) error {
 //======================================
 // internal functions
 //=====================================
-func (bc *blockchain) ExecuteContractRead2(caller address.Address, ex *action.Execution, height uint64) ([]byte, *action.Receipt, error) {
-	log.L().Info("ExecuteContractRead2", zap.Uint64("height", height))
+func (bc *blockchain) ExecuteContractReadHistory(caller address.Address, ex *action.Execution, height uint64) ([]byte, *action.Receipt, error) {
+	log.L().Info("ExecuteContractReadHistory", zap.Uint64("height", height))
 	header, err := bc.BlockHeaderByHeight(height)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to get block in ExecuteContractRead")
@@ -769,7 +769,7 @@ func (bc *blockchain) ExecuteContractRead2(caller address.Address, ex *action.Ex
 		GasPrice:       big.NewInt(0),
 		IntrinsicGas:   0,
 	})
-	return evm.ExecuteContract2(
+	return evm.ExecuteContractRead(
 		ctx,
 		ws,
 		ex,

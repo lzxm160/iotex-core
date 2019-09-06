@@ -25,7 +25,6 @@ import (
 )
 
 type (
-
 	// StateDBAdapterRead represents the state db adapter for evm to access iotx blockchain
 	StateDBAdapterRead struct {
 		cm            protocol.ChainManager
@@ -39,7 +38,7 @@ type (
 	}
 )
 
-// NewStateDBAdapter creates a new state db with iotex blockchain
+// NewStateDBAdapterRead creates a new state db for read contract
 func NewStateDBAdapterRead(
 	cm protocol.ChainManager,
 	sm protocol.StateManager,
@@ -101,7 +100,6 @@ func (stateDB *StateDBAdapterRead) GetNonce(evmAddr common.Address) uint64 {
 	state, err := stateDB.AccountState(addr.String())
 	if err != nil {
 		log.L().Error("Failed to get nonce.", zap.Error(err))
-		// stateDB.logError(err)
 		return 0
 	}
 	return state.Nonce
@@ -130,7 +128,7 @@ func (stateDB *StateDBAdapterRead) GetRefund() uint64 {
 
 // Suicide kills the contract
 func (stateDB *StateDBAdapterRead) Suicide(evmAddr common.Address) bool {
-	return true
+	return false
 }
 
 // HasSuicided returns whether the contract has been killed

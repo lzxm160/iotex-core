@@ -237,7 +237,7 @@ func ExecuteContract(
 	log.S().Debugf("Receipt: %+v, %v", receipt, err)
 	return retval, receipt, nil
 }
-func ExecuteContract2(
+func ExecuteContractRead(
 	ctx context.Context,
 	sm protocol.StateManager,
 	execution *action.Execution,
@@ -250,7 +250,7 @@ func ExecuteContract2(
 	if err != nil {
 		return nil, nil, err
 	}
-	retval, _, remainingGas, contractAddress, statusCode, err := executeInEVM2(ps, stateDB, raCtx.GasLimit, raCtx.BlockHeight)
+	retval, _, remainingGas, contractAddress, statusCode, err := executeInEVMRead(ps, stateDB, raCtx.GasLimit, raCtx.BlockHeight)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -333,7 +333,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64, b
 	}
 	return ret, evmParams.gas, remainingGas, contractRawAddress, uint64(iotextypes.ReceiptStatus_Success), nil
 }
-func executeInEVM2(evmParams *Params, stateDB *StateDBAdapterRead, gasLimit uint64, blockHeight uint64) ([]byte, uint64, uint64, string, uint64, error) {
+func executeInEVMRead(evmParams *Params, stateDB *StateDBAdapterRead, gasLimit uint64, blockHeight uint64) ([]byte, uint64, uint64, string, uint64, error) {
 	log.L().Info("enter executeInEVM2")
 	remainingGas := evmParams.gas
 	var config vm.Config
@@ -350,12 +350,9 @@ func executeInEVM2(evmParams *Params, stateDB *StateDBAdapterRead, gasLimit uint
 	var ret []byte
 	var evmErr error
 	if evmParams.contract == nil {
-		// create contract
 		log.L().Info("evmParams.contract", zap.Error(err))
 		return nil, 0, 0, "", 0, errors.New("contract is not exist")
 	} else {
-		//stateDB.SetNonce(evmParams.context.Origin, stateDB.GetNonce(evmParams.context.Origin)+1)
-		// process contract
 		log.L().Info("evm.Call")
 		ret, remainingGas, evmErr = evm.Call(executor, *evmParams.contract, evmParams.data, remainingGas, evmParams.amount)
 	}
