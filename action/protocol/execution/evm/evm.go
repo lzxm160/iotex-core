@@ -306,7 +306,7 @@ func executeInEVM2(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64, 
 		log.L().Info("evmParams.contract", zap.Error(err))
 		return nil, 0, 0, "", 0, errors.New("contract is not exist")
 	} else {
-		stateDB.SetNonce(evmParams.context.Origin, stateDB.GetNonce(evmParams.context.Origin)+1)
+		//stateDB.SetNonce(evmParams.context.Origin, stateDB.GetNonce(evmParams.context.Origin)+1)
 		// process contract
 		ret, remainingGas, evmErr = evm.Call(executor, *evmParams.contract, evmParams.data, remainingGas, evmParams.amount)
 	}
