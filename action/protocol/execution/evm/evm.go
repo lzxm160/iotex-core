@@ -12,6 +12,8 @@ import (
 	"math"
 	"math/big"
 
+	"github.com/iotexproject/iotex-core/state/factory"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/params"
@@ -108,6 +110,52 @@ func NewParams(
 		execution.Data(),
 	}, nil
 }
+func NewParamsRead(
+	raCtx protocol.RunActionsCtx,
+	execution *action.Execution,
+	stateDB *StateDBAdapterRead,
+	hu config.HeightUpgrade,
+) (*Params, error) {
+	executorAddr := common.BytesToAddress(raCtx.Caller.Bytes())
+	var contractAddrPointer *common.Address
+	if execution.Contract() != action.EmptyAddress {
+		contract, err := address.FromString(execution.Contract())
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to convert encoded contract address to address")
+		}
+		contractAddr := common.BytesToAddress(contract.Bytes())
+		contractAddrPointer = &contractAddr
+	}
+
+	gasLimit := execution.GasLimit()
+	// Reset gas limit to the system wide action gas limit cap if it's greater than it
+	if hu.IsPre(config.Aleutian, raCtx.BlockHeight) && gasLimit > preAleutianActionGasLimit {
+		gasLimit = preAleutianActionGasLimit
+	}
+
+	context := vm.Context{
+		CanTransfer: CanTransfer,
+		Transfer:    MakeTransfer,
+		GetHash:     GetHashFnRead(stateDB),
+		Origin:      executorAddr,
+		Coinbase:    common.BytesToAddress(raCtx.Producer.Bytes()),
+		BlockNumber: new(big.Int).SetUint64(raCtx.BlockHeight),
+		Time:        new(big.Int).SetInt64(raCtx.BlockTimeStamp.Unix()),
+		Difficulty:  new(big.Int).SetUint64(uint64(50)),
+		GasLimit:    gasLimit,
+		GasPrice:    execution.GasPrice(),
+	}
+
+	return &Params{
+		context,
+		execution.Nonce(),
+		raCtx.Caller.String(),
+		execution.Amount(),
+		contractAddrPointer,
+		gasLimit,
+		execution.Data(),
+	}, nil
+}
 
 // GetHashFn returns a GetHashFunc which retrieves hashes by number
 func GetHashFn(stateDB *StateDBAdapter) func(n uint64) common.Hash {
@@ -120,7 +168,16 @@ func GetHashFn(stateDB *StateDBAdapter) func(n uint64) common.Hash {
 		return common.Hash{}
 	}
 }
+func GetHashFnRead(stateDB *StateDBAdapterRead) func(n uint64) common.Hash {
+	return func(n uint64) common.Hash {
+		hash, err := stateDB.cm.GetHashByHeight(stateDB.blockHeight - n)
+		if err != nil {
+			return common.BytesToHash(hash[:])
+		}
 
+		return common.Hash{}
+	}
+}
 func securityDeposit(ps *Params, stateDB vm.StateDB, gasLimit uint64) error {
 	executorNonce := stateDB.GetNonce(ps.context.Origin)
 	if executorNonce > ps.nonce {
@@ -193,13 +250,14 @@ func ExecuteContract(
 func ExecuteContract2(
 	ctx context.Context,
 	sm protocol.StateManager,
+	sf factory.Factory,
 	execution *action.Execution,
 	cm protocol.ChainManager,
 	hu config.HeightUpgrade,
 ) ([]byte, *action.Receipt, error) {
 	raCtx := protocol.MustGetRunActionsCtx(ctx)
-	stateDB := NewStateDBAdapter(cm, sm, hu, raCtx.BlockHeight, execution.Hash())
-	ps, err := NewParams(raCtx, execution, stateDB, hu)
+	stateDB := NewStateDBAdapterRead(cm, sm, sf, hu, raCtx.BlockHeight, execution.Hash())
+	ps, err := NewParamsRead(raCtx, execution, stateDB, hu)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -286,7 +344,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64, b
 	}
 	return ret, evmParams.gas, remainingGas, contractRawAddress, uint64(iotextypes.ReceiptStatus_Success), nil
 }
-func executeInEVM2(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64, blockHeight uint64) ([]byte, uint64, uint64, string, uint64, error) {
+func executeInEVM2(evmParams *Params, stateDB *StateDBAdapterRead, gasLimit uint64, blockHeight uint64) ([]byte, uint64, uint64, string, uint64, error) {
 	remainingGas := evmParams.gas
 	var config vm.Config
 	chainConfig := getChainConfig()

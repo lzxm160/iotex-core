@@ -206,7 +206,12 @@ func (stateDB *StateDBAdapterRead) AddPreimage(hash common.Hash, preimage []byte
 
 // ForEachStorage loops each storage
 func (stateDB *StateDBAdapterRead) ForEachStorage(addr common.Address, cb func(common.Hash, common.Hash) bool) error {
-	ctt, err := stateDB.getContract(hash.BytesToHash160(addr[:]))
+	addrs, err := address.FromBytes(addr[:])
+	if err != nil {
+		log.L().Error("ForEachStorage.", zap.Error(err), zap.String("addr", addr.String()))
+		return err
+	}
+	ctt, err := stateDB.getContract(addrs.String())
 	if err != nil {
 		// stateDB.err = err
 		return err
