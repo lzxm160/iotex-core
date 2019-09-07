@@ -44,8 +44,10 @@ const (
 )
 
 var (
-	// AccountMaxVersionPrefix is for account history
-	AccountMaxVersionPrefix = []byte("vp.")
+	// AccountMaxHistoryIndexPrefix is for account history
+	AccountMaxHistoryIndexPrefix = []byte("amp.")
+	// AccountIndexHeightPrefix is for account history write index to height map
+	AccountIndexHeightPrefix = []byte("aip.")
 )
 
 type (

@@ -10,6 +10,8 @@ import (
 	"context"
 	"encoding/binary"
 
+	"github.com/iotexproject/iotex-core/config"
+
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -30,6 +32,7 @@ type stateTX struct {
 	cb             db.CachedBatch // cached batch for pending writes
 	dao            db.KVStore     // the underlying DB for account/contract storage
 	actionHandlers []protocol.ActionHandler
+	cfg            config.DB
 }
 
 // newStateTX creates a new state tx
@@ -37,12 +40,14 @@ func newStateTX(
 	version uint64,
 	kv db.KVStore,
 	actionHandlers []protocol.ActionHandler,
+	cfg config.DB,
 ) *stateTX {
 	return &stateTX{
 		ver:            version,
 		cb:             db.NewCachedBatch(),
 		dao:            kv,
 		actionHandlers: actionHandlers,
+		cfg:            cfg,
 	}
 }
 
@@ -181,11 +186,14 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 		return errors.Wrapf(err, "failed to convert account %v to bytes", s)
 	}
 	stx.cb.Put(AccountKVNameSpace, pkHash[:], ss, "error when putting k = %x", pkHash)
+	if !stx.cfg.EnableHistoryState {
+		return nil
+	}
 	return stx.putIndex(pkHash, ss)
 }
 
-func (stx *stateTX) getMaxVersion(pkHash hash.Hash160) (uint64, error) {
-	indexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
+func (stx *stateTX) getMaxIndex(pkHash hash.Hash160) (uint64, error) {
+	indexKey := append(AccountMaxHistoryIndexPrefix, pkHash[:]...)
 	value, err := stx.dao.Get(AccountKVNameSpace, indexKey)
 	if err != nil {
 		return 0, err
@@ -196,23 +204,40 @@ func (stx *stateTX) getMaxVersion(pkHash hash.Hash160) (uint64, error) {
 func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	//stx.ver is last height,should be this block to pack action
 	//binary.BigEndian.PutUint64(currentVersion, stx.ver+1)
+
+	maxIndex, _ := stx.getMaxIndex(pkHash)
+	//if (maxVersion != 0) && (maxVersion != 1) && (maxVersion > version) {
+	//	return nil
+	//}
+	// add delete history later
+	//if maxIndex > stx.cfg.HistoryStateHeight {
+	//	stx.deleteIndex(pkHash, maxIndex-stx.cfg.HistoryStateHeight)
+	//}
 	log.L().Info(
 		"putIndex",
-		zap.Uint64("stx.ver+1", stx.ver+1))
-	version := stx.ver + 1
-	maxVersion, _ := stx.getMaxVersion(pkHash)
-	if (maxVersion != 0) && (maxVersion != 1) && (maxVersion > version) {
-		return nil
-	}
-
-	currentVersion := make([]byte, 8)
-	binary.BigEndian.PutUint64(currentVersion, version)
-	indexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
-	err := stx.dao.Put(AccountKVNameSpace, indexKey, currentVersion)
+		zap.Uint64("stx.ver+1", stx.ver+1),
+		zap.Uint64("index", maxIndex))
+	currentIndex := make([]byte, 8)
+	binary.BigEndian.PutUint64(currentIndex, maxIndex+1)
+	indexKey := append(AccountMaxHistoryIndexPrefix, pkHash[:]...)
+	err := stx.dao.Put(AccountKVNameSpace, indexKey, currentIndex)
 	if err != nil {
 		return err
 	}
-	stateKey := append(pkHash[:], currentVersion...)
+	version := stx.ver + 1
+	currentHeight := make([]byte, 8)
+	binary.BigEndian.PutUint64(currentHeight, version)
+	// record index->height map
+	indexHeightKey := append(AccountIndexHeightPrefix, pkHash[:]...)
+	maxIndexBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(maxIndexBytes, maxIndex)
+	indexHeightKey = append(indexHeightKey, maxIndexBytes...)
+	err = stx.dao.Put(AccountKVNameSpace, indexHeightKey, currentHeight)
+	if err != nil {
+		return err
+	}
+
+	stateKey := append(pkHash[:], currentHeight...)
 	return stx.dao.Put(AccountKVNameSpace, stateKey, ss)
 }
 

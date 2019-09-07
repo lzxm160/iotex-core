@@ -7,7 +7,6 @@
 package factory
 
 import (
-	"bytes"
 	"context"
 	"encoding/binary"
 	"fmt"
@@ -16,7 +15,6 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
-	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
 
 	"github.com/iotexproject/go-pkgs/hash"
@@ -38,6 +36,7 @@ type stateDB struct {
 	dao                db.KVStore               // the underlying DB for account/contract storage
 	actionHandlers     []protocol.ActionHandler // the handlers to handle actions
 	timerFactory       *prometheustimer.TimerFactory
+	cfg                config.DB // for history state
 }
 
 // StateDBOption sets stateDB construction parameter
@@ -62,6 +61,7 @@ func DefaultStateDBOption() StateDBOption {
 			return errors.New("Invalid empty trie db path")
 		}
 		cfg.DB.DbPath = dbPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
+		sdb.cfg = cfg.DB
 		sdb.dao = db.NewBoltDB(cfg.DB)
 		return nil
 	}
@@ -173,7 +173,7 @@ func (sdb *stateDB) Height() (uint64, error) {
 func (sdb *stateDB) NewWorkingSet() (WorkingSet, error) {
 	sdb.mutex.RLock()
 	defer sdb.mutex.RUnlock()
-	return newStateTX(sdb.currentChainHeight, sdb.dao, sdb.actionHandlers), nil
+	return newStateTX(sdb.currentChainHeight, sdb.dao, sdb.actionHandlers, sdb.cfg), nil
 }
 
 // Commit persists all changes in RunActions() into the DB
@@ -262,55 +262,79 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 	//binary.BigEndian.PutUint64(heightBytes, height)
 	//heightKey := append(addr[:], heightBytes...)
 
-	maxVersion := uint64(0)
-	indexKey := append(AccountMaxVersionPrefix, addr[:]...)
-	value, err := sdb.dao.Get(AccountKVNameSpace, indexKey)
-	if err == nil {
-		maxVersion = binary.BigEndian.Uint64(value)
-	}
-	if maxVersion == 0 {
+	maxIndex := uint64(0)
+	maxIndexKey := append(AccountMaxHistoryIndexPrefix, addr[:]...)
+	value, err := sdb.dao.Get(AccountKVNameSpace, maxIndexKey)
+	if err != nil {
 		return errors.New("cannot find state")
 	}
-	log.L().Info("////////////////", zap.Uint64("maxVersion", maxVersion))
-	db := sdb.dao.DB()
-	boltdb, ok := db.(*bolt.DB)
-	if !ok {
-		return errors.New("convert error")
+
+	maxIndex = binary.BigEndian.Uint64(value)
+
+	log.L().Info("////////////////stateHeight", zap.Uint64("maxIndex", maxIndex), zap.Uint64("height", height))
+	indexHeightKey := append(AccountIndexHeightPrefix, addr[:]...)
+	for i := maxIndex; i > 0; i-- {
+		indexBytes := make([]byte, 8)
+		binary.BigEndian.PutUint64(indexBytes, i)
+		HeightKey := append(indexHeightKey, indexBytes...)
+		heightBytes, err := sdb.dao.Get(AccountKVNameSpace, HeightKey)
+		if err != nil {
+			return err
+		}
+		hei := binary.BigEndian.Uint64(heightBytes)
+		log.L().Info("////////////////", zap.Uint64("k", hei), zap.Uint64("height", height))
+		if hei < height {
+			log.L().Info("////////////////", zap.Uint64("k", hei), zap.Uint64("height", height))
+			stateKey := append(addr[:], heightBytes...)
+			value, err := sdb.dao.Get(AccountKVNameSpace, stateKey)
+			if err != nil {
+				return errors.New("get state error")
+			}
+			if err := state.Deserialize(s, value); err != nil {
+				return errors.Wrapf(err, "error when deserializing state data into %T", s)
+			}
+		}
 	}
-	bytess := make([]byte, 8)
-	binary.BigEndian.PutUint64(bytess, maxVersion)
-	maxStateKey := append(addr[:], bytess...)
+	return errors.New("cannot find state")
+	//db := sdb.dao.DB()
+	//boltdb, ok := db.(*bolt.DB)
+	//if !ok {
+	//	return errors.New("convert error")
+	//}
+	//bytess := make([]byte, 8)
+	//binary.BigEndian.PutUint64(bytess, maxVersion)
+	//maxStateKey := append(addr[:], bytess...)
 
 	//heightBytes := make([]byte, 8)
 	//binary.BigEndian.PutUint64(heightBytes, height)
 	//heightStateKey := append(addr[:], heightBytes...)
 	//height -= 2
-	err = boltdb.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
-		for k, v := c.Seek(maxStateKey); k != nil; k, v = c.Prev() {
-			if len(k) <= 20 {
-				return errors.New("cannot find state")
-			}
-			if bytes.Compare(k[:20], addr[:20]) != 0 {
-				return errors.New("address is diff,cannot find state")
-			}
-			kHeight := binary.BigEndian.Uint64(k[20:])
-			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
-			if kHeight == 0 || kHeight == 1 {
-				return errors.New("cannot find state")
-			}
-			if kHeight <= height {
-				log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
-				if err := state.Deserialize(s, v); err != nil {
-					return errors.Wrapf(err, "error when deserializing state data into %T", s)
-				}
-				return nil
-			}
-		}
-		return errors.New("cannot find state")
-	})
+	//err = boltdb.View(func(tx *bolt.Tx) error {
+	//	c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
+	//	for k, v := c.Seek(maxStateKey); k != nil; k, v = c.Prev() {
+	//		if len(k) <= 20 {
+	//			return errors.New("cannot find state")
+	//		}
+	//		if bytes.Compare(k[:20], addr[:20]) != 0 {
+	//			return errors.New("address is diff,cannot find state")
+	//		}
+	//		kHeight := binary.BigEndian.Uint64(k[20:])
+	//		log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
+	//		if kHeight == 0 || kHeight == 1 {
+	//			return errors.New("cannot find state")
+	//		}
+	//		if kHeight <= height {
+	//			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
+	//			if err := state.Deserialize(s, v); err != nil {
+	//				return errors.Wrapf(err, "error when deserializing state data into %T", s)
+	//			}
+	//			return nil
+	//		}
+	//	}
+	//	return errors.New("cannot find state")
+	//})
 
-	return err
+	//return err
 }
 
 func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, err error) {
