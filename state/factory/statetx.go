@@ -200,7 +200,33 @@ func (stx *stateTX) getMaxIndex(pkHash hash.Hash160) (uint64, error) {
 	}
 	return binary.BigEndian.Uint64(value), nil
 }
-
+func (stx *stateTX) deleteIndex(pkHash hash.Hash160, maxIndex uint64) {
+	indexHeightKey := append(AccountIndexHeightPrefix, pkHash[:]...)
+	deleteHeight := stx.ver + 1 - stx.cfg.HistoryStateHeight
+	for i := maxIndex; i > 0; i-- {
+		indexBytes := make([]byte, 8)
+		binary.BigEndian.PutUint64(indexBytes, i)
+		HeightKey := append(indexHeightKey, indexBytes...)
+		heightBytes, err := stx.dao.Get(AccountKVNameSpace, HeightKey)
+		if err != nil {
+			return
+		}
+		err = stx.dao.Delete(AccountKVNameSpace, HeightKey)
+		if err != nil {
+			return
+		}
+		hei := binary.BigEndian.Uint64(heightBytes)
+		log.L().Info("////////////////deleteIndex", zap.Uint64("k", hei))
+		if hei < deleteHeight {
+			log.L().Info("////////////////", zap.Uint64("k", hei), zap.Uint64("deleteHeight", deleteHeight))
+			stateKey := append(pkHash[:], heightBytes...)
+			err := stx.dao.Delete(AccountKVNameSpace, stateKey)
+			if err != nil {
+				return
+			}
+		}
+	}
+}
 func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	//stx.ver is last height,should be this block to pack action
 	//binary.BigEndian.PutUint64(currentVersion, stx.ver+1)
@@ -210,9 +236,8 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	//	return nil
 	//}
 	// add delete history later
-	//if maxIndex > stx.cfg.HistoryStateHeight {
-	//	stx.deleteIndex(pkHash, maxIndex-stx.cfg.HistoryStateHeight)
-	//}
+	stx.deleteIndex(pkHash, maxIndex)
+
 	log.L().Info(
 		"putIndex",
 		zap.Uint64("stx.ver+1", stx.ver+1),
