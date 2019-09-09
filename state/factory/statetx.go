@@ -260,6 +260,7 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160)error{
 				log.L().Info("////////////////258deleteAccountHistory", zap.Uint64("k", kHeight), zap.Uint64("deleteHeight", deleteHeight))
 				b.Delete(k)
 			}else{
+				log.L().Info("////////////////263deleteAccountHistory", zap.Uint64("k", kHeight), zap.Uint64("deleteHeight", deleteHeight))
 				// 对于高于这个高度的直接返回就不用再迭代
 				return nil
 			}
