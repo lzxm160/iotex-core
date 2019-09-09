@@ -275,7 +275,7 @@ func (stx *stateTX) deleteHistory()error  {
 	err := boltdb.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
 		for k, _ := c.Seek(AccountMaxVersionPrefix); k != nil; k, _ = c.Prev() {
-			addrHash:=k[:]
+			addrHash:=k[:20]
 			addr,err:=address.FromBytes(addrHash)
 			if err!=nil{
 				log.L().Info("////////////////deleteHistory",zap.Error(err))
