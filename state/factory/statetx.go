@@ -230,6 +230,7 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160)error{
 	db := stx.dao.DB()
 	boltdb, ok := db.(*bolt.DB)
 	if !ok {
+		log.L().Info("////////////////convert to db error")
 		return nil
 	}
 	prefix := pkHash[:]
