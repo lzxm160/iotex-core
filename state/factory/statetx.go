@@ -7,10 +7,12 @@
 package factory
 
 import (
+	"bytes"
 	"context"
 	"encoding/binary"
 
 	"github.com/pkg/errors"
+	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
 
 	"github.com/iotexproject/go-pkgs/hash"
@@ -124,6 +126,9 @@ func (stx *stateTX) RunAction(
 
 // UpdateBlockLevelInfo runs action in the block and track pending changes in working set
 func (stx *stateTX) UpdateBlockLevelInfo(blockHeight uint64) hash.Hash256 {
+	if blockHeight%100==0{
+		stx.deleteHistory()
+	}
 	stx.blkHeight = blockHeight
 	// Persist current chain Height
 	h := byteutil.Uint64ToBytes(blockHeight)
@@ -215,7 +220,75 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	stateKey := append(pkHash[:], currentVersion...)
 	return stx.dao.Put(AccountKVNameSpace, stateKey, ss)
 }
-
+func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160)error{
+	currentHeight:=stx.ver+1
+	if currentHeight<100{
+		return nil
+	}
+	deleteHeight:=currentHeight-100
+	log.L().Info("////////////////deleteAccountHistory",zap.Uint64("deleteheight",deleteHeight))
+	db := stx.dao.DB()
+	boltdb, ok := db.(*bolt.DB)
+	if !ok {
+		return nil
+	}
+	prefix := pkHash[:]
+	err := boltdb.Update(func(tx *bolt.Tx) error {
+		b:=tx.Bucket([]byte(AccountKVNameSpace))
+		c := b.Cursor()
+		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
+			addrHash := k[:20]
+			addr, err := address.FromBytes(addrHash)
+			if err != nil {
+				log.L().Info("////////////////deleteAccountHistory", zap.Error(err))
+				continue
+			}
+			log.L().Info("////////////////deleteAccountHistory", zap.String("addr", addr.String()))
+			if len(k) <= 20 {
+				log.L().Info("len(k) <= 20")
+				continue
+			}
+			kHeight := binary.BigEndian.Uint64(k[20:])
+			log.L().Info("////////////////", zap.Uint64("k", kHeight))
+			if kHeight == 0 || kHeight == 1 {
+				return errors.New("cannot find state")
+			}
+			if kHeight < deleteHeight {
+				log.L().Info("////////////////deleteAccountHistory", zap.Uint64("k", kHeight), zap.Uint64("deleteHeight", deleteHeight))
+				b.Delete(k)
+			}else{
+				// 对于高于这个高度的直接返回就不用再迭代
+				return nil
+			}
+		}
+		return nil
+	})
+	return err
+}
+func (stx *stateTX) deleteHistory()error  {
+	log.L().Info("////////////////deleteHistory")
+	db := stx.dao.DB()
+	boltdb, ok := db.(*bolt.DB)
+	if !ok {
+		return nil
+	}
+	err := boltdb.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
+		for k, _ := c.Seek(AccountMaxVersionPrefix); k != nil; k, _ = c.Prev() {
+			addrHash:=k[:]
+			addr,err:=address.FromBytes(addrHash)
+			if err!=nil{
+				log.L().Info("////////////////deleteHistory",zap.Error(err))
+				continue
+			}
+			log.L().Info("////////////////deleteHistory",zap.String("addr",addr.String()))
+			h:=hash.Hash160b(addrHash)
+			stx.deleteAccountHistory(h)
+		}
+		return errors.New("cannot find state")
+	})
+	return err
+}
 // DelState deletes a state from DB
 func (stx *stateTX) DelState(pkHash hash.Hash160) error {
 	stx.cb.Delete(AccountKVNameSpace, pkHash[:], "error when deleting k = %x", pkHash)
