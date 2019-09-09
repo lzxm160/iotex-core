@@ -262,6 +262,7 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160)error{
 				return nil
 			}
 		}
+		log.L().Info("////////////////265deleteAccountHistory return")
 		return nil
 	})
 	return err
