@@ -273,7 +273,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 
 	log.L().Info("////////////////stateHeight", zap.Uint64("maxIndex", maxIndex), zap.Uint64("height", height))
 	indexHeightKey := append(AccountIndexHeightPrefix, addr[:]...)
-	for i := maxIndex; i > 0; i-- {
+	for i := maxIndex-1; i > 0; i-- {
 		indexBytes := make([]byte, 8)
 		binary.BigEndian.PutUint64(indexBytes, i)
 		HeightKey := append(indexHeightKey, indexBytes...)
