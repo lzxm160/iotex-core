@@ -290,7 +290,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 			log.L().Info("////////////////get state", zap.String("stateKey", hex.EncodeToString(stateKey)))
 			value, err := sdb.dao.Get(AccountKVNameSpace, stateKey)
 			if err != nil {
-				log.L().Error("////////////////get state", zap.Error(err))
+				log.L().Info("////////////////get state", zap.Error(err))
 				return errors.New("get state error")
 			}
 			if err := state.Deserialize(s, value); err != nil {
