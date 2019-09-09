@@ -236,7 +236,7 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	//	return nil
 	//}
 	// add delete history later
-	stx.deleteIndex(pkHash, maxIndex)
+	//stx.deleteIndex(pkHash, maxIndex)
 
 	log.L().Info(
 		"putIndex",
