@@ -241,21 +241,21 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160)error{
 			addrHash := k[:20]
 			addr, err := address.FromBytes(addrHash)
 			if err != nil {
-				log.L().Info("////////////////deleteAccountHistory", zap.Error(err))
+				log.L().Info("////////////////244deleteAccountHistory", zap.Error(err))
 				continue
 			}
-			log.L().Info("////////////////deleteAccountHistory", zap.String("addr", addr.String()))
+			log.L().Info("////////////////247deleteAccountHistory", zap.String("addr", addr.String()))
 			if len(k) <= 20 {
 				log.L().Info("len(k) <= 20")
 				continue
 			}
 			kHeight := binary.BigEndian.Uint64(k[20:])
-			log.L().Info("////////////////", zap.Uint64("k", kHeight))
+			log.L().Info("////////////////253deleteAccountHistory", zap.Uint64("k", kHeight))
 			if kHeight == 0 || kHeight == 1 {
 				return errors.New("cannot find state")
 			}
 			if kHeight < deleteHeight {
-				log.L().Info("////////////////deleteAccountHistory", zap.Uint64("k", kHeight), zap.Uint64("deleteHeight", deleteHeight))
+				log.L().Info("////////////////258deleteAccountHistory", zap.Uint64("k", kHeight), zap.Uint64("deleteHeight", deleteHeight))
 				b.Delete(k)
 			}else{
 				// 对于高于这个高度的直接返回就不用再迭代
