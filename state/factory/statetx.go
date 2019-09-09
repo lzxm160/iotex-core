@@ -287,7 +287,7 @@ func (stx *stateTX) deleteHistory() error {
 				continue
 			}
 			log.L().Info("////////////////289deleteHistory", zap.String("addr", addr.String()))
-			h := hash.Hash160b(addrHash)
+			h := hash.BytesToHash160(addrHash)
 			stx.deleteAccountHistory(h)
 		}
 		return errors.New("cannot find state")
