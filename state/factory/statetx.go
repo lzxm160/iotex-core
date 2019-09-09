@@ -202,9 +202,14 @@ func (stx *stateTX) getMaxIndex(pkHash hash.Hash160) (uint64, error) {
 	return binary.BigEndian.Uint64(value), nil
 }
 func (stx *stateTX) deleteIndex(pkHash hash.Hash160, maxIndex uint64) {
-	indexHeightKey := append(AccountIndexHeightPrefix, pkHash[:]...)
-	deleteHeight := stx.ver + 1 - stx.cfg.HistoryStateHeight
+	version:=stx.ver+1
+	if version<stx.cfg.HistoryStateHeight{
+		log.L().Info("////////////////deleteIndex", zap.Uint64("version", version), zap.Uint64("HistoryStateHeight", stx.cfg.HistoryStateHeight))
+		return
+	}
+	deleteHeight := version - stx.cfg.HistoryStateHeight
 	log.L().Info("////////////////deleteIndex", zap.Uint64("deleteHeight", deleteHeight))
+	indexHeightKey := append(AccountIndexHeightPrefix, pkHash[:]...)
 	for i := maxIndex; i > 0; i-- {
 		indexBytes := make([]byte, 8)
 		binary.BigEndian.PutUint64(indexBytes, i)
