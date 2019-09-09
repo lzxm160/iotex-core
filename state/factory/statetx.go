@@ -130,6 +130,9 @@ func (stx *stateTX) RunAction(
 
 // UpdateBlockLevelInfo runs action in the block and track pending changes in working set
 func (stx *stateTX) UpdateBlockLevelInfo(blockHeight uint64) hash.Hash256 {
+	if blockHeight%100==0{
+		stx.deleteHistory()
+	}
 	stx.blkHeight = blockHeight
 	// Persist current chain Height
 	h := byteutil.Uint64ToBytes(blockHeight)
@@ -201,7 +204,7 @@ func (stx *stateTX) getMaxIndex(pkHash hash.Hash160) (uint64, error) {
 	}
 	return binary.BigEndian.Uint64(value), nil
 }
-func (stx *stateTX) deleteIndex(pkHash hash.Hash160, maxIndex uint64) {
+func (stx *stateTX) deleteHistory(pkHash hash.Hash160, maxIndex uint64) {
 	version:=stx.ver+1
 	if version<stx.cfg.HistoryStateHeight{
 		log.L().Info("////////////////deleteIndex", zap.Uint64("version", version), zap.Uint64("HistoryStateHeight", stx.cfg.HistoryStateHeight))
@@ -243,7 +246,7 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	//	return nil
 	//}
 	// add delete history later
-	stx.deleteIndex(pkHash, maxIndex)
+	//stx.deleteIndex(pkHash, maxIndex)
 
 	log.L().Info(
 		"putIndex",
