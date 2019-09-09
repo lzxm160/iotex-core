@@ -9,6 +9,7 @@ package factory
 import (
 	"context"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -286,6 +287,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 		if hei <= height {
 			log.L().Info("////////////////", zap.Uint64("k", hei), zap.Uint64("height", height))
 			stateKey := append(addr[:], heightBytes...)
+			log.L().Info("////////////////get state", zap.String("stateKey", hex.EncodeToString(stateKey)))
 			value, err := sdb.dao.Get(AccountKVNameSpace, stateKey)
 			if err != nil {
 				return errors.New("get state error")

@@ -9,6 +9,7 @@ package factory
 import (
 	"context"
 	"encoding/binary"
+	"encoding/hex"
 
 	"github.com/iotexproject/iotex-core/config"
 
@@ -263,6 +264,8 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	}
 
 	stateKey := append(pkHash[:], currentHeight...)
+	log.L().Info(
+		"put stateKey",zap.String("key:",hex.EncodeToString(stateKey)),zap.String("value:",hex.EncodeToString(ss)))
 	return stx.dao.Put(AccountKVNameSpace, stateKey, ss)
 }
 
