@@ -283,7 +283,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 		}
 		hei := binary.BigEndian.Uint64(heightBytes)
 		log.L().Info("////////////////", zap.Uint64("k", hei), zap.Uint64("height", height))
-		if hei < height {
+		if hei <= height {
 			log.L().Info("////////////////", zap.Uint64("k", hei), zap.Uint64("height", height))
 			stateKey := append(addr[:], heightBytes...)
 			value, err := sdb.dao.Get(AccountKVNameSpace, stateKey)
