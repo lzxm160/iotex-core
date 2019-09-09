@@ -126,7 +126,7 @@ func (stx *stateTX) RunAction(
 
 // UpdateBlockLevelInfo runs action in the block and track pending changes in working set
 func (stx *stateTX) UpdateBlockLevelInfo(blockHeight uint64) hash.Hash256 {
-	if blockHeight%100==0{
+	if blockHeight%50==0{
 		stx.deleteHistory()
 	}
 	stx.blkHeight = blockHeight
@@ -222,10 +222,10 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 }
 func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160)error{
 	currentHeight:=stx.ver+1
-	if currentHeight<100{
+	if currentHeight<50{
 		return nil
 	}
-	deleteHeight:=currentHeight-100
+	deleteHeight:=currentHeight-50
 	log.L().Info("////////////////deleteAccountHistory",zap.Uint64("deleteheight",deleteHeight))
 	db := stx.dao.DB()
 	boltdb, ok := db.(*bolt.DB)
