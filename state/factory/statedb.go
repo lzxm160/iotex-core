@@ -293,6 +293,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 				log.L().Info("////////////////get state", zap.Error(err))
 				return errors.New("get state error")
 			}
+			log.L().Info("////////////////after get state",zap.String("value",hex.EncodeToString(value)))
 			if err := state.Deserialize(s, value); err != nil {
 				return errors.Wrapf(err, "error when deserializing state data into %T", s)
 			}
