@@ -126,7 +126,7 @@ func (stx *stateTX) RunAction(
 
 // UpdateBlockLevelInfo runs action in the block and track pending changes in working set
 func (stx *stateTX) UpdateBlockLevelInfo(blockHeight uint64) hash.Hash256 {
-	if blockHeight%50 == 0 {
+	if blockHeight%10 == 0 {
 		stx.deleteHistory()
 	}
 	stx.blkHeight = blockHeight
