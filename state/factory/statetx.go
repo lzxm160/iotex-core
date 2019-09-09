@@ -283,10 +283,10 @@ func (stx *stateTX) deleteHistory() error {
 			addrHash := k[:20]
 			addr, err := address.FromBytes(addrHash)
 			if err != nil {
-				log.L().Info("////////////////deleteHistory", zap.Error(err))
+				log.L().Info("////////////////286deleteHistory", zap.Error(err))
 				continue
 			}
-			log.L().Info("////////////////deleteHistory", zap.String("addr", addr.String()))
+			log.L().Info("////////////////289deleteHistory", zap.String("addr", addr.String()))
 			h := hash.Hash160b(addrHash)
 			stx.deleteAccountHistory(h)
 		}
