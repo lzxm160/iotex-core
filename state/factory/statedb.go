@@ -297,6 +297,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 			if err := state.Deserialize(s, value); err != nil {
 				return errors.Wrapf(err, "error when deserializing state data into %T", s)
 			}
+			return nil
 		}
 	}
 	return errors.New("cannot find state")
