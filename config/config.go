@@ -169,7 +169,7 @@ var (
 			SplitDBSizeMB:      0,
 			SplitDBHeight:      900000,
 			EnableHistoryState: true,
-			HistoryStateHeight: 10,
+			HistoryStateHeight: 100,
 		},
 		Genesis: genesis.Default,
 		Reindex: false,
