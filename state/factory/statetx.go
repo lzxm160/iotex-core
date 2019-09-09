@@ -126,7 +126,7 @@ func (stx *stateTX) RunAction(
 
 // UpdateBlockLevelInfo runs action in the block and track pending changes in working set
 func (stx *stateTX) UpdateBlockLevelInfo(blockHeight uint64) hash.Hash256 {
-	if blockHeight%50==0{
+	if blockHeight%50 == 0 {
 		stx.deleteHistory()
 	}
 	stx.blkHeight = blockHeight
@@ -220,13 +220,13 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	stateKey := append(pkHash[:], currentVersion...)
 	return stx.dao.Put(AccountKVNameSpace, stateKey, ss)
 }
-func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160)error{
-	currentHeight:=stx.ver+1
-	if currentHeight<50{
+func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
+	currentHeight := stx.ver + 1
+	if currentHeight < 50 {
 		return nil
 	}
-	deleteHeight:=currentHeight-50
-	log.L().Info("////////////////deleteAccountHistory",zap.Uint64("deleteheight",deleteHeight))
+	deleteHeight := currentHeight - 50
+	log.L().Info("////////////////deleteAccountHistory", zap.Uint64("deleteheight", deleteHeight))
 	db := stx.dao.DB()
 	boltdb, ok := db.(*bolt.DB)
 	if !ok {
@@ -236,8 +236,8 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160)error{
 	prefix := pkHash[:]
 	err := boltdb.Update(func(tx *bolt.Tx) error {
 		log.L().Info("////////////////238deleteAccountHistory")
-		b:=tx.Bucket([]byte(AccountKVNameSpace))
-		c := b.Cursor()
+		b := tx.Bucket([]byte(AccountKVNameSpace))
+		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
 		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
 			log.L().Info("////////////////242deleteAccountHistory")
 			addrHash := k[:20]
@@ -259,7 +259,7 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160)error{
 			if kHeight < deleteHeight {
 				log.L().Info("////////////////258deleteAccountHistory", zap.Uint64("k", kHeight), zap.Uint64("deleteHeight", deleteHeight))
 				b.Delete(k)
-			}else{
+			} else {
 				log.L().Info("////////////////263deleteAccountHistory", zap.Uint64("k", kHeight), zap.Uint64("deleteHeight", deleteHeight))
 				// 对于高于这个高度的直接返回就不用再迭代
 				return nil
@@ -270,7 +270,7 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160)error{
 	})
 	return err
 }
-func (stx *stateTX) deleteHistory()error  {
+func (stx *stateTX) deleteHistory() error {
 	log.L().Info("////////////////deleteHistory")
 	db := stx.dao.DB()
 	boltdb, ok := db.(*bolt.DB)
@@ -280,20 +280,21 @@ func (stx *stateTX) deleteHistory()error  {
 	err := boltdb.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
 		for k, _ := c.Seek(AccountMaxVersionPrefix); bytes.HasPrefix(k, AccountMaxVersionPrefix); k, _ = c.Next() {
-			addrHash:=k[:20]
-			addr,err:=address.FromBytes(addrHash)
-			if err!=nil{
-				log.L().Info("////////////////deleteHistory",zap.Error(err))
+			addrHash := k[:20]
+			addr, err := address.FromBytes(addrHash)
+			if err != nil {
+				log.L().Info("////////////////deleteHistory", zap.Error(err))
 				continue
 			}
-			log.L().Info("////////////////deleteHistory",zap.String("addr",addr.String()))
-			h:=hash.Hash160b(addrHash)
+			log.L().Info("////////////////deleteHistory", zap.String("addr", addr.String()))
+			h := hash.Hash160b(addrHash)
 			stx.deleteAccountHistory(h)
 		}
 		return errors.New("cannot find state")
 	})
 	return err
 }
+
 // DelState deletes a state from DB
 func (stx *stateTX) DelState(pkHash hash.Hash160) error {
 	stx.cb.Delete(AccountKVNameSpace, pkHash[:], "error when deleting k = %x", pkHash)
