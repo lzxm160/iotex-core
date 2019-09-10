@@ -33,6 +33,7 @@ type stateTX struct {
 	cb             db.CachedBatch // cached batch for pending writes
 	dao            db.KVStore     // the underlying DB for account/contract storage
 	actionHandlers []protocol.ActionHandler
+	deleting       chan struct{}
 }
 
 // newStateTX creates a new state tx
@@ -46,6 +47,7 @@ func newStateTX(
 		cb:             db.NewCachedBatch(),
 		dao:            kv,
 		actionHandlers: actionHandlers,
+		deleting:       make(chan struct{}, 1),
 	}
 }
 
@@ -269,6 +271,7 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
 	return err
 }
 func (stx *stateTX) deleteHistory() error {
+	stx.deleting <- struct{}{}
 	go func() {
 		//log.L().Info("////////////////deleteHistory")
 		db := stx.dao.DB()
@@ -280,7 +283,7 @@ func (stx *stateTX) deleteHistory() error {
 		boltdb.View(func(tx *bolt.Tx) error {
 			c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
 			for k, _ := c.Seek(AccountMaxVersionPrefix); bytes.HasPrefix(k, AccountMaxVersionPrefix); k, _ = c.Next() {
-				addrHash := k[3:]
+				addrHash := k[len(AccountMaxVersionPrefix):]
 				//addr, err := address.FromBytes(addrHash)
 				//if err != nil {
 				//	log.L().Info("////////////////286deleteHistory", zap.Error(err))
@@ -295,7 +298,7 @@ func (stx *stateTX) deleteHistory() error {
 		})
 		log.L().Info("////////////////deleteHistory all done")
 	}()
-
+	<-stx.deleting
 	return nil
 }
 
