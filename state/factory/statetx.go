@@ -263,7 +263,7 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
 				return nil
 			}
 		}
-		log.L().Info("////////////////deleteAccountHistory return")
+		//log.L().Info("////////////////deleteAccountHistory return")
 		return nil
 	})
 	return err
@@ -290,7 +290,7 @@ func (stx *stateTX) deleteHistory() error {
 				h := hash.BytesToHash160(addrHash)
 				stx.deleteAccountHistory(h)
 			}
-			log.L().Info("////////////////deleteHistory cannot find state")
+			//log.L().Info("////////////////deleteHistory cannot find state")
 			return nil
 		})
 		log.L().Info("////////////////deleteHistory all done")
