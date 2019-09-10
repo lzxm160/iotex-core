@@ -315,7 +315,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 
 func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, err error) {
 	// TODO: state db shouldn't serve this function
-	log.L().Info("////////////////", zap.String("address", encodedAddrs))
+	//log.L().Info("////////////////", zap.String("address", encodedAddrs))
 
 	height := uint64(0)
 	if len(encodedAddrs) > 41 {
