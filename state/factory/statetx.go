@@ -271,28 +271,34 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
 	return err
 }
 func (stx *stateTX) deleteHistory() error {
-	log.L().Info("////////////////deleteHistory")
-	db := stx.dao.DB()
-	boltdb, ok := db.(*bolt.DB)
-	if !ok {
-		return nil
-	}
-	err := boltdb.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
-		for k, _ := c.Seek(AccountMaxVersionPrefix); bytes.HasPrefix(k, AccountMaxVersionPrefix); k, _ = c.Next() {
-			addrHash := k[3:]
-			addr, err := address.FromBytes(addrHash)
-			if err != nil {
-				log.L().Info("////////////////286deleteHistory", zap.Error(err))
-				continue
-			}
-			log.L().Info("////////////////289deleteHistory", zap.String("addr", addr.String()))
-			h := hash.BytesToHash160(addrHash)
-			stx.deleteAccountHistory(h)
+	go func() {
+		log.L().Info("////////////////deleteHistory")
+		db := stx.dao.DB()
+		boltdb, ok := db.(*bolt.DB)
+		if !ok {
+			log.L().Info("////////////////deleteHistory convert to bolt error")
+			return
 		}
-		return errors.New("cannot find state")
-	})
-	return err
+		boltdb.View(func(tx *bolt.Tx) error {
+			c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
+			for k, _ := c.Seek(AccountMaxVersionPrefix); bytes.HasPrefix(k, AccountMaxVersionPrefix); k, _ = c.Next() {
+				addrHash := k[3:]
+				addr, err := address.FromBytes(addrHash)
+				if err != nil {
+					log.L().Info("////////////////286deleteHistory", zap.Error(err))
+					continue
+				}
+				log.L().Info("////////////////289deleteHistory", zap.String("addr", addr.String()))
+				h := hash.BytesToHash160(addrHash)
+				stx.deleteAccountHistory(h)
+			}
+			log.L().Info("////////////////deleteHistory cannot find state")
+			return nil
+		})
+		log.L().Info("////////////////deleteHistory all done")
+	}()
+
+	return nil
 }
 
 // DelState deletes a state from DB
