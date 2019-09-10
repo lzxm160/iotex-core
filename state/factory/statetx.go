@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"encoding/hex"
 
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
@@ -226,7 +227,7 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
 		return nil
 	}
 	deleteHeight := currentHeight - 50
-	log.L().Info("////////////////deleteAccountHistory", zap.Uint64("deleteheight", deleteHeight))
+	//log.L().Info("////////////////deleteAccountHistory", zap.Uint64("deleteheight", deleteHeight))
 	db := stx.dao.DB()
 	boltdb, ok := db.(*bolt.DB)
 	if !ok {
@@ -235,44 +236,41 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
 	}
 	prefix := pkHash[:]
 	err := boltdb.Update(func(tx *bolt.Tx) error {
-		log.L().Info("////////////////238deleteAccountHistory")
+		//log.L().Info("////////////////238deleteAccountHistory")
 		b := tx.Bucket([]byte(AccountKVNameSpace))
 		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
 		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
-			log.L().Info("////////////////242deleteAccountHistory")
-			addrHash := k[:20]
-			addr, err := address.FromBytes(addrHash)
-			if err != nil {
-				log.L().Info("////////////////244deleteAccountHistory", zap.Error(err))
-				continue
-			}
-			log.L().Info("////////////////247deleteAccountHistory", zap.String("addr", addr.String()))
+			//log.L().Info("////////////////242deleteAccountHistory")
+			//addrHash := k[:20]
+			//addr, err := address.FromBytes(addrHash)
+			//if err != nil {
+			//	log.L().Info("////////////////244deleteAccountHistory", zap.Error(err))
+			//	continue
+			//}
+			//log.L().Info("////////////////247deleteAccountHistory", zap.String("addr", addr.String()))
 			if len(k) <= 20 {
 				log.L().Info("len(k) <= 20")
 				continue
 			}
 			kHeight := binary.BigEndian.Uint64(k[20:])
-			log.L().Info("////////////////253deleteAccountHistory", zap.Uint64("k", kHeight))
-			if kHeight == 0 || kHeight == 1 {
-				return errors.New("cannot find state")
-			}
+			//log.L().Info("////////////////253deleteAccountHistory", zap.Uint64("k", kHeight))
 			if kHeight < deleteHeight {
-				log.L().Info("////////////////258deleteAccountHistory", zap.Uint64("k", kHeight), zap.Uint64("deleteHeight", deleteHeight))
+				log.L().Info("////////////////deleteAccountHistory delete", zap.Uint64("k", kHeight), zap.Uint64("deleteHeight", deleteHeight), zap.String("addr hex", hex.EncodeToString(k[:20])))
 				b.Delete(k)
 			} else {
-				log.L().Info("////////////////263deleteAccountHistory", zap.Uint64("k", kHeight), zap.Uint64("deleteHeight", deleteHeight))
+				log.L().Info("////////////////deleteAccountHistory break", zap.Uint64("k", kHeight), zap.Uint64("deleteHeight", deleteHeight))
 				// 对于高于这个高度的直接返回就不用再迭代
 				return nil
 			}
 		}
-		log.L().Info("////////////////265deleteAccountHistory return")
+		log.L().Info("////////////////deleteAccountHistory return")
 		return nil
 	})
 	return err
 }
 func (stx *stateTX) deleteHistory() error {
 	go func() {
-		log.L().Info("////////////////deleteHistory")
+		//log.L().Info("////////////////deleteHistory")
 		db := stx.dao.DB()
 		boltdb, ok := db.(*bolt.DB)
 		if !ok {
@@ -283,12 +281,12 @@ func (stx *stateTX) deleteHistory() error {
 			c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
 			for k, _ := c.Seek(AccountMaxVersionPrefix); bytes.HasPrefix(k, AccountMaxVersionPrefix); k, _ = c.Next() {
 				addrHash := k[3:]
-				addr, err := address.FromBytes(addrHash)
-				if err != nil {
-					log.L().Info("////////////////286deleteHistory", zap.Error(err))
-					continue
-				}
-				log.L().Info("////////////////289deleteHistory", zap.String("addr", addr.String()))
+				//addr, err := address.FromBytes(addrHash)
+				//if err != nil {
+				//	log.L().Info("////////////////286deleteHistory", zap.Error(err))
+				//	continue
+				//}
+				//log.L().Info("////////////////289deleteHistory", zap.String("addr", addr.String()))
 				h := hash.BytesToHash160(addrHash)
 				stx.deleteAccountHistory(h)
 			}
