@@ -280,6 +280,7 @@ func (stx *stateTX) deleteHistory() error {
 			log.L().Info("////////////////deleteHistory convert to bolt error")
 			return
 		}
+		allPk := make([]hash.Hash160, 0)
 		boltdb.View(func(tx *bolt.Tx) error {
 			c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
 			for k, _ := c.Seek(AccountMaxVersionPrefix); bytes.HasPrefix(k, AccountMaxVersionPrefix); k, _ = c.Next() {
@@ -291,11 +292,16 @@ func (stx *stateTX) deleteHistory() error {
 				//}
 				//log.L().Info("////////////////289deleteHistory", zap.String("addr", addr.String()))
 				h := hash.BytesToHash160(addrHash)
-				stx.deleteAccountHistory(h)
+				//stx.deleteAccountHistory(h)
+				allPk = append(allPk, h)
 			}
 			//log.L().Info("////////////////deleteHistory cannot find state")
 			return nil
 		})
+		log.L().Info("////////////////deleteHistory num:", zap.Uint64("account num:", uint64(len(allPk))))
+		for _, h := range allPk {
+			stx.deleteAccountHistory(h)
+		}
 		log.L().Info("////////////////deleteHistory all done")
 		<-stx.deleting
 	}()
