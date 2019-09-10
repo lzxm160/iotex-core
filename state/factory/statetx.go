@@ -20,6 +20,7 @@ import (
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
+	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
@@ -34,6 +35,7 @@ type stateTX struct {
 	dao            db.KVStore     // the underlying DB for account/contract storage
 	actionHandlers []protocol.ActionHandler
 	deleting       chan struct{}
+	cfg            config.DB
 }
 
 // newStateTX creates a new state tx
@@ -41,6 +43,7 @@ func newStateTX(
 	version uint64,
 	kv db.KVStore,
 	actionHandlers []protocol.ActionHandler,
+	cfg config.DB,
 ) *stateTX {
 	return &stateTX{
 		ver:            version,
@@ -48,6 +51,7 @@ func newStateTX(
 		dao:            kv,
 		actionHandlers: actionHandlers,
 		deleting:       make(chan struct{}, 1),
+		cfg:            cfg,
 	}
 }
 
@@ -129,7 +133,7 @@ func (stx *stateTX) RunAction(
 
 // UpdateBlockLevelInfo runs action in the block and track pending changes in working set
 func (stx *stateTX) UpdateBlockLevelInfo(blockHeight uint64) hash.Hash256 {
-	if blockHeight%10 == 0 {
+	if stx.cfg.EnableHistoryState && blockHeight%30 == 0 {
 		stx.deleteHistory()
 	}
 	stx.blkHeight = blockHeight
@@ -189,6 +193,9 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 		return errors.Wrapf(err, "failed to convert account %v to bytes", s)
 	}
 	stx.cb.Put(AccountKVNameSpace, pkHash[:], ss, "error when putting k = %x", pkHash)
+	if !stx.cfg.EnableHistoryState {
+		return nil
+	}
 	return stx.putIndex(pkHash, ss)
 }
 
@@ -225,10 +232,10 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 }
 func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
 	currentHeight := stx.ver + 1
-	if currentHeight < 50 {
+	if currentHeight < stx.cfg.HistoryStateHeight {
 		return nil
 	}
-	deleteHeight := currentHeight - 50
+	deleteHeight := currentHeight - stx.cfg.HistoryStateHeight
 	//log.L().Info("////////////////deleteAccountHistory", zap.Uint64("deleteheight", deleteHeight))
 	db := stx.dao.DB()
 	boltdb, ok := db.(*bolt.DB)
