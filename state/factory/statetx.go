@@ -255,7 +255,7 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
 		return nil
 	}
 	for _, k := range needDeleted {
-		kHeight := binary.BigEndian.Uint64(k[20:])
+		kHeight := binary.BigEndian.Uint64(k[20:28])
 		log.L().Info("////////////////deleteAccountHistory delete", zap.Uint64("k", kHeight), zap.Uint64("deleteHeight", deleteHeight), zap.String("addr hex", hex.EncodeToString(k[:20])))
 		stx.dao.Delete(AccountKVNameSpace, k)
 	}
