@@ -241,7 +241,7 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
 	err := boltdb.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
 		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
-			if len(k) <= 20 {
+			if len(k) <= len(pkHash) || len(k) > len(pkHash)+8 {
 				continue
 			}
 			kHeight := binary.BigEndian.Uint64(k[20:])
