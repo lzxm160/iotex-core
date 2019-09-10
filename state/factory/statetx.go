@@ -271,8 +271,8 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
 	return err
 }
 func (stx *stateTX) deleteHistory() error {
-	stx.deleting <- struct{}{}
 	go func() {
+		stx.deleting <- struct{}{}
 		//log.L().Info("////////////////deleteHistory")
 		db := stx.dao.DB()
 		boltdb, ok := db.(*bolt.DB)
@@ -297,8 +297,8 @@ func (stx *stateTX) deleteHistory() error {
 			return nil
 		})
 		log.L().Info("////////////////deleteHistory all done")
+		<-stx.deleting
 	}()
-	<-stx.deleting
 	return nil
 }
 
