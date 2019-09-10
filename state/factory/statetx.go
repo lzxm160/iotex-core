@@ -204,9 +204,9 @@ func (stx *stateTX) getMaxVersion(pkHash hash.Hash160) (uint64, error) {
 func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	//stx.ver is last height,should be this block to pack action
 	//binary.BigEndian.PutUint64(currentVersion, stx.ver+1)
-	log.L().Info(
-		"putIndex",
-		zap.Uint64("stx.ver+1", stx.ver+1))
+	//log.L().Info(
+	//	"putIndex",
+	//	zap.Uint64("stx.ver+1", stx.ver+1))
 	version := stx.ver + 1
 	maxVersion, _ := stx.getMaxVersion(pkHash)
 	if (maxVersion != 0) && (maxVersion != 1) && (maxVersion > version) {
