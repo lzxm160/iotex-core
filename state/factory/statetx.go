@@ -251,7 +251,7 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
 			//}
 			//log.L().Info("////////////////247deleteAccountHistory", zap.String("addr", addr.String()))
 			if len(k) <= 20 {
-				log.L().Info("len(k) <= 20")
+				//log.L().Info("len(k) <= 20")
 				continue
 			}
 			kHeight := binary.BigEndian.Uint64(k[20:])
