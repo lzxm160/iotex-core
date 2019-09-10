@@ -246,7 +246,9 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
 			}
 			kHeight := binary.BigEndian.Uint64(k[20:])
 			if kHeight < deleteHeight {
-				needDeleted = append(needDeleted, k)
+				temp := make([]byte, len(k))
+				copy(temp, k)
+				needDeleted = append(needDeleted, temp)
 			}
 		}
 		return nil
