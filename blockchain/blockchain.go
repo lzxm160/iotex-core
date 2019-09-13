@@ -1064,7 +1064,10 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 
 	if bc.sf != nil {
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
+
+		// here is the place to save trie's history state
 		err := bc.sf.Commit(blk.WorkingSet)
+		log.L().Info("commitBlock,commit trie's history state", zap.Error(err))
 		sfTimer.End()
 		// detach working set so it can be freed by GC
 		blk.WorkingSet = nil
