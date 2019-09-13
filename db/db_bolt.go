@@ -10,6 +10,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/iotexproject/iotex-core/pkg/log"
+
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 
@@ -164,6 +166,7 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 					}
 				} else if write.writeType == Delete {
 					// ignore delete for contract state
+					log.L().Info("commitBlock,write.writeType == Delete")
 					if !strings.EqualFold(write.namespace, ContractKVNameSpace) {
 						bucket := tx.Bucket([]byte(write.namespace))
 						if bucket == nil {

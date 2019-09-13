@@ -80,6 +80,7 @@ func (s *KVStoreForTrie) Delete(key []byte) error {
 	trieKeystoreMtc.WithLabelValues("delete").Inc()
 	s.cb.Delete(s.bucket, key, "failed to delete key %x", key)
 	// TODO: bug, need to mark key as deleted
+	// save trie node here,and then will delete async
 	return nil
 }
 
