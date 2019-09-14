@@ -82,6 +82,7 @@ type (
 		Digest() hash.Hash256
 		// clone clones the cached batch
 		clone() CachedBatch
+		SaveTrieNodeThisBlock() CachedBatch
 	}
 
 	// cachedBatch implements the CachedBatch interface
@@ -333,4 +334,9 @@ func (cb *cachedBatch) clone() CachedBatch {
 		KVStoreBatch: cb.CloneBatch(),
 		KVStoreCache: cb.KVStoreCache.Clone(),
 	}
+}
+
+// SaveTrieNodeThisBlock return trie node that will be deleted
+func (cb *cachedBatch) SaveTrieNodeThisBlock() CachedBatch {
+
 }

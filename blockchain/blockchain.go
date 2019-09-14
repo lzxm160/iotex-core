@@ -21,6 +21,7 @@ import (
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
+	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -1065,8 +1066,18 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 	if bc.sf != nil {
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
 
-		// here is the place to save trie's history state
-		err := bc.sf.Commit(blk.WorkingSet)
+		// here is the place to save trie's history state in memory
+		//batch := db.NewCachedBatch()
+		//extractDeleteTrieNode(blk.WorkingSet.GetCachedBatch(), batch)
+		boltdb, ok := blk.WorkingSet.GetDB().DB().(*bolt.DB)
+		if !ok {
+			return errors.New("convert error")
+		}
+		ws, err := boltdb.SaveTrieNodeThisBlock(blk.WorkingSet)
+		if err != nil {
+			return errors.Wrapf(err, "failed to save trie's node on height %d", blk.Height())
+		}
+		err = bc.sf.Commit(blk.WorkingSet)
 		log.L().Info("commitBlock,commit trie's history state", zap.Error(err))
 		sfTimer.End()
 		// detach working set so it can be freed by GC
@@ -1074,7 +1085,12 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
-
+		// here reput trie's history state of this block and delete history trie node
+		// here reput ws's entry and delete history trie node
+		err = bc.sf.Commit(ws)
+		if err != nil {
+			log.L().Panic("Error when committing trie node history states.", zap.Error(err))
+		}
 		// write smart contract receipt into DB
 		receiptTimer := bc.timerFactory.NewTimer("putReceipt")
 		err = bc.dao.putReceipts(blk.Height(), blk.Receipts)
@@ -1090,6 +1106,27 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 	return nil
 }
 
+//func extractDeleteTrieNode(from db.CachedBatch, to db.CachedBatch) {
+//	for i := 0; i < from.Size(); i++ {
+//		write, err := from.Entry(i)
+//		if err != nil {
+//			return
+//		}
+//		if write.writeType == Delete {
+//			// ignore delete for contract state
+//			//log.L().Error("commitBlock,write.writeType == Delete", zap.Error(errors.New("delete")))
+//			if !strings.EqualFold(write.namespace, ContractKVNameSpace) {
+//				bucket := tx.Bucket([]byte(write.namespace))
+//				if bucket == nil {
+//					continue
+//				}
+//				if err := bucket.Delete(write.key); err != nil {
+//					return errors.Wrapf(err, write.errorFormat, write.errorArgs)
+//				}
+//			}
+//		}
+//	}
+//}
 func (bc *blockchain) runActions(
 	acts block.RunnableActions,
 	ws factory.WorkingSet,

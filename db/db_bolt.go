@@ -10,9 +10,6 @@ import (
 	"context"
 	"strings"
 
-	"go.uber.org/zap"
-
-	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 
@@ -167,16 +164,16 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 					}
 				} else if write.writeType == Delete {
 					// ignore delete for contract state
-					log.L().Error("commitBlock,write.writeType == Delete", zap.Error(errors.New("delete")))
-					if !strings.EqualFold(write.namespace, ContractKVNameSpace) {
-						bucket := tx.Bucket([]byte(write.namespace))
-						if bucket == nil {
-							continue
-						}
-						if err := bucket.Delete(write.key); err != nil {
-							return errors.Wrapf(err, write.errorFormat, write.errorArgs)
-						}
+					//log.L().Error("commitBlock,write.writeType == Delete", zap.Error(errors.New("delete")))
+					//if !strings.EqualFold(write.namespace, ContractKVNameSpace) {
+					bucket := tx.Bucket([]byte(write.namespace))
+					if bucket == nil {
+						continue
 					}
+					if err := bucket.Delete(write.key); err != nil {
+						return errors.Wrapf(err, write.errorFormat, write.errorArgs)
+					}
+					//}
 				}
 			}
 			return nil
@@ -190,6 +187,25 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 		err = errors.Wrap(ErrIO, err.Error())
 	}
 	return err
+}
+func (b *boltDB) SaveTrieNodeThisBlock(batch KVStoreBatch) (ret KVStoreBatch, err error) {
+	err = b.db.Update(func(tx *bolt.Tx) error {
+		for i := 0; i < batch.Size(); i++ {
+			write, err := batch.Entry(i)
+			if err != nil {
+				return err
+			}
+			if (write.writeType == Delete) && (strings.EqualFold(write.namespace, ContractKVNameSpace)) {
+				bucket := tx.Bucket([]byte(write.namespace))
+				if bucket == nil {
+					continue
+				}
+				ret.Put(write.namespace, write.key, write.value, write.errorFormat, write.errorArgs)
+			}
+		}
+		return nil
+	})
+	return
 }
 
 //======================================
