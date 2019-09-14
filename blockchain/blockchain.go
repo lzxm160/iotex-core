@@ -1092,11 +1092,13 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		// here reput ws's entry and delete history trie node
 		ws, err := bc.sf.NewWorkingSet()
 		if err != nil {
-			log.L().Panic("Error when NewWorkingSet.", zap.Error(err))
+			log.L().Error("Error when NewWorkingSet.", zap.Error(err))
+			return errors.Wrapf(err, "Error when NewWorkingSet on height %d", blk.Height())
 		}
 		err = ws.GetDB().Commit(cb)
 		if err != nil {
-			log.L().Panic("Error when Commit.", zap.Error(err))
+			log.L().Error("Error when Commit.", zap.Error(err))
+			return errors.Wrapf(err, "Error when Commit on height %d", blk.Height())
 		}
 		//	err = bc.sf.Commit(ws)
 
