@@ -1084,7 +1084,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		log.L().Info("commitBlock,commit trie's history state", zap.Error(err))
 		sfTimer.End()
 		// detach working set so it can be freed by GC
-		blk.WorkingSet = nil
+		//blk.WorkingSet = nil
 		if err != nil {
 			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
@@ -1101,7 +1101,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			return errors.Wrapf(err, "Error when Commit on height %d", blk.Height())
 		}
 		//	err = bc.sf.Commit(ws)
-
+		blk.WorkingSet = nil
 		// write smart contract receipt into DB
 		receiptTimer := bc.timerFactory.NewTimer("putReceipt")
 		err = bc.dao.putReceipts(blk.Height(), blk.Receipts)
