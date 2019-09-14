@@ -21,7 +21,6 @@ import (
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
-	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -1069,11 +1068,15 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		// here is the place to save trie's history state in memory
 		//batch := db.NewCachedBatch()
 		//extractDeleteTrieNode(blk.WorkingSet.GetCachedBatch(), batch)
-		boltdb, ok := blk.WorkingSet.GetDB().DB().(*bolt.DB)
-		if !ok {
-			return errors.New("convert error")
-		}
-		ws, err := boltdb.SaveTrieNodeThisBlock(blk.WorkingSet)
+		//boltdb, ok := blk.WorkingSet.GetDB().DB().(*bolt.DB)
+		//if !ok {
+		//	return errors.New("convert error")
+		//}
+		//ws, err := boltdb.SaveTrieNodeThisBlock(blk.WorkingSet)
+		//if err != nil {
+		//	return errors.Wrapf(err, "failed to save trie's node on height %d", blk.Height())
+		//}
+		cb, err := blk.WorkingSet.GetDB().SaveTrieNodeThisBlock(blk.WorkingSet.GetCachedBatch())
 		if err != nil {
 			return errors.Wrapf(err, "failed to save trie's node on height %d", blk.Height())
 		}
@@ -1087,10 +1090,16 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		}
 		// here reput trie's history state of this block and delete history trie node
 		// here reput ws's entry and delete history trie node
-		err = bc.sf.Commit(ws)
+		ws, err := bc.sf.NewWorkingSet()
 		if err != nil {
-			log.L().Panic("Error when committing trie node history states.", zap.Error(err))
+			log.L().Panic("Error when NewWorkingSet.", zap.Error(err))
 		}
+		err = ws.GetDB().Commit(cb)
+		if err != nil {
+			log.L().Panic("Error when Commit.", zap.Error(err))
+		}
+		//	err = bc.sf.Commit(ws)
+
 		// write smart contract receipt into DB
 		receiptTimer := bc.timerFactory.NewTimer("putReceipt")
 		err = bc.dao.putReceipts(blk.Height(), blk.Receipts)
