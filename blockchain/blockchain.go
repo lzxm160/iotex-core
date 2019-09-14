@@ -1095,7 +1095,12 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			log.L().Error("Error when NewWorkingSet.", zap.Error(err))
 			return errors.Wrapf(err, "Error when NewWorkingSet on height %d", blk.Height())
 		}
-		err = ws.GetDB().Commit(cb)
+		dbstore := ws.GetDB()
+		if dbstore == nil {
+			log.L().Error("Error when GetDB.", zap.Error(err))
+			return errors.Wrapf(err, "Error when Commit on height %d", blk.Height())
+		}
+		err = dbstore.Commit(cb)
 		if err != nil {
 			log.L().Error("Error when Commit.", zap.Error(err))
 			return errors.Wrapf(err, "Error when Commit on height %d", blk.Height())
