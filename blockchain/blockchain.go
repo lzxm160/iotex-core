@@ -1065,11 +1065,11 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 
 	if bc.sf != nil {
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
-		cb, err := blk.WorkingSet.GetDB().SaveTrieNodeThisBlock(blk.WorkingSet.GetCachedBatch())
-		if err != nil {
-			return errors.Wrapf(err, "failed to save trie's node on height %d", blk.Height())
-		}
-		log.L().Info("blk.WorkingSet.GetDB().SaveTrieNodeThisBlock", zap.Int("cb size:", cb.Size()))
+		//cb, err := blk.WorkingSet.GetDB().SaveTrieNodeThisBlock(blk.WorkingSet.GetCachedBatch())
+		//if err != nil {
+		//	return errors.Wrapf(err, "failed to save trie's node on height %d", blk.Height())
+		//}
+		//log.L().Info("blk.WorkingSet.GetDB().SaveTrieNodeThisBlock", zap.Int("cb size:", cb.Size()))
 		err = bc.sf.Commit(blk.WorkingSet)
 		log.L().Info("commitBlock,commit trie's history state", zap.Error(err))
 		sfTimer.End()
@@ -1079,16 +1079,16 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
 
-		ws, err := bc.sf.NewWorkingSet()
-		if err != nil {
-			log.L().Error("Error when NewWorkingSet.", zap.Error(err))
-			return errors.Wrapf(err, "Error when NewWorkingSet on height %d", blk.Height())
-		}
-		dbstore := ws.GetDB()
-		if dbstore == nil {
-			log.L().Error("Error when GetDB.", zap.Error(err))
-			return errors.Wrapf(err, "Error when Commit on height %d", blk.Height())
-		}
+		//ws, err := bc.sf.NewWorkingSet()
+		//if err != nil {
+		//	log.L().Error("Error when NewWorkingSet.", zap.Error(err))
+		//	return errors.Wrapf(err, "Error when NewWorkingSet on height %d", blk.Height())
+		//}
+		//dbstore := ws.GetDB()
+		//if dbstore == nil {
+		//	log.L().Error("Error when GetDB.", zap.Error(err))
+		//	return errors.Wrapf(err, "Error when Commit on height %d", blk.Height())
+		//}
 		//err = dbstore.Commit(cb)
 		//if err != nil {
 		//	log.L().Error("Error when Commit.", zap.Error(err))
