@@ -1161,13 +1161,13 @@ func (bc *blockchain) deleteTrieHistory(hei uint64) {
 					}
 					for ; bytes.HasPrefix(k, keyPrefix); k, _ = c.Next() {
 						b.Delete(k)
-						cb.Delete(db.ContractKVNameSpace, k[len(keyPrefix):], "failed to delete key %x", k[len(keyPrefix):])
+						cb.Delete(db.ContractKVNameSpace, k[len(keyPrefix):], "failed to delete key %x", k[len(keyPrefix):]) // put into cache
 						log.L().Info("deleteTrieHistory:", zap.String("key:%s", fmt.Sprintf("%x", k[len(keyPrefix):])))
 					}
 					return nil
 				})
 			}
-
+			dbstore.Commit(cb) // delete trie node
 			<-bc.deletingTrieHistory
 		}()
 	}
