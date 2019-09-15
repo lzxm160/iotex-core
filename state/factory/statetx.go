@@ -21,7 +21,6 @@ import (
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 	"github.com/iotexproject/iotex-core/state"
-	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 )
 
