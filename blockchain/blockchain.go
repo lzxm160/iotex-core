@@ -153,7 +153,7 @@ type Blockchain interface {
 	// ExecuteContractRead runs a read-only smart contract operation, this is done off the network since it does not
 	// cause any state change
 	ExecuteContractRead(caller address.Address, ex *action.Execution) ([]byte, *action.Receipt, error)
-
+	ExecuteContractReadHistory(caller address.Address, ex *action.Execution, height uint64) ([]byte, *action.Receipt, error)
 	// AddSubscriber make you listen to every single produced block
 	AddSubscriber(BlockCreationSubscriber) error
 
@@ -744,6 +744,38 @@ func (bc *blockchain) RemoveSubscriber(s BlockCreationSubscriber) error {
 //======================================
 // internal functions
 //=====================================
+func (bc *blockchain) ExecuteContractReadHistory(caller address.Address, ex *action.Execution, height uint64) ([]byte, *action.Receipt, error) {
+	log.L().Info("ExecuteContractReadHistory", zap.Uint64("height", height))
+	header, err := bc.BlockHeaderByHeight(height)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to get block in ExecuteContractRead")
+	}
+
+	ws, err := bc.sf.NewWorkingSet()
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to obtain working set from state factory")
+	}
+	producer, err := address.FromString(header.ProducerAddress())
+	if err != nil {
+		return nil, nil, err
+	}
+	gasLimit := bc.config.Genesis.BlockGasLimit
+	ctx := protocol.WithRunActionsCtx(context.Background(), protocol.RunActionsCtx{
+		BlockHeight:    header.Height(),
+		BlockTimeStamp: header.Timestamp(),
+		Producer:       producer,
+		Caller:         caller,
+		GasLimit:       gasLimit,
+		GasPrice:       big.NewInt(0),
+		IntrinsicGas:   0,
+	})
+	return evm.ExecuteContractRead(
+		ctx,
+		ws,
+		ex,
+		bc,
+	)
+}
 
 // ExecuteContractRead runs a read-only smart contract operation, this is done off the network since it does not
 // cause any state change
@@ -1032,7 +1064,12 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 
 	if bc.sf != nil {
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
-		err := bc.sf.Commit(blk.WorkingSet)
+		cb, err := blk.WorkingSet.GetDB().SaveTrieNodeThisBlock(blk.WorkingSet.GetCachedBatch())
+		if err != nil {
+			return errors.Wrapf(err, "failed to save trie's node on height %d", blk.Height())
+		}
+		err = bc.sf.Commit(blk.WorkingSet)
+		log.L().Info("commitBlock,commit trie's history state", zap.Error(err))
 		sfTimer.End()
 		// detach working set so it can be freed by GC
 		blk.WorkingSet = nil
@@ -1040,6 +1077,21 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
 
+		ws, err := bc.sf.NewWorkingSet()
+		if err != nil {
+			log.L().Error("Error when NewWorkingSet.", zap.Error(err))
+			return errors.Wrapf(err, "Error when NewWorkingSet on height %d", blk.Height())
+		}
+		dbstore := ws.GetDB()
+		if dbstore == nil {
+			log.L().Error("Error when GetDB.", zap.Error(err))
+			return errors.Wrapf(err, "Error when Commit on height %d", blk.Height())
+		}
+		err = dbstore.Commit(cb)
+		if err != nil {
+			log.L().Error("Error when Commit.", zap.Error(err))
+			return errors.Wrapf(err, "Error when Commit on height %d", blk.Height())
+		}
 		// write smart contract receipt into DB
 		receiptTimer := bc.timerFactory.NewTimer("putReceipt")
 		err = bc.dao.putReceipts(blk.Height(), blk.Receipts)

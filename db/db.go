@@ -38,6 +38,8 @@ type KVStore interface {
 	Delete(string, []byte) error
 	// Commit commits a batch
 	Commit(KVStoreBatch) error
+	DB() interface{}
+	SaveTrieNodeThisBlock(KVStoreBatch) (KVStoreBatch, error)
 }
 
 const (
@@ -57,7 +59,9 @@ func NewMemKVStore() KVStore {
 		data:   &sync.Map{},
 	}
 }
-
+func (m *memKVStore) DB() interface{} {
+	return nil
+}
 func (m *memKVStore) Start(_ context.Context) error { return nil }
 
 func (m *memKVStore) Stop(_ context.Context) error { return nil }
@@ -121,4 +125,9 @@ func (m *memKVStore) Commit(b KVStoreBatch) (e error) {
 	}
 
 	return e
+}
+
+// SaveTrieNodeThisBlock save trie node history
+func (m *memKVStore) SaveTrieNodeThisBlock(KVStoreBatch) (KVStoreBatch, error) {
+	return nil, nil
 }
