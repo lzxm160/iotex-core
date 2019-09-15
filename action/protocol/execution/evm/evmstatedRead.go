@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/iotexproject/iotex-core/config"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/iotexproject/go-pkgs/hash"
@@ -36,6 +38,7 @@ type (
 		executionHash hash.Hash256
 		dao           db.KVStore
 		cb            db.CachedBatch
+		hu            config.HeightUpgrade
 	}
 )
 
@@ -43,6 +46,7 @@ type (
 func NewStateDBAdapterRead(
 	cm protocol.ChainManager,
 	sm protocol.StateManager,
+	hu config.HeightUpgrade,
 	blockHeight uint64,
 	executionHash hash.Hash256,
 ) *StateDBAdapterRead {
@@ -55,6 +59,7 @@ func NewStateDBAdapterRead(
 		executionHash: executionHash,
 		dao:           sm.GetDB(),
 		cb:            sm.GetCachedBatch(),
+		hu:            hu,
 	}
 }
 

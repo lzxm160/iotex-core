@@ -112,6 +112,7 @@ func NewParamsRead(
 	raCtx protocol.RunActionsCtx,
 	execution *action.Execution,
 	stateDB *StateDBAdapterRead,
+	hu config.HeightUpgrade,
 ) (*Params, error) {
 	if execution.Contract() == action.EmptyAddress {
 		return nil, errors.New("contract's address is empty")
@@ -242,11 +243,12 @@ func ExecuteContractRead(
 	sm protocol.StateManager,
 	execution *action.Execution,
 	cm protocol.ChainManager,
+	hu config.HeightUpgrade,
 ) ([]byte, *action.Receipt, error) {
 	log.L().Info("enter ExecuteContract2")
 	raCtx := protocol.MustGetRunActionsCtx(ctx)
-	stateDB := NewStateDBAdapterRead(cm, sm, raCtx.BlockHeight, execution.Hash())
-	ps, err := NewParamsRead(raCtx, execution, stateDB)
+	stateDB := NewStateDBAdapterRead(cm, sm, hu, raCtx.BlockHeight, execution.Hash())
+	ps, err := NewParamsRead(raCtx, execution, stateDB, hu)
 	if err != nil {
 		return nil, nil, err
 	}
