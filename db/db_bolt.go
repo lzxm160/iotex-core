@@ -189,6 +189,7 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 	return err
 }
 func (b *boltDB) SaveTrieNodeThisBlock(batch KVStoreBatch) (ret KVStoreBatch, err error) {
+	ret = NewCachedBatch()
 	err = b.db.Update(func(tx *bolt.Tx) error {
 		for i := 0; i < batch.Size(); i++ {
 			write, err := batch.Entry(i)
