@@ -337,7 +337,7 @@ func executeInEVMRead(evmParams *Params, stateDB *StateDBAdapterRead, gasLimit u
 	log.L().Info("enter executeInEVM2")
 	remainingGas := evmParams.gas
 	var config vm.Config
-	chainConfig := getChainConfig()
+	chainConfig := getChainConfig(stateDB.hu.BeringBlockHeight())
 	evm := vm.NewEVM(evmParams.context, stateDB, chainConfig, config)
 	intriGas, err := intrinsicGas(evmParams.data)
 	if err != nil {
