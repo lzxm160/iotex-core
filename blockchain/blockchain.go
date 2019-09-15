@@ -1089,11 +1089,11 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			log.L().Error("Error when GetDB.", zap.Error(err))
 			return errors.Wrapf(err, "Error when Commit on height %d", blk.Height())
 		}
-		err = dbstore.Commit(cb)
-		if err != nil {
-			log.L().Error("Error when Commit.", zap.Error(err))
-			return errors.Wrapf(err, "Error when Commit on height %d", blk.Height())
-		}
+		//err = dbstore.Commit(cb)
+		//if err != nil {
+		//	log.L().Error("Error when Commit.", zap.Error(err))
+		//	return errors.Wrapf(err, "Error when Commit on height %d", blk.Height())
+		//}
 		// write smart contract receipt into DB
 		receiptTimer := bc.timerFactory.NewTimer("putReceipt")
 		err = bc.dao.putReceipts(blk.Height(), blk.Receipts)
