@@ -1069,6 +1069,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to save trie's node on height %d", blk.Height())
 		}
+		log.L().Info("blk.WorkingSet.GetDB().SaveTrieNodeThisBlock", zap.Int("cb size:", cb.Size()))
 		err = bc.sf.Commit(blk.WorkingSet)
 		log.L().Info("commitBlock,commit trie's history state", zap.Error(err))
 		sfTimer.End()
@@ -1088,11 +1089,11 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			log.L().Error("Error when GetDB.", zap.Error(err))
 			return errors.Wrapf(err, "Error when Commit on height %d", blk.Height())
 		}
-		err = dbstore.Commit(cb)
-		if err != nil {
-			log.L().Error("Error when Commit.", zap.Error(err))
-			return errors.Wrapf(err, "Error when Commit on height %d", blk.Height())
-		}
+		//err = dbstore.Commit(cb)
+		//if err != nil {
+		//	log.L().Error("Error when Commit.", zap.Error(err))
+		//	return errors.Wrapf(err, "Error when Commit on height %d", blk.Height())
+		//}
 		// write smart contract receipt into DB
 		receiptTimer := bc.timerFactory.NewTimer("putReceipt")
 		err = bc.dao.putReceipts(blk.Height(), blk.Receipts)
