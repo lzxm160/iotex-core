@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+
 	"github.com/pkg/errors"
 
 	"github.com/iotexproject/go-pkgs/hash"
@@ -26,7 +27,7 @@ import (
 
 const (
 	// 30 block heights to check if history needs to delete
-	checkHistoryDeleteInterval = 30
+	CheckHistoryDeleteInterval = 30
 )
 
 // stateTX implements stateTX interface, tracks pending changes to account/contract in local cache
@@ -135,7 +136,7 @@ func (stx *stateTX) RunAction(
 
 // UpdateBlockLevelInfo runs action in the block and track pending changes in working set
 func (stx *stateTX) UpdateBlockLevelInfo(blockHeight uint64) hash.Hash256 {
-	if stx.cfg.EnableHistoryState && blockHeight%checkHistoryDeleteInterval == 0 {
+	if stx.cfg.EnableHistoryState && blockHeight%CheckHistoryDeleteInterval == 0 {
 		stx.deleteHistory()
 	}
 	stx.blkHeight = blockHeight

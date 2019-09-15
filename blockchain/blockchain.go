@@ -7,7 +7,10 @@
 package blockchain
 
 import (
+	"bytes"
 	"context"
+	"encoding/binary"
+	"fmt"
 	"math/big"
 	"os"
 	"strconv"
@@ -21,6 +24,7 @@ import (
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
+	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -182,6 +186,7 @@ type blockchain struct {
 	registry *protocol.Registry
 
 	enableExperimentalActions bool
+	deletingTrieHistory       chan struct{}
 }
 
 // Option sets blockchain construction parameter
@@ -1113,9 +1118,60 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 
 	// emit block to all block subscribers
 	bc.emitToSubscribers(blk)
+	bc.deleteTrieHistory(bc.tipHeight)
 	return nil
 }
+func (bc *blockchain) deleteTrieHistory(hei uint64) {
+	if bc.config.DB.EnableHistoryState && hei%factory.CheckHistoryDeleteInterval == 0 {
+		log.L().Info("deleteTrieHistory start")
+		ws, err := bc.sf.NewWorkingSet()
+		if err != nil {
+			log.L().Error("Error when NewWorkingSet.", zap.Error(err))
+			return
+		}
+		dbstore := ws.GetDB()
+		if dbstore == nil {
+			log.L().Error("Error when GetDB.", zap.Error(err))
+			return
+		}
+		cb := db.NewCachedBatch()
+		go func() {
+			bc.deletingTrieHistory <- struct{}{}
+			db := bc.dao.kvstore.DB()
+			boltdb, ok := db.(*bolt.DB)
+			if !ok {
+				log.L().Error("convert to bolt db error")
+				return
+			}
+			deleteHeight := hei - bc.config.DB.HistoryStateHeight
+			if deleteHeight < 1 {
+				return
+			}
+			for i := deleteHeight; i > 1; i-- {
+				heightBytes := make([]byte, 8)
+				binary.BigEndian.PutUint64(heightBytes, i)
+				keyPrefix := append(heightToTrieNodeKeyPrefix, heightBytes...)
+				err = boltdb.Update(func(tx *bolt.Tx) error {
+					b := tx.Bucket([]byte(heightToTrieNodeKeyNS))
+					c := b.Cursor()
+					k, _ := c.Seek(keyPrefix)
+					if k == nil {
+						// return when met the first block without history state
+						return nil
+					}
+					for ; bytes.HasPrefix(k, keyPrefix); k, _ = c.Next() {
+						b.Delete(k)
+						cb.Delete(db.ContractKVNameSpace, k[len(keyPrefix):], "failed to delete key %x", k[len(keyPrefix):])
+						log.L().Info("deleteTrieHistory:", zap.String("key:%s", fmt.Sprintf("%x", k[len(keyPrefix):])))
+					}
+					return nil
+				})
+			}
 
+			<-bc.deletingTrieHistory
+		}()
+	}
+}
 func (bc *blockchain) runActions(
 	acts block.RunnableActions,
 	ws factory.WorkingSet,
