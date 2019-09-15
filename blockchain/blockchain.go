@@ -1137,8 +1137,8 @@ func (bc *blockchain) deleteTrieHistory(hei uint64) {
 		cb := db.NewCachedBatch()
 		go func() {
 			bc.deletingTrieHistory <- struct{}{}
-			db := bc.dao.kvstore.DB()
-			boltdb, ok := db.(*bolt.DB)
+			kvstore := bc.dao.kvstore.DB()
+			boltdb, ok := kvstore.(*bolt.DB)
 			if !ok {
 				log.L().Error("convert to bolt db error")
 				return
