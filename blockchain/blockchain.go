@@ -774,6 +774,7 @@ func (bc *blockchain) ExecuteContractReadHistory(caller address.Address, ex *act
 		ws,
 		ex,
 		bc,
+		config.NewHeightUpgrade(bc.config),
 	)
 }
 
