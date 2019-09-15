@@ -39,7 +39,7 @@ type KVStore interface {
 	// Commit commits a batch
 	Commit(KVStoreBatch) error
 	DB() interface{}
-	SaveTrieNodeThisBlock(KVStoreBatch) (KVStoreBatch, error)
+	SaveTrieNodeThisBlock(KVStoreBatch, uint64, string, []byte) (KVStoreBatch, KVStoreBatch, error)
 }
 
 const (
@@ -128,6 +128,6 @@ func (m *memKVStore) Commit(b KVStoreBatch) (e error) {
 }
 
 // SaveTrieNodeThisBlock save trie node history
-func (m *memKVStore) SaveTrieNodeThisBlock(KVStoreBatch) (KVStoreBatch, error) {
-	return nil, nil
+func (m *memKVStore) SaveTrieNodeThisBlock(KVStoreBatch, uint64, string, []byte) (KVStoreBatch, KVStoreBatch, error) {
+	return nil, nil, nil
 }

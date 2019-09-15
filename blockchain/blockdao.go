@@ -51,21 +51,22 @@ const (
 	receiptsNS                       = "rpt"
 	numActionsNS                     = "nac"
 	transferAmountNS                 = "tfa"
-
-	hashOffset = 12
+	heightToTrieNodeKeyNS            = "htn"
+	hashOffset                       = 12
 )
 
 var (
-	topHeightKey             = []byte("th")
-	topHashKey               = []byte("ts")
-	totalActionsKey          = []byte("ta")
-	indexActionsTipIndexKey  = []byte("iati")
-	indexActionsTipHeightKey = []byte("iath")
-	hashPrefix               = []byte("ha.")
-	heightPrefix             = []byte("he.")
-	actionFromPrefix         = []byte("fr.")
-	actionToPrefix           = []byte("to.")
-	heightToFilePrefix       = []byte("hf.")
+	topHeightKey              = []byte("th")
+	topHashKey                = []byte("ts")
+	totalActionsKey           = []byte("ta")
+	indexActionsTipIndexKey   = []byte("iati")
+	indexActionsTipHeightKey  = []byte("iath")
+	hashPrefix                = []byte("ha.")
+	heightPrefix              = []byte("he.")
+	actionFromPrefix          = []byte("fr.")
+	actionToPrefix            = []byte("to.")
+	heightToFilePrefix        = []byte("hf.")
+	heightToTrieNodeKeyPrefix = []byte("hnk.")
 )
 
 var (

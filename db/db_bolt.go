@@ -8,6 +8,7 @@ package db
 
 import (
 	"context"
+	"encoding/binary"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -184,8 +185,11 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 	}
 	return err
 }
-func (b *boltDB) SaveTrieNodeThisBlock(batch KVStoreBatch) (ret KVStoreBatch, err error) {
+func (b *boltDB) SaveTrieNodeThisBlock(batch KVStoreBatch, hei uint64, trieNodeNameSpace string, trieNodeKeyPrefix []byte) (ret KVStoreBatch, heightToKey KVStoreBatch, err error) {
 	ret = NewCachedBatch()
+	heightToKey = NewCachedBatch()
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, hei)
 	err = b.db.Update(func(tx *bolt.Tx) error {
 		for i := 0; i < batch.Size(); i++ {
 			write, err := batch.Entry(i)
@@ -198,6 +202,9 @@ func (b *boltDB) SaveTrieNodeThisBlock(batch KVStoreBatch) (ret KVStoreBatch, er
 					continue
 				}
 				ret.Put(write.namespace, write.key, write.value, write.errorFormat, write.errorArgs)
+				heightTo := append(trieNodeKeyPrefix, heightBytes...)
+				heightTo = append(heightTo, write.key...)
+				heightToKey.Put(trieNodeNameSpace, heightTo, []byte(""), write.errorFormat, write.errorArgs)
 			}
 		}
 		return nil
