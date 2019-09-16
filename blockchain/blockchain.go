@@ -1048,7 +1048,7 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 
 // commitBlock commits a block to the chain
 func (bc *blockchain) commitBlock(blk *block.Block) error {
-	log.L().Info("who is calling me", zap.Error(ErrInvalidBlock))
+	log.L().Info("who is calling me", zap.Error(errors.New("test is")))
 	// Check if it is already exists, and return earlier
 	blkHash, err := bc.dao.getBlockHash(blk.Height())
 	if blkHash != hash.ZeroHash256 {
