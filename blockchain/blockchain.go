@@ -1158,10 +1158,10 @@ func (bc *blockchain) deleteTrieHistory(hei uint64) {
 				return
 			}
 			// caculate the block height,later will delete trie node before this height
-			deleteHeight := hei - bc.config.DB.HistoryStateHeight
-			if deleteHeight < 1 {
+			if hei < bc.config.DB.HistoryStateHeight {
 				return
 			}
+			deleteHeight := hei - bc.config.DB.HistoryStateHeight
 			log.L().Info("deleteHeight", zap.Uint64("deleteHeight", deleteHeight), zap.Uint64("height", hei), zap.Uint64("historystateheight", bc.config.DB.HistoryStateHeight))
 			for i := deleteHeight; i > 1; i-- {
 				heightBytes := make([]byte, 8)
