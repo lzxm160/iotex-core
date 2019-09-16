@@ -185,9 +185,11 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 	}
 	return err
 }
-func (b *boltDB) SaveTrieNodeThisBlock(batch KVStoreBatch, hei uint64, trieNodeNameSpace string, trieNodeKeyPrefix []byte) (ret KVStoreBatch, heightToKey KVStoreBatch, err error) {
-	ret = NewCachedBatch()
-	heightToKey = NewCachedBatch()
+
+// SaveDeletedTrieNode help save trie node that will be deleted in this block
+func (b *boltDB) SaveDeletedTrieNode(batch KVStoreBatch, hei uint64, trieNodeNameSpace string, trieNodeKeyPrefix []byte) (trieNodeCache KVStoreBatch, heightToKeyCache KVStoreBatch, err error) {
+	trieNodeCache = NewCachedBatch()
+	heightToKeyCache = NewCachedBatch()
 	heightBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(heightBytes, hei)
 	err = b.db.Update(func(tx *bolt.Tx) error {
@@ -196,15 +198,16 @@ func (b *boltDB) SaveTrieNodeThisBlock(batch KVStoreBatch, hei uint64, trieNodeN
 			if err != nil {
 				return err
 			}
+			// only save trie node in evm's name space
 			if (write.writeType == Delete) && (strings.EqualFold(write.namespace, ContractKVNameSpace)) {
 				bucket := tx.Bucket([]byte(write.namespace))
 				if bucket == nil {
 					continue
 				}
-				ret.Put(write.namespace, write.key, write.value, write.errorFormat, write.errorArgs)
+				trieNodeCache.Put(write.namespace, write.key, write.value, write.errorFormat, write.errorArgs)
 				heightTo := append(trieNodeKeyPrefix, heightBytes...)
 				heightTo = append(heightTo, write.key...)
-				heightToKey.Put(trieNodeNameSpace, heightTo, []byte(""), write.errorFormat, write.errorArgs)
+				heightToKeyCache.Put(trieNodeNameSpace, heightTo, []byte(""), write.errorFormat, write.errorArgs)
 			}
 		}
 		return nil

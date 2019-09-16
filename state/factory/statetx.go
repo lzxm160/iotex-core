@@ -10,6 +10,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"encoding/hex"
+
+	"go.uber.org/zap"
 
 	"github.com/pkg/errors"
 
@@ -37,7 +40,7 @@ type stateTX struct {
 	cb             db.CachedBatch // cached batch for pending writes
 	dao            db.KVStore     // the underlying DB for account/contract storage
 	actionHandlers []protocol.ActionHandler
-	deleting       chan struct{}
+	deleting       chan struct{} // make sure there's only one goroutine deleting history state
 	cfg            config.DB
 }
 
@@ -241,28 +244,31 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
 		return nil
 	}
 	prefix := pkHash[:]
-	needDeleted := make([][]byte, 0)
+	//needDeleted := make([][]byte, 0)
 	err := boltdb.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
+		b := tx.Bucket([]byte(AccountKVNameSpace))
+		c := b.Cursor()
 		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
 			if len(k) <= len(pkHash) || len(k) > len(pkHash)+8 {
 				continue
 			}
 			kHeight := binary.BigEndian.Uint64(k[20:])
 			if kHeight < deleteHeight {
-				temp := make([]byte, len(k))
-				copy(temp, k)
-				needDeleted = append(needDeleted, temp)
+				//temp := make([]byte, len(k))
+				//copy(temp, k)
+				//needDeleted = append(needDeleted, temp)
+				b.Delete(k)
+				log.L().Info("deleteAccountHistory", zap.Uint64("height:", kHeight), zap.String("key", hex.EncodeToString(k)))
 			}
 		}
 		return nil
 	})
-	if len(needDeleted) == 0 {
-		return nil
-	}
-	for _, k := range needDeleted {
-		stx.dao.Delete(AccountKVNameSpace, k)
-	}
+	//if len(needDeleted) == 0 {
+	//	return nil
+	//}
+	//for _, k := range needDeleted {
+	//	stx.dao.Delete(AccountKVNameSpace, k)
+	//}
 	return err
 }
 func (stx *stateTX) deleteHistory() error {

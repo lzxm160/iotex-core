@@ -186,7 +186,8 @@ type blockchain struct {
 	registry *protocol.Registry
 
 	enableExperimentalActions bool
-	deletingTrieHistory       chan struct{}
+	// make sure there's only one goroutine deleting
+	deletingTrieHistory chan struct{}
 }
 
 // Option sets blockchain construction parameter
@@ -299,8 +300,9 @@ func EnableExperimentalActions() Option {
 func NewBlockchain(cfg config.Config, opts ...Option) Blockchain {
 	// create the Blockchain
 	chain := &blockchain{
-		config: cfg,
-		clk:    clock.New(),
+		config:              cfg,
+		clk:                 clock.New(),
+		deletingTrieHistory: make(chan struct{}, 1),
 	}
 	for _, opt := range opts {
 		if err := opt(chain, cfg); err != nil {
@@ -1070,11 +1072,12 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 
 	if bc.sf != nil {
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
-		cb, heightToKey, err := blk.WorkingSet.GetDB().SaveTrieNodeThisBlock(blk.WorkingSet.GetCachedBatch(), bc.tipHeight, heightToTrieNodeKeyNS, heightToTrieNodeKeyPrefix)
+		// save trie node that will be deleted in this block
+		trieNodeCache, heightToKeyCache, err := blk.WorkingSet.GetDB().SaveDeletedTrieNode(blk.WorkingSet.GetCachedBatch(), bc.tipHeight, heightToTrieNodeKeyNS, heightToTrieNodeKeyPrefix)
 		if err != nil {
 			return errors.Wrapf(err, "failed to save trie's node on height %d", blk.Height())
 		}
-		log.L().Info("blk.WorkingSet.GetDB().SaveTrieNodeThisBlock", zap.Int("cb size:", cb.Size()))
+		log.L().Info("blk.WorkingSet.GetDB().SaveTrieNodeThisBlock", zap.Int("cb size:", trieNodeCache.Size()))
 		err = bc.sf.Commit(blk.WorkingSet)
 		log.L().Info("commitBlock,commit trie's history state", zap.Error(err))
 		sfTimer.End()
@@ -1092,18 +1095,19 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		dbstore := ws.GetDB()
 		if dbstore == nil {
 			log.L().Error("Error when GetDB.", zap.Error(err))
-			return errors.Wrapf(err, "Error when Commit on height %d", blk.Height())
+			return errors.Wrapf(err, "Error when GetDB on height %d", blk.Height())
 		}
-		err = dbstore.Commit(cb)
+		// commit to trie.db
+		err = dbstore.Commit(trieNodeCache)
 		if err != nil {
 			log.L().Error("Error when Commit.", zap.Error(err))
-			return errors.Wrapf(err, "Error when Commit on height %d", blk.Height())
+			return errors.Wrapf(err, "Error when commit trie node on height %d", blk.Height())
 		}
-
-		err = bc.dao.kvstore.Commit(heightToKey)
+		// commit to chain.db
+		err = bc.dao.kvstore.Commit(heightToKeyCache)
 		if err != nil {
 			log.L().Error("Error when bc.dao.kvstore.Commit.", zap.Error(err))
-			return errors.Wrapf(err, "Error when bc.dao.kvstore.Commit on height %d", blk.Height())
+			return errors.Wrapf(err, "Error when commit height->trie node key hash on height %d", blk.Height())
 		}
 
 		// write smart contract receipt into DB
@@ -1118,6 +1122,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 
 	// emit block to all block subscribers
 	bc.emitToSubscribers(blk)
+	// delete trie node history asynchronously
 	bc.deleteTrieHistory(bc.tipHeight)
 	return nil
 }
@@ -1136,6 +1141,7 @@ func (bc *blockchain) deleteTrieHistory(hei uint64) {
 		}
 		cb := db.NewCachedBatch()
 		go func() {
+			// make sure there's only one goroutine doing this
 			bc.deletingTrieHistory <- struct{}{}
 			kvstore := bc.dao.kvstore.DB()
 			boltdb, ok := kvstore.(*bolt.DB)
@@ -1143,6 +1149,7 @@ func (bc *blockchain) deleteTrieHistory(hei uint64) {
 				log.L().Error("convert to bolt db error")
 				return
 			}
+			// caculate the block height,later will delete trie node before this height
 			deleteHeight := hei - bc.config.DB.HistoryStateHeight
 			if deleteHeight < 1 {
 				return
@@ -1160,9 +1167,11 @@ func (bc *blockchain) deleteTrieHistory(hei uint64) {
 						return nil
 					}
 					for ; bytes.HasPrefix(k, keyPrefix); k, _ = c.Next() {
+						// delete height->trie node hash directly
 						b.Delete(k)
-						cb.Delete(db.ContractKVNameSpace, k[len(keyPrefix):], "failed to delete key %x", k[len(keyPrefix):]) // put into cache
-						log.L().Info("deleteTrieHistory:", zap.String("key:%s", fmt.Sprintf("%x", k[len(keyPrefix):])))
+						// put into cache
+						cb.Delete(db.ContractKVNameSpace, k[len(keyPrefix):], "failed to delete key %x", k[len(keyPrefix):])
+						log.L().Info("deleteTrieHistory:", zap.String("key:%s", fmt.Sprintf("%x", k[len(keyPrefix):])), zap.Uint64("height", i))
 					}
 					return nil
 				})

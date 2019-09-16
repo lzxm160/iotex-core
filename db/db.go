@@ -38,8 +38,10 @@ type KVStore interface {
 	Delete(string, []byte) error
 	// Commit commits a batch
 	Commit(KVStoreBatch) error
+	// DB return dao
 	DB() interface{}
-	SaveTrieNodeThisBlock(KVStoreBatch, uint64, string, []byte) (KVStoreBatch, KVStoreBatch, error)
+	// SaveDeletedTrieNode save deleted trie node
+	SaveDeletedTrieNode(KVStoreBatch, uint64, string, []byte) (KVStoreBatch, KVStoreBatch, error)
 }
 
 const (
@@ -127,7 +129,7 @@ func (m *memKVStore) Commit(b KVStoreBatch) (e error) {
 	return e
 }
 
-// SaveTrieNodeThisBlock save trie node history
-func (m *memKVStore) SaveTrieNodeThisBlock(KVStoreBatch, uint64, string, []byte) (KVStoreBatch, KVStoreBatch, error) {
+// SaveDeletedTrieNode save trie node history
+func (m *memKVStore) SaveDeletedTrieNode(KVStoreBatch, uint64, string, []byte) (KVStoreBatch, KVStoreBatch, error) {
 	return nil, nil, nil
 }
