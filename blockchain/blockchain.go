@@ -1092,36 +1092,16 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
 
-		ws, err := bc.sf.NewWorkingSet()
-		if err != nil {
-			log.L().Error("Error when NewWorkingSet.", zap.Error(err))
-			return errors.Wrapf(err, "Error when NewWorkingSet on height %d", blk.Height())
-		}
-		dbstore := ws.GetDB()
-		if dbstore == nil {
-			log.L().Error("Error when GetDB.", zap.Error(err))
-			return errors.Wrapf(err, "Error when GetDB on height %d", blk.Height())
-		}
-
-		// commit to trie.db
-		err = dbstore.Commit(trieNodeCache)
-		if err != nil {
-			log.L().Error("Error when Commit.", zap.Error(err))
-			return errors.Wrapf(err, "Error when commit trie node on height %d", blk.Height())
-		}
-		// commit to chain.db
-		err = bc.dao.kvstore.Commit(heightToKeyCache)
-		if err != nil {
-			log.L().Error("Error when bc.dao.kvstore.Commit.", zap.Error(err))
-			return errors.Wrapf(err, "Error when commit height->trie node key hash on height %d", blk.Height())
-		}
-
 		// write smart contract receipt into DB
 		receiptTimer := bc.timerFactory.NewTimer("putReceipt")
 		err = bc.dao.putReceipts(blk.Height(), blk.Receipts)
 		receiptTimer.End()
 		if err != nil {
 			return errors.Wrapf(err, "failed to put smart contract receipts into DB on height %d", blk.Height())
+		}
+		err = bc.saveHistory(trieNodeCache, heightToKeyCache, blk.Height())
+		if err != nil {
+			return errors.Wrapf(err, "failed to save history on height %d", blk.Height())
 		}
 	}
 	blk.HeaderLogger(log.L()).Info("Committed a block.", log.Hex("tipHash", bc.tipHash[:]))
@@ -1130,6 +1110,33 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 	bc.emitToSubscribers(blk)
 	// delete trie node history asynchronously
 	bc.deleteTrieHistory(bc.tipHeight)
+
+	return nil
+}
+func (bc *blockchain) saveHistory(trieNodeCache db.KVStoreBatch, heightToKeyCache db.KVStoreBatch, height uint64) error {
+	ws, err := bc.sf.NewWorkingSet()
+	if err != nil {
+		log.L().Error("Error when NewWorkingSet.", zap.Error(err))
+		return errors.Wrapf(err, "Error when NewWorkingSet on height %d", height)
+	}
+	dbstore := ws.GetDB()
+	if dbstore == nil {
+		log.L().Error("Error when GetDB.", zap.Error(err))
+		return errors.Wrapf(err, "Error when GetDB on height %d", height)
+	}
+
+	// commit to trie.db
+	err = dbstore.Commit(trieNodeCache)
+	if err != nil {
+		log.L().Error("Error when Commit.", zap.Error(err))
+		return errors.Wrapf(err, "Error when commit trie node on height %d", height)
+	}
+	// commit to chain.db
+	err = bc.dao.kvstore.Commit(heightToKeyCache)
+	if err != nil {
+		log.L().Error("Error when bc.dao.kvstore.Commit.", zap.Error(err))
+		return errors.Wrapf(err, "Error when commit height->trie node key hash on height %d", height)
+	}
 	return nil
 }
 func (bc *blockchain) deleteTrieHistory(hei uint64) {
