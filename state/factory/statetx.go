@@ -245,7 +245,7 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
 	}
 	prefix := pkHash[:]
 	//needDeleted := make([][]byte, 0)
-	err := boltdb.View(func(tx *bolt.Tx) error {
+	err := boltdb.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(AccountKVNameSpace))
 		c := b.Cursor()
 		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {

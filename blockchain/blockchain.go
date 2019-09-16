@@ -1161,7 +1161,7 @@ func (bc *blockchain) deleteTrieHistory(hei uint64) {
 				heightBytes := make([]byte, 8)
 				binary.BigEndian.PutUint64(heightBytes, i)
 				keyPrefix := append(heightToTrieNodeKeyPrefix, heightBytes...)
-				err = boltdb.Update(func(tx *bolt.Tx) error {
+				err = boltdb.View(func(tx *bolt.Tx) error {
 					b := tx.Bucket([]byte(heightToTrieNodeKeyNS))
 					if b == nil {
 						// return when heightToTrieNodeKeyNS not exists
