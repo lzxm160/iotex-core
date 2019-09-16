@@ -159,6 +159,9 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 					return err
 				}
 				if write.writeType == Put {
+					if write.namespace == ContractKVNameSpace {
+						log.L().Info("len of ContractKVNameSpace commit", zap.Int("trie batch size ", batch.Size()))
+					}
 					bucket, err := tx.CreateBucketIfNotExists([]byte(write.namespace))
 					if err != nil {
 						return errors.Wrapf(err, write.errorFormat, write.errorArgs)
