@@ -11,6 +11,9 @@ import (
 	"encoding/binary"
 	"strings"
 
+	"github.com/iotexproject/iotex-core/pkg/log"
+	"go.uber.org/zap"
+
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 
@@ -212,6 +215,7 @@ func (b *boltDB) SaveDeletedTrieNode(batch KVStoreBatch, hei uint64, trieNodeNam
 		}
 		return nil
 	})
+	log.L().Info("len of history SaveDeletedTrieNode", zap.Int("trie", trieNodeCache.Size()), zap.Int("heighttokey", heightToKeyCache.Size()))
 	return
 }
 

@@ -1073,11 +1073,16 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 	if bc.sf != nil {
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
 		// save trie node that will be deleted in this block
+
 		trieNodeCache, heightToKeyCache, err := blk.WorkingSet.GetDB().SaveDeletedTrieNode(blk.WorkingSet.GetCachedBatch(), bc.tipHeight, heightToTrieNodeKeyNS, heightToTrieNodeKeyPrefix)
 		if err != nil {
 			return errors.Wrapf(err, "failed to save trie's node on height %d", blk.Height())
 		}
-		log.L().Info("blk.WorkingSet.GetDB().SaveTrieNodeThisBlock", zap.Int("cb size:", trieNodeCache.Size()))
+		//log.L().Info("blk.WorkingSet.GetDB().SaveTrieNodeThisBlock", zap.Int("cb size:", trieNodeCache.Size()))
+		if trieNodeCache.Size() != 0 || heightToKeyCache.Size() != 0 {
+			log.L().Info("blk.WorkingSet.GetDB().SaveTrieNodeThisBlock", zap.Int("trie", trieNodeCache.Size()), zap.Int("heighttokey", heightToKeyCache.Size()))
+		}
+
 		err = bc.sf.Commit(blk.WorkingSet)
 		log.L().Info("commitBlock,commit trie's history state", zap.Error(err))
 		sfTimer.End()
@@ -1109,7 +1114,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			log.L().Error("Error when bc.dao.kvstore.Commit.", zap.Error(err))
 			return errors.Wrapf(err, "Error when commit height->trie node key hash on height %d", blk.Height())
 		}
-		log.L().Info("len of history", zap.Int("trie", trieNodeCache.Size()), zap.Int("heighttokey", heightToKeyCache.Size()))
+
 		// write smart contract receipt into DB
 		receiptTimer := bc.timerFactory.NewTimer("putReceipt")
 		err = bc.dao.putReceipts(blk.Height(), blk.Receipts)
