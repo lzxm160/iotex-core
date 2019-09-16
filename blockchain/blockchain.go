@@ -1166,14 +1166,14 @@ func (bc *blockchain) deleteTrieHistory(hei uint64) {
 					if b == nil {
 						// return when heightToTrieNodeKeyNS not exists
 						log.L().Info("bucket is nil")
-						return nil
+						return errors.New("bucket is nil")
 					}
 					c := b.Cursor()
 					k, _ := c.Seek(keyPrefix)
 					if k == nil {
 						// return when met the first block without history state
 						log.L().Info("k is nil")
-						return nil
+						return errors.New("k is nil")
 					}
 					for ; bytes.HasPrefix(k, keyPrefix); k, _ = c.Next() {
 						// delete height->trie node hash directly
@@ -1184,6 +1184,9 @@ func (bc *blockchain) deleteTrieHistory(hei uint64) {
 					}
 					return nil
 				})
+				if err != nil {
+					return
+				}
 			}
 			dbstore.Commit(cb) // delete trie node
 
