@@ -1143,6 +1143,9 @@ func (bc *blockchain) deleteTrieHistory(hei uint64) {
 		go func() {
 			// make sure there's only one goroutine doing this
 			bc.deletingTrieHistory <- struct{}{}
+			defer func() {
+				<-bc.deletingTrieHistory
+			}()
 			kvstore := bc.dao.kvstore.DB()
 			boltdb, ok := kvstore.(*bolt.DB)
 			if !ok {
@@ -1183,7 +1186,7 @@ func (bc *blockchain) deleteTrieHistory(hei uint64) {
 				})
 			}
 			dbstore.Commit(cb) // delete trie node
-			<-bc.deletingTrieHistory
+
 		}()
 	}
 }
