@@ -1160,10 +1160,16 @@ func (bc *blockchain) deleteTrieHistory(hei uint64) {
 				keyPrefix := append(heightToTrieNodeKeyPrefix, heightBytes...)
 				err = boltdb.Update(func(tx *bolt.Tx) error {
 					b := tx.Bucket([]byte(heightToTrieNodeKeyNS))
+					if b == nil {
+						// return when heightToTrieNodeKeyNS not exists
+						log.L().Info("bucket is nil")
+						return nil
+					}
 					c := b.Cursor()
 					k, _ := c.Seek(keyPrefix)
 					if k == nil {
 						// return when met the first block without history state
+						log.L().Info("k is nil")
 						return nil
 					}
 					for ; bytes.HasPrefix(k, keyPrefix); k, _ = c.Next() {
