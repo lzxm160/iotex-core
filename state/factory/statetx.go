@@ -247,6 +247,11 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
 	//needDeleted := make([][]byte, 0)
 	err := boltdb.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(AccountKVNameSpace))
+		if b == nil {
+			// return when heightToTrieNodeKeyNS not exists
+			log.L().Info("bucket is nil")
+			return errors.New("bucket is nil")
+		}
 		c := b.Cursor()
 		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
 			if len(k) <= len(pkHash) || len(k) > len(pkHash)+8 {
