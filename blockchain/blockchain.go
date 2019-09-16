@@ -1102,6 +1102,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			log.L().Error("Error when GetDB.", zap.Error(err))
 			return errors.Wrapf(err, "Error when GetDB on height %d", blk.Height())
 		}
+
 		// commit to trie.db
 		err = dbstore.Commit(trieNodeCache)
 		if err != nil {

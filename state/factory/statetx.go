@@ -231,12 +231,7 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	stateKey := append(pkHash[:], currentVersion...)
 	return stx.dao.Put(AccountKVNameSpace, stateKey, ss)
 }
-func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
-	currentHeight := stx.ver + 1
-	if currentHeight < stx.cfg.HistoryStateHeight {
-		return nil
-	}
-	deleteHeight := currentHeight - stx.cfg.HistoryStateHeight
+func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160, deleteHeight uint64) error {
 	db := stx.dao.DB()
 	boltdb, ok := db.(*bolt.DB)
 	if !ok {
@@ -277,6 +272,11 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160) error {
 	return err
 }
 func (stx *stateTX) deleteHistory() error {
+	currentHeight := stx.ver + 1
+	if currentHeight < stx.cfg.HistoryStateHeight {
+		return nil
+	}
+	deleteHeight := currentHeight - stx.cfg.HistoryStateHeight
 	go func() {
 		stx.deleting <- struct{}{}
 		db := stx.dao.DB()
@@ -296,7 +296,7 @@ func (stx *stateTX) deleteHistory() error {
 			return nil
 		})
 		for _, h := range allPk {
-			stx.deleteAccountHistory(h)
+			stx.deleteAccountHistory(h, deleteHeight)
 		}
 		<-stx.deleting
 	}()

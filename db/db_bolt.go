@@ -9,6 +9,7 @@ package db
 import (
 	"context"
 	"encoding/binary"
+	"encoding/hex"
 	"strings"
 
 	"github.com/iotexproject/iotex-core/pkg/log"
@@ -160,7 +161,7 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 				}
 				if write.writeType == Put {
 					if write.namespace == ContractKVNameSpace {
-						log.L().Info("len of ContractKVNameSpace commit", zap.Int("trie batch size ", batch.Size()))
+						log.L().Info("len of ContractKVNameSpace commit", zap.Int("trie batch size ", batch.Size()), zap.String("save key", hex.EncodeToString(write.key)))
 					}
 					bucket, err := tx.CreateBucketIfNotExists([]byte(write.namespace))
 					if err != nil {
