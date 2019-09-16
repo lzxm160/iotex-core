@@ -1109,7 +1109,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			log.L().Error("Error when bc.dao.kvstore.Commit.", zap.Error(err))
 			return errors.Wrapf(err, "Error when commit height->trie node key hash on height %d", blk.Height())
 		}
-
+		log.L().Info("len of history", zap.Int("trie", trieNodeCache.Size()), zap.Int("heighttokey", heightToKeyCache.Size()))
 		// write smart contract receipt into DB
 		receiptTimer := bc.timerFactory.NewTimer("putReceipt")
 		err = bc.dao.putReceipts(blk.Height(), blk.Receipts)
