@@ -310,6 +310,7 @@ func TestSDBNonce(t *testing.T) {
 
 	cfg := config.Default
 	cfg.Chain.TrieDBPath = testDBPath
+	cfg.DB.EnableHistoryState = false
 	sdb, err := NewStateDB(cfg, DefaultStateDBOption())
 	require.NoError(t, err)
 
