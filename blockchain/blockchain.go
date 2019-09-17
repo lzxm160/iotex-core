@@ -1114,6 +1114,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 
 	return nil
 }
+
 func (bc *blockchain) saveHistory(heightToKeyCache db.KVStoreBatch, height uint64) error {
 	// commit to chain.db
 	err := bc.dao.kvstore.Commit(heightToKeyCache)
@@ -1123,6 +1124,7 @@ func (bc *blockchain) saveHistory(heightToKeyCache db.KVStoreBatch, height uint6
 	}
 	return nil
 }
+
 func (bc *blockchain) deleteTrieHistory(hei uint64) {
 	if bc.config.DB.EnableHistoryState && hei%factory.CheckHistoryDeleteInterval == 0 {
 		log.L().Info("deleteTrieHistory start")

@@ -12,12 +12,12 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"github.com/iotexproject/iotex-core/pkg/log"
+	
 	"go.uber.org/zap"
-
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 
+"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/config"
 )
 
