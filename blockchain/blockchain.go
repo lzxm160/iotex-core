@@ -1154,8 +1154,14 @@ func (bc *blockchain) deleteTrieHistory(hei uint64) {
 				return
 			}
 			deleteStartHeight := hei - bc.config.DB.HistoryStateHeight
-			endHeight := deleteStartHeight - bc.config.DB.HistoryStateHeight
-			log.L().Info("deleteHeight", zap.Uint64("deleteHeight", deleteStartHeight), zap.Uint64("height", hei), zap.Uint64("historystateheight", bc.config.DB.HistoryStateHeight))
+			var endHeight uint64
+			if deleteStartHeight < bc.config.DB.HistoryStateHeight {
+				endHeight = 1
+			} else {
+				endHeight = deleteStartHeight - bc.config.DB.HistoryStateHeight
+			}
+
+			log.L().Info("deleteHeight", zap.Uint64("deleteStartHeight", deleteStartHeight), zap.Uint64("endHeight", endHeight), zap.Uint64("height", hei), zap.Uint64("historystateheight", bc.config.DB.HistoryStateHeight))
 			for i := deleteStartHeight; i > endHeight; i-- {
 				heightBytes := make([]byte, 8)
 				binary.BigEndian.PutUint64(heightBytes, i)
