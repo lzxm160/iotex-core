@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	// 30 block heights to check if history needs to delete
+	// CheckHistoryDeleteInterval 30 block heights to check if history needs to delete
 	CheckHistoryDeleteInterval = 30
 )
 
@@ -231,6 +231,8 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	stateKey := append(pkHash[:], currentVersion...)
 	return stx.dao.Put(AccountKVNameSpace, stateKey, ss)
 }
+
+// deleteAccountHistory delete history of account
 func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160, deleteHeight uint64) error {
 	db := stx.dao.DB()
 	boltdb, ok := db.(*bolt.DB)
@@ -271,6 +273,8 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160, deleteHeight uint6
 	//}
 	return err
 }
+
+// delete history asynchronous,this will find all account
 func (stx *stateTX) deleteHistory() error {
 	currentHeight := stx.ver + 1
 	if currentHeight < stx.cfg.HistoryStateHeight {
