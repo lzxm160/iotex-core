@@ -9,11 +9,7 @@ package trie
 import (
 	"bytes"
 	"context"
-	"encoding/hex"
 	"sync"
-
-	"github.com/iotexproject/iotex-core/pkg/log"
-	"go.uber.org/zap"
 
 	"github.com/iotexproject/iotex-core/db"
 
@@ -162,7 +158,7 @@ func (tr *branchRootTrie) loadNodeFromDB(key []byte) (Node, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get key %x", key)
 	}
-	log.L().Info("loadNodeFromDB", zap.String("value", hex.EncodeToString(s)))
+	//log.L().Info("loadNodeFromDB", zap.String("value", hex.EncodeToString(s)))
 	pb := triepb.NodePb{}
 	if err := proto.Unmarshal(s, &pb); err != nil {
 		return nil, err
