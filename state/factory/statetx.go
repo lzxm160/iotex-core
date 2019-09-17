@@ -276,6 +276,7 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160, deleteHeight uint6
 
 // delete history asynchronous,this will find all account
 func (stx *stateTX) deleteHistory() error {
+	log.L().Info("deleteHistory start")
 	currentHeight := stx.ver + 1
 	if currentHeight < stx.cfg.HistoryStateHeight {
 		return nil
