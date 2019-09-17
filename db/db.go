@@ -41,7 +41,7 @@ type KVStore interface {
 	// DB return dao
 	DB() interface{}
 	// SaveDeletedTrieNode save deleted trie node
-	SaveDeletedTrieNode(KVStoreBatch, uint64, string, []byte) (KVStoreBatch, KVStoreBatch, error)
+	SaveDeletedTrieNode(KVStoreBatch, uint64, string, []byte) (KVStoreBatch, error)
 }
 
 const (
@@ -130,6 +130,6 @@ func (m *memKVStore) Commit(b KVStoreBatch) (e error) {
 }
 
 // SaveDeletedTrieNode save trie node history
-func (m *memKVStore) SaveDeletedTrieNode(KVStoreBatch, uint64, string, []byte) (KVStoreBatch, KVStoreBatch, error) {
-	return nil, nil, nil
+func (m *memKVStore) SaveDeletedTrieNode(KVStoreBatch, uint64, string, []byte) (KVStoreBatch, error) {
+	return nil, nil
 }

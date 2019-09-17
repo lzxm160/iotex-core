@@ -1075,13 +1075,13 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
 		// save trie node that will be deleted in this block
 
-		trieNodeCache, heightToKeyCache, err := blk.WorkingSet.GetDB().SaveDeletedTrieNode(blk.WorkingSet.GetCachedBatch(), bc.tipHeight, heightToTrieNodeKeyNS, heightToTrieNodeKeyPrefix)
+		heightToKeyCache, err := blk.WorkingSet.GetDB().SaveDeletedTrieNode(blk.WorkingSet.GetCachedBatch(), bc.tipHeight, heightToTrieNodeKeyNS, heightToTrieNodeKeyPrefix)
 		if err != nil {
 			return errors.Wrapf(err, "failed to save trie's node on height %d", blk.Height())
 		}
 		//log.L().Info("blk.WorkingSet.GetDB().SaveTrieNodeThisBlock", zap.Int("cb size:", trieNodeCache.Size()))
-		if trieNodeCache.Size() != 0 || heightToKeyCache.Size() != 0 {
-			log.L().Info("blk.WorkingSet.GetDB().SaveTrieNodeThisBlock", zap.Int("trie", trieNodeCache.Size()), zap.Int("heighttokey", heightToKeyCache.Size()))
+		if heightToKeyCache.Size() != 0 {
+			log.L().Info("blk.WorkingSet.GetDB().SaveTrieNodeThisBlock", zap.Int("heighttokey", heightToKeyCache.Size()))
 		}
 
 		err = bc.sf.Commit(blk.WorkingSet)
@@ -1100,7 +1100,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to put smart contract receipts into DB on height %d", blk.Height())
 		}
-		err = bc.saveHistory(trieNodeCache, heightToKeyCache, blk.Height())
+		err = bc.saveHistory(heightToKeyCache, blk.Height())
 		if err != nil {
 			return errors.Wrapf(err, "failed to save history on height %d", blk.Height())
 		}
@@ -1114,26 +1114,9 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 
 	return nil
 }
-func (bc *blockchain) saveHistory(trieNodeCache db.KVStoreBatch, heightToKeyCache db.KVStoreBatch, height uint64) error {
-	ws, err := bc.sf.NewWorkingSet()
-	if err != nil {
-		log.L().Error("Error when NewWorkingSet.", zap.Error(err))
-		return errors.Wrapf(err, "Error when NewWorkingSet on height %d", height)
-	}
-	dbstore := ws.GetDB()
-	if dbstore == nil {
-		log.L().Error("Error when GetDB.", zap.Error(err))
-		return errors.Wrapf(err, "Error when GetDB on height %d", height)
-	}
-
-	// commit to trie.db,
-	//err = dbstore.Commit(trieNodeCache)
-	//if err != nil {
-	//	log.L().Error("Error when Commit.", zap.Error(err))
-	//	return errors.Wrapf(err, "Error when commit trie node on height %d", height)
-	//}
+func (bc *blockchain) saveHistory(heightToKeyCache db.KVStoreBatch, height uint64) error {
 	// commit to chain.db
-	err = bc.dao.kvstore.Commit(heightToKeyCache)
+	err := bc.dao.kvstore.Commit(heightToKeyCache)
 	if err != nil {
 		log.L().Error("Error when bc.dao.kvstore.Commit.", zap.Error(err))
 		return errors.Wrapf(err, "Error when commit height->trie node key hash on height %d", height)

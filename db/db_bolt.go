@@ -196,8 +196,7 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 }
 
 // SaveDeletedTrieNode help save trie node that will be deleted in this block
-func (b *boltDB) SaveDeletedTrieNode(batch KVStoreBatch, hei uint64, trieNodeNameSpace string, trieNodeKeyPrefix []byte) (trieNodeCache KVStoreBatch, heightToKeyCache KVStoreBatch, err error) {
-	trieNodeCache = NewCachedBatch()
+func (b *boltDB) SaveDeletedTrieNode(batch KVStoreBatch, hei uint64, trieNodeNameSpace string, trieNodeKeyPrefix []byte) (heightToKeyCache KVStoreBatch, err error) {
 	heightToKeyCache = NewCachedBatch()
 	heightBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(heightBytes, hei)
@@ -213,7 +212,6 @@ func (b *boltDB) SaveDeletedTrieNode(batch KVStoreBatch, hei uint64, trieNodeNam
 				if bucket == nil {
 					continue
 				}
-				trieNodeCache.Put(write.namespace, write.key, write.value, write.errorFormat, write.errorArgs)
 				heightTo := append(trieNodeKeyPrefix, heightBytes...)
 				heightTo = append(heightTo, write.key...)
 				heightToKeyCache.Put(trieNodeNameSpace, heightTo, []byte(""), write.errorFormat, write.errorArgs)
@@ -221,7 +219,7 @@ func (b *boltDB) SaveDeletedTrieNode(batch KVStoreBatch, hei uint64, trieNodeNam
 		}
 		return nil
 	})
-	log.L().Info("len of history SaveDeletedTrieNode", zap.Int("trie", trieNodeCache.Size()), zap.Int("heighttokey", heightToKeyCache.Size()))
+	log.L().Info("len of history SaveDeletedTrieNode", zap.Int("heighttokey", heightToKeyCache.Size()))
 	return
 }
 
