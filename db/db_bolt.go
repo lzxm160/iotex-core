@@ -171,12 +171,14 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 						return errors.Wrapf(err, write.errorFormat, write.errorArgs)
 					}
 				} else if write.writeType == Delete {
-					bucket := tx.Bucket([]byte(write.namespace))
-					if bucket == nil {
-						continue
-					}
-					if err := bucket.Delete(write.key); err != nil {
-						return errors.Wrapf(err, write.errorFormat, write.errorArgs)
+					if !strings.EqualFold(write.namespace, ContractKVNameSpace) {
+						bucket := tx.Bucket([]byte(write.namespace))
+						if bucket == nil {
+							continue
+						}
+						if err := bucket.Delete(write.key); err != nil {
+							return errors.Wrapf(err, write.errorFormat, write.errorArgs)
+						}
 					}
 				}
 			}

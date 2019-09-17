@@ -1126,12 +1126,12 @@ func (bc *blockchain) saveHistory(trieNodeCache db.KVStoreBatch, heightToKeyCach
 		return errors.Wrapf(err, "Error when GetDB on height %d", height)
 	}
 
-	// commit to trie.db
-	err = dbstore.Commit(trieNodeCache)
-	if err != nil {
-		log.L().Error("Error when Commit.", zap.Error(err))
-		return errors.Wrapf(err, "Error when commit trie node on height %d", height)
-	}
+	// commit to trie.db,
+	//err = dbstore.Commit(trieNodeCache)
+	//if err != nil {
+	//	log.L().Error("Error when Commit.", zap.Error(err))
+	//	return errors.Wrapf(err, "Error when commit trie node on height %d", height)
+	//}
 	// commit to chain.db
 	err = bc.dao.kvstore.Commit(heightToKeyCache)
 	if err != nil {
