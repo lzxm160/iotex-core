@@ -1153,32 +1153,33 @@ func (bc *blockchain) deleteTrieHistory(hei uint64) {
 			if hei < bc.config.DB.HistoryStateHeight {
 				return
 			}
-			deleteHeight := hei - bc.config.DB.HistoryStateHeight
-			log.L().Info("deleteHeight", zap.Uint64("deleteHeight", deleteHeight), zap.Uint64("height", hei), zap.Uint64("historystateheight", bc.config.DB.HistoryStateHeight))
-			for i := deleteHeight; i > 1; i-- {
+			deleteStartHeight := hei - bc.config.DB.HistoryStateHeight
+			endHeight := deleteStartHeight - bc.config.DB.HistoryStateHeight
+			log.L().Info("deleteHeight", zap.Uint64("deleteHeight", deleteStartHeight), zap.Uint64("height", hei), zap.Uint64("historystateheight", bc.config.DB.HistoryStateHeight))
+			for i := deleteStartHeight; i > endHeight; i-- {
 				heightBytes := make([]byte, 8)
 				binary.BigEndian.PutUint64(heightBytes, i)
 				keyPrefix := append(heightToTrieNodeKeyPrefix, heightBytes...)
 				err = boltdb.Update(func(tx *bolt.Tx) error {
 					b := tx.Bucket([]byte(heightToTrieNodeKeyNS))
-					if b == nil {
-						// return when heightToTrieNodeKeyNS not exists
-						log.L().Info("bucket is nil")
-						return errors.New("bucket is nil")
-					}
+					//if b == nil {
+					//	// return when heightToTrieNodeKeyNS not exists
+					//	log.L().Info("bucket is nil")
+					//	return errors.New("bucket is nil")
+					//}
 					c := b.Cursor()
-					k, _ := c.Seek(keyPrefix)
-					if k == nil {
-						// return when met the first block without history state
-						log.L().Info("k is nil")
-						return errors.New("k is nil")
-					}
-					for ; bytes.HasPrefix(k, keyPrefix); k, _ = c.Next() {
+					//k, _ := c.Seek(keyPrefix)
+					//if k == nil {
+					//	// return when met the first block without history state
+					//	log.L().Info("k is nil")
+					//	return errors.New("k is nil")
+					//}
+					for k, _ := c.Seek(keyPrefix); bytes.HasPrefix(k, keyPrefix); k, _ = c.Next() {
 						// delete height->trie node hash directly
 						b.Delete(k)
 						// put into cache
 						cb.Delete(db.ContractKVNameSpace, k[len(keyPrefix):], "failed to delete key %x", k[len(keyPrefix):])
-						log.L().Info("deleteTrieHistory:", zap.String("key:%s", fmt.Sprintf("%x", k[len(keyPrefix):])), zap.Uint64("height", i))
+						log.L().Info("deleteTrieHistory:", zap.String("key:", fmt.Sprintf("%x", k[len(keyPrefix):])), zap.Uint64("height", i))
 					}
 					return nil
 				})
