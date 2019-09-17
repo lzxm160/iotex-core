@@ -1080,9 +1080,9 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			return errors.Wrapf(err, "failed to save trie's node on height %d", blk.Height())
 		}
 		//log.L().Info("blk.WorkingSet.GetDB().SaveTrieNodeThisBlock", zap.Int("cb size:", trieNodeCache.Size()))
-		if heightToKeyCache.Size() != 0 {
-			log.L().Info("blk.WorkingSet.GetDB().SaveTrieNodeThisBlock", zap.Int("heighttokey", heightToKeyCache.Size()))
-		}
+		//if heightToKeyCache.Size() != 0 {
+		//	log.L().Info("blk.WorkingSet.GetDB().SaveTrieNodeThisBlock", zap.Int("heighttokey", heightToKeyCache.Size()))
+		//}
 
 		err = bc.sf.Commit(blk.WorkingSet)
 		log.L().Info("commitBlock,commit trie's history state", zap.Error(err))
