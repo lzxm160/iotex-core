@@ -36,7 +36,7 @@ var (
 	blacklisted            = "action source address is blacklisted"
 	overMaxNumActsPerPool  = "over max num of actions per pool"
 	failedGetIntrinsicGas  = "failed to get action's intrinsic gas"
-	overMaxGasLimitPerPool = "insufficient gas space for action"
+	overMaxGasLimitPerPool = "over max gas limit per pool"
 	existedAction          = "existed action"
 	gasPriceLower          = "gas price is lower than minimal gas"
 	invalidAction          = "invalid action"
@@ -46,7 +46,7 @@ var (
 	nonceTooLarge          = "nonce too large"
 	failedToGetCost        = "failed to get cost of action"
 	insufficientBalance    = "insufficient balance for action"
-	failedPutActQueue      = "put into ActQueue"
+	failedPutActQueue      = "failed put into ActQueue"
 )
 
 func init() {
