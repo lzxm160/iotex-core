@@ -112,7 +112,6 @@ type actPool struct {
 	timerFactory              *prometheustimer.TimerFactory
 	enableExperimentalActions bool
 	senderBlackList           map[string]bool
-	actPoolReject             map[string]uint64
 }
 
 // NewActPool constructs a new actpool
@@ -132,7 +131,6 @@ func NewActPool(bc blockchain.Blockchain, cfg config.ActPool, opts ...Option) (A
 		senderBlackList: senderBlackList,
 		accountActs:     make(map[string]ActQueue),
 		allActions:      make(map[hash.Hash256]action.SealedEnvelope),
-		actPoolReject:   make(map[string]uint64),
 	}
 	for _, opt := range opts {
 		if err := opt(ap); err != nil {
