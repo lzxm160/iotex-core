@@ -29,21 +29,21 @@ var (
 		Name: "iotex_actpool_rejection_metrics",
 		Help: "actpool metrics.",
 	}, []string{"type"})
-	invalid_caller_pk      = "invalid_caller_pk"
+	invalidCallerPk        = "invalidCallerPk"
 	blacklisted            = "blacklisted"
-	overMaxNumActsPerPool  = "over max num of actions per pool"
-	failedGetIntrinsicGas  = "failed to get action's intrinsic gas"
-	overMaxGasLimitPerPool = "over max gas limit per pool"
-	existedAction          = "existed action"
-	gasPriceLower          = "gas price is lower than minimal gas"
-	invalidAction          = "invalid action"
-	failedToGetNonce       = "failed to get sender's nonce for action"
-	failedToGetBalance     = "failed to get sender's balance for action"
-	nonce_used             = "nonce_used"
-	nonceTooLarge          = "nonce too large"
-	failedToGetCost        = "failed to get cost of action"
-	insufficientBalance    = "insufficient balance for action"
-	failedPutActQueue      = "failed put into ActQueue"
+	overMaxNumActsPerPool  = "overMaxNumActsPerPool"
+	failedGetIntrinsicGas  = "failedGetIntrinsicGas"
+	overMaxGasLimitPerPool = "overMaxGasLimitPerPool"
+	existedAction          = "existedAction"
+	gasPriceLower          = "gasPriceLower"
+	invalidAction          = "invalidAction"
+	failedToGetNonce       = "failedToGetNonce"
+	failedToGetBalance     = "failedToGetBalance"
+	nonceUsed              = "nonceUsed"
+	nonceTooLarge          = "nonceTooLarge"
+	failedToGetCost        = "failedToGetCost"
+	insufficientBalance    = "insufficientBalance"
+	failedPutActQueue      = "failedPutActQueue"
 )
 
 func init() {
@@ -186,7 +186,7 @@ func (ap *actPool) Add(act action.SealedEnvelope) error {
 	pubKeyHash := act.SrcPubkey().Hash()
 	srcAddr, err := address.FromBytes(pubKeyHash)
 	if err != nil {
-		actpoolMtc.WithLabelValues(invalid_caller_pk).Inc()
+		actpoolMtc.WithLabelValues(invalidCallerPk).Inc()
 		return errors.Wrap(err, "failed to get address from bytes")
 	}
 	if _, ok := ap.senderBlackList[srcAddr.String()]; ok {
@@ -369,7 +369,7 @@ func (ap *actPool) enqueueAction(sender string, act action.SealedEnvelope, hash 
 	}
 	if queue.Overlaps(act) {
 		// Nonce already exists
-		actpoolMtc.WithLabelValues(nonce_used).Inc()
+		actpoolMtc.WithLabelValues(nonceUsed).Inc()
 		return errors.Wrapf(action.ErrNonce, "duplicate nonce for action %x", hash)
 	}
 
