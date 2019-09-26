@@ -25,22 +25,12 @@ import (
 )
 
 var (
-	//	counterVecWithTwoElements := prometheus.NewCounterVec(prometheus.CounterOpts{}, []string{"foo"})
-	//	counterVecWithTwoElements.WithLabelValues("bar").Add(42)
-	//counterVecWithTwoElements.WithLabelValues("baz").Inc()
-	//actpoolMtc = prometheus.NewGaugeVec(
-	//	prometheus.GaugeOpts{
-	//		Name: "iotex_actpool_metrics",
-	//		Help: "actpool metrics.",
-	//	},
-	//	[]string{"type", "value"},
-	//)
 	actpoolMtc = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "iotex_actpool_rejection_metrics",
 		Help: "actpool metrics.",
 	}, []string{"type"})
-	failedToGetAddress     = "failed to get address from bytes"
-	blacklisted            = "action source address is blacklisted"
+	invalid_caller_pk      = "invalid_caller_pk"
+	blacklisted            = "blacklisted"
 	overMaxNumActsPerPool  = "over max num of actions per pool"
 	failedGetIntrinsicGas  = "failed to get action's intrinsic gas"
 	overMaxGasLimitPerPool = "over max gas limit per pool"
@@ -49,7 +39,7 @@ var (
 	invalidAction          = "invalid action"
 	failedToGetNonce       = "failed to get sender's nonce for action"
 	failedToGetBalance     = "failed to get sender's balance for action"
-	duplicateNonce         = "duplicate nonce for action"
+	nonce_used             = "nonce_used"
 	nonceTooLarge          = "nonce too large"
 	failedToGetCost        = "failed to get cost of action"
 	insufficientBalance    = "insufficient balance for action"
@@ -196,7 +186,7 @@ func (ap *actPool) Add(act action.SealedEnvelope) error {
 	pubKeyHash := act.SrcPubkey().Hash()
 	srcAddr, err := address.FromBytes(pubKeyHash)
 	if err != nil {
-		actpoolMtc.WithLabelValues(failedToGetAddress).Inc()
+		actpoolMtc.WithLabelValues(invalid_caller_pk).Inc()
 		return errors.Wrap(err, "failed to get address from bytes")
 	}
 	if _, ok := ap.senderBlackList[srcAddr.String()]; ok {
@@ -379,7 +369,7 @@ func (ap *actPool) enqueueAction(sender string, act action.SealedEnvelope, hash 
 	}
 	if queue.Overlaps(act) {
 		// Nonce already exists
-		actpoolMtc.WithLabelValues(duplicateNonce).Inc()
+		actpoolMtc.WithLabelValues(nonce_used).Inc()
 		return errors.Wrapf(action.ErrNonce, "duplicate nonce for action %x", hash)
 	}
 
