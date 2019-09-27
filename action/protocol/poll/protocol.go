@@ -331,6 +331,23 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 			return nil, err
 		}
 		return byteutil.Uint64ToBytes(gravityStartheight), nil
+	case "GetVotes":
+		if len(args) != 4 {
+			return nil, errors.Errorf("invalid number of arguments %d", len(args))
+		}
+		//gravityStartheight, err := p.getGravityHeight(byteutil.BytesToUint64(args[0]))
+		//if err != nil {
+		//	return nil, err
+		//}
+		//return byteutil.Uint64ToBytes(gravityStartheight), nil
+		log.L().Info(
+			"GetVotes",
+			zap.String("Votee", string(args[0])),
+			zap.String("Height", string(args[1])),
+			zap.Uint64("Offset", byteutil.BytesToUint64(args[2])),
+			zap.Uint64("Limit", byteutil.BytesToUint64(args[3])),
+		)
+		return []byte("get votes"), nil
 	default:
 		return nil, errors.New("corresponding method isn't found")
 

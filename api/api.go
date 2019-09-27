@@ -601,7 +601,33 @@ func (api *Server) GetVotes(
 	// This is a very weird API for iotex-core, which tries to fetch election result by ethereum height.
 	// Moreover, it relies on election committee but not the poll protocol.
 	// Before we are able to provide an API to query votes by iotex chain height, deleting this implementation as if it has been deprecated.
-	return nil, nil
+	if _, ok := api.registry.Find(poll.ProtocolID); ok {
+		readStateRequest := &iotexapi.ReadStateRequest{
+			ProtocolID: []byte(poll.ProtocolID),
+			MethodName: []byte("GetVotes"),
+			Arguments:  [][]byte{[]byte(in.Votee), []byte(in.Height), byteutil.Uint32ToBytes(in.Offset), byteutil.Uint32ToBytes(in.Limit)},
+		}
+		res, err := api.readState(context.Background(), readStateRequest)
+		if err != nil {
+			return nil, err
+		}
+		res.GetData()
+	}
+	response := &iotexapi.GetVotesResponse{}
+	//response := &iotexapi.GetVotesResponse{
+	//	Buckets: make([]*iotexapi.Bucket, limit),
+	//}
+	//for i := uint32(0); i < limit; i++ {
+	//	vote := votes[offset+i]
+	//	response.Buckets[i] = &iotexapi.Bucket{
+	//		Voter:             hex.EncodeToString(vote.Voter()),
+	//		Votes:             vote.Amount().Text(10),
+	//		WeightedVotes:     vote.WeightedAmount().Text(10),
+	//		RemainingDuration: vote.RemainingTime(result.MintTime()).String(),
+	//	}
+	//}
+
+	return response, nil
 }
 
 // Start starts the API server
