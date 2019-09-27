@@ -342,6 +342,10 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 		//return byteutil.Uint64ToBytes(gravityStartheight), nil
 		log.L().Info(
 			"GetVotes",
+			zap.Int("len(args)", len(args)),
+		)
+		log.L().Info(
+			"GetVotes",
 			zap.String("Votee", string(args[0])),
 			zap.String("Height", string(args[1])),
 			zap.Uint64("Offset", byteutil.BytesToUint64(args[2])),

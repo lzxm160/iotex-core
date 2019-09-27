@@ -605,7 +605,7 @@ func (api *Server) GetVotes(
 		readStateRequest := &iotexapi.ReadStateRequest{
 			ProtocolID: []byte(poll.ProtocolID),
 			MethodName: []byte("GetVotes"),
-			Arguments:  [][]byte{[]byte(in.Votee), []byte(in.Height), byteutil.Uint32ToBytes(in.Offset), byteutil.Uint32ToBytes(in.Limit)},
+			Arguments:  [][]byte{[]byte(in.Votee), []byte(in.Height), byteutil.Uint64ToBytes(uint64(in.Offset)), byteutil.Uint64ToBytes(uint64(in.Limit))},
 		}
 		res, err := api.readState(context.Background(), readStateRequest)
 		if err != nil {
