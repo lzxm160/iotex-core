@@ -604,9 +604,10 @@ func (api *Server) GetVotes(
 			MethodName: []byte("GetVotes"),
 			Arguments:  [][]byte{[]byte(in.Votee), []byte(in.Height), byteutil.Uint64ToBytes(uint64(in.Offset)), byteutil.Uint64ToBytes(uint64(in.Limit))},
 		}
-		res, err := api.readState(context.Background(), readStateRequest)
+		var res *iotexapi.ReadStateResponse
+		res, err = api.readState(context.Background(), readStateRequest)
 		if err != nil {
-			return nil, err
+			return
 		}
 		response = &iotexapi.GetVotesResponse{}
 		err = proto.Unmarshal(res.GetData(), response)
