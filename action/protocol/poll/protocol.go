@@ -348,13 +348,6 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 }
 
 func (p *governanceChainCommitteeProtocol) GetVotes(votee, height string, offset, limit uint64) ([]byte, error) {
-	log.L().Info(
-		"GetVotes",
-		zap.String("Votee", votee),
-		zap.String("Height", height),
-		zap.Uint64("Offset", offset),
-		zap.Uint64("Limit", limit),
-	)
 	hei, err := strconv.ParseUint(height, 10, 64)
 	if err != nil {
 		return nil, err
