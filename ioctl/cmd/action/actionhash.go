@@ -37,15 +37,15 @@ var actionHashCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		err := getActionByHash(args)
-		if err != nil {
-			message, ok := err.(output.ErrorMessage)
-			if ok {
-				if message.Code == output.APIError {
-					fmt.Println("action ", args[0], " isn't found")
-					return nil
-				}
-			}
-		}
+		//if err != nil {
+		//	message, ok := err.(output.ErrorMessage)
+		//	if ok {
+		//		if message.Code == output.APIError {
+		//			fmt.Println("action ", args[0], " isn't found")
+		//			return nil
+		//		}
+		//	}
+		//}
 		return output.PrintError(err)
 	},
 }
@@ -104,8 +104,11 @@ func getActionByHash(args []string) error {
 	response, err := cli.GetActions(ctx, &requestGetAction)
 	if err != nil {
 		sta, ok := status.FromError(err)
-		fmt.Println(sta, "xxxxxxxxxxxxxxxxxx:", ok)
 		if ok {
+			if sta.Code() == codes.NotFound {
+				fmt.Println("action ", hash, " isn't found")
+				return nil
+			}
 			return output.NewError(output.APIError, sta.Message(), nil)
 		}
 		return output.NewError(output.NetworkError, "failed to invoke GetActions api", err)
@@ -117,10 +120,8 @@ func getActionByHash(args []string) error {
 
 	requestGetReceipt := &iotexapi.GetReceiptByActionRequest{ActionHash: hash}
 	responseReceipt, err := cli.GetReceiptByAction(ctx, requestGetReceipt)
-
 	if err != nil {
 		sta, ok := status.FromError(err)
-
 		if ok && sta.Code() == codes.NotFound {
 			message.State = Pending
 		} else if ok {
