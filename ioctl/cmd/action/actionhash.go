@@ -37,7 +37,10 @@ var actionHashCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		err := getActionByHash(args)
-		return output.PrintError(err)
+		if err != nil {
+			fmt.Println(err)
+		}
+		return nil
 	},
 }
 
