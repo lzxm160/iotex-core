@@ -118,6 +118,7 @@ func getActionByHash(args []string) error {
 	responseReceipt, err := cli.GetReceiptByAction(ctx, requestGetReceipt)
 	if err != nil {
 		sta, ok := status.FromError(err)
+		fmt.Println(sta, ":", ok)
 		if ok && sta.Code() == codes.NotFound {
 			message.State = Pending
 		} else if ok {
