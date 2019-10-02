@@ -38,6 +38,7 @@ var actionHashCmd = &cobra.Command{
 		cmd.SilenceUsage = true
 		err := getActionByHash(args)
 		sta, ok := status.FromError(err)
+		fmt.Println(sta, ":", ok)
 		if ok && sta.Code() == codes.NotFound {
 			fmt.Println("action ", args[1], " isn't found")
 			return nil
