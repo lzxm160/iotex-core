@@ -94,13 +94,12 @@ func getActionByHash(args []string) error {
 	}
 	response, err := cli.GetActions(ctx, &requestGetAction)
 	if err != nil {
-		fmt.Println(err)
 		sta, ok := status.FromError(err)
 		if ok {
-			//if sta.Code() == codes.NotFound || sta.Code() == codes.Unavailable {
-			//	fmt.Println("action", hash, "isn't found")
-			//	return nil
-			//}
+			if sta.Code() == codes.NotFound || sta.Code() == codes.Unavailable {
+				fmt.Println("action", hash, "isn't found")
+				return nil
+			}
 			return output.NewError(output.APIError, sta.Message(), nil)
 		}
 		return output.NewError(output.NetworkError, "failed to invoke GetActions api", err)
