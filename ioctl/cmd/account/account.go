@@ -15,6 +15,8 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"google.golang.org/grpc/codes"
+
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	ecrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/iotexproject/go-pkgs/crypto"
@@ -124,6 +126,10 @@ func GetAccountMeta(addr string) (*iotextypes.AccountMeta, error) {
 	if err != nil {
 		sta, ok := status.FromError(err)
 		if ok {
+			if sta.Code() == codes.NotFound || sta.Code() == codes.Unavailable {
+				fmt.Println("account ", addr, " isn't found")
+				return nil, nil
+			}
 			return nil, output.NewError(output.APIError, sta.Message(), nil)
 		}
 		return nil, output.NewError(output.NetworkError, "failed to invoke GetAccount api", err)
