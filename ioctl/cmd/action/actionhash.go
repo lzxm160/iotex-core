@@ -41,7 +41,7 @@ var actionHashCmd = &cobra.Command{
 			message, ok := err.(output.ErrorMessage)
 			if ok {
 				if message.Code == output.APIError {
-					fmt.Println("action ", args[1], " isn't found")
+					fmt.Println("action ", args[0], " isn't found")
 					return nil
 				}
 			}
