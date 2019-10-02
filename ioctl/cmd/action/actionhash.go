@@ -94,6 +94,7 @@ func getActionByHash(args []string) error {
 	}
 	response, err := cli.GetActions(ctx, &requestGetAction)
 	if err != nil {
+		fmt.Println(err)
 		sta, ok := status.FromError(err)
 		if ok {
 			//if sta.Code() == codes.NotFound || sta.Code() == codes.Unavailable {
