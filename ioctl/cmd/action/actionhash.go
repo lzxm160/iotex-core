@@ -37,14 +37,14 @@ var actionHashCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		err := getActionByHash(args)
-		sta, ok := status.FromError(err)
-		fmt.Println(sta, ":", ok)
-		if ok && sta.Code() == codes.NotFound {
-			fmt.Println("action ", args[1], " isn't found")
-			return nil
-		} else if ok {
-			fmt.Println("action ", args[1], " isn't found")
-			return nil
+		if err != nil {
+			message, ok := err.(output.ErrorMessage)
+			if ok {
+				if message.Code == output.APIError {
+					fmt.Println("action ", args[1], " isn't found")
+					return nil
+				}
+			}
 		}
 		return output.PrintError(err)
 	},
