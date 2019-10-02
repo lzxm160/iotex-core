@@ -41,6 +41,9 @@ var actionHashCmd = &cobra.Command{
 		if ok && sta.Code() == codes.NotFound {
 			fmt.Println("action ", args[1], " isn't found")
 			return nil
+		} else if ok {
+			fmt.Println("action ", args[1], " isn't found")
+			return nil
 		}
 		return output.PrintError(err)
 	},
