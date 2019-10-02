@@ -37,14 +37,6 @@ var actionHashCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		err := getActionByHash(args)
-		sta, ok := status.FromError(err)
-		fmt.Println(sta.Code())
-		if ok {
-			if sta.Code() == codes.NotFound || sta.Code() == codes.Unavailable {
-				fmt.Println(" isn't found")
-				return nil
-			}
-		}
 		return output.PrintError(err)
 	},
 }
@@ -104,10 +96,10 @@ func getActionByHash(args []string) error {
 	if err != nil {
 		sta, ok := status.FromError(err)
 		if ok {
-			//if sta.Code() == codes.NotFound || sta.Code() == codes.Unavailable {
-			//	fmt.Println("action ", hash, " isn't found")
-			//	return nil
-			//}
+			if sta.Code() == codes.NotFound || sta.Code() == codes.Unavailable {
+				fmt.Println("action", hash, "isn't found")
+				return nil
+			}
 			return output.NewError(output.APIError, sta.Message(), nil)
 		}
 		return output.NewError(output.NetworkError, "failed to invoke GetActions api", err)
