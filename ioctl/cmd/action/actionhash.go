@@ -38,7 +38,7 @@ var actionHashCmd = &cobra.Command{
 		cmd.SilenceUsage = true
 		err := getActionByHash(args)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("err:", err)
 		}
 		return nil
 	},
