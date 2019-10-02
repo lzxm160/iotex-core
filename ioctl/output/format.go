@@ -189,7 +189,7 @@ func PrintError(err error) error {
 	fmt.Println(message.String())
 	fmt.Println(message.Info)
 	fmt.Println(message.Error())
-	fmt.Println(message.Code())
+	fmt.Println(message.Code)
 	return nil
 }
 
