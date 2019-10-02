@@ -10,9 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // Format is the target of output-format flag
@@ -184,14 +181,7 @@ func NewError(code ErrorCode, info string, pre error) error {
 
 // PrintError prints Error Message in format, only used at top layer of a command
 func PrintError(err error) error {
-	sta, ok := status.FromError(err)
-	fmt.Println(sta.Code())
-	if ok {
-		if sta.Code() == codes.NotFound || sta.Code() == codes.Unavailable {
-			fmt.Println(" isn't found")
-			return nil
-		}
-	}
+
 	if err == nil || Format == "" {
 		return err
 	}
