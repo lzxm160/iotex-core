@@ -187,16 +187,17 @@ func PrintError(err error) error {
 	if err == nil || Format == "" {
 		return err
 	}
-	newErr := NewError(0, "", err)
-	message := newErr.(ErrorMessage)
-	sta, ok := status.FromError(message)
+	sta, ok := status.FromError(err)
 	fmt.Println(sta.Code())
 	if ok {
 		if sta.Code() == codes.NotFound || sta.Code() == codes.Unavailable {
-			fmt.Println(message.Info, " isn't found")
+			fmt.Println(" isn't found")
 			return nil
 		}
 	}
+	newErr := NewError(0, "", err)
+	message := newErr.(ErrorMessage)
+
 	fmt.Println(message.String())
 	return nil
 }
