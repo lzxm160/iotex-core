@@ -106,7 +106,7 @@ func getActionByHash(args []string) error {
 		sta, ok := status.FromError(err)
 		if ok {
 			fmt.Println(sta.Code())
-			if sta.Code() == codes.NotFound {
+			if sta.Code() == codes.NotFound || sta.Code() == codes.Unavailable {
 				fmt.Println("action ", hash, " isn't found")
 				return nil
 			}
