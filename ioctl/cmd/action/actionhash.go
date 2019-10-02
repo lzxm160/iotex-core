@@ -104,6 +104,7 @@ func getActionByHash(args []string) error {
 	response, err := cli.GetActions(ctx, &requestGetAction)
 	if err != nil {
 		sta, ok := status.FromError(err)
+		fmt.Println(sta, "xxxxxxxxxxxxxxxxxx:", ok)
 		if ok {
 			return output.NewError(output.APIError, sta.Message(), nil)
 		}
@@ -116,9 +117,10 @@ func getActionByHash(args []string) error {
 
 	requestGetReceipt := &iotexapi.GetReceiptByActionRequest{ActionHash: hash}
 	responseReceipt, err := cli.GetReceiptByAction(ctx, requestGetReceipt)
+
 	if err != nil {
 		sta, ok := status.FromError(err)
-		fmt.Println(sta, ":", ok)
+
 		if ok && sta.Code() == codes.NotFound {
 			message.State = Pending
 		} else if ok {
