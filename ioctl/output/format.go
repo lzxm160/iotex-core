@@ -184,7 +184,7 @@ func NewError(code ErrorCode, info string, pre error) error {
 
 // PrintError prints Error Message in format, only used at top layer of a command
 func PrintError(err error) error {
-	fmt.Println("PrintError")
+	fmt.Println("PrintError:", err, ":", Format)
 	if err == nil || Format == "" {
 		return err
 	}
