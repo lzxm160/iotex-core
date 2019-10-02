@@ -190,6 +190,7 @@ func PrintError(err error) error {
 	newErr := NewError(0, "", err)
 	message := newErr.(ErrorMessage)
 	sta, ok := status.FromError(message)
+	fmt.Println(sta.Code())
 	if ok {
 		if sta.Code() == codes.NotFound || sta.Code() == codes.Unavailable {
 			fmt.Println(message.Info, " isn't found")
