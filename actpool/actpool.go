@@ -7,6 +7,7 @@
 package actpool
 
 import (
+	"bytes"
 	"context"
 	"sync"
 
@@ -421,6 +422,20 @@ func (ap *actPool) removeInvalidActs(acts []action.SealedEnvelope) {
 		delete(ap.allActions, hash)
 		intrinsicGas, _ := act.IntrinsicGas()
 		ap.gasInPool -= intrinsicGas
+
+		//del actions in destination map
+		desAddress, ok := act.Destination()
+		if ok {
+			dst := ap.accountDesActs[desAddress]
+			if dst != nil {
+				for i, v := range ap.accountDesActs[desAddress] {
+					if bytes.Equal(v.Hash()[:], hash[:]) {
+						ap.accountDesActs[desAddress] = append(ap.accountDesActs[desAddress][:i], ap.accountDesActs[desAddress][i+1:]...)
+						return
+					}
+				}
+			}
+		}
 	}
 }
 
