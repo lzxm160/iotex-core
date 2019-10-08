@@ -430,7 +430,8 @@ func (ap *actPool) removeInvalidActs(acts []action.SealedEnvelope) {
 			dst := ap.accountDesActs[desAddress]
 			if dst != nil {
 				for i, v := range ap.accountDesActs[desAddress] {
-					if bytes.Equal(v.Hash()[:], hash[:]) {
+					h := v.Hash()
+					if bytes.Equal(h[:], hash[:]) {
 						ap.accountDesActs[desAddress] = append(ap.accountDesActs[desAddress][:i], ap.accountDesActs[desAddress][i+1:]...)
 						return
 					}
