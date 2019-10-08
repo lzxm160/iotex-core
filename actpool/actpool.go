@@ -9,6 +9,7 @@ package actpool
 import (
 	"bytes"
 	"context"
+	"strings"
 	"sync"
 
 	"github.com/iotexproject/iotex-core/pkg/prometheustimer"
@@ -377,7 +378,7 @@ func (ap *actPool) enqueueAction(sender string, act action.SealedEnvelope, hash 
 
 	//add actions to destination map
 	desAddress, ok := act.Destination()
-	if ok {
+	if ok && !strings.EqualFold(sender, desAddress) {
 		dst := ap.accountDesActs[desAddress]
 		if dst == nil {
 			ap.accountDesActs[desAddress] = make([]action.SealedEnvelope, 0)
