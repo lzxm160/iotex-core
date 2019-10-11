@@ -396,8 +396,9 @@ func (ap *actPool) enqueueAction(sender string, act action.SealedEnvelope, actHa
 		desQueue := ap.accountDesActs[desAddress]
 		if desQueue == nil {
 			ap.accountDesActs[desAddress] = make(map[hash.Hash256]action.SealedEnvelope)
-			ap.accountDesActs[desAddress][actHash] = act
+			
 		}
+		ap.accountDesActs[desAddress][actHash] = act
 	}
 
 	intrinsicGas, _ := act.IntrinsicGas()
