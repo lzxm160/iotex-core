@@ -439,7 +439,6 @@ func (ap *actPool) removeInvalidActs(acts []action.SealedEnvelope) {
 		delete(ap.allActions, hash)
 		intrinsicGas, _ := act.IntrinsicGas()
 		ap.gasInPool -= intrinsicGas
-
 		//del actions in destination map
 		ap.deleteAction(act)
 	}
