@@ -412,5 +412,6 @@ func newConfig(
 	cfg.Genesis.Delegates = cfg.Genesis.Delegates[3 : numNodes+3]
 	cfg.Genesis.EnableGravityChainVoting = true
 	cfg.System.EnableExperimentalActions = true
+
 	return cfg
 }
