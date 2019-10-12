@@ -413,5 +413,6 @@ func newConfig(
 	cfg.Genesis.EnableGravityChainVoting = true
 	cfg.System.EnableExperimentalActions = true
 
+	cfg.Genesis.BeringBlockHeight = 100
 	return cfg
 }
