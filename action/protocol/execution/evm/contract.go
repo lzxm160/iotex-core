@@ -83,10 +83,10 @@ func (c *contract) GetState(key hash.Hash256) ([]byte, error) {
 
 // SetState set the value into contract storage
 func (c *contract) SetState(key hash.Hash256, value []byte) error {
-	c.GetState(key) //for store to cache,not exist error will be ignored
 	c.dirtyState = true
 	err := c.trie.Upsert(key[:], value)
 	c.Account.Root = hash.BytesToHash256(c.trie.RootHash())
+	c.GetState(key) //for store to cache,not exist error will be ignored
 	return err
 }
 
