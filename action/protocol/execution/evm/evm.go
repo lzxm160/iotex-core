@@ -224,7 +224,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64, b
 	if evmParams.contract == nil {
 		// create contract
 		var evmContractAddress common.Address
-		_, evmContractAddress, remainingGas, evmErr = evm.Create2(executor, evmParams.data, remainingGas, evmParams.amount,big.NewInt(100))
+		_, evmContractAddress, remainingGas, evmErr = evm.Create(executor, evmParams.data, remainingGas, evmParams.amount)
 		log.L().Debug("evm Create.", log.Hex("addrHash", evmContractAddress[:]))
 		if evmErr == nil {
 			if contractAddress, err := address.FromBytes(evmContractAddress.Bytes()); err == nil {
