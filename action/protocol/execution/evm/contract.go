@@ -71,7 +71,9 @@ func (c *contract) GetCommittedState(key hash.Hash256) ([]byte, error) {
 // GetState get the value from contract storage
 func (c *contract) GetState(key hash.Hash256) ([]byte, error) {
 	if v, ok := c.committed[key]; ok {
-		return v, nil
+		ret := make([]byte, len(v))
+		copy(ret, v)
+		return ret, nil
 	}
 	v, err := c.trie.Get(key[:])
 	if err != nil {
