@@ -71,23 +71,19 @@ func (c *contract) GetCommittedState(key hash.Hash256) ([]byte, error) {
 // GetState get the value from contract storage
 func (c *contract) GetState(key hash.Hash256) ([]byte, error) {
 	if v, ok := c.committed[key]; ok {
-		return v,nil
+		return v, nil
 	}
 	v, err := c.trie.Get(key[:])
 	if err != nil {
 		return nil, err
 	}
-	if _, ok := c.committed[key]; !ok {
-		c.committed[key] = v
-	}
+	c.committed[key] = v
 	return v, nil
 }
 
 // SetState set the value into contract storage
 func (c *contract) SetState(key hash.Hash256, value []byte) error {
-	if _, ok := c.committed[key]; !ok {
-		c.GetState(key)
-	}
+	c.GetState(key) //for store to cache,not exist error will be ignored
 	c.dirtyState = true
 	err := c.trie.Upsert(key[:], value)
 	c.Account.Root = hash.BytesToHash256(c.trie.RootHash())
