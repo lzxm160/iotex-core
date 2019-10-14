@@ -380,7 +380,12 @@ func newConfig(
 	networkPort,
 	apiPort int,
 ) config.Config {
-	cfg := config.Default
+	//cfg := config.Default
+	cfg, err := config.New()
+	if err != nil {
+		fmt.Println("Failed to new config.", zap.Error(err))
+		return cfg
+	}
 
 	cfg.Plugins[config.GatewayPlugin] = true
 	cfg.Chain.EnableAsyncIndexWrite = false
