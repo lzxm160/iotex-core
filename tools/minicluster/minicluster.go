@@ -431,6 +431,8 @@ func newConfig(
 	}
 	cfg.Log.Zap = &zapCfg
 	cfg.Log.Zap.Level=zap.NewAtomicLevelAt(zap.DebugLevel)
+	p:="./s.log"
+	cfg.Log.StderrRedirectFile=&p
 	zap.ReplaceGlobals(l)
 	cfg.Genesis.BeringBlockHeight = 100
 	return cfg
