@@ -12,6 +12,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"go.uber.org/zap/zapcore"
 	"math"
 	"math/big"
 	"math/rand"
@@ -420,7 +421,17 @@ func newConfig(
 	cfg.Genesis.Delegates = cfg.Genesis.Delegates[3 : numNodes+3]
 	cfg.Genesis.EnableGravityChainVoting = true
 	cfg.System.EnableExperimentalActions = true
+	zapCfg := zap.NewDevelopmentConfig()
+	zapCfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	zapCfg.Level.SetLevel(zap.DebugLevel)
+	l, err := zapCfg.Build()
+	if err != nil {
+		fmt.Println("Failed to init zap global logger, no zap log will be shown till zap is properly initialized: ", err)
+		return cfg
+	}
+	cfg.Log.Zap = &zapCfg
 	cfg.Log.Zap.Level=zap.NewAtomicLevelAt(zap.DebugLevel)
+	zap.ReplaceGlobals(l)
 	cfg.Genesis.BeringBlockHeight = 100
 	return cfg
 }
