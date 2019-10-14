@@ -209,7 +209,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64, b
 	var config vm.Config
 	chainConfig := getChainConfig(stateDB.hu.BeringBlockHeight())
 	evm := vm.NewEVM(evmParams.context, stateDB, chainConfig, config)
-	log.L().Info("xxxxxxxx:",zap.Any("evmParams",evmParams),zap.Any("chainConfig",chainConfig),zap.Any("config",config))
+	log.L().Info("xxxxxxxx:",zap.Any("evmParams",evmParams.context),zap.Any("chainConfig",chainConfig),zap.Any("config",config))
 	intriGas, err := intrinsicGas(evmParams.data)
 	if err != nil {
 		return nil, evmParams.gas, remainingGas, action.EmptyAddress, uint64(iotextypes.ReceiptStatus_Failure), err
