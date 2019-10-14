@@ -231,12 +231,16 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64, b
 			if contractAddress, err := address.FromBytes(evmContractAddress.Bytes()); err == nil {
 				contractRawAddress = contractAddress.String()
 			}
+		}else{
+			log.L().Debug("evm Create error", zap.Error(evmErr))
+			return nil, evmParams.gas, remainingGas, action.EmptyAddress, uint64(iotextypes.ReceiptStatus_Failure), evmErr
 		}
 	} else {
 		stateDB.SetNonce(evmParams.context.Origin, stateDB.GetNonce(evmParams.context.Origin)+1)
 		// process contract
 		ret, remainingGas, evmErr = evm.Call(executor, *evmParams.contract, evmParams.data, remainingGas, evmParams.amount)
 	}
+	log.L().Debug("evm error 243", zap.Error(evmErr))
 	if evmErr != nil {
 		log.L().Debug("evm error", zap.Error(evmErr))
 		// The only possible consensus-error would be if there wasn't
