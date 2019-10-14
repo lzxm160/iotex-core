@@ -91,6 +91,9 @@ func main() {
 		apiPort := 14014 + i
 		config := newConfig(chainDBPath, trieDBPath, chainAddrs[i].PriKey,
 			networkPort, apiPort)
+		if apiPort==14014{
+			initLogger(config)
+		}
 		config.Consensus.RollDPoS.ConsensusDBPath = consensusDBPath
 		if i == 0 {
 			config.Network.BootstrapNodes = []string{}
@@ -100,6 +103,7 @@ func main() {
 		config.Genesis.PacificBlockHeight = 1
 		configs[i] = config
 	}
+
 	defer func() {
 		if !deleteDBFiles {
 			return
@@ -415,4 +419,13 @@ func newConfig(
 	cfg.Log.Zap.Level=zap.NewAtomicLevelAt(zap.DebugLevel)
 	cfg.Genesis.BeringBlockHeight = 100
 	return cfg
+}
+func initLogger(cfg config.Config) {
+	addr := cfg.ProducerAddress()
+	if err := log.InitLoggers(cfg.Log, cfg.SubLogs, zap.Fields(
+		zap.String("ioAddr", addr.String()),
+		zap.String("networkAddr", fmt.Sprintf("%s:%d", cfg.Network.Host, cfg.Network.Port)),
+	)); err != nil {
+		fmt.Println("Cannot config global logger, use default one: ", err)
+	}
 }
