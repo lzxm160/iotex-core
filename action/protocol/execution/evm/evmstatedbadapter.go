@@ -581,6 +581,7 @@ func (stateDB *StateDBAdapter) GetState(evmAddr common.Address, k common.Hash) c
 		return common.Hash{}
 	}
 	v, err := contract.GetState(hash.BytesToHash256(k[:]))
+	log.L().Info("getstate:",log.Hex("addrHash", addr[:]),log.Hex("key",k[:]))
 	if err != nil {
 		log.L().Error("Failed to get state.", zap.Error(err))
 		stateDB.logError(err)
@@ -683,6 +684,7 @@ func (stateDB *StateDBAdapter) getContract(addr hash.Hash160) (Contract, error) 
 	if contract, ok := stateDB.cachedContract[addr]; ok {
 		return contract, nil
 	}
+	log.L().Info("getcontract:",log.Hex("address hash:",addr[:]))
 	return stateDB.getNewContract(addr)
 }
 
