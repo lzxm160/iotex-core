@@ -79,7 +79,9 @@ func (c *contract) GetState(key hash.Hash256) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.committed[key] = v
+	ret := make([]byte, len(v))
+	copy(ret, v)
+	c.committed[key] = ret
 	return v, nil
 }
 
