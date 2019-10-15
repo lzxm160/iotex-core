@@ -49,4 +49,4 @@ require (
 	gopkg.in/yaml.v2 v2.2.2
 )
 
-replace github.com/ethereum/go-ethereum => github.com/iotexproject/go-ethereum v0.3.0
+replace github.com/ethereum/go-ethereum => github.com/lzxm160/go-ethereum v10.1.0
