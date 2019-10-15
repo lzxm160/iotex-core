@@ -9,6 +9,9 @@ package evm
 import (
 	"context"
 
+	"github.com/iotexproject/iotex-core/pkg/log"
+	"go.uber.org/zap"
+
 	"github.com/pkg/errors"
 
 	"github.com/iotexproject/go-pkgs/hash"
@@ -89,6 +92,10 @@ func (c *contract) SetState(key hash.Hash256, value []byte) error {
 	v := make([]byte, len(value))
 	copy(v, value)
 	err := c.trie.Upsert(key[:], value)
+	if err != nil {
+		log.L().Error("Failed to Upsert.", zap.Error(err))
+		return err
+	}
 	c.Account.Root = hash.BytesToHash256(c.trie.RootHash())
 	c.GetState(key) //for store to cache,not exist error will be ignored
 	return err
@@ -105,7 +112,8 @@ func (c *contract) GetCode() ([]byte, error) {
 // SetCode sets the contract's byte-code
 func (c *contract) SetCode(hash hash.Hash256, code []byte) {
 	c.Account.CodeHash = hash[:]
-	c.code = code
+	c.code = make([]byte, len(code))
+	copy(c.code, code)
 	c.dirtyCode = true
 }
 
