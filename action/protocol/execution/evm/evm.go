@@ -193,6 +193,7 @@ func ExecuteContract(
 func getChainConfig(beringHeight uint64) *params.ChainConfig {
 	var chainConfig params.ChainConfig
 	// chainConfig.ChainID
+	chainConfig.ByzantiumBlock = new(big.Int).SetUint64(0)
 	chainConfig.ConstantinopleBlock = new(big.Int).SetUint64(0) // Constantinople switch block (nil = no fork, 0 = already activated)
 	chainConfig.BeringBlock = new(big.Int).SetUint64(beringHeight)
 	return &chainConfig
@@ -209,7 +210,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64, b
 	var config vm.Config
 	chainConfig := getChainConfig(stateDB.hu.BeringBlockHeight())
 	evm := vm.NewEVM(evmParams.context, stateDB, chainConfig, config)
-	log.L().Info("xxxxxxxx:",zap.Any("evmParams",evmParams.context.BlockNumber),zap.Any("chainConfig",chainConfig.BeringBlock),zap.Any("config",config))
+	log.L().Info("xxxxxxxx:", zap.Any("evmParams", evmParams.context.BlockNumber), zap.Any("chainConfig", chainConfig.BeringBlock), zap.Any("config", config))
 	intriGas, err := intrinsicGas(evmParams.data)
 	if err != nil {
 		return nil, evmParams.gas, remainingGas, action.EmptyAddress, uint64(iotextypes.ReceiptStatus_Failure), err
@@ -231,7 +232,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64, b
 			if contractAddress, err := address.FromBytes(evmContractAddress.Bytes()); err == nil {
 				contractRawAddress = contractAddress.String()
 			}
-		}else{
+		} else {
 			log.L().Debug("evm Create error", zap.Error(evmErr))
 			return nil, evmParams.gas, remainingGas, action.EmptyAddress, uint64(iotextypes.ReceiptStatus_Failure), evmErr
 		}
