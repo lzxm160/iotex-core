@@ -91,6 +91,9 @@ func main() {
 		apiPort := 14014 + i
 		config := newConfig(chainDBPath, trieDBPath, chainAddrs[i].PriKey,
 			networkPort, apiPort)
+		if apiPort==14014{
+			initLogger(config)
+		}
 		if i == 0 {
 			config.Network.BootstrapNodes = []string{}
 			config.Network.MasterKey = "bootnode"
