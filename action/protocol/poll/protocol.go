@@ -326,7 +326,7 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 		gravityStartheight, err := p.getGravityHeight(byteutil.BytesToUint64(args[0]))
 		if err != nil {
 			log.L().Info(
-				"getGravityHeight",
+				"getGravityHeightxxxxxxxxxxxxxxxxxxxxxx",
 				zap.Error(err),
 			)
 			return nil, err
@@ -393,11 +393,21 @@ func (p *governanceChainCommitteeProtocol) getGravityHeight(height uint64) (uint
 	if err != nil {
 		return 0, err
 	}
-	log.L().Debug(
+	log.L().Info(
 		"get gravity chain height by time",
 		zap.Time("time", blkTime),
 	)
-	return p.electionCommittee.HeightByTime(blkTime)
+	log.L().Info(
+		"start HeightByTimexxxxxxxxxxxxxx:",
+		zap.Int64("start", time.Now().Unix()))
+	hei, err := p.electionCommittee.HeightByTime(blkTime)
+	log.L().Info(
+		"end HeightByTimexxxxxxxxxxxxxx:",
+		zap.Int64("end", time.Now().Unix()))
+	log.L().Info(
+		"p.electionCommittee.HeightByTime",
+		zap.Uint64("hei", hei), zap.Error(err))
+	return hei, err
 }
 
 func validateDelegates(cs state.CandidateList) error {
