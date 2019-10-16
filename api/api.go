@@ -218,8 +218,16 @@ func (api *Server) GetChainMeta(ctx context.Context, in *iotexapi.GetChainMetaRe
 	}
 	totalActions, err := api.bc.GetTotalActions()
 	if err != nil {
+		log.L().Info(
+			"totalActions",
+			zap.Error(err),
+		)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+	log.L().Info(
+		"totalActions228",
+		zap.Error(err),
+	)
 	blockLimit := int64(api.cfg.API.TpsWindow)
 	if blockLimit <= 0 {
 		return nil, status.Errorf(codes.Internal, "block limit is %d", blockLimit)
@@ -231,8 +239,16 @@ func (api *Server) GetChainMeta(ctx context.Context, in *iotexapi.GetChainMetaRe
 	}
 	r, err := api.getBlockMetas(tipHeight-uint64(blockLimit)+1, uint64(blockLimit))
 	if err != nil {
+		log.L().Info(
+			"getBlockMetas",
+			zap.Error(err),
+		)
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
+	log.L().Info(
+		"getBlockMetas245",
+		zap.Error(err),
+	)
 	blks := r.BlkMetas
 
 	if len(blks) == 0 {
@@ -243,7 +259,6 @@ func (api *Server) GetChainMeta(ctx context.Context, in *iotexapi.GetChainMetaRe
 	for _, blk := range blks {
 		numActions += blk.NumActions
 	}
-
 	p, ok := api.registry.Find(rolldpos.ProtocolID)
 	if !ok {
 		return nil, status.Error(codes.Internal, "rolldpos protocol is not registered")
@@ -255,10 +270,18 @@ func (api *Server) GetChainMeta(ctx context.Context, in *iotexapi.GetChainMetaRe
 	epochNum := rp.GetEpochNum(tipHeight)
 	epochHeight := rp.GetEpochHeight(epochNum)
 	gravityChainStartHeight, err := api.getGravityChainStartHeight(epochHeight)
+
 	if err != nil {
+		log.L().Info(
+			"getGravityChainStartHeight",
+			zap.Error(err),
+		)
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
-
+	log.L().Info(
+		"getGravityChainStartHeight281",
+		zap.Error(err),
+	)
 	t1 := time.Unix(blks[0].Timestamp.GetSeconds(), int64(blks[0].Timestamp.GetNanos()))
 	t2 := time.Unix(blks[len(blks)-1].Timestamp.GetSeconds(), int64(blks[len(blks)-1].Timestamp.GetNanos()))
 	// duration of time difference in milli-seconds

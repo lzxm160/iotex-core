@@ -325,6 +325,10 @@ func (p *governanceChainCommitteeProtocol) ReadState(
 		}
 		gravityStartheight, err := p.getGravityHeight(byteutil.BytesToUint64(args[0]))
 		if err != nil {
+			log.L().Info(
+				"getGravityHeight",
+				zap.Error(err),
+			)
 			return nil, err
 		}
 		return byteutil.Uint64ToBytes(gravityStartheight), nil
