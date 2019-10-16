@@ -404,9 +404,12 @@ func (p *governanceChainCommitteeProtocol) getGravityHeight(height uint64) (uint
 	log.L().Info(
 		"end HeightByTimexxxxxxxxxxxxxx:",
 		zap.Int64("end", time.Now().Unix()))
-	log.L().Info(
-		"p.electionCommittee.HeightByTime",
-		zap.Uint64("hei", hei), zap.Error(err))
+	if err != nil {
+		log.L().Info(
+			"p.electionCommittee.HeightByTime",
+			zap.Uint64("hei", hei), zap.Error(err))
+	}
+
 	return hei, err
 }
 

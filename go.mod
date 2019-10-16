@@ -52,4 +52,4 @@ require (
 
 replace github.com/ethereum/go-ethereum => github.com/iotexproject/go-ethereum v0.3.0
 
-replace github.com/iotexproject/iotex-election => github.com/lzxm160/iotex-election v0.0.0-20191016065943-6c7581f966be
+replace github.com/iotexproject/iotex-election => github.com/lzxm160/iotex-election v0.0.0-20191016083202-0b3c6e46396c
