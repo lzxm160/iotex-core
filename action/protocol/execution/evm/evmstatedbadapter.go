@@ -583,6 +583,7 @@ func (stateDB *StateDBAdapter) GetState(evmAddr common.Address, k common.Hash) c
 	v, err := contract.GetState(hash.BytesToHash256(k[:]))
 	if err != nil {
 		log.L().Error("Failed to get state.", zap.Error(err))
+		log.L().Error("Failed to get state call path.", zap.Error(errors.New("path")))
 		stateDB.logError(err)
 		return common.Hash{}
 	}
