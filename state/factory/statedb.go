@@ -260,10 +260,6 @@ func (sdb *stateDB) state(addr hash.Hash160, s interface{}) error {
 }
 
 func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{}) error {
-	//heightBytes := make([]byte, 8)
-	//binary.BigEndian.PutUint64(heightBytes, height)
-	//heightKey := append(addr[:], heightBytes...)
-
 	maxVersion := uint64(0)
 	indexKey := append(AccountMaxVersionPrefix, addr[:]...)
 	value, err := sdb.dao.Get(AccountKVNameSpace, indexKey)
@@ -273,7 +269,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 	if maxVersion == 0 {
 		return errors.New("cannot find state")
 	}
-	log.L().Info("////////////////", zap.Uint64("maxVersion", maxVersion))
+	log.L().Info("////////////////276", zap.Uint64("maxVersion", maxVersion))
 	db := sdb.dao.DB()
 	boltdb, ok := db.(*bolt.DB)
 	if !ok {
@@ -297,12 +293,12 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 				return errors.New("address is diff,cannot find state")
 			}
 			kHeight := binary.BigEndian.Uint64(k[20:])
-			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
+			log.L().Info("////////////////kHeight", zap.Uint64("k", kHeight), zap.Uint64("height", height))
 			if kHeight == 0 || kHeight == 1 {
 				return errors.New("cannot find state")
 			}
 			if kHeight <= height {
-				log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", height))
+				log.L().Info("////////////////kHeight <= height", zap.Uint64("k", kHeight), zap.Uint64("height", height))
 				if err := state.Deserialize(s, v); err != nil {
 					return errors.Wrapf(err, "error when deserializing state data into %T", s)
 				}
