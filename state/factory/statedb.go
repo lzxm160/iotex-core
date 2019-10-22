@@ -335,6 +335,7 @@ func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, e
 	if height != 0 {
 		err = sdb.stateHeight(pkHash, height, account)
 		log.L().Info("////////////////stateHeight ", zap.Error(err))
+		//这个地方如果账号没有转过账会找不到信息，因此需要再调用sdb.state(pkHash, account)来返回当前结果
 	} else {
 		err = sdb.state(pkHash, account)
 	}
