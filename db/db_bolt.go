@@ -250,14 +250,10 @@ func (b *boltDB) SaveDeletedTrieNode(batch KVStoreBatch, hei uint64, trieNodeNam
 			}
 			// only save trie node in evm's name space
 			if (write.writeType == Delete) && (strings.EqualFold(write.namespace, ContractKVNameSpace)) {
-				bucket := tx.Bucket([]byte(write.namespace))
-				if bucket == nil {
-					_, err := tx.CreateBucketIfNotExists([]byte(write.namespace))
-					if err != nil {
-						log.L().Error("SaveDeletedTrieNode CreateBucketIfNotExists", zap.String("CreateBucketIfNotExists", write.namespace))
-					}
-					continue
-				}
+				//bucket := tx.Bucket([]byte(write.namespace))
+				//if bucket == nil {
+				//	continue
+				//}
 				heightTo := append(trieNodeKeyPrefix, heightBytes...)
 				heightTo = append(heightTo, write.key...)
 				heightToKeyCache.Put(trieNodeNameSpace, heightTo, []byte(""), write.errorFormat, write.errorArgs)
