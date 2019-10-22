@@ -10,9 +10,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"encoding/hex"
-
-	"go.uber.org/zap"
 
 	"github.com/pkg/errors"
 
@@ -256,7 +253,7 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160, deleteHeight uint6
 			kHeight := binary.BigEndian.Uint64(k[20:])
 			if kHeight < deleteHeight {
 				b.Delete(k)
-				log.L().Info("deleteAccountHistory", zap.Uint64("height:", kHeight), zap.String("key", hex.EncodeToString(k)))
+				//log.L().Info("deleteAccountHistory", zap.Uint64("height:", kHeight), zap.String("key", hex.EncodeToString(k)))
 			}
 		}
 		return nil
