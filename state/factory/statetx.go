@@ -30,7 +30,7 @@ import (
 
 const (
 	// CheckHistoryDeleteInterval 30 block heights to check if history needs to delete
-	CheckHistoryDeleteInterval = 30
+	CheckHistoryDeleteInterval = 300
 )
 
 // stateTX implements stateTX interface, tracks pending changes to account/contract in local cache
