@@ -8,14 +8,23 @@ package db
 
 import (
 	"context"
+	"encoding/binary"
+	"encoding/hex"
+	"strings"
+
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
+	"go.uber.org/zap"
 
 	"github.com/iotexproject/iotex-core/config"
+	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 )
 
 const fileMode = 0600
+
+// ContractKVNameSpace for ignore delete
+var ContractKVNameSpace = "Contract"
 
 // boltDB is KVStore implementation based bolt DB
 type boltDB struct {
@@ -67,6 +76,9 @@ func (b *boltDB) Put(namespace string, key, value []byte) (err error) {
 		err = errors.Wrap(ErrIO, err.Error())
 	}
 	return err
+}
+func (b *boltDB) DB() interface{} {
+	return b.db
 }
 
 // Get retrieves a record
@@ -148,6 +160,9 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 					return err
 				}
 				if write.writeType == Put {
+					if write.namespace == ContractKVNameSpace {
+						log.L().Info("len of ContractKVNameSpace commit", zap.Int("trie batch size ", batch.Size()), zap.String("save key", hex.EncodeToString(write.key)))
+					}
 					bucket, err := tx.CreateBucketIfNotExists([]byte(write.namespace))
 					if err != nil {
 						return errors.Wrapf(err, write.errorFormat, write.errorArgs)
@@ -156,12 +171,14 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 						return errors.Wrapf(err, write.errorFormat, write.errorArgs)
 					}
 				} else if write.writeType == Delete {
-					bucket := tx.Bucket([]byte(write.namespace))
-					if bucket == nil {
-						continue
-					}
-					if err := bucket.Delete(write.key); err != nil {
-						return errors.Wrapf(err, write.errorFormat, write.errorArgs)
+					if !strings.EqualFold(write.namespace, ContractKVNameSpace) {
+						bucket := tx.Bucket([]byte(write.namespace))
+						if bucket == nil {
+							continue
+						}
+						if err := bucket.Delete(write.key); err != nil {
+							return errors.Wrapf(err, write.errorFormat, write.errorArgs)
+						}
 					}
 				}
 			}
@@ -218,6 +235,34 @@ func (b *boltDB) CreateCountingIndexNX(name []byte) (CountingIndex, error) {
 		return nil, err
 	}
 	return NewCountingIndex(b.db, b.config.NumRetries, name, size)
+}
+
+// SaveDeletedTrieNode help save trie node that will be deleted in this block
+func (b *boltDB) SaveDeletedTrieNode(batch KVStoreBatch, hei uint64, trieNodeNameSpace string, trieNodeKeyPrefix []byte) (heightToKeyCache KVStoreBatch, err error) {
+	heightToKeyCache = NewCachedBatch()
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, hei)
+	err = b.db.Update(func(tx *bolt.Tx) error {
+		for i := 0; i < batch.Size(); i++ {
+			write, err := batch.Entry(i)
+			if err != nil {
+				return err
+			}
+			// only save trie node in evm's name space
+			if (write.writeType == Delete) && (strings.EqualFold(write.namespace, ContractKVNameSpace)) {
+				bucket := tx.Bucket([]byte(write.namespace))
+				if bucket == nil {
+					continue
+				}
+				heightTo := append(trieNodeKeyPrefix, heightBytes...)
+				heightTo = append(heightTo, write.key...)
+				heightToKeyCache.Put(trieNodeNameSpace, heightTo, []byte(""), write.errorFormat, write.errorArgs)
+			}
+		}
+		return nil
+	})
+	log.L().Info("len of history SaveDeletedTrieNode", zap.Int("heighttokey", heightToKeyCache.Size()))
+	return
 }
 
 //======================================
