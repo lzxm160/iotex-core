@@ -254,7 +254,7 @@ func (b *boltDB) SaveDeletedTrieNode(batch KVStoreBatch, hei uint64, trieNodeNam
 				if bucket == nil {
 					_, err := tx.CreateBucketIfNotExists([]byte(write.namespace))
 					if err != nil {
-						log.L().Info("SaveDeletedTrieNode CreateBucketIfNotExists", zap.String("CreateBucketIfNotExists", write.namespace))
+						log.L().Error("SaveDeletedTrieNode CreateBucketIfNotExists", zap.String("CreateBucketIfNotExists", write.namespace))
 					}
 					continue
 				}
