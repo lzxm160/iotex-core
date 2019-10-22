@@ -1086,27 +1086,27 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 	bc.tipHash = blk.HashBlock()
 
 	if bc.sf != nil {
-		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
 		// save trie node that will be deleted in this block
-
 		heightToKeyCache, err := blk.WorkingSet.GetDB().SaveDeletedTrieNode(blk.WorkingSet.GetCachedBatch(), bc.tipHeight, heightToTrieNodeKeyNS, heightToTrieNodeKeyPrefix)
 		if err != nil {
 			return errors.Wrapf(err, "failed to save trie's node on height %d", blk.Height())
 		}
-		err = bc.sf.Commit(blk.WorkingSet)
-		sfTimer.End()
-		// detach working set so it can be freed by GC
-		blk.WorkingSet = nil
-		if err != nil {
-			log.L().Panic("Error when committing states.", zap.Error(err))
-		}
-
+		
 		// write smart contract receipt into DB
 		receiptTimer := bc.timerFactory.NewTimer("putReceipt")
 		err = bc.dao.PutReceipts(blk.Height(), blk.Receipts)
 		receiptTimer.End()
 		if err != nil {
 			return errors.Wrapf(err, "failed to put smart contract receipts into DB on height %d", blk.Height())
+		}
+	
+		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
+		err := bc.sf.Commit(blk.WorkingSet)
+		sfTimer.End()
+		// detach working set so it can be freed by GC
+		blk.WorkingSet = nil
+		if err != nil {
+			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
 		err = bc.saveHistory(heightToKeyCache, blk.Height())
 		if err != nil {
