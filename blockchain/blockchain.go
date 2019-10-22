@@ -1088,9 +1088,17 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 	if bc.sf != nil {
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
 		// save trie node that will be deleted in this block
+
 		heightToKeyCache, err := blk.WorkingSet.GetDB().SaveDeletedTrieNode(blk.WorkingSet.GetCachedBatch(), bc.tipHeight, heightToTrieNodeKeyNS, heightToTrieNodeKeyPrefix)
 		if err != nil {
 			return errors.Wrapf(err, "failed to save trie's node on height %d", blk.Height())
+		}
+		err = bc.sf.Commit(blk.WorkingSet)
+		sfTimer.End()
+		// detach working set so it can be freed by GC
+		blk.WorkingSet = nil
+		if err != nil {
+			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
 
 		// write smart contract receipt into DB
@@ -1104,13 +1112,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to save history on height %d", blk.Height())
 		}
-		err = bc.sf.Commit(blk.WorkingSet)
-		sfTimer.End()
-		// detach working set so it can be freed by GC
-		blk.WorkingSet = nil
-		if err != nil {
-			log.L().Panic("Error when committing states.", zap.Error(err))
-		}
+
 	}
 	blk.HeaderLogger(log.L()).Info("Committed a block.", log.Hex("tipHash", bc.tipHash[:]))
 
