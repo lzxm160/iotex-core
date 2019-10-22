@@ -252,6 +252,7 @@ func (b *boltDB) SaveDeletedTrieNode(batch KVStoreBatch, hei uint64, trieNodeNam
 			if (write.writeType == Delete) && (strings.EqualFold(write.namespace, ContractKVNameSpace)) {
 				bucket := tx.Bucket([]byte(write.namespace))
 				if bucket == nil {
+					tx.CreateBucket([]byte(write.namespace))
 					continue
 				}
 				heightTo := append(trieNodeKeyPrefix, heightBytes...)
