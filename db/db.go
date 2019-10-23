@@ -45,10 +45,8 @@ type KVStore interface {
 	CountingIndex([]byte) (CountingIndex, error)
 	// CreateCountingIndexNX creates a new index if it does not exist, otherwise return existing index
 	CreateCountingIndexNX([]byte) (CountingIndex, error)
-	// DB return dao
-	DB() interface{}
-	// SaveDeletedTrieNode save deleted trie node
-	SaveDeletedTrieNode(KVStoreBatch, uint64, string, []byte) (KVStoreBatch, error)
+	// GetPrefix retrieves all keys those with const prefix
+	GetPrefix(string, []byte) ([][]byte, error)
 }
 
 const (
@@ -68,9 +66,7 @@ func NewMemKVStore() KVStore {
 		data:   &sync.Map{},
 	}
 }
-func (m *memKVStore) DB() interface{} {
-	return nil
-}
+
 func (m *memKVStore) Start(_ context.Context) error { return nil }
 
 func (m *memKVStore) Stop(_ context.Context) error { return nil }
@@ -161,7 +157,8 @@ func (m *memKVStore) CreateCountingIndexNX(name []byte) (CountingIndex, error) {
 	}
 	return NewInMemCountingIndex(m, name, size)
 }
-// SaveDeletedTrieNode save trie node history
-func (m *memKVStore) SaveDeletedTrieNode(KVStoreBatch, uint64, string, []byte) (KVStoreBatch, error) {
+
+// GetPrefix retrieves all keys those with const prefix
+func (m *memKVStore) GetPrefix(string, []byte) ([][]byte, error) {
 	return nil, nil
 }

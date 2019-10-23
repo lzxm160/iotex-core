@@ -7,10 +7,11 @@
 package factory
 
 import (
-	"bytes"
 	"context"
 	"encoding/binary"
+	"encoding/hex"
 
+	"go.uber.org/zap"
 	"github.com/pkg/errors"
 
 	"github.com/iotexproject/go-pkgs/hash"
@@ -22,7 +23,6 @@ import (
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 	"github.com/iotexproject/iotex-core/state"
-	bolt "go.etcd.io/bbolt"
 )
 
 const (
@@ -231,37 +231,55 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 
 // deleteAccountHistory delete history of account
 func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160, deleteHeight uint64) error {
-	db := stx.dao.DB()
-	boltdb, ok := db.(*bolt.DB)
-	if !ok {
-		log.L().Error("convert to bolt db error")
-		return nil
+	//db := stx.dao.DB()
+	//boltdb, ok := db.(*bolt.DB)
+	//if !ok {
+	//	log.L().Error("convert to bolt db error")
+	//	return nil
+	//}
+	//prefix := pkHash[:]
+	//err := boltdb.Update(func(tx *bolt.Tx) error {
+	//	b := tx.Bucket([]byte(AccountKVNameSpace))
+	//	if b == nil {
+	//		// return when heightToTrieNodeKeyNS not exists
+	//		log.L().Info("bucket is nil")
+	//		return errors.New("bucket is nil")
+	//	}
+	//	c := b.Cursor()
+	//	for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
+	//		if len(k) <= len(pkHash) || len(k) > len(pkHash)+8 {
+	//			continue
+	//		}
+	//		kHeight := binary.BigEndian.Uint64(k[20:])
+	//		if kHeight < deleteHeight {
+	//			b.Delete(k)
+	//			//log.L().Info("deleteAccountHistory", zap.Uint64("height:", kHeight), zap.String("key", hex.EncodeToString(k)))
+	//		}
+	//	}
+	//	return nil
+	//})
+	allKeys, err := stx.dao.GetPrefix(AccountKVNameSpace, pkHash[:])
+	if err != nil {
+		return err
 	}
-	prefix := pkHash[:]
-	err := boltdb.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(AccountKVNameSpace))
-		if b == nil {
-			// return when heightToTrieNodeKeyNS not exists
-			log.L().Info("bucket is nil")
-			return errors.New("bucket is nil")
+	chaindbCache := db.NewCachedBatch()
+	for _, key := range allKeys {
+		if len(key) <= len(pkHash) || len(key) > len(pkHash)+8 {
+			continue
 		}
-		c := b.Cursor()
-		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
-			if len(k) <= len(pkHash) || len(k) > len(pkHash)+8 {
-				continue
-			}
-			kHeight := binary.BigEndian.Uint64(k[20:])
-			if kHeight < deleteHeight {
-				b.Delete(k)
-				//log.L().Info("deleteAccountHistory", zap.Uint64("height:", kHeight), zap.String("key", hex.EncodeToString(k)))
-			}
+		kHeight := binary.BigEndian.Uint64(key[20:])
+		if kHeight < deleteHeight {
+			chaindbCache.Delete(AccountKVNameSpace, key, "")
+			log.L().Info("deleteAccountHistory", zap.Uint64("height:", kHeight), zap.String("key", hex.EncodeToString(key)))
 		}
-		return nil
-	})
-	return err
+	}
+	if err := stx.dao.Commit(chaindbCache); err != nil {
+		return errors.Wrap(err, "failed to commit delete account history")
+	}
+	return nil
 }
 
-// delete history asynchronous,this will find all account
+// delete history asynchronous,this will find all account that with version
 func (stx *stateTX) deleteHistory() error {
 	log.L().Info("deleteHistory start")
 	currentHeight := stx.ver + 1
@@ -271,27 +289,104 @@ func (stx *stateTX) deleteHistory() error {
 	deleteHeight := currentHeight - stx.cfg.HistoryStateHeight
 	go func() {
 		stx.deleting <- struct{}{}
-		db := stx.dao.DB()
-		boltdb, ok := db.(*bolt.DB)
-		if !ok {
-			log.L().Error("convert to bolt db error")
+		//db := stx.dao.DB()
+		//boltdb, ok := db.(*bolt.DB)
+		//if !ok {
+		//	log.L().Error("convert to bolt db error")
+		//	return
+		//}
+		//allPk := make([]hash.Hash160, 0)
+		//boltdb.View(func(tx *bolt.Tx) error {
+		//	c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
+		//	for k, _ := c.Seek(AccountMaxVersionPrefix); bytes.HasPrefix(k, AccountMaxVersionPrefix); k, _ = c.Next() {
+		//		addrHash := k[len(AccountMaxVersionPrefix):]
+		//		h := hash.BytesToHash160(addrHash)
+		//		allPk = append(allPk, h)
+		//	}
+		//	return nil
+		//})
+		allKeys, err := stx.dao.GetPrefix(AccountKVNameSpace, AccountMaxVersionPrefix)
+		if err != nil {
 			return
 		}
-		allPk := make([]hash.Hash160, 0)
-		boltdb.View(func(tx *bolt.Tx) error {
-			c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
-			for k, _ := c.Seek(AccountMaxVersionPrefix); bytes.HasPrefix(k, AccountMaxVersionPrefix); k, _ = c.Next() {
-				addrHash := k[len(AccountMaxVersionPrefix):]
-				h := hash.BytesToHash160(addrHash)
-				allPk = append(allPk, h)
+
+		for _, key := range allKeys {
+			addrHash := key[len(AccountMaxVersionPrefix):]
+			h := hash.BytesToHash160(addrHash)
+			if err := stx.deleteAccountHistory(h, deleteHeight); err != nil {
+				log.L().Error("deleteAccountHistory", zap.Error(err))
 			}
-			return nil
-		})
-		for _, h := range allPk {
-			stx.deleteAccountHistory(h, deleteHeight)
 		}
 		<-stx.deleting
 	}()
+	return nil
+}
+
+// DeleteHistoryForTrie delete history asynchronous for trie node
+func (stx *stateTX) DeleteHistoryForTrie(hei uint64, namespace string, prefix []byte, chaindb db.KVStore) error {
+	// chain.db
+	//kvstore := bc.dao.KVStore().DB()
+	//boltdb, ok := kvstore.(*bolt.DB)
+	//if !ok {
+	//	log.L().Error("convert to bolt db error")
+	//	return
+	//}
+	// caculate the block height,later will delete trie node before this height
+	if hei < stx.cfg.HistoryStateHeight {
+		return nil
+	}
+	deleteStartHeight := hei - stx.cfg.HistoryStateHeight
+	var endHeight uint64
+	if deleteStartHeight < stx.cfg.HistoryStateHeight {
+		endHeight = 1
+	} else {
+		endHeight = deleteStartHeight - stx.cfg.HistoryStateHeight
+	}
+
+	log.L().Info("deleteHeight", zap.Uint64("deleteStartHeight", deleteStartHeight), zap.Uint64("endHeight", endHeight), zap.Uint64("height", hei), zap.Uint64("historystateheight", stx.cfg.HistoryStateHeight))
+	chaindbCache := db.NewCachedBatch()
+	triedbCache := db.NewCachedBatch()
+	for i := deleteStartHeight; i > endHeight; i-- {
+		heightBytes := make([]byte, 8)
+		binary.BigEndian.PutUint64(heightBytes, i)
+		keyPrefix := append(prefix, heightBytes...)
+		allKeys, err := stx.dao.GetPrefix(namespace, keyPrefix)
+		if err != nil {
+			continue
+		}
+		for _, key := range allKeys {
+			chaindbCache.Delete(namespace, key, "failed to delete key %x", key)
+			triedbCache.Delete(db.ContractKVNameSpace, key[len(keyPrefix):], "failed to delete key %x", key[len(keyPrefix):])
+		}
+
+		//err = boltdb.Update(func(tx *bolt.Tx) error {
+		//	b := tx.Bucket([]byte(heightToTrieNodeKeyNS))
+		//	if b == nil {
+		//		log.L().Info("b := tx.Bucket([]byte(heightToTrieNodeKeyNS)) is nil", zap.Uint64("height", i))
+		//		return nil
+		//	}
+		//	c := b.Cursor()
+		//	for k, _ := c.Seek(keyPrefix); bytes.HasPrefix(k, keyPrefix); k, _ = c.Next() {
+		//		// delete height->trie node hash directly
+		//		b.Delete(k)
+		//		// put into cache
+		//		cb.Delete(db.ContractKVNameSpace, k[len(keyPrefix):], "failed to delete key %x", k[len(keyPrefix):])
+		//		log.L().Info("deleteTrieHistory:", zap.String("key:", fmt.Sprintf("%x", k[len(keyPrefix):])), zap.Uint64("height", i))
+		//	}
+		//	return nil
+		//})
+		//if err != nil {
+		//	return
+		//}
+	}
+	// delete trie node
+	if err := chaindb.Commit(chaindbCache); err != nil {
+		return errors.Wrap(err, "failed to commit delete trie node reference")
+	}
+	// delete trie node reference
+	if err := stx.dao.Commit(triedbCache); err != nil {
+		return errors.Wrap(err, "failed to commit delete trie node")
+	}
 	return nil
 }
 

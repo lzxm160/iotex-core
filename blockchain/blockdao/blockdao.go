@@ -47,7 +47,8 @@ const (
 	receiptsNS                = "rpt"
 	numActionsNS              = "nac"
 	transferAmountNS          = "tfa"
-	hashOffset                = 12
+
+	hashOffset = 12
 )
 
 var (

@@ -7,13 +7,12 @@
 package blockchain
 
 import (
-	"bytes"
 	"context"
 	"encoding/binary"
-	"fmt"
 	"math/big"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -28,7 +27,6 @@ import (
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
-	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -36,7 +34,7 @@ import (
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
@@ -58,6 +56,9 @@ import (
 
 const (
 	heightToTrieNodeKeyNS = "htn"
+
+	// ContractKVNameSpace for ignore delete
+	//ContractKVNameSpace = "Contract"
 )
 
 var (
@@ -1086,12 +1087,10 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 	bc.tipHash = blk.HashBlock()
 
 	if bc.sf != nil {
-		// save trie node that will be deleted in this block
-		heightToKeyCache, err := blk.WorkingSet.GetDB().SaveDeletedTrieNode(blk.WorkingSet.GetCachedBatch(), bc.tipHeight, heightToTrieNodeKeyNS, heightToTrieNodeKeyPrefix)
+		err = bc.saveTrieHistory(blk)
 		if err != nil {
-			return errors.Wrapf(err, "failed to save trie's node on height %d", blk.Height())
+			return errors.Wrapf(err, "failed to save history on height %d", blk.Height())
 		}
-
 		// write smart contract receipt into DB
 		receiptTimer := bc.timerFactory.NewTimer("putReceipt")
 		err = bc.dao.PutReceipts(blk.Height(), blk.Receipts)
@@ -1108,11 +1107,6 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
-		err = bc.saveHistory(heightToKeyCache, blk.Height())
-		if err != nil {
-			return errors.Wrapf(err, "failed to save history on height %d", blk.Height())
-		}
-
 	}
 	blk.HeaderLogger(log.L()).Info("Committed a block.", log.Hex("tipHash", bc.tipHash[:]))
 
@@ -1120,19 +1114,49 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 	bc.emitToSubscribers(blk)
 	// delete trie node history asynchronously
 	bc.deleteTrieHistory(bc.tipHeight)
-
 	return nil
 }
 
-func (bc *blockchain) saveHistory(heightToKeyCache db.KVStoreBatch, height uint64) error {
-	if heightToKeyCache == nil {
+func (bc *blockchain) saveTrieHistory(blk *block.Block) error {
+	// save trie node that will be deleted in this block,this db is trie.db
+	//heightToKeyCache, err := blk.WorkingSet.GetDB().SaveDeletedTrieNode(blk.WorkingSet.GetCachedBatch(), bc.tipHeight, heightToTrieNodeKeyNS, heightToTrieNodeKeyPrefix)
+	//if err != nil {
+	//	return errors.Wrapf(err, "failed to save trie's node on height %d", blk.Height())
+	//}
+	//if heightToKeyCache == nil {
+	//	return nil
+	//}
+	hei := blk.Height()
+	batch := blk.WorkingSet.GetCachedBatch()
+	trieBatch, ok := batch.(db.KVStoreBatch)
+	if !ok {
+		log.L().Error("trieBatch,ok:=batch.(db.KVStoreBatch)")
 		return nil
 	}
+	heightToKeyCache := db.NewCachedBatch()
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, hei)
+	for i := 0; i < trieBatch.Size(); i++ {
+		write, err := trieBatch.Entry(i)
+		if err != nil {
+			return err
+		}
+		// only save trie node in evm's name space
+		if (write.WriteType() == db.Delete) && (strings.EqualFold(write.Namespace(), evm.ContractKVNameSpace)) {
+			heightTo := append(heightToTrieNodeKeyPrefix, heightBytes...)
+			heightTo = append(heightTo, write.Key()...)
+			heightToKeyCache.Put(heightToTrieNodeKeyNS, heightTo, []byte(""), "")
+		}
+	}
+	if heightToKeyCache.Size() == 0 {
+		return nil
+	}
+	log.L().Info("len of history SaveDeletedTrieNode", zap.Int("heighttokey", heightToKeyCache.Size()))
 	// commit to chain.db
 	err := bc.dao.KVStore().Commit(heightToKeyCache)
 	if err != nil {
 		log.L().Error("Error when bc.dao.kvstore.Commit.", zap.Error(err))
-		return errors.Wrapf(err, "Error when commit height->trie node key hash on height %d", height)
+		return errors.Wrapf(err, "Error when commit height->trie node key hash on height %d", blk.Height())
 	}
 	return nil
 }
@@ -1140,68 +1164,28 @@ func (bc *blockchain) saveHistory(heightToKeyCache db.KVStoreBatch, height uint6
 func (bc *blockchain) deleteTrieHistory(hei uint64) {
 	if bc.config.DB.EnableHistoryState && hei%factory.CheckHistoryDeleteInterval == 0 {
 		log.L().Info("deleteTrieHistory start")
+		// trie.db
 		ws, err := bc.sf.NewWorkingSet()
 		if err != nil {
 			log.L().Error("Error when NewWorkingSet.", zap.Error(err))
 			return
 		}
-		dbstore := ws.GetDB()
-		if dbstore == nil {
-			log.L().Error("Error when GetDB.", zap.Error(err))
-			return
-		}
-		cb := db.NewCachedBatch()
+
+		//dbstore := ws.GetDB()
+		//if dbstore == nil {
+		//	log.L().Error("Error when GetDB.", zap.Error(err))
+		//	return
+		//}
 		go func() {
 			// make sure there's only one goroutine doing this
 			bc.deletingTrieHistory <- struct{}{}
 			defer func() {
 				<-bc.deletingTrieHistory
 			}()
-			kvstore := bc.dao.KVStore().DB()
-			boltdb, ok := kvstore.(*bolt.DB)
-			if !ok {
-				log.L().Error("convert to bolt db error")
-				return
+			err := ws.DeleteHistoryForTrie(bc.tipHeight, heightToTrieNodeKeyNS, heightToTrieNodeKeyPrefix, bc.dao.KVStore())
+			if err != nil {
+				log.L().Error("failed delete history for trie", zap.Error(err))
 			}
-			// caculate the block height,later will delete trie node before this height
-			if hei < bc.config.DB.HistoryStateHeight {
-				return
-			}
-			deleteStartHeight := hei - bc.config.DB.HistoryStateHeight
-			var endHeight uint64
-			if deleteStartHeight < bc.config.DB.HistoryStateHeight {
-				endHeight = 1
-			} else {
-				endHeight = deleteStartHeight - bc.config.DB.HistoryStateHeight
-			}
-
-			log.L().Info("deleteHeight", zap.Uint64("deleteStartHeight", deleteStartHeight), zap.Uint64("endHeight", endHeight), zap.Uint64("height", hei), zap.Uint64("historystateheight", bc.config.DB.HistoryStateHeight))
-			for i := deleteStartHeight; i > endHeight; i-- {
-				heightBytes := make([]byte, 8)
-				binary.BigEndian.PutUint64(heightBytes, i)
-				keyPrefix := append(heightToTrieNodeKeyPrefix, heightBytes...)
-				err = boltdb.Update(func(tx *bolt.Tx) error {
-					b := tx.Bucket([]byte(heightToTrieNodeKeyNS))
-					if b == nil {
-						log.L().Info("b := tx.Bucket([]byte(heightToTrieNodeKeyNS)) is nil", zap.Uint64("height", i))
-						return nil
-					}
-					c := b.Cursor()
-					for k, _ := c.Seek(keyPrefix); bytes.HasPrefix(k, keyPrefix); k, _ = c.Next() {
-						// delete height->trie node hash directly
-						b.Delete(k)
-						// put into cache
-						cb.Delete(db.ContractKVNameSpace, k[len(keyPrefix):], "failed to delete key %x", k[len(keyPrefix):])
-						log.L().Info("deleteTrieHistory:", zap.String("key:", fmt.Sprintf("%x", k[len(keyPrefix):])), zap.Uint64("height", i))
-					}
-					return nil
-				})
-				if err != nil {
-					return
-				}
-			}
-			dbstore.Commit(cb) // delete trie node
-
 		}()
 	}
 }
