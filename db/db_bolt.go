@@ -108,7 +108,11 @@ func (b *boltDB) Get(namespace string, key []byte) ([]byte, error) {
 func (b *boltDB) GetPrefix(namespace string, prefix []byte) ([][]byte, error) {
 	allKey := make([][]byte, 0)
 	err := b.db.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket([]byte(namespace)).Cursor()
+		buck := tx.Bucket([]byte(namespace))
+		if buck == nil {
+			return ErrNotExist
+		}
+		c := buck.Cursor()
 		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
 			allKey = append(allKey, k)
 		}
