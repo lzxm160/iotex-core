@@ -12,8 +12,6 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
-
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
@@ -26,7 +24,7 @@ import (
 const fileMode = 0600
 
 // ContractKVNameSpace for ignore delete
-//var ContractKVNameSpace = "Contract"
+var ContractKVNameSpace = "Contract"
 
 // boltDB is KVStore implementation based bolt DB
 type boltDB struct {
@@ -178,7 +176,7 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 					return err
 				}
 				if write.writeType == Put {
-					if write.namespace == evm.ContractKVNameSpace {
+					if write.namespace == ContractKVNameSpace {
 						log.L().Info("len of ContractKVNameSpace commit", zap.Int("trie batch size ", batch.Size()), zap.String("save key", hex.EncodeToString(write.key)))
 					}
 					bucket, err := tx.CreateBucketIfNotExists([]byte(write.namespace))
