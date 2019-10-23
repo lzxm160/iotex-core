@@ -267,7 +267,7 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160, deleteHeight uint6
 		if len(key) != len(pkHash)+8 {
 			continue
 		}
-		log.L().Info("len(key)", zap.Int("len(key):", len(key)))
+		//log.L().Info("len(key)", zap.Int("len(key):", len(key)))
 		kHeight := binary.BigEndian.Uint64(key[20:])
 		if kHeight < deleteHeight {
 			chaindbCache.Delete(AccountKVNameSpace, key, "")
