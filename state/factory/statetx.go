@@ -352,6 +352,10 @@ func (stx *stateTX) DeleteHistoryForTrie(hei uint64, namespace string, prefix []
 		binary.BigEndian.PutUint64(heightBytes, i)
 		keyPrefix := append(prefix, heightBytes...)
 		allKeys, err := stx.dao.GetPrefix(namespace, keyPrefix)
+		if err != nil && errors.Cause(err) == db.ErrNotExist {
+			// optimize for not continue for not existed key
+			return nil
+		}
 		if err != nil {
 			continue
 		}
