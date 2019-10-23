@@ -11,8 +11,8 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 
-	"go.uber.org/zap"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
@@ -264,9 +264,10 @@ func (stx *stateTX) deleteAccountHistory(pkHash hash.Hash160, deleteHeight uint6
 	}
 	chaindbCache := db.NewCachedBatch()
 	for _, key := range allKeys {
-		if len(key) <= len(pkHash) || len(key) > len(pkHash)+8 {
+		if len(key) != len(pkHash)+8 {
 			continue
 		}
+		log.L().Info("len(key)", zap.Int("len(key):", len(key)))
 		kHeight := binary.BigEndian.Uint64(key[20:])
 		if kHeight < deleteHeight {
 			chaindbCache.Delete(AccountKVNameSpace, key, "")
