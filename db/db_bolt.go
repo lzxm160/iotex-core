@@ -9,7 +9,6 @@ package db
 import (
 	"bytes"
 	"context"
-	"encoding/binary"
 	"encoding/hex"
 	"strings"
 
@@ -20,7 +19,6 @@ import (
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
-	"github.com/iotexproject/iotex-core/state"
 )
 
 const fileMode = 0600
@@ -107,8 +105,7 @@ func (b *boltDB) Get(namespace string, key []byte) ([]byte, error) {
 }
 
 // GetPrefix retrieves all keys those with const prefix
-func (b *boltDB) GetPrefix(namespace string, prefix []byte) ([][]byte, error) {
-	allKey := make([][]byte, 0)
+func (b *boltDB) GetPrefix(namespace string, prefix []byte) (allKey [][]byte, error) {
 	err := b.db.View(func(tx *bolt.Tx) error {
 		buck := tx.Bucket([]byte(namespace))
 		if buck == nil {
@@ -121,61 +118,7 @@ func (b *boltDB) GetPrefix(namespace string, prefix []byte) ([][]byte, error) {
 		}
 		return nil
 	})
-	if err == nil {
-		return allKey, nil
-	}
-	if errors.Cause(err) == ErrNotExist {
-		return nil, err
-	}
-	return nil, errors.Wrap(ErrIO, err.Error())
-}
-
-// GetKeyRange retrieves all keys with values
-func (b *boltDB) GetKeyRange(namespace string, prefix, minHeight, maxHeight []byte) (allKeys [][]byte, allValues [][]byte, err error) {
-	err = b.db.View(func(tx *bolt.Tx) error {
-		buck := tx.Bucket([]byte(namespace))
-		if buck == nil {
-			return ErrNotExist
-		}
-		c := buck.Cursor()
-		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
-			if bytes.Compare(v, minHeight) >= 0 && bytes.Compare(v, maxHeight) <= 0 {
-				allKeys = append(allKeys, k)
-				allValues = append(allValues, v)
-			}
-		}
-		return nil
-	})
 	return
-}
-
-// GetPrefixRange return the first value which key < maxKey
-func (b *boltDB) GetPrefixRange(namespace string, minKey []byte, maxKey []byte, targetHeight uint64, s interface{}) error {
-	return b.db.View(func(tx *bolt.Tx) error {
-		buck := tx.Bucket([]byte(namespace))
-		if buck == nil {
-			return ErrNotExist
-		}
-		c := buck.Cursor()
-		for k, v := c.Seek(maxKey); k != nil && bytes.Compare(k, minKey) >= 0; k, v = c.Prev() {
-			if len(k) <= 20 {
-				return ErrNotExist
-			}
-			kHeight := binary.BigEndian.Uint64(k[20:])
-			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", targetHeight))
-			if kHeight == 0 || kHeight == 1 {
-				return ErrNotExist
-			}
-			if kHeight <= targetHeight {
-				log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", targetHeight))
-				if err := state.Deserialize(s, v); err != nil {
-					return errors.Wrapf(err, "error when deserializing state data into %T", s)
-				}
-				return nil
-			}
-		}
-		return ErrNotExist
-	})
 }
 
 // Delete deletes a record,if key is nil,this will delete the whole bucket

@@ -258,32 +258,56 @@ func (sdb *stateDB) state(addr hash.Hash160, s interface{}) error {
 }
 
 func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{}) error {
-	maxVersion := uint64(0)
 	indexKey := append(AccountMaxVersionPrefix, addr[:]...)
 	value, err := sdb.dao.Get(AccountKVNameSpace, indexKey)
-	if err == nil {
-		maxVersion = binary.BigEndian.Uint64(value)
+	if err != nil {
+		return db.ErrNotExist
 	}
-	if maxVersion == 0 {
-		return errors.New("cannot find state")
+	maxIndex := binary.BigEndian.Uint64(value[:8])
+	maxHeight := binary.BigEndian.Uint64(value[8:])
+	currentHeight, err := sdb.Height()
+	if err != nil {
+		return err
 	}
-
-	if maxVersion < sdb.cfg.HistoryStateHeight {
+	if currentHeight > sdb.cfg.HistoryStateHeight && maxHeight < currentHeight-sdb.cfg.HistoryStateHeight {
+		// already delete
 		return nil
 	}
-	var minVersion uint64
-	if maxVersion < sdb.cfg.HistoryStateHeight {
-		minVersion = 1
+	var minHeight uint64
+	if currentHeight < sdb.cfg.HistoryStateHeight {
+		minHeight = 1
 	} else {
-		minVersion = maxVersion - sdb.cfg.HistoryStateHeight
+		minHeight = currentHeight - sdb.cfg.HistoryStateHeight
 	}
-	log.L().Info("////////////////276", zap.Uint64("maxVersion", maxVersion), zap.Uint64("minVersion", minVersion))
-	bytess := make([]byte, 8)
-	binary.BigEndian.PutUint64(bytess, minVersion)
-	minKey := append(addr[:], bytess...)
-	binary.BigEndian.PutUint64(bytess, maxVersion)
-	maxKey := append(addr[:], bytess...)
-	return sdb.dao.GetPrefixRange(AccountKVNameSpace, minKey, maxKey, height, s)
+	log.L().Info("stateHeight", zap.Uint64("maxHeight", maxHeight), zap.Uint64("minHeight", minHeight))
+	for i := maxIndex; i >= 0; i-- {
+		currentIndex := make([]byte, 8)
+		binary.BigEndian.PutUint64(currentIndex, i)
+		indexKey := append(addr[:], AccountIndexPrefix...)
+		indexKey = append(indexKey, currentIndex...)
+		// put accounthash+AccountIndexPrefix+index->height
+		value, err := sdb.dao.Get(AccountKVNameSpace, indexKey)
+		if err != nil {
+			break
+		}
+		indexHeight := binary.BigEndian.Uint64(value[:])
+		if indexHeight < minHeight {
+			break
+		}
+		if indexHeight <= height {
+			log.L().Info("////////////////", zap.Uint64("indexHeight", indexHeight), zap.Uint64("target height", height))
+			accountHeightKey := append(addr[:], value...)
+			accountValue, err := sdb.dao.Get(AccountKVNameSpace, accountHeightKey)
+			if err != nil {
+				break
+			}
+			if err := state.Deserialize(s, accountValue); err != nil {
+				return errors.Wrapf(err, "error when deserializing state data into %T", s)
+			}
+			return nil
+		}
+	}
+	return db.ErrNotExist
 }
 
 func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, err error) {

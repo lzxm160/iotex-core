@@ -47,10 +47,6 @@ type KVStore interface {
 	CreateCountingIndexNX([]byte) (CountingIndex, error)
 	// GetPrefix retrieves all keys those with const prefix
 	GetPrefix(string, []byte) ([][]byte, error)
-	// GetPrefixRange return the first value which key < maxKey
-	GetPrefixRange(string, []byte, []byte, uint64, interface{}) error
-	// GetKeyRange retrieves all keys with values
-	GetKeyRange(string, []byte, []byte, []byte) ([][]byte, [][]byte, error)
 }
 
 const (
@@ -165,14 +161,4 @@ func (m *memKVStore) CreateCountingIndexNX(name []byte) (CountingIndex, error) {
 // GetPrefix retrieves all keys those with const prefix
 func (m *memKVStore) GetPrefix(string, []byte) ([][]byte, error) {
 	return nil, nil
-}
-
-// GetPrefixRange return the first value which key < maxKey
-func (b *memKVStore) GetPrefixRange(namespace string, minKey []byte, maxKey []byte, targetHeight uint64, s interface{}) error {
-	return nil
-}
-
-// GetKeyRange retrieves all keys with values
-func (b *memKVStore) GetKeyRange(namespace string, prefix, minHeight, maxHeight []byte) (allKeys [][]byte, allValues [][]byte, err error) {
-	return nil, nil, nil
 }

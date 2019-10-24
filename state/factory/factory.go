@@ -46,6 +46,7 @@ const (
 var (
 	// AccountMaxVersionPrefix is for account history
 	AccountMaxVersionPrefix = []byte("vp.")
+	AccountIndexPrefix      = []byte("ip.")
 )
 
 type (

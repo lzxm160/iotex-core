@@ -201,30 +201,47 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 	return stx.putIndex(pkHash, ss)
 }
 
-func (stx *stateTX) getMaxVersion(pkHash hash.Hash160) (uint64, error) {
+func (stx *stateTX) getMaxVersion(pkHash hash.Hash160) (index, height uint64, err error) {
 	indexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
 	value, err := stx.dao.Get(AccountKVNameSpace, indexKey)
 	if err != nil {
-		return 0, err
+		return
 	}
-	return binary.BigEndian.Uint64(value), nil
+	index = binary.BigEndian.Uint64(value[:8])
+	height = binary.BigEndian.Uint64(value[8:])
+	return
 }
 
 func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	version := stx.ver + 1
-	maxVersion, _ := stx.getMaxVersion(pkHash)
-	if (maxVersion != 0) && (maxVersion != 1) && (maxVersion > version) {
+	maxIndex, maxHeight, _ := stx.getMaxVersion(pkHash)
+	if (maxHeight != 0) && (maxHeight != 1) && (maxHeight > version) {
 		return nil
 	}
-
-	currentVersion := make([]byte, 8)
-	binary.BigEndian.PutUint64(currentVersion, version)
-	indexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
-	err := stx.dao.Put(AccountKVNameSpace, indexKey, currentVersion)
+	// index from 0
+	currentIndex := make([]byte, 8)
+	binary.BigEndian.PutUint64(currentIndex, maxIndex)
+	currentHeight := make([]byte, 8)
+	binary.BigEndian.PutUint64(currentHeight, version)
+	indexKey := append(pkHash[:], AccountIndexPrefix...)
+	indexKey = append(indexKey, currentIndex...)
+	// put accounthash+AccountIndexPrefix+index->height
+	err := stx.dao.Put(AccountKVNameSpace, indexKey, currentHeight)
 	if err != nil {
 		return err
 	}
-	stateKey := append(pkHash[:], currentVersion...)
+
+	// max num of index
+	maxIndex++
+	binary.BigEndian.PutUint64(currentIndex, maxIndex)
+	versionValue := append(currentIndex, currentHeight...)
+	maxIndexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
+	// put AccountMaxVersionPrefix+accounthash->index+height
+	err = stx.dao.Put(AccountKVNameSpace, maxIndexKey, versionValue)
+	if err != nil {
+		return err
+	}
+	stateKey := append(pkHash[:], currentHeight...)
 	return stx.dao.Put(AccountKVNameSpace, stateKey, ss)
 }
 
@@ -242,25 +259,40 @@ func (stx *stateTX) deleteHistory() error {
 	} else {
 		deleteEndHeight = deleteStartHeight - stx.cfg.HistoryStateHeight
 	}
-	minHeight := make([]byte, 8)
-	binary.BigEndian.PutUint64(minHeight, deleteEndHeight)
-	maxHeight := make([]byte, 8)
-	binary.BigEndian.PutUint64(maxHeight, deleteStartHeight)
-
 	go func() {
 		stx.deleting <- struct{}{}
 		// find all keys that with version
-		allKeys, allValues, err := stx.dao.GetKeyRange(AccountKVNameSpace, AccountMaxVersionPrefix, minHeight, maxHeight)
+		allKeys, err := stx.dao.GetPrefix(AccountKVNameSpace, AccountMaxVersionPrefix)
 		if err != nil {
 			return
 		}
 		chaindbCache := db.NewCachedBatch()
-		for i, key := range allKeys {
+		for _, key := range allKeys {
 			addrHash := key[len(AccountMaxVersionPrefix):]
-			accountKeys, _, err := stx.dao.GetKeyRange(AccountKVNameSpace, addrHash, minHeight, allValues[i])
+			pkHash := hash.BytesToHash160(addrHash)
+			maxIndex, maxHeight, err := stx.getMaxVersion(pkHash)
 			if err != nil {
-				for _, k := range accountKeys {
-					chaindbCache.Delete(AccountKVNameSpace, k, "")
+				continue
+			}
+			if maxHeight < deleteEndHeight {
+				continue
+			}
+			for i := maxIndex; i >= 0; i-- {
+				currentIndex := make([]byte, 8)
+				binary.BigEndian.PutUint64(currentIndex, i)
+				indexKey := append(pkHash[:], AccountIndexPrefix...)
+				indexKey = append(indexKey, currentIndex...)
+				// put accounthash+AccountIndexPrefix+index->height
+				height, err := stx.dao.Get(AccountKVNameSpace, indexKey)
+				if err != nil {
+					break
+				}
+				indexHeight := binary.BigEndian.Uint64(height[:])
+				if indexHeight <= deleteEndHeight && indexHeight < deleteStartHeight {
+					chaindbCache.Delete(AccountKVNameSpace, indexKey, "")
+					//height:=binary.BigEndian.Uint64(value[:8])
+					accountHeight := append(addrHash, height...)
+					chaindbCache.Delete(AccountKVNameSpace, accountHeight, "")
 				}
 			}
 		}
