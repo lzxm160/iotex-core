@@ -105,8 +105,8 @@ func (b *boltDB) Get(namespace string, key []byte) ([]byte, error) {
 }
 
 // GetPrefix retrieves all keys those with const prefix
-func (b *boltDB) GetPrefix(namespace string, prefix []byte) (allKey [][]byte, error) {
-	err := b.db.View(func(tx *bolt.Tx) error {
+func (b *boltDB) GetPrefix(namespace string, prefix []byte) (allKey [][]byte, err error) {
+	err = b.db.View(func(tx *bolt.Tx) error {
 		buck := tx.Bucket([]byte(namespace))
 		if buck == nil {
 			return ErrNotExist
