@@ -50,7 +50,7 @@ type Trie interface {
 	// Stop stops the trie
 	Stop(context.Context) error
 	// Upsert inserts a new entry
-	Upsert([]byte, []byte) error
+	Upsert([]byte, []byte, bool) error
 	// Get retrieves an existing entry
 	Get([]byte) ([]byte, error)
 	// Delete deletes an entry

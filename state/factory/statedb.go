@@ -274,7 +274,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 	log.L().Info("stateHeight/////////ErrNotExist", zap.Uint64("currentHeight", currentHeight), zap.Uint64("maxHeight", maxHeight))
 	if currentHeight > sdb.cfg.HistoryStateHeight && maxHeight < currentHeight-sdb.cfg.HistoryStateHeight {
 		// already delete
-		return nil
+		return db.ErrNotExist
 	}
 	var minHeight uint64
 	if currentHeight < sdb.cfg.HistoryStateHeight {

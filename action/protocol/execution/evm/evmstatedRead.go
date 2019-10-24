@@ -284,7 +284,14 @@ func (stateDB *StateDBAdapterRead) getNewContract(addr string) (Contract, error)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load account state for address %s", addr)
 	}
-	contract, err := newContract(hash.Hash160b(a.Bytes()), account, stateDB.dao, stateDB.cb)
+	//contract, err := newContract(hash.Hash160b(a.Bytes()), account, stateDB.dao, stateDB.cb)
+	isHudson := stateDB.hu.IsPost(config.Hudson, stateDB.blockHeight)
+	var contract Contract
+	if isHudson {
+		contract, err = newContract(hash.Hash160b(a.Bytes()), account, stateDB.dao, stateDB.cb, true)
+	} else {
+		contract, err = newContract(hash.Hash160b(a.Bytes()), account, stateDB.dao, stateDB.cb, false)
+	}
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create storage trie for new contract %x", addr)
 	}

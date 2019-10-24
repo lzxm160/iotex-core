@@ -46,13 +46,14 @@ type (
 
 	contract struct {
 		*state.Account
-		dirtyCode  bool   // contract's code has been set
-		dirtyState bool   // contract's account state has changed
-		code       []byte // contract byte-code
-		root       hash.Hash256
-		committed  map[hash.Hash256][]byte
-		dao        db.KVStore
-		trie       trie.Trie // storage trie of the contract
+		dirtyCode    bool   // contract's code has been set
+		dirtyState   bool   // contract's account state has changed
+		code         []byte // contract byte-code
+		root         hash.Hash256
+		committed    map[hash.Hash256][]byte
+		dao          db.KVStore
+		trie         trie.Trie // storage trie of the contract
+		saveTrieNode bool      // decide if save evm's history state
 	}
 )
 
@@ -86,7 +87,7 @@ func (c *contract) SetState(key hash.Hash256, value []byte) error {
 		c.GetState(key)
 	}
 	c.dirtyState = true
-	err := c.trie.Upsert(key[:], value)
+	err := c.trie.Upsert(key[:], value, c.saveTrieNode)
 	c.Account.Root = hash.BytesToHash256(c.trie.RootHash())
 	return err
 }
@@ -158,7 +159,7 @@ func (c *contract) Snapshot() Contract {
 }
 
 // NewContract returns a Contract instance
-func newContract(addr hash.Hash160, state *state.Account, dao db.KVStore, batch db.CachedBatch) (Contract, error) {
+func newContract(addr hash.Hash160, state *state.Account, dao db.KVStore, batch db.CachedBatch, saveTrieNode bool) (Contract, error) {
 	dbForTrie, err := db.NewKVStoreForTrie(ContractKVNameSpace, dao, db.CachedBatchOption(batch))
 	if err != nil {
 		return nil, err
@@ -183,10 +184,11 @@ func newContract(addr hash.Hash160, state *state.Account, dao db.KVStore, batch 
 	}
 
 	return &contract{
-		Account:   state,
-		root:      state.Root,
-		committed: make(map[hash.Hash256][]byte),
-		dao:       dao,
-		trie:      tr,
+		Account:      state,
+		root:         state.Root,
+		committed:    make(map[hash.Hash256][]byte),
+		dao:          dao,
+		trie:         tr,
+		saveTrieNode: saveTrieNode,
 	}, nil
 }

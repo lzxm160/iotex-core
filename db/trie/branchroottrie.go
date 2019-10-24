@@ -22,13 +22,14 @@ type (
 	// HashFunc defines a function to generate the hash which will be used as key in db
 	HashFunc       func([]byte) []byte
 	branchRootTrie struct {
-		mutex     sync.RWMutex
-		keyLength int
-		kvStore   KVStore
-		hashFunc  HashFunc
-		root      *branchNode
-		rootHash  []byte
-		rootKey   string
+		mutex        sync.RWMutex
+		keyLength    int
+		kvStore      KVStore
+		hashFunc     HashFunc
+		root         *branchNode
+		rootHash     []byte
+		rootKey      string
+		saveTrieNode bool
 	}
 )
 
@@ -113,7 +114,8 @@ func (tr *branchRootTrie) Delete(key []byte) error {
 	return nil
 }
 
-func (tr *branchRootTrie) Upsert(key []byte, value []byte) error {
+func (tr *branchRootTrie) Upsert(key []byte, value []byte, saveTrieNode bool) error {
+	tr.saveTrieNode = saveTrieNode
 	trieMtc.WithLabelValues("root", "Upsert").Inc()
 	kt, err := tr.checkKeyType(key)
 	if err != nil {
@@ -138,6 +140,9 @@ func (tr *branchRootTrie) DB() KVStore {
 
 func (tr *branchRootTrie) deleteNodeFromDB(tn Node) error {
 	h := tr.nodeHash(tn)
+	if tr.saveTrieNode {
+		return nil
+	}
 	return tr.kvStore.Delete(h)
 }
 
