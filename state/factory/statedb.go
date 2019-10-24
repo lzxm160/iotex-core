@@ -292,7 +292,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 		log.L().Info("////////////////stateHeight", zap.Uint64("indexHeight", i), zap.Uint64("target height", height))
 		value, err := sdb.dao.Get(AccountKVNameSpace, indexKey)
 		if err != nil {
-			break
+			continue
 		}
 		indexHeight := binary.BigEndian.Uint64(value[:])
 		if indexHeight < minHeight {
