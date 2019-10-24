@@ -9,8 +9,11 @@ package db
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
 	"encoding/hex"
 	"strings"
+
+	"github.com/iotexproject/iotex-core/state"
 
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
@@ -113,6 +116,7 @@ func (b *boltDB) GetPrefix(namespace string, prefix []byte) ([][]byte, error) {
 			return ErrNotExist
 		}
 		c := buck.Cursor()
+
 		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
 			allKey = append(allKey, k)
 		}
@@ -125,6 +129,35 @@ func (b *boltDB) GetPrefix(namespace string, prefix []byte) ([][]byte, error) {
 		return nil, err
 	}
 	return nil, errors.Wrap(ErrIO, err.Error())
+}
+
+// GetPrefixRange return the first value which key < maxKey
+func (b *boltDB) GetPrefixRange(namespace string, minKey []byte, maxKey []byte, targetHeight uint64, s interface{}) error {
+	return b.db.View(func(tx *bolt.Tx) error {
+		buck := tx.Bucket([]byte(namespace))
+		if buck == nil {
+			return ErrNotExist
+		}
+		c := buck.Cursor()
+		for k, v := c.Seek(maxKey); k != nil && bytes.Compare(k, minKey) >= 0; k, v = c.Prev() {
+			if len(k) <= 20 {
+				return errors.New("cannot find state")
+			}
+			kHeight := binary.BigEndian.Uint64(k[20:])
+			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", targetHeight))
+			if kHeight == 0 || kHeight == 1 {
+				return errors.New("cannot find state")
+			}
+			if kHeight <= targetHeight {
+				log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", targetHeight))
+				if err := state.Deserialize(s, v); err != nil {
+					return errors.Wrapf(err, "error when deserializing state data into %T", s)
+				}
+				return nil
+			}
+		}
+		return errors.New("cannot find state")
+	})
 }
 
 // Delete deletes a record,if key is nil,this will delete the whole bucket
