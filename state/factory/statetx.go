@@ -218,6 +218,7 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	if (maxHeight != 0) && (maxHeight != 1) && (maxHeight > version) {
 		return nil
 	}
+	log.L().Info("////////////////putIndex", zap.Uint64("maxIndex", maxIndex), zap.Uint64("maxHeight", maxHeight))
 	// index from 0
 	currentIndex := make([]byte, 8)
 	binary.BigEndian.PutUint64(currentIndex, maxIndex)
