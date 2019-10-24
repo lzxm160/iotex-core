@@ -267,13 +267,19 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 	if maxVersion == 0 {
 		return errors.New("cannot find state")
 	}
-	log.L().Info("////////////////276", zap.Uint64("maxVersion", maxVersion))
+
 	if maxVersion < sdb.cfg.HistoryStateHeight {
 		return nil
 	}
-	minHeight := maxVersion - sdb.cfg.HistoryStateHeight
+	var minVersion uint64
+	if maxVersion < sdb.cfg.HistoryStateHeight {
+		minVersion = 1
+	} else {
+		minVersion = maxVersion - sdb.cfg.HistoryStateHeight
+	}
+	log.L().Info("////////////////276", zap.Uint64("maxVersion", maxVersion), zap.Uint64("minVersion", minVersion))
 	bytess := make([]byte, 8)
-	binary.BigEndian.PutUint64(bytess, minHeight)
+	binary.BigEndian.PutUint64(bytess, minVersion)
 	minKey := append(addr[:], bytess...)
 	binary.BigEndian.PutUint64(bytess, maxVersion)
 	maxKey := append(addr[:], bytess...)

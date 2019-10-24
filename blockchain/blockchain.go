@@ -56,9 +56,6 @@ import (
 
 const (
 	heightToTrieNodeKeyNS = "htn"
-
-	// ContractKVNameSpace for ignore delete
-	//ContractKVNameSpace = "Contract"
 )
 
 var (

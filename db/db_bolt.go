@@ -13,8 +13,6 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"github.com/iotexproject/iotex-core/state"
-
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
@@ -22,6 +20,7 @@ import (
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
+	"github.com/iotexproject/iotex-core/state"
 )
 
 const fileMode = 0600
@@ -129,6 +128,25 @@ func (b *boltDB) GetPrefix(namespace string, prefix []byte) ([][]byte, error) {
 		return nil, err
 	}
 	return nil, errors.Wrap(ErrIO, err.Error())
+}
+
+// GetKeyRange retrieves all keys with values
+func (b *boltDB) GetKeyRange(namespace string, prefix, minHeight, maxHeight []byte) (allKeys [][]byte, allValues [][]byte, err error) {
+	err = b.db.View(func(tx *bolt.Tx) error {
+		buck := tx.Bucket([]byte(namespace))
+		if buck == nil {
+			return ErrNotExist
+		}
+		c := buck.Cursor()
+		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
+			if bytes.Compare(v, minHeight) >= 0 && bytes.Compare(v, maxHeight) <= 0 {
+				allKeys = append(allKeys, k)
+				allValues = append(allValues, v)
+			}
+		}
+		return nil
+	})
+	return
 }
 
 // GetPrefixRange return the first value which key < maxKey
