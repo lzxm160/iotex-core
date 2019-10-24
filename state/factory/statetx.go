@@ -290,6 +290,7 @@ func (stx *stateTX) deleteHistory() error {
 				}
 				indexHeight := binary.BigEndian.Uint64(height[:])
 				if indexHeight <= deleteEndHeight && indexHeight < deleteStartHeight {
+					log.L().Info("////////////////deleteHistory", zap.Uint64("indexHeight", indexHeight))
 					chaindbCache.Delete(AccountKVNameSpace, indexKey, "")
 					//height:=binary.BigEndian.Uint64(value[:8])
 					accountHeight := append(addrHash, height...)
