@@ -259,16 +259,19 @@ func (sdb *stateDB) state(addr hash.Hash160, s interface{}) error {
 
 func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{}) error {
 	indexKey := append(AccountMaxVersionPrefix, addr[:]...)
+	log.L().Info("stateHeight/////////", zap.Uint64("height", height))
 	value, err := sdb.dao.Get(AccountKVNameSpace, indexKey)
 	if err != nil {
 		return db.ErrNotExist
 	}
+	log.L().Info("stateHeight/////////ErrNotExist", zap.Uint64("height", height))
 	maxIndex := binary.BigEndian.Uint64(value[:8])
 	maxHeight := binary.BigEndian.Uint64(value[8:])
 	currentHeight, err := sdb.Height()
 	if err != nil {
 		return err
 	}
+	log.L().Info("stateHeight/////////ErrNotExist", zap.Uint64("currentHeight", currentHeight), zap.Uint64("maxHeight", maxHeight))
 	if currentHeight > sdb.cfg.HistoryStateHeight && maxHeight < currentHeight-sdb.cfg.HistoryStateHeight {
 		// already delete
 		return nil
@@ -279,7 +282,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 	} else {
 		minHeight = currentHeight - sdb.cfg.HistoryStateHeight
 	}
-	log.L().Info("stateHeight", zap.Uint64("maxHeight", maxHeight), zap.Uint64("minHeight", minHeight))
+	log.L().Info("stateHeight/////////", zap.Uint64("maxHeight", maxHeight), zap.Uint64("minHeight", minHeight))
 	for i := maxIndex; i >= 0; i-- {
 		currentIndex := make([]byte, 8)
 		binary.BigEndian.PutUint64(currentIndex, i)
