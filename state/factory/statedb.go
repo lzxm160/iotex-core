@@ -286,6 +286,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 		indexKey := append(addr[:], AccountIndexPrefix...)
 		indexKey = append(indexKey, currentIndex...)
 		// put accounthash+AccountIndexPrefix+index->height
+		log.L().Info("////////////////stateHeight", zap.Uint64("indexHeight", i), zap.Uint64("target height", height))
 		value, err := sdb.dao.Get(AccountKVNameSpace, indexKey)
 		if err != nil {
 			break
