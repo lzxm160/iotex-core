@@ -180,7 +180,7 @@ var (
 			SplitDBHeight:      900000,
 			Reindex:            false,
 			EnableHistoryState: true,
-			HistoryStateHeight: 2000,
+			HistoryStateHeight: 180,
 		},
 		Genesis: genesis.Default,
 	}
