@@ -330,6 +330,7 @@ func (stx *stateTX) DeleteHistoryForTrie(hei uint64, namespace string, prefix []
 		if err != nil {
 			continue
 		}
+		log.L().Info("deleteHeight", zap.Int("len(allKeys)", len(allKeys)))
 		for _, key := range allKeys {
 			chaindbCache.Delete(namespace, key, "failed to delete key %x", key)
 			triedbCache.Delete(db.ContractKVNameSpace, key[len(keyPrefix):], "failed to delete key %x", key[len(keyPrefix):])
