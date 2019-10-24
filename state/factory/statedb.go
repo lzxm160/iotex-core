@@ -268,11 +268,6 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 		return errors.New("cannot find state")
 	}
 	log.L().Info("////////////////276", zap.Uint64("maxVersion", maxVersion))
-	//db := sdb.dao.DB()
-	//boltdb, ok := db.(*bolt.DB)
-	//if !ok {
-	//	return errors.New("convert error")
-	//}
 	if maxVersion < sdb.cfg.HistoryStateHeight {
 		return nil
 	}
@@ -283,74 +278,6 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 	binary.BigEndian.PutUint64(bytess, maxVersion)
 	maxKey := append(addr[:], bytess...)
 	return sdb.dao.GetPrefixRange(AccountKVNameSpace, minKey, maxKey, height, s)
-	//allKeys, err := sdb.dao.GetPrefix(AccountKVNameSpace, addr[:])
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//for _, key := range allKeys {
-	//	if len(key) != len(addr)+8 {
-	//		continue
-	//	}
-	//	kHeight := binary.BigEndian.Uint64(key[20:])
-	//	if kHeight <= maxVersion && kHeight >= minHeight {
-	//		key := append(addr[:], bytess...)
-	//		value, err := sdb.dao.Get(AccountKVNameSpace, key)
-	//		if err != nil {
-	//			continue
-	//		}
-	//		if err := state.Deserialize(s, value); err != nil {
-	//			return errors.Wrapf(err, "error when deserializing state data into %T", s)
-	//		}
-	//	}
-	//}
-
-	//for i := maxVersion; i >= minHeight; i-- {
-	//	if i <= height {
-	//		log.L().Info("////////////////i <= height", zap.Uint64("k", i), zap.Uint64("height", height))
-	//		bytess := make([]byte, 8)
-	//		binary.BigEndian.PutUint64(bytess, i)
-	//		key := append(addr[:], bytess...)
-	//		value, err := sdb.dao.Get(AccountKVNameSpace, key)
-	//		if err != nil {
-	//			continue
-	//		}
-	//		if err := state.Deserialize(s, value); err != nil {
-	//			return errors.Wrapf(err, "error when deserializing state data into %T", s)
-	//		}
-	//	}
-	//}
-
-	//heightBytes := make([]byte, 8)
-	//binary.BigEndian.PutUint64(heightBytes, height)
-	//heightStateKey := append(addr[:], heightBytes...)
-	//height -= 2
-	//err = boltdb.View(func(tx *bolt.Tx) error {
-	//	c := tx.Bucket([]byte(AccountKVNameSpace)).Cursor()
-	//	for k, v := c.Seek(maxStateKey); k != nil; k, v = c.Prev() {
-	//		if len(k) <= 20 {
-	//			return errors.New("cannot find state")
-	//		}
-	//		if bytes.Compare(k[:20], addr[:20]) != 0 {
-	//			return errors.New("address is diff,cannot find state")
-	//		}
-	//		kHeight := binary.BigEndian.Uint64(k[20:])
-	//		log.L().Info("////////////////kHeight", zap.Uint64("k", kHeight), zap.Uint64("height", height))
-	//		if kHeight == 0 || kHeight == 1 {
-	//			return errors.New("cannot find state")
-	//		}
-	//		if kHeight <= height {
-	//			log.L().Info("////////////////kHeight <= height", zap.Uint64("k", kHeight), zap.Uint64("height", height))
-	//			if err := state.Deserialize(s, v); err != nil {
-	//				return errors.Wrapf(err, "error when deserializing state data into %T", s)
-	//			}
-	//			return nil
-	//		}
-	//	}
-	//	return errors.New("cannot find state")
-	//})
-
-	//return errors.New("cannot find state")
 }
 
 func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, err error) {

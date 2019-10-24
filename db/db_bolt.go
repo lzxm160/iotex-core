@@ -141,12 +141,12 @@ func (b *boltDB) GetPrefixRange(namespace string, minKey []byte, maxKey []byte, 
 		c := buck.Cursor()
 		for k, v := c.Seek(maxKey); k != nil && bytes.Compare(k, minKey) >= 0; k, v = c.Prev() {
 			if len(k) <= 20 {
-				return errors.New("cannot find state")
+				return ErrNotExist
 			}
 			kHeight := binary.BigEndian.Uint64(k[20:])
 			log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", targetHeight))
 			if kHeight == 0 || kHeight == 1 {
-				return errors.New("cannot find state")
+				return ErrNotExist
 			}
 			if kHeight <= targetHeight {
 				log.L().Info("////////////////", zap.Uint64("k", kHeight), zap.Uint64("height", targetHeight))
@@ -156,7 +156,7 @@ func (b *boltDB) GetPrefixRange(namespace string, minKey []byte, maxKey []byte, 
 				return nil
 			}
 		}
-		return errors.New("cannot find state")
+		return ErrNotExist
 	})
 }
 
