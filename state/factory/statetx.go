@@ -292,7 +292,7 @@ func (stx *stateTX) deleteHistory() error {
 				height, err := stx.dao.Get(AccountKVNameSpace, indexKey)
 				if err != nil {
 					// The height before this height must be deleted
-					log.L().Info("stx.dao.Get(AccountKVNameSpace, indexKey)", zap.Error(err))
+					log.L().Info("stx.dao.Get(AccountKVNameSpace, indexKey)", zap.Error(err), zap.Uint64("index", i))
 					break
 				}
 				indexHeight := binary.BigEndian.Uint64(height[:])
