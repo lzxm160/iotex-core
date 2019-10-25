@@ -274,7 +274,7 @@ func (stx *stateTX) deleteHistory() error {
 			addrHash := key[len(AccountMaxVersionPrefix):]
 			pkHash := hash.BytesToHash160(addrHash)
 			maxIndex, maxHeight, err := stx.getMaxVersion(pkHash)
-			if err != nil {
+			if err != nil || maxIndex == 0 || maxHeight == 0 {
 				continue
 			}
 			if maxHeight < deleteEndHeight {
