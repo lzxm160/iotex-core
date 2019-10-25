@@ -286,6 +286,7 @@ func (stx *stateTX) deleteHistory() error {
 			for i := maxIndex - 1; i >= 0; i-- {
 				if i > i+1 {
 					log.L().Error("maxIndex overflow", zap.Uint64("index", i))
+					break
 				}
 				currentIndex := make([]byte, 8)
 				binary.BigEndian.PutUint64(currentIndex, i)
