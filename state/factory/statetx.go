@@ -9,7 +9,6 @@ package factory
 import (
 	"context"
 	"encoding/binary"
-	"encoding/hex"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -219,7 +218,7 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	if (maxHeight != 0) && (maxHeight != 1) && (maxHeight > version) {
 		return nil
 	}
-	log.L().Info("////////////////putIndex", zap.Uint64("maxIndex", maxIndex), zap.Uint64("maxHeight", maxHeight), zap.String("pk", hex.EncodeToString(pkHash[:])))
+	//log.L().Info("////////////////putIndex", zap.Uint64("maxIndex", maxIndex), zap.Uint64("maxHeight", maxHeight), zap.String("pk", hex.EncodeToString(pkHash[:])))
 	// index from 0
 	currentIndex := make([]byte, 8)
 	binary.BigEndian.PutUint64(currentIndex, maxIndex)
@@ -263,6 +262,7 @@ func (stx *stateTX) deleteHistory() error {
 	}
 	go func() {
 		stx.deleting <- struct{}{}
+		log.L().Info("////////////////deleteHistory", zap.Uint64("currentHeight", currentHeight), zap.Uint64("deleteStartHeight", deleteStartHeight), zap.Uint64("deleteEndHeight", deleteEndHeight))
 		// find all keys that with version
 		allKeys, err := stx.dao.GetPrefix(AccountKVNameSpace, AccountMaxVersionPrefix)
 		if err != nil {
