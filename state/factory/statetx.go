@@ -266,9 +266,11 @@ func (stx *stateTX) deleteHistory() error {
 		// find all keys that with version
 		allKeys, err := stx.dao.GetPrefix(AccountKVNameSpace, AccountMaxVersionPrefix)
 		if err != nil {
+			log.L().Info("stx.dao.GetPrefix", zap.Error(err))
 			return
 		}
 		chaindbCache := db.NewCachedBatch()
+		log.L().Info("allKeys", zap.Int("len", len(allKeys)))
 		for _, key := range allKeys {
 			addrHash := key[len(AccountMaxVersionPrefix):]
 			pkHash := hash.BytesToHash160(addrHash)
