@@ -285,7 +285,7 @@ func (stateDB *StateDBAdapterRead) getNewContract(addr string) (Contract, error)
 		return nil, errors.Wrapf(err, "failed to load account state for address %s", addr)
 	}
 	//contract, err := newContract(hash.Hash160b(a.Bytes()), account, stateDB.dao, stateDB.cb)
-	isHudson := stateDB.hu.IsPost(config.Hudson, stateDB.blockHeight)
+	isHudson := stateDB.hu.IsPost(config.History, stateDB.blockHeight)
 	var contract Contract
 	if isHudson {
 		contract, err = newContract(hash.Hash160b(a.Bytes()), account, stateDB.dao, stateDB.cb, true)
