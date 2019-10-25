@@ -8,16 +8,25 @@ package factory
 
 import (
 	"context"
+	"encoding/binary"
 
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
+	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
+	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 	"github.com/iotexproject/iotex-core/state"
+)
+
+const (
+	// CheckHistoryDeleteInterval 100 block heights to check if history needs to delete
+	CheckHistoryDeleteInterval = 100
 )
 
 // stateTX implements stateTX interface, tracks pending changes to account/contract in local cache
@@ -27,6 +36,8 @@ type stateTX struct {
 	cb             db.CachedBatch // cached batch for pending writes
 	dao            db.KVStore     // the underlying DB for account/contract storage
 	actionHandlers []protocol.ActionHandler
+	deleting       chan struct{} // make sure there's only one goroutine deleting history state
+	cfg            config.DB
 }
 
 // newStateTX creates a new state tx
@@ -34,12 +45,15 @@ func newStateTX(
 	version uint64,
 	kv db.KVStore,
 	actionHandlers []protocol.ActionHandler,
+	cfg config.DB,
 ) *stateTX {
 	return &stateTX{
 		ver:            version,
 		cb:             db.NewCachedBatch(),
 		dao:            kv,
 		actionHandlers: actionHandlers,
+		deleting:       make(chan struct{}, 1),
+		cfg:            cfg,
 	}
 }
 
@@ -121,6 +135,9 @@ func (stx *stateTX) RunAction(
 
 // UpdateBlockLevelInfo runs action in the block and track pending changes in working set
 func (stx *stateTX) UpdateBlockLevelInfo(blockHeight uint64) hash.Hash256 {
+	if blockHeight%CheckHistoryDeleteInterval == 0 && blockHeight != 0 {
+		stx.deleteHistory()
+	}
 	stx.blkHeight = blockHeight
 	// Persist current chain Height
 	h := byteutil.Uint64ToBytes(blockHeight)
@@ -178,6 +195,158 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 		return errors.Wrapf(err, "failed to convert account %v to bytes", s)
 	}
 	stx.cb.Put(AccountKVNameSpace, pkHash[:], ss, "error when putting k = %x", pkHash)
+	return stx.putIndex(pkHash, ss)
+}
+
+func (stx *stateTX) getMaxVersion(pkHash hash.Hash160) (index, height uint64, err error) {
+	indexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
+	value, err := stx.dao.Get(AccountKVNameSpace, indexKey)
+	if err != nil {
+		return
+	}
+	index = binary.BigEndian.Uint64(value[:8])
+	height = binary.BigEndian.Uint64(value[8:])
+	return
+}
+
+func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
+	version := stx.ver + 1
+	maxIndex, maxHeight, _ := stx.getMaxVersion(pkHash)
+	if (maxHeight != 0) && (maxHeight != 1) && (maxHeight > version) {
+		return nil
+	}
+	// index from 0
+	currentIndex := make([]byte, 8)
+	binary.BigEndian.PutUint64(currentIndex, maxIndex)
+	currentHeight := make([]byte, 8)
+	binary.BigEndian.PutUint64(currentHeight, version)
+	indexKey := append(pkHash[:], AccountIndexPrefix...)
+	indexKey = append(indexKey, currentIndex...)
+	// put accounthash+AccountIndexPrefix+index->height
+	err := stx.dao.Put(AccountKVNameSpace, indexKey, currentHeight)
+	if err != nil {
+		return err
+	}
+
+	// max num of index
+	maxIndex++
+	binary.BigEndian.PutUint64(currentIndex, maxIndex)
+	versionValue := append(currentIndex, currentHeight...)
+	maxIndexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
+	// put AccountMaxVersionPrefix+accounthash->index+height
+	err = stx.dao.Put(AccountKVNameSpace, maxIndexKey, versionValue)
+	if err != nil {
+		return err
+	}
+	stateKey := append(pkHash[:], currentHeight...)
+	return stx.dao.Put(AccountKVNameSpace, stateKey, ss)
+}
+
+// delete history asynchronous,this will find all account that with version
+func (stx *stateTX) deleteHistory() error {
+	log.L().Info("deleteHistory start")
+	currentHeight := stx.ver + 1
+	if currentHeight <= stx.cfg.HistoryStateSaveLength {
+		return nil
+	}
+	deleteStartHeight := currentHeight - stx.cfg.HistoryStateSaveLength
+	var deleteEndHeight uint64
+	if deleteStartHeight < CheckHistoryDeleteInterval {
+		deleteEndHeight = 1
+	} else {
+		deleteEndHeight = deleteStartHeight - CheckHistoryDeleteInterval
+	}
+	go func() {
+		stx.deleting <- struct{}{}
+		// find all keys that with version
+		allKeys, err := stx.dao.GetPrefix(AccountKVNameSpace, AccountMaxVersionPrefix)
+		if err != nil {
+			log.L().Info("stx.dao.GetPrefix", zap.Error(err))
+			return
+		}
+		chaindbCache := db.NewCachedBatch()
+		for _, key := range allKeys {
+			addrHash := key[len(AccountMaxVersionPrefix):]
+			pkHash := hash.BytesToHash160(addrHash)
+			maxIndex, maxHeight, err := stx.getMaxVersion(pkHash)
+			if err != nil || maxIndex == 0 || maxHeight == 0 {
+				continue
+			}
+			if maxHeight < deleteEndHeight {
+				// not in the saved interval,already deleted
+				continue
+			}
+			log.L().Info("maxIndex", zap.Uint64("maxIndex", maxIndex), zap.Uint64("maxHeight", maxHeight))
+			// maxIndex is num of indexs,so real index is maxIndex-1
+			for i := maxIndex - 1; i >= 0; i-- {
+				// for i overflow
+				if i > i+1 {
+					break
+				}
+				currentIndex := make([]byte, 8)
+				binary.BigEndian.PutUint64(currentIndex, i)
+				indexKey := append(pkHash[:], AccountIndexPrefix...)
+				indexKey = append(indexKey, currentIndex...)
+				// put accounthash+AccountIndexPrefix+index->height
+				height, err := stx.dao.Get(AccountKVNameSpace, indexKey)
+				if err != nil {
+					break
+				}
+				indexHeight := binary.BigEndian.Uint64(height[:])
+
+				if indexHeight >= deleteEndHeight && indexHeight < deleteStartHeight {
+					// Delete accounthash+AccountIndexPrefix+index->height
+					chaindbCache.Delete(AccountKVNameSpace, indexKey, "")
+					accountHeight := append(addrHash, height...)
+					// Delete accounthash+height->account serialized
+					chaindbCache.Delete(AccountKVNameSpace, accountHeight, "")
+				}
+			}
+		}
+		if err := stx.dao.Commit(chaindbCache); err != nil {
+			log.L().Error("failed to commit delete account history", zap.Error(err))
+			return
+		}
+		<-stx.deleting
+	}()
+	return nil
+}
+
+// DeleteHistoryForTrie delete history asynchronous for trie node
+func (stx *stateTX) DeleteHistoryForTrie(hei uint64, namespace string, prefix []byte, chaindb db.KVStore) error {
+	if hei < stx.cfg.HistoryStateSaveLength {
+		return nil
+	}
+	deleteStartHeight := hei - stx.cfg.HistoryStateSaveLength
+	var deleteEndHeight uint64
+	if deleteStartHeight < CheckHistoryDeleteInterval {
+		deleteEndHeight = 1
+	} else {
+		deleteEndHeight = deleteStartHeight - CheckHistoryDeleteInterval
+	}
+	chaindbCache := db.NewCachedBatch()
+	triedbCache := db.NewCachedBatch()
+	for i := deleteStartHeight; i >= deleteEndHeight; i-- {
+		heightBytes := make([]byte, 8)
+		binary.BigEndian.PutUint64(heightBytes, i)
+		keyPrefix := append(prefix, heightBytes...)
+		allKeys, err := stx.dao.GetPrefix(namespace, keyPrefix)
+		if err != nil {
+			continue
+		}
+		for _, key := range allKeys {
+			chaindbCache.Delete(namespace, key, "failed to delete key %x", key)
+			triedbCache.Delete(db.ContractKVNameSpace, key[len(keyPrefix):], "failed to delete key %x", key[len(keyPrefix):])
+		}
+	}
+	// delete trie node reference
+	if err := chaindb.Commit(chaindbCache); err != nil {
+		return errors.Wrap(err, "failed to commit delete trie node reference")
+	}
+	// delete trie node
+	if err := stx.dao.Commit(triedbCache); err != nil {
+		return errors.Wrap(err, "failed to commit delete trie node")
+	}
 	return nil
 }
 

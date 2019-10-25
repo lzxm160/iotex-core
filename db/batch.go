@@ -110,6 +110,21 @@ func (wi *writeInfo) serialize() []byte {
 	return bytes
 }
 
+// WriteType return write type
+func (wi *writeInfo) WriteType() int32 {
+	return wi.writeType
+}
+
+// Namespace return namespace
+func (wi *writeInfo) Namespace() string {
+	return wi.namespace
+}
+
+// Key return key
+func (wi *writeInfo) Key() []byte {
+	return wi.key
+}
+
 // NewBatch returns a batch
 func NewBatch() KVStoreBatch {
 	return &baseKVStoreBatch{}

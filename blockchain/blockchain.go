@@ -8,9 +8,11 @@ package blockchain
 
 import (
 	"context"
+	"encoding/binary"
 	"math/big"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -52,6 +54,10 @@ import (
 	"github.com/iotexproject/iotex-core/state/factory"
 )
 
+const (
+	heightToTrieNodeKeyNS = "htn"
+)
+
 var (
 	blockMtc = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -61,7 +67,8 @@ var (
 		},
 		[]string{"type"},
 	)
-	errDelegatesNotExist = errors.New("delegates cannot be found")
+	errDelegatesNotExist      = errors.New("delegates cannot be found")
+	heightToTrieNodeKeyPrefix = []byte("hnk.")
 )
 
 func init() {
@@ -185,6 +192,8 @@ type blockchain struct {
 	sf factory.Factory
 
 	registry *protocol.Registry
+	// make sure there's only one goroutine deleting
+	deletingTrieHistory chan struct{}
 }
 
 // ActPoolManager defines the actpool interface
@@ -295,8 +304,9 @@ func RegistryOption(registry *protocol.Registry) Option {
 func NewBlockchain(cfg config.Config, opts ...Option) Blockchain {
 	// create the Blockchain
 	chain := &blockchain{
-		config: cfg,
-		clk:    clock.New(),
+		config:              cfg,
+		clk:                 clock.New(),
+		deletingTrieHistory: make(chan struct{}, 1),
 	}
 	for _, opt := range opts {
 		if err := opt(chain, cfg); err != nil {
@@ -1040,6 +1050,10 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 	bc.tipHash = blk.HashBlock()
 
 	if bc.sf != nil {
+		err = bc.saveTrieHistory(blk)
+		if err != nil {
+			return errors.Wrapf(err, "failed to save history on height %d", blk.Height())
+		}
 		// write smart contract receipt into DB
 		receiptTimer := bc.timerFactory.NewTimer("putReceipt")
 		err = bc.dao.PutReceipts(blk.Height(), blk.Receipts)
@@ -1049,7 +1063,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		}
 
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
-		err := bc.sf.Commit(blk.WorkingSet)
+		err = bc.sf.Commit(blk.WorkingSet)
 		sfTimer.End()
 		// detach working set so it can be freed by GC
 		blk.WorkingSet = nil
@@ -1061,9 +1075,63 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 
 	// emit block to all block subscribers
 	bc.emitToSubscribers(blk)
+	// delete trie node history asynchronously
+	bc.deleteTrieHistory(bc.tipHeight)
 	return nil
 }
 
+func (bc *blockchain) saveTrieHistory(blk *block.Block) error {
+	hei := blk.Height()
+	batch := blk.WorkingSet.GetCachedBatch()
+	trieBatch, ok := batch.(db.KVStoreBatch)
+	if !ok {
+		log.L().Error("trieBatch,ok:=batch.(db.KVStoreBatch)")
+		return nil
+	}
+	heightToKeyCache := db.NewCachedBatch()
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, hei)
+	for i := 0; i < trieBatch.Size(); i++ {
+		write, err := trieBatch.Entry(i)
+		if err != nil {
+			return err
+		}
+		// only save trie node in evm's name space
+		if (write.WriteType() == db.Delete) && (strings.EqualFold(write.Namespace(), evm.ContractKVNameSpace)) {
+			heightTo := append(heightToTrieNodeKeyPrefix, heightBytes...)
+			heightTo = append(heightTo, write.Key()...)
+			heightToKeyCache.Put(heightToTrieNodeKeyNS, heightTo, []byte(""), "")
+		}
+	}
+	if heightToKeyCache.Size() == 0 {
+		return nil
+	}
+	// commit to chain.db
+	return bc.dao.KVStore().Commit(heightToKeyCache)
+}
+
+func (bc *blockchain) deleteTrieHistory(hei uint64) {
+	if hei%factory.CheckHistoryDeleteInterval == 0 {
+		// trie.db
+		ws, err := bc.sf.NewWorkingSet()
+		if err != nil {
+			log.L().Error("Error when NewWorkingSet.", zap.Error(err))
+			return
+		}
+
+		go func() {
+			// make sure there's only one goroutine doing this
+			bc.deletingTrieHistory <- struct{}{}
+			defer func() {
+				<-bc.deletingTrieHistory
+			}()
+			err := ws.DeleteHistoryForTrie(bc.tipHeight, heightToTrieNodeKeyNS, heightToTrieNodeKeyPrefix, bc.dao.KVStore())
+			if err != nil {
+				log.L().Error("failed delete history for trie", zap.Error(err))
+			}
+		}()
+	}
+}
 func (bc *blockchain) runActions(
 	acts block.RunnableActions,
 	ws factory.WorkingSet,

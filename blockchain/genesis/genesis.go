@@ -52,6 +52,7 @@ func defaultConfig() Genesis {
 			BeringBlockHeight:     1512001,
 			CookBlockHeight:       1641601,
 			HudsonBlockHeight:     1855201,
+			HistoryHeight:         2000000,
 		},
 		Account: Account{
 			InitBalanceMap: make(map[string]string),
@@ -131,6 +132,7 @@ type (
 		CookBlockHeight uint64 `yaml:"cookHeight"`
 		// HudsonBlockHeight is the start height of 5s block internal
 		HudsonBlockHeight uint64 `yaml:"hudsonHeight"`
+		HistoryHeight     uint64 `yaml:"historyHeight"`
 	}
 	// Account contains the configs for account protocol
 	Account struct {

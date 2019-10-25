@@ -17,6 +17,7 @@ const (
 	Bering
 	Cook
 	Hudson
+	History
 )
 
 type (
@@ -30,6 +31,7 @@ type (
 		beringHeight   uint64
 		cookHeight     uint64
 		hudsonHeight   uint64
+		historyHeight  uint64
 	}
 )
 
@@ -41,6 +43,7 @@ func NewHeightUpgrade(cfg Config) HeightUpgrade {
 		cfg.Genesis.BeringBlockHeight,
 		cfg.Genesis.CookBlockHeight,
 		cfg.Genesis.HudsonBlockHeight,
+		cfg.Genesis.HistoryHeight,
 	}
 }
 
@@ -58,6 +61,8 @@ func (hu *HeightUpgrade) IsPost(name HeightName, height uint64) bool {
 		h = hu.cookHeight
 	case Hudson:
 		h = hu.hudsonHeight
+	case History:
+		h = hu.historyHeight
 	default:
 		log.Panic("invalid height name!")
 	}

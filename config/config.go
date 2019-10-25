@@ -179,6 +179,7 @@ var (
 			SplitDBSizeMB: 0,
 			SplitDBHeight: 900000,
 			Reindex:       false,
+			HistoryStateSaveLength: 2000,
 		},
 		Genesis: genesis.Default,
 	}
@@ -341,6 +342,8 @@ type (
 		SplitDBHeight uint64 `yaml:"splitDBHeight"`
 		// Reindex will rebuild index if set to true
 		Reindex bool `yaml:"reindex"`
+		// HistoryStateSaveLength is the config for DB history height
+		HistoryStateSaveLength uint64 `yaml:"historyStateSaveLength"`
 	}
 
 	// RDS is the cloud rds config

@@ -66,6 +66,7 @@ type (
 		DelState(pkHash hash.Hash160) error
 		GetDB() db.KVStore
 		GetCachedBatch() db.CachedBatch
+		DeleteHistoryForTrie(uint64, string, []byte, db.KVStore) error
 	}
 
 	// workingSet implements WorkingSet interface, tracks pending changes to account/contract in local cache
@@ -271,12 +272,17 @@ func (ws *workingSet) PutState(pkHash hash.Hash160, s interface{}) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to convert account %v to bytes", s)
 	}
-	return ws.accountTrie.Upsert(pkHash[:], ss)
+	return ws.accountTrie.Upsert(pkHash[:], ss, true)
 }
 
 // DelState deletes a state from DB
 func (ws *workingSet) DelState(pkHash hash.Hash160) error {
 	return ws.accountTrie.Delete(pkHash[:])
+}
+
+// DeleteHistoryForTrie delete history asynchronous for trie node
+func (ws *workingSet) DeleteHistoryForTrie(uint64, string, []byte, db.KVStore) error {
+	return nil
 }
 
 // clearCache removes all local changes after committing to trie

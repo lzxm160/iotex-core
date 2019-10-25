@@ -45,6 +45,8 @@ type KVStore interface {
 	CountingIndex([]byte) (CountingIndex, error)
 	// CreateCountingIndexNX creates a new index if it does not exist, otherwise return existing index
 	CreateCountingIndexNX([]byte) (CountingIndex, error)
+	// GetPrefix retrieves all keys those with const prefix
+	GetPrefix(string, []byte) ([][]byte, error)
 }
 
 const (
@@ -154,4 +156,9 @@ func (m *memKVStore) CreateCountingIndexNX(name []byte) (CountingIndex, error) {
 		size = byteutil.BytesToUint64BigEndian(total)
 	}
 	return NewInMemCountingIndex(m, name, size)
+}
+
+// GetPrefix retrieves all keys those with const prefix
+func (m *memKVStore) GetPrefix(string, []byte) ([][]byte, error) {
+	return nil, nil
 }

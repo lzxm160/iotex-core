@@ -7,7 +7,9 @@
 package db
 
 import (
+	"bytes"
 	"context"
+
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 
@@ -16,6 +18,9 @@ import (
 )
 
 const fileMode = 0600
+
+// ContractKVNameSpace for ignore delete
+var ContractKVNameSpace = "Contract"
 
 // boltDB is KVStore implementation based bolt DB
 type boltDB struct {
@@ -93,6 +98,22 @@ func (b *boltDB) Get(namespace string, key []byte) ([]byte, error) {
 		return nil, err
 	}
 	return nil, errors.Wrap(ErrIO, err.Error())
+}
+
+// GetPrefix retrieves all keys those with const prefix
+func (b *boltDB) GetPrefix(namespace string, prefix []byte) (allKey [][]byte, err error) {
+	err = b.db.View(func(tx *bolt.Tx) error {
+		buck := tx.Bucket([]byte(namespace))
+		if buck == nil {
+			return ErrNotExist
+		}
+		c := buck.Cursor()
+		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
+			allKey = append(allKey, k)
+		}
+		return nil
+	})
+	return
 }
 
 // Delete deletes a record,if key is nil,this will delete the whole bucket
