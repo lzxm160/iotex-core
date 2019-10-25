@@ -276,7 +276,6 @@ func (stx *stateTX) deleteHistory() error {
 				// not in the saved interval,already deleted
 				continue
 			}
-			log.L().Info("maxIndex", zap.Uint64("maxIndex", maxIndex), zap.Uint64("maxHeight", maxHeight))
 			// maxIndex is num of indexs,so real index is maxIndex-1
 			for i := maxIndex - 1; i >= 0; i-- {
 				// for i overflow
