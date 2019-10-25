@@ -270,7 +270,6 @@ func (stx *stateTX) deleteHistory() error {
 			return
 		}
 		chaindbCache := db.NewCachedBatch()
-		log.L().Info("allKeys", zap.Int("len", len(allKeys)))
 		for _, key := range allKeys {
 			addrHash := key[len(AccountMaxVersionPrefix):]
 			pkHash := hash.BytesToHash160(addrHash)
@@ -282,6 +281,7 @@ func (stx *stateTX) deleteHistory() error {
 				// not in the saved interval,already deleted
 				continue
 			}
+			log.L().Info("maxIndex", zap.Uint64("maxIndex", maxIndex), zap.Uint64("maxHeight", maxHeight))
 			for i := maxIndex; i >= 0; i-- {
 				currentIndex := make([]byte, 8)
 				binary.BigEndian.PutUint64(currentIndex, i)
