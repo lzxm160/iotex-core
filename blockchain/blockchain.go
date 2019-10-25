@@ -1159,7 +1159,7 @@ func (bc *blockchain) saveTrieHistory(blk *block.Block) error {
 }
 
 func (bc *blockchain) deleteTrieHistory(hei uint64) {
-	if bc.config.DB.EnableHistoryState && hei%factory.CheckHistoryDeleteInterval == 0 {
+	if hei%factory.CheckHistoryDeleteInterval == 0 {
 		log.L().Info("deleteTrieHistory start")
 		// trie.db
 		ws, err := bc.sf.NewWorkingSet()

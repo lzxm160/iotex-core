@@ -259,30 +259,27 @@ func (sdb *stateDB) state(addr hash.Hash160, s interface{}) error {
 
 func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{}) error {
 	indexKey := append(AccountMaxVersionPrefix, addr[:]...)
-	log.L().Info("stateHeight/////////", zap.Uint64("height", height))
 	value, err := sdb.dao.Get(AccountKVNameSpace, indexKey)
 	if err != nil {
 		return db.ErrNotExist
 	}
-	log.L().Info("stateHeight/////////ErrNotExist", zap.Uint64("height", height))
 	maxIndex := binary.BigEndian.Uint64(value[:8])
 	maxHeight := binary.BigEndian.Uint64(value[8:])
 	currentHeight, err := sdb.Height()
 	if err != nil {
 		return err
 	}
-	log.L().Info("stateHeight/////////ErrNotExist", zap.Uint64("currentHeight", currentHeight), zap.Uint64("maxHeight", maxHeight))
-	if currentHeight > sdb.cfg.HistoryStateHeight && maxHeight < currentHeight-sdb.cfg.HistoryStateHeight {
+	if currentHeight > sdb.cfg.HistoryStateSaveLength && maxHeight < currentHeight-sdb.cfg.HistoryStateSaveLength {
 		// already delete
 		return db.ErrNotExist
 	}
 	var minHeight uint64
-	if currentHeight < sdb.cfg.HistoryStateHeight {
+	if currentHeight < sdb.cfg.HistoryStateSaveLength {
 		minHeight = 1
 	} else {
-		minHeight = currentHeight - sdb.cfg.HistoryStateHeight
+		minHeight = currentHeight - sdb.cfg.HistoryStateSaveLength
 	}
-	log.L().Info("stateHeight/////////", zap.Uint64("maxHeight", maxHeight), zap.Uint64("minHeight", minHeight))
+	log.L().Info("stateHeight/////////", zap.Uint64("currentHeight", currentHeight), zap.Uint64("maxHeight", maxHeight), zap.Uint64("minHeight", minHeight))
 	for i := maxIndex; i >= 0; i-- {
 		currentIndex := make([]byte, 8)
 		binary.BigEndian.PutUint64(currentIndex, i)
@@ -296,10 +293,11 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 		}
 		indexHeight := binary.BigEndian.Uint64(value[:])
 		if indexHeight < minHeight {
+			// not in the saved interval,already deleted
 			break
 		}
 		if indexHeight <= height {
-			log.L().Info("////////////////", zap.Uint64("indexHeight", indexHeight), zap.Uint64("target height", height))
+			log.L().Info("////////////////found target", zap.Uint64("indexHeight", indexHeight), zap.Uint64("target height", height))
 			accountHeightKey := append(addr[:], value...)
 			accountValue, err := sdb.dao.Get(AccountKVNameSpace, accountHeightKey)
 			if err != nil {

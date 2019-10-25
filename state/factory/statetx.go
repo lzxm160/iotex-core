@@ -135,7 +135,7 @@ func (stx *stateTX) RunAction(
 
 // UpdateBlockLevelInfo runs action in the block and track pending changes in working set
 func (stx *stateTX) UpdateBlockLevelInfo(blockHeight uint64) hash.Hash256 {
-	if stx.cfg.EnableHistoryState && blockHeight%CheckHistoryDeleteInterval == 0 && blockHeight != 0 {
+	if blockHeight%CheckHistoryDeleteInterval == 0 && blockHeight != 0 {
 		stx.deleteHistory()
 	}
 	stx.blkHeight = blockHeight
@@ -195,9 +195,9 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 		return errors.Wrapf(err, "failed to convert account %v to bytes", s)
 	}
 	stx.cb.Put(AccountKVNameSpace, pkHash[:], ss, "error when putting k = %x", pkHash)
-	if !stx.cfg.EnableHistoryState {
-		return nil
-	}
+	//if !stx.cfg.EnableHistoryState {
+	//	return nil
+	//}
 	return stx.putIndex(pkHash, ss)
 }
 
@@ -250,15 +250,15 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 func (stx *stateTX) deleteHistory() error {
 	log.L().Info("deleteHistory start")
 	currentHeight := stx.ver + 1
-	if currentHeight <= stx.cfg.HistoryStateHeight {
+	if currentHeight <= stx.cfg.HistoryStateSaveLength {
 		return nil
 	}
-	deleteStartHeight := currentHeight - stx.cfg.HistoryStateHeight
+	deleteStartHeight := currentHeight - stx.cfg.HistoryStateSaveLength
 	var deleteEndHeight uint64
-	if deleteStartHeight < stx.cfg.HistoryStateHeight {
+	if deleteStartHeight < CheckHistoryDeleteInterval {
 		deleteEndHeight = 1
 	} else {
-		deleteEndHeight = deleteStartHeight - stx.cfg.HistoryStateHeight
+		deleteEndHeight = deleteStartHeight - CheckHistoryDeleteInterval
 	}
 	go func() {
 		stx.deleting <- struct{}{}
@@ -276,6 +276,7 @@ func (stx *stateTX) deleteHistory() error {
 				continue
 			}
 			if maxHeight < deleteEndHeight {
+				// not in the saved interval,already deleted
 				continue
 			}
 			for i := maxIndex; i >= 0; i-- {
@@ -286,14 +287,16 @@ func (stx *stateTX) deleteHistory() error {
 				// put accounthash+AccountIndexPrefix+index->height
 				height, err := stx.dao.Get(AccountKVNameSpace, indexKey)
 				if err != nil {
+					// The height before this height must be deleted
 					break
 				}
 				indexHeight := binary.BigEndian.Uint64(height[:])
-				if indexHeight <= deleteEndHeight && indexHeight < deleteStartHeight {
+				if indexHeight >= deleteEndHeight && indexHeight < deleteStartHeight {
 					log.L().Info("////////////////deleteHistory", zap.Uint64("indexHeight", indexHeight))
+					// Delete accounthash+AccountIndexPrefix+index->height
 					chaindbCache.Delete(AccountKVNameSpace, indexKey, "")
-					//height:=binary.BigEndian.Uint64(value[:8])
 					accountHeight := append(addrHash, height...)
+					// Delete accounthash+height->account serialized
 					chaindbCache.Delete(AccountKVNameSpace, accountHeight, "")
 				}
 			}
@@ -309,17 +312,17 @@ func (stx *stateTX) deleteHistory() error {
 
 // DeleteHistoryForTrie delete history asynchronous for trie node
 func (stx *stateTX) DeleteHistoryForTrie(hei uint64, namespace string, prefix []byte, chaindb db.KVStore) error {
-	if hei < stx.cfg.HistoryStateHeight {
+	if hei < stx.cfg.HistoryStateSaveLength {
 		return nil
 	}
-	deleteStartHeight := hei - stx.cfg.HistoryStateHeight
+	deleteStartHeight := hei - stx.cfg.HistoryStateSaveLength
 	var deleteEndHeight uint64
-	if deleteStartHeight < stx.cfg.HistoryStateHeight {
+	if deleteStartHeight < CheckHistoryDeleteInterval {
 		deleteEndHeight = 1
 	} else {
-		deleteEndHeight = deleteStartHeight - stx.cfg.HistoryStateHeight
+		deleteEndHeight = deleteStartHeight - CheckHistoryDeleteInterval
 	}
-	log.L().Info("deleteHeight", zap.Uint64("deleteStartHeight", deleteStartHeight), zap.Uint64("endHeight", deleteEndHeight), zap.Uint64("height", hei), zap.Uint64("historystateheight", stx.cfg.HistoryStateHeight))
+	log.L().Info("deleteHeight", zap.Uint64("deleteStartHeight", deleteStartHeight), zap.Uint64("endHeight", deleteEndHeight), zap.Uint64("height", hei), zap.Uint64("historystateheight", stx.cfg.HistoryStateSaveLength))
 	chaindbCache := db.NewCachedBatch()
 	triedbCache := db.NewCachedBatch()
 	for i := deleteStartHeight; i >= deleteEndHeight; i-- {
