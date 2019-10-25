@@ -284,8 +284,8 @@ func (stx *stateTX) deleteHistory() error {
 			log.L().Info("maxIndex", zap.Uint64("maxIndex", maxIndex), zap.Uint64("maxHeight", maxHeight))
 			// maxIndex is num of indexs,so real index is maxIndex-1
 			for i := maxIndex - 1; i >= 0; i-- {
+				// for i overflow
 				if i > i+1 {
-					log.L().Error("maxIndex overflow", zap.Uint64("index", i))
 					break
 				}
 				currentIndex := make([]byte, 8)
@@ -300,9 +300,9 @@ func (stx *stateTX) deleteHistory() error {
 					break
 				}
 				indexHeight := binary.BigEndian.Uint64(height[:])
-				log.L().Info("indexHeight////////////////deleteHistory", zap.Uint64("currentHeight", currentHeight), zap.Uint64("deleteStartHeight", deleteStartHeight), zap.Uint64("deleteEndHeight", deleteEndHeight), zap.Uint64("indexHeight", indexHeight))
+
 				if indexHeight >= deleteEndHeight && indexHeight < deleteStartHeight {
-					log.L().Info("indexHeight >= deleteEndHeight && indexHeight < deleteStartHeight", zap.Uint64("indexHeight", indexHeight))
+					log.L().Info("indexHeight////////////////deleteHistory", zap.Uint64("currentHeight", currentHeight), zap.Uint64("deleteEndHeight", deleteEndHeight), zap.Uint64("indexHeight", indexHeight), zap.Uint64("deleteStartHeight", deleteStartHeight))
 					// Delete accounthash+AccountIndexPrefix+index->height
 					chaindbCache.Delete(AccountKVNameSpace, indexKey, "")
 					accountHeight := append(addrHash, height...)
