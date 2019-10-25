@@ -9,11 +9,11 @@ package db
 import (
 	"bytes"
 	"context"
+	"github.com/pkg/errors"
+	bolt "go.etcd.io/bbolt"
 
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
-	"github.com/pkg/errors"
-	bolt "go.etcd.io/bbolt"
 )
 
 const fileMode = 0600
@@ -107,7 +107,6 @@ func (b *boltDB) GetPrefix(namespace string, prefix []byte) (allKey [][]byte, er
 			return ErrNotExist
 		}
 		c := buck.Cursor()
-
 		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
 			allKey = append(allKey, k)
 		}
@@ -169,9 +168,6 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 					return err
 				}
 				if write.writeType == Put {
-					//if write.namespace == ContractKVNameSpace {
-					//	log.L().Info("len of ContractKVNameSpace commit", zap.Int("trie batch size ", batch.Size()), zap.String("save key", hex.EncodeToString(write.key)))
-					//}
 					bucket, err := tx.CreateBucketIfNotExists([]byte(write.namespace))
 					if err != nil {
 						return errors.Wrapf(err, write.errorFormat, write.errorArgs)
@@ -180,7 +176,6 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 						return errors.Wrapf(err, write.errorFormat, write.errorArgs)
 					}
 				} else if write.writeType == Delete {
-					//if !strings.EqualFold(write.namespace, ContractKVNameSpace) {
 					bucket := tx.Bucket([]byte(write.namespace))
 					if bucket == nil {
 						continue
@@ -188,7 +183,6 @@ func (b *boltDB) Commit(batch KVStoreBatch) (err error) {
 					if err := bucket.Delete(write.key); err != nil {
 						return errors.Wrapf(err, write.errorFormat, write.errorArgs)
 					}
-					//}
 				}
 			}
 			return nil
