@@ -282,7 +282,8 @@ func (stx *stateTX) deleteHistory() error {
 				continue
 			}
 			log.L().Info("maxIndex", zap.Uint64("maxIndex", maxIndex), zap.Uint64("maxHeight", maxHeight))
-			for i := maxIndex; i >= 0; i-- {
+			// maxIndex is num of indexs,so real index is maxIndex-1
+			for i := maxIndex - 1; i >= 0; i-- {
 				currentIndex := make([]byte, 8)
 				binary.BigEndian.PutUint64(currentIndex, i)
 				indexKey := append(pkHash[:], AccountIndexPrefix...)
