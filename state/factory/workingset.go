@@ -282,7 +282,7 @@ func (ws *workingSet) DelState(pkHash hash.Hash160) error {
 }
 
 // DeleteHistoryForTrie delete history asynchronous for trie node
-func (ws *workingSet) DeleteHistoryForTrie(uint64, string, []byte, db.KVStore) error {
+func (ws *workingSet) DeleteHistoryForTrie(uint64, db.KVStore) error {
 	return nil
 }
 
