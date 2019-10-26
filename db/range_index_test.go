@@ -8,6 +8,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -26,10 +27,10 @@ func TestRangeIndex(t *testing.T) {
 		k uint64
 		v []byte
 	}{
-		{0, []byte("beyond")},
-		{7, []byte("seven")},
-		{29, []byte("twenty-nine")},
-		{100, []byte("hundred")},
+		{0, []byte("0")},
+		{7, []byte("7")},
+		{29, []byte("29")},
+		{100, []byte("100")},
 	}
 
 	path := "test-indexer"
@@ -66,6 +67,7 @@ func TestRangeIndex(t *testing.T) {
 			v, err := index.Get(k)
 			require.NoError(err)
 			require.Equal(rangeTests[i-1].v, v)
+			fmt.Println(k, ":", string(v))
 		}
 		v, err := index.Get(e.k - 1)
 		require.NoError(err)
@@ -73,13 +75,14 @@ func TestRangeIndex(t *testing.T) {
 		v, err = index.Get(e.k)
 		require.NoError(err)
 		require.Equal(e.v, v)
-
+		fmt.Println(e.k, ":", string(v))
 		// test 5 random keys beyond new insertion
 		for j := 0; j < 5; j++ {
 			k := e.k + uint64(rand.Int())
 			v, err := index.Get(k)
 			require.NoError(err)
 			require.Equal(e.v, v)
+			fmt.Println(k, ":", string(v))
 		}
 	}
 }
