@@ -53,7 +53,6 @@ type (
 		committed  map[hash.Hash256][]byte
 		dao        db.KVStore
 		trie       trie.Trie // storage trie of the contract
-		saveTrieNode bool      // decide if save evm's history state
 	}
 )
 
@@ -190,6 +189,5 @@ func newContract(addr hash.Hash160, state *state.Account, dao db.KVStore, batch 
 		committed: make(map[hash.Hash256][]byte),
 		dao:       dao,
 		trie:      tr,
-		saveTrieNode: saveTrieNode,
 	}, nil
 }
