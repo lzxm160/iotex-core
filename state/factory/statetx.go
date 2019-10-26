@@ -346,11 +346,6 @@ func (stx *stateTX) SaveHistoryForTrie(hei uint64, batch db.CachedBatch, chaindb
 	log.L().Info("len of history SaveDeletedTrieNode", zap.Int("heighttokey", heightToKeyCache.Size()))
 	// commit to chain.db
 	return chaindb.Commit(heightToKeyCache)
-	//if err != nil {
-	//	log.L().Error("Error when bc.dao.kvstore.Commit.", zap.Error(err))
-	//	return errors.Wrapf(err, "Error when commit height->trie node key hash on height %d", blk.Height())
-	//}
-	//return err
 }
 
 // DeleteHistoryForTrie delete history asynchronous for trie node
