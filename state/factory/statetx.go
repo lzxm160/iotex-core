@@ -9,6 +9,7 @@ package factory
 import (
 	"context"
 	"encoding/binary"
+	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -346,7 +347,7 @@ func (stx *stateTX) DeleteHistoryForTrie(hei uint64, namespace string, prefix []
 		log.L().Info("deleteHeight", zap.Int("len(allKeys)", len(allKeys)))
 		for _, key := range allKeys {
 			chaindbCache.Delete(namespace, key, "failed to delete key %x", key)
-			triedbCache.Delete(db.ContractKVNameSpace, key[len(keyPrefix):], "failed to delete key %x", key[len(keyPrefix):])
+			triedbCache.Delete(evm.ContractKVNameSpace, key[len(keyPrefix):], "failed to delete key %x", key[len(keyPrefix):])
 		}
 	}
 	// delete trie node reference
