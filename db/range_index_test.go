@@ -87,6 +87,9 @@ func TestRangeIndex(t *testing.T) {
 	}
 
 	for j := uint64(0); j <= 100; j++ {
+		if j > 30 && j < 90 {
+			continue
+		}
 		v, _ := index.Get(j)
 		fmt.Println(j, ":", v)
 	}
