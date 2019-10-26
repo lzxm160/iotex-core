@@ -91,6 +91,6 @@ func TestRangeIndex(t *testing.T) {
 			continue
 		}
 		v, _ := index.Get(j)
-		fmt.Println(j, ":", v)
+		fmt.Println(j, ":", string(v))
 	}
 }
