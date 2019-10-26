@@ -46,14 +46,13 @@ type (
 
 	contract struct {
 		*state.Account
-		dirtyCode    bool   // contract's code has been set
-		dirtyState   bool   // contract's account state has changed
-		code         []byte // contract byte-code
-		root         hash.Hash256
-		committed    map[hash.Hash256][]byte
-		dao          db.KVStore
-		trie         trie.Trie // storage trie of the contract
-		saveTrieNode bool      // decide if save evm's history state
+		dirtyCode  bool   // contract's code has been set
+		dirtyState bool   // contract's account state has changed
+		code       []byte // contract byte-code
+		root       hash.Hash256
+		committed  map[hash.Hash256][]byte
+		dao        db.KVStore
+		trie       trie.Trie // storage trie of the contract
 	}
 )
 
@@ -185,11 +184,10 @@ func newContract(addr hash.Hash160, state *state.Account, dao db.KVStore, batch 
 	}
 
 	return &contract{
-		Account:      state,
-		root:         state.Root,
-		committed:    make(map[hash.Hash256][]byte),
-		dao:          dao,
-		trie:         tr,
-		saveTrieNode: saveTrieNode,
+		Account:   state,
+		root:      state.Root,
+		committed: make(map[hash.Hash256][]byte),
+		dao:       dao,
+		trie:      tr,
 	}, nil
 }
