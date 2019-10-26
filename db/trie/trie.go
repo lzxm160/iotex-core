@@ -50,7 +50,7 @@ type Trie interface {
 	// Stop stops the trie
 	Stop(context.Context) error
 	// Upsert inserts a new entry
-	Upsert([]byte, []byte, bool) error
+	Upsert([]byte, []byte) error
 	// Get retrieves an existing entry
 	Get([]byte) ([]byte, error)
 	// Delete deletes an entry
@@ -101,6 +101,19 @@ func RootHashOption(h []byte) Option {
 		case *branchRootTrie:
 			t.rootHash = make([]byte, len(h))
 			copy(t.rootHash, h)
+		default:
+			return errors.New("invalid trie type")
+		}
+		return nil
+	}
+}
+
+// SaveHistoryOption sets the save history option for the trie
+func SaveHistoryOption(save bool) Option {
+	return func(tr Trie) error {
+		switch t := tr.(type) {
+		case *branchRootTrie:
+			t.saveTrieNode = save
 		default:
 			return errors.New("invalid trie type")
 		}

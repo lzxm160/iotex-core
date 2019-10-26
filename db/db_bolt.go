@@ -9,6 +9,7 @@ package db
 import (
 	"bytes"
 	"context"
+
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 
@@ -19,7 +20,7 @@ import (
 const fileMode = 0600
 
 // ContractKVNameSpace for ignore delete
-var ContractKVNameSpace = "Contract"
+//var ContractKVNameSpace = "Contract"
 
 // boltDB is KVStore implementation based bolt DB
 type boltDB struct {
