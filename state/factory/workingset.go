@@ -99,7 +99,7 @@ func NewWorkingSet(
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate state tire db")
 	}
-	tr, err := trie.NewTrie(trie.KVStoreOption(dbForTrie), trie.RootHashOption(root[:]))
+	tr, err := trie.NewTrie(trie.KVStoreOption(dbForTrie), trie.RootHashOption(root[:]), trie.SaveHistoryOption(true))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate state trie from config")
 	}
@@ -272,7 +272,7 @@ func (ws *workingSet) PutState(pkHash hash.Hash160, s interface{}) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to convert account %v to bytes", s)
 	}
-	return ws.accountTrie.Upsert(pkHash[:], ss, true)
+	return ws.accountTrie.Upsert(pkHash[:], ss)
 }
 
 // DelState deletes a state from DB
