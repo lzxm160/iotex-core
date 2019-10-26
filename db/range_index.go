@@ -155,7 +155,10 @@ func (r *rangeIndex) Delete(key uint64) error {
 		// seek to start
 		cur := bucket.Cursor()
 		for k, _ := cur.Seek(byteutil.Uint64ToBytesBigEndian(key)); k != nil; k, _ = cur.Prev() {
-			fmt.Println(k)
+			fmt.Println("::::", k)
+			if k == nil {
+				break
+			}
 			if err := bucket.Delete(k); err != nil {
 				return err
 			}
