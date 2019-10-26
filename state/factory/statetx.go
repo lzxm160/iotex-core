@@ -9,6 +9,7 @@ package factory
 import (
 	"context"
 	"encoding/binary"
+	"strings"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -28,6 +29,11 @@ import (
 const (
 	// CheckHistoryDeleteInterval 100 block heights to check if history needs to delete
 	CheckHistoryDeleteInterval = 100
+	heightToTrieNodeKeyNS      = "htn"
+)
+
+var (
+	heightToTrieNodeKeyPrefix = []byte("hnk.")
 )
 
 // stateTX implements stateTX interface, tracks pending changes to account/contract in local cache
@@ -321,8 +327,43 @@ func (stx *stateTX) deleteHistory() error {
 	return nil
 }
 
+// SaveHistoryForTrie save history for trie node
+func (stx *stateTX) SaveHistoryForTrie(hei uint64, batch db.CachedBatch, chaindb db.KVStore) error {
+	trieBatch, ok := batch.(db.KVStoreBatch)
+	if !ok {
+		log.L().Error("trieBatch,ok:=batch.(db.KVStoreBatch)")
+		return nil
+	}
+	heightToKeyCache := db.NewCachedBatch()
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, hei)
+	for i := 0; i < trieBatch.Size(); i++ {
+		write, err := trieBatch.Entry(i)
+		if err != nil {
+			return err
+		}
+		// only save trie node in evm's name space
+		if (write.WriteType() == db.Delete) && (strings.EqualFold(write.Namespace(), evm.ContractKVNameSpace)) {
+			heightTo := append(heightToTrieNodeKeyPrefix, heightBytes...)
+			heightTo = append(heightTo, write.Key()...)
+			heightToKeyCache.Put(heightToTrieNodeKeyNS, heightTo, []byte(""), "")
+		}
+	}
+	if heightToKeyCache.Size() == 0 {
+		return nil
+	}
+	log.L().Info("len of history SaveDeletedTrieNode", zap.Int("heighttokey", heightToKeyCache.Size()))
+	// commit to chain.db
+	return chaindb.Commit(heightToKeyCache)
+	//if err != nil {
+	//	log.L().Error("Error when bc.dao.kvstore.Commit.", zap.Error(err))
+	//	return errors.Wrapf(err, "Error when commit height->trie node key hash on height %d", blk.Height())
+	//}
+	//return err
+}
+
 // DeleteHistoryForTrie delete history asynchronous for trie node
-func (stx *stateTX) DeleteHistoryForTrie(hei uint64, namespace string, prefix []byte, chaindb db.KVStore) error {
+func (stx *stateTX) DeleteHistoryForTrie(hei uint64, chaindb db.KVStore) error {
 	if hei < stx.cfg.HistoryStateSaveLength {
 		return nil
 	}
@@ -339,14 +380,14 @@ func (stx *stateTX) DeleteHistoryForTrie(hei uint64, namespace string, prefix []
 	for i := deleteStartHeight; i >= deleteEndHeight; i-- {
 		heightBytes := make([]byte, 8)
 		binary.BigEndian.PutUint64(heightBytes, i)
-		keyPrefix := append(prefix, heightBytes...)
-		allKeys, err := stx.dao.GetPrefix(namespace, keyPrefix)
+		keyPrefix := append(heightToTrieNodeKeyPrefix, heightBytes...)
+		allKeys, err := stx.dao.GetPrefix(heightToTrieNodeKeyNS, keyPrefix)
 		if err != nil {
 			continue
 		}
 		log.L().Info("deleteHeight", zap.Int("len(allKeys)", len(allKeys)))
 		for _, key := range allKeys {
-			chaindbCache.Delete(namespace, key, "failed to delete key %x", key)
+			chaindbCache.Delete(heightToTrieNodeKeyNS, key, "failed to delete key %x", key)
 			triedbCache.Delete(evm.ContractKVNameSpace, key[len(keyPrefix):], "failed to delete key %x", key[len(keyPrefix):])
 		}
 	}

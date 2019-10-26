@@ -66,7 +66,8 @@ type (
 		DelState(pkHash hash.Hash160) error
 		GetDB() db.KVStore
 		GetCachedBatch() db.CachedBatch
-		DeleteHistoryForTrie(uint64, string, []byte, db.KVStore) error
+		SaveHistoryForTrie(uint64, db.CachedBatch, db.KVStore) error
+		DeleteHistoryForTrie(uint64, db.KVStore) error
 	}
 
 	// workingSet implements WorkingSet interface, tracks pending changes to account/contract in local cache
@@ -282,6 +283,11 @@ func (ws *workingSet) DelState(pkHash hash.Hash160) error {
 
 // DeleteHistoryForTrie delete history asynchronous for trie node
 func (ws *workingSet) DeleteHistoryForTrie(uint64, string, []byte, db.KVStore) error {
+	return nil
+}
+
+// SaveHistoryForTrie save history for trie node
+func (stx *workingSet) SaveHistoryForTrie(hei uint64, batch db.CachedBatch, chaindb db.KVStore) error {
 	return nil
 }
 
