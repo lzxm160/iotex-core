@@ -7,6 +7,8 @@
 package db
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 
@@ -153,6 +155,7 @@ func (r *rangeIndex) Delete(key uint64) error {
 		// seek to start
 		cur := bucket.Cursor()
 		for k, _ := cur.Seek(byteutil.Uint64ToBytesBigEndian(key)); k != nil; k, _ = cur.Prev() {
+			fmt.Println(k)
 			if err := bucket.Delete(k); err != nil {
 				return err
 			}
