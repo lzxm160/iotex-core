@@ -87,7 +87,7 @@ func (c *contract) SetState(key hash.Hash256, value []byte) error {
 		c.GetState(key)
 	}
 	c.dirtyState = true
-	err := c.trie.Upsert(key[:], value, c.saveTrieNode)
+	err := c.trie.Upsert(key[:], value)
 	c.Account.Root = hash.BytesToHash256(c.trie.RootHash())
 	return err
 }
@@ -170,6 +170,7 @@ func newContract(addr hash.Hash160, state *state.Account, dao db.KVStore, batch 
 		trie.HashFuncOption(func(data []byte) []byte {
 			return trie.DefaultHashFunc(append(addr[:], data...))
 		}),
+		trie.SaveHistoryOption(saveTrieNode),
 	}
 	if state.Root != hash.ZeroHash256 {
 		options = append(options, trie.RootHashOption(state.Root[:]))

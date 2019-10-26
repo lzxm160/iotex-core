@@ -114,8 +114,7 @@ func (tr *branchRootTrie) Delete(key []byte) error {
 	return nil
 }
 
-func (tr *branchRootTrie) Upsert(key []byte, value []byte, saveTrieNode bool) error {
-	tr.saveTrieNode = saveTrieNode
+func (tr *branchRootTrie) Upsert(key []byte, value []byte) error {
 	trieMtc.WithLabelValues("root", "Upsert").Inc()
 	kt, err := tr.checkKeyType(key)
 	if err != nil {
@@ -139,10 +138,10 @@ func (tr *branchRootTrie) DB() KVStore {
 }
 
 func (tr *branchRootTrie) deleteNodeFromDB(tn Node) error {
-	h := tr.nodeHash(tn)
 	if tr.saveTrieNode {
 		return nil
 	}
+	h := tr.nodeHash(tn)
 	return tr.kvStore.Delete(h)
 }
 
