@@ -9,7 +9,6 @@ package factory
 import (
 	"context"
 	"encoding/binary"
-	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -18,6 +17,7 @@ import (
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
+	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/pkg/log"
