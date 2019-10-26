@@ -8,11 +8,9 @@ package blockchain
 
 import (
 	"context"
-	"encoding/binary"
 	"math/big"
 	"os"
 	"strconv"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -63,7 +61,7 @@ var (
 		},
 		[]string{"type"},
 	)
-	errDelegatesNotExist      = errors.New("delegates cannot be found")
+	errDelegatesNotExist = errors.New("delegates cannot be found")
 )
 
 func init() {
