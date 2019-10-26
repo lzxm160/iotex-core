@@ -93,6 +93,7 @@ func TestRangeIndex(t *testing.T) {
 		v, _ := index.Get(j)
 		fmt.Println(j, ":", string(v))
 	}
+	fmt.Println("---------------------------")
 	err = index.Delete(0)
 	fmt.Println(err)
 	for j := uint64(0); j <= 100; j++ {
