@@ -85,4 +85,9 @@ func TestRangeIndex(t *testing.T) {
 			fmt.Println(k, ":", string(v))
 		}
 	}
+
+	for j := uint64(0); j <= 100; j++ {
+		v, _ := index.Get(j)
+		fmt.Println(j, ":", v)
+	}
 }
