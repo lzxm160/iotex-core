@@ -42,6 +42,8 @@ type (
 		Get(uint64) ([]byte, error)
 		// Close makes the index not usable
 		Close()
+		// Delete deletes key before this key but keep this key
+		Delete(key uint64) error
 	}
 
 	// rangeIndex is RangeIndex implementation based on bolt DB
@@ -143,7 +145,6 @@ func (r *rangeIndex) Delete(key uint64) error {
 	if key == 0 {
 		return errors.Wrap(ErrInvalid, "cannot delete key 0")
 	}
-	var value []byte
 	err := r.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(r.bucket)
 		if bucket == nil {
@@ -151,19 +152,17 @@ func (r *rangeIndex) Delete(key uint64) error {
 		}
 		// seek to start
 		cur := bucket.Cursor()
-		k, v := cur.Seek(byteutil.Uint64ToBytesBigEndian(key))
-		if k == nil {
-			// key is beyond largest inserted key, return current value
-			v = r.curr
+		for k, _ := cur.Seek(byteutil.Uint64ToBytesBigEndian(key)); k != nil; k, _ = cur.Prev() {
+			if err := bucket.Delete(k); err != nil {
+				return err
+			}
 		}
-		value = make([]byte, len(v))
-		copy(value, v)
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return value, nil
+	return nil
 }
 
 // Close makes the index not usable

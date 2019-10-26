@@ -47,6 +47,8 @@ type KVStore interface {
 	CreateCountingIndexNX([]byte) (CountingIndex, error)
 	// GetPrefix retrieves all keys those with const prefix
 	GetPrefix(string, []byte) ([][]byte, error)
+	// CreateRangeIndexNX creates a new range index if it does not exist, otherwise return existing index
+	CreateRangeIndexNX([]byte, []byte) (RangeIndex, error)
 }
 
 const (
@@ -161,4 +163,8 @@ func (m *memKVStore) CreateCountingIndexNX(name []byte) (CountingIndex, error) {
 // GetPrefix retrieves all keys those with const prefix
 func (m *memKVStore) GetPrefix(string, []byte) ([][]byte, error) {
 	return nil, nil
+}
+// CreateRangeIndexNX creates a new range index if it does not exist, otherwise return existing index
+func (m *memKVStore) CreateRangeIndexNX(name, init []byte) (RangeIndex, error) {
+	return nil, ErrInvalid
 }
