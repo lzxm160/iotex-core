@@ -143,6 +143,7 @@ func (r *rangeIndex) Get(key uint64) ([]byte, error) {
 			v = r.curr
 		}
 		keyUint := byteutil.BytesToUint64(k)
+		fmt.Println(keyUint, ":", key)
 		if keyUint < key {
 			return errors.New("key already deleted")
 		}
