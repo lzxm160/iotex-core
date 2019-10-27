@@ -7,6 +7,7 @@
 package db
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -17,7 +18,8 @@ import (
 
 var (
 	// CurrIndex is special key such that bytes.Compare(MaxUint64, CurrIndex) = -1
-	CurrIndex = []byte{255, 255, 255, 255, 255, 255, 255, 255, 0}
+	CurrIndex     = []byte{255, 255, 255, 255, 255, 255, 255, 255, 0}
+	NotExistValue = []byte("NotExistValue")
 )
 
 type (
@@ -142,9 +144,8 @@ func (r *rangeIndex) Get(key uint64) ([]byte, error) {
 			// key is beyond largest inserted key, return current value
 			v = r.curr
 		}
-		keyUint := byteutil.BytesToUint64BigEndian(k)
-		fmt.Println(keyUint, ":", key)
-		if keyUint < key {
+
+		if bytes.Compare(v, NotExistValue) == 0 {
 			return errors.New("key already deleted")
 		}
 		value = make([]byte, len(v))
@@ -170,12 +171,13 @@ func (r *rangeIndex) Delete(key uint64) error {
 		}
 		// seek to start
 		cur := bucket.Cursor()
+		// find the key and set to specail value
 		for k, _ := cur.Seek(byteutil.Uint64ToBytesBigEndian(key)); k != nil; k, _ = cur.Prev() {
 			fmt.Println("::::", k)
 			if k == nil {
 				break
 			}
-			if err := bucket.Delete(k); err != nil {
+			if err := bucket.Put(k, NotExistValue); err != nil {
 				return err
 			}
 		}
