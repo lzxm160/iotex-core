@@ -152,7 +152,7 @@ func (r *rangeIndex) Get(key uint64) ([]byte, error) {
 	return value, nil
 }
 
-// Delete deletes key before this key but keep this key
+// Delete deletes key before this key include this key
 func (r *rangeIndex) Delete(key uint64) error {
 	// cannot delete key 0, which holds key-1's value
 	if key == 0 {
