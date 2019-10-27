@@ -163,12 +163,12 @@ func (m *memKVStore) CreateCountingIndexNX(name []byte) (CountingIndex, error) {
 }
 
 // GetKeyByPrefix retrieves all keys those with const prefix
-func (m *memKVStore) GetKeyByPrefix([]byte) ([][]byte, error) {
+func (m *memKVStore) GetKeyByPrefix([]byte, []byte) ([][]byte, error) {
 	return nil, nil
 }
 
 // GetBucketByPrefix retrieves all bucket those with const namespace prefix
-func (b *memKVStore) GetBucketByPrefix(namespace []byte) (allKey [][]byte, err error) {
+func (m *memKVStore) GetBucketByPrefix(namespace []byte) ([][]byte, error) {
 	return nil, nil
 }
 
