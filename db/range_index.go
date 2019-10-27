@@ -71,12 +71,12 @@ func NewRangeIndex(db *bolt.DB, retry uint8, name []byte) (RangeIndex, error) {
 	copy(bucket, name)
 	var curr []byte
 	err := db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(bucket)
-		if bucket == nil {
-			return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", bucket)
+		b := tx.Bucket(bucket)
+		if b == nil {
+			return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", b)
 		}
 		// check whether init value exist or not
-		curr = bucket.Get(CurrIndex)
+		curr = b.Get(CurrIndex)
 		return nil
 	})
 	if err != nil {
