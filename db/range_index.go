@@ -142,7 +142,7 @@ func (r *rangeIndex) Get(key uint64) ([]byte, error) {
 			// key is beyond largest inserted key, return current value
 			v = r.curr
 		}
-		keyUint := byteutil.BytesToUint64(k)
+		keyUint := byteutil.BytesToUint64BigEndian(k)
 		fmt.Println(keyUint, ":", key)
 		if keyUint < key {
 			return errors.New("key already deleted")
