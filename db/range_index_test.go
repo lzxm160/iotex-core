@@ -106,13 +106,4 @@ func TestRangeIndex(t *testing.T) {
 	}
 	err = index.Insert(0, []byte("1111111"))
 	fmt.Println(err)
-	fmt.Println("============================")
-	//kv.Stop(context.Background())
-	//kv2 := NewBoltDB(cfg)
-	//require.NotNil(kv2)
-	index2, err := kv.CreateRangeIndexNX([]byte("test"))
-	require.NoError(err)
-	one2, err := index2.Get(1)
-	require.NoError(err)
-	fmt.Println(string(one2))
 }
