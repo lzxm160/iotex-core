@@ -95,7 +95,7 @@ func TestRangeIndex(t *testing.T) {
 		fmt.Println(j, ":", string(v))
 	}
 	fmt.Println("---------------------------")
-	err = index.Delete(1000)
+	err = index.Delete(6)
 	fmt.Println(err)
 	for j := uint64(0); j <= 100; j++ {
 		if j > 30 && j < 90 {
@@ -104,6 +104,14 @@ func TestRangeIndex(t *testing.T) {
 		v, err := index.Get(j)
 		fmt.Println(j, ":", string(v), ":", err)
 	}
-	err = index.Insert(0, []byte("1111111"))
+	fmt.Println("---------------------------")
+	err = index.Delete(50)
 	fmt.Println(err)
+	for j := uint64(0); j <= 100; j++ {
+		if j > 30 && j < 90 {
+			continue
+		}
+		v, err := index.Get(j)
+		fmt.Println(j, ":", string(v), ":", err)
+	}
 }
