@@ -110,5 +110,5 @@ func TestRangeIndex(t *testing.T) {
 	require.NoError(err)
 	one2, err := index2.Get(1)
 	require.NoError(err)
-	fmt.Println(one2)
+	fmt.Println(string(one2))
 }
