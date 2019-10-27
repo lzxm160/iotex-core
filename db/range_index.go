@@ -173,7 +173,7 @@ func (r *rangeIndex) Delete(key uint64) error {
 		cur := bucket.Cursor()
 		// find the key and set to specail value
 		for k, v := cur.Seek(byteutil.Uint64ToBytesBigEndian(key)); k != nil && bytes.Compare(v, NotExistValue) != 0; k, v = cur.Prev() {
-			fmt.Println("::::", k)
+			fmt.Println("::::", byteutil.BytesToUint64BigEndian(k))
 			if k == nil {
 				break
 			}
