@@ -9,6 +9,7 @@ package db
 import (
 	"bytes"
 	"context"
+	"fmt"
 
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
@@ -254,6 +255,7 @@ func (b *boltDB) CreateRangeIndexNX(name, init []byte) (RangeIndex, error) {
 			// write the initial value
 			return bucket.Put(CurrIndex, init)
 		}
+		fmt.Println("CurrIndex", v)
 		init = v
 		return nil
 	}); err != nil {
