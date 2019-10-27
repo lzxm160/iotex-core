@@ -27,7 +27,7 @@ func TestRangeIndex(t *testing.T) {
 		k uint64
 		v []byte
 	}{
-		{0, []byte("0")},
+		//{0, []byte("0")},
 		{7, []byte("7")},
 		{29, []byte("29")},
 		{100, []byte("100")},
