@@ -28,7 +28,7 @@ func TestRangeIndex(t *testing.T) {
 		v []byte
 	}{
 		{0, []byte{0}},
-		{1, []byte{"1"}},
+		{1, []byte("1")},
 		{7, []byte("7")},
 		{29, []byte("29")},
 		{100, []byte("100")},
