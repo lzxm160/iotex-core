@@ -103,4 +103,6 @@ func TestRangeIndex(t *testing.T) {
 		v, _ := index.Get(j)
 		fmt.Println(j, ":", string(v))
 	}
+	err = index.Insert(0, []byte("1111111"))
+	fmt.Println(err)
 }
