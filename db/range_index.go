@@ -7,6 +7,7 @@
 package db
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -141,6 +142,9 @@ func (r *rangeIndex) Get(key uint64) ([]byte, error) {
 		if k == nil {
 			// key is beyond largest inserted key, return current value
 			v = r.curr
+		}
+		if bytes.Compare(k, byteutil.Uint64ToBytesBigEndian(key)) == -1 {
+			return errors.New("key already deleted")
 		}
 		value = make([]byte, len(v))
 		copy(value, v)
