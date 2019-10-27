@@ -243,7 +243,7 @@ func (b *boltDB) CreateCountingIndexNX(name []byte) (CountingIndex, error) {
 }
 
 // CreateRangeIndexNX creates a new range index if it does not exist, otherwise return existing index
-func (b *boltDB) CreateRangeIndexNX(name, init []byte) (RangeIndex, error) {
+func (b *boltDB) CreateRangeIndexNX(name []byte) (RangeIndex, error) {
 	if err := b.db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists(name)
 		if err != nil {
@@ -253,15 +253,14 @@ func (b *boltDB) CreateRangeIndexNX(name, init []byte) (RangeIndex, error) {
 		v := bucket.Get(CurrIndex)
 		if v == nil {
 			// write the initial value
-			return bucket.Put(CurrIndex, init)
+			return bucket.Put(CurrIndex, []byte{0})
 		}
 		fmt.Println("CurrIndex", v)
-		init = v
 		return nil
 	}); err != nil {
 		return nil, err
 	}
-	return NewRangeIndex(b.db, b.config.NumRetries, name, init)
+	return NewRangeIndex(b.db, b.config.NumRetries, name)
 }
 
 //======================================

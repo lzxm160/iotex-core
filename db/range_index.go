@@ -58,24 +58,35 @@ type (
 )
 
 // NewRangeIndex creates a new instance of rangeIndex
-func NewRangeIndex(db *bolt.DB, retry uint8, name, init []byte) (RangeIndex, error) {
+func NewRangeIndex(db *bolt.DB, retry uint8, name []byte) (RangeIndex, error) {
 	if db == nil {
 		return nil, errors.Wrap(ErrInvalid, "db object is nil")
 	}
 
-	if len(name) == 0 || len(init) == 0 {
-		return nil, errors.Wrap(ErrInvalid, "bucket name or initial value is nil")
+	if len(name) == 0 {
+		return nil, errors.Wrap(ErrInvalid, "bucket name is nil")
 	}
 
 	bucket := make([]byte, len(name))
 	copy(bucket, name)
-	iv := make([]byte, len(init))
-	copy(iv, init)
+	var curr []byte
+	err := db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(bucket)
+		if bucket == nil {
+			return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", bucket)
+		}
+		// check whether init value exist or not
+		curr = bucket.Get(CurrIndex)
+		return nil
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "bucket get CurrIndex error")
+	}
 	return &rangeIndex{
 		db:         db,
 		numRetries: retry,
 		bucket:     bucket,
-		curr:       iv,
+		curr:       curr,
 	}, nil
 }
 
