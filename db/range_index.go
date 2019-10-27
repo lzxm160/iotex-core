@@ -158,7 +158,7 @@ func (r *rangeIndex) Delete(key uint64) error {
 	if key == 0 {
 		return errors.Wrap(ErrInvalid, "cannot delete key 0")
 	}
-	err := r.db.View(func(tx *bolt.Tx) error {
+	err := r.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(r.bucket)
 		if bucket == nil {
 			return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", r.bucket)
