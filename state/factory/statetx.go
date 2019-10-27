@@ -220,12 +220,14 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 //}
 
 func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
+	version := stx.ver + 1
+
 	ns := append(heightToTrieNodeKeyNS, pkHash[:]...)
 	ri, err := db.CreateRangeIndexNX(ns)
 	if err != nil {
 		return err
 	}
-
+	return ri.Insert(version, ss)
 	//version := stx.ver + 1
 	//maxIndex, maxHeight, _ := stx.getMaxVersion(pkHash)
 	//if (maxHeight != 0) && (maxHeight != 1) && (maxHeight > version) {
@@ -267,67 +269,75 @@ func (stx *stateTX) deleteHistory() error {
 		return nil
 	}
 	deleteStartHeight := currentHeight - stx.cfg.HistoryStateSaveLength
-	var deleteEndHeight uint64
-	if deleteStartHeight < CheckHistoryDeleteInterval {
-		deleteEndHeight = 1
-	} else {
-		deleteEndHeight = deleteStartHeight - CheckHistoryDeleteInterval
-	}
+	//var deleteEndHeight uint64
+	//if deleteStartHeight < CheckHistoryDeleteInterval {
+	//	deleteEndHeight = 1
+	//} else {
+	//	deleteEndHeight = deleteStartHeight - CheckHistoryDeleteInterval
+	//}
 	go func() {
 		stx.deleting <- struct{}{}
-		log.L().Info("////////////////deleteHistory", zap.Uint64("currentHeight", currentHeight), zap.Uint64("deleteStartHeight", deleteStartHeight), zap.Uint64("deleteEndHeight", deleteEndHeight))
+		log.L().Info("////////////////deleteHistory", zap.Uint64("currentHeight", currentHeight), zap.Uint64("deleteStartHeight", deleteStartHeight))
 		// find all keys that with version
-		allKeys, err := stx.dao.GetPrefix(AccountKVNameSpace, AccountMaxVersionPrefix)
+		allKeys, err := stx.dao.GetBucketByPrefix(heightToTrieNodeKeyNS)
 		if err != nil {
-			log.L().Info("stx.dao.GetPrefix", zap.Error(err))
+			log.L().Info("get prefix", zap.Error(err))
 			return
 		}
-		chaindbCache := db.NewCachedBatch()
+		//chaindbCache := db.NewCachedBatch()
 		for _, key := range allKeys {
-			addrHash := key[len(AccountMaxVersionPrefix):]
-			pkHash := hash.BytesToHash160(addrHash)
-			maxIndex, maxHeight, err := stx.getMaxVersion(pkHash)
-			if err != nil || maxIndex == 0 || maxHeight == 0 {
+			ri, err := db.CreateRangeIndexNX(key)
+			if err != nil {
 				continue
 			}
-			if maxHeight < deleteEndHeight {
-				// not in the saved interval,already deleted
+			err = ri.Delete(deleteStartHeight)
+			if err != nil {
 				continue
 			}
-			log.L().Info("maxIndex", zap.Uint64("maxIndex", maxIndex), zap.Uint64("maxHeight", maxHeight))
-			// maxIndex is num of indexs,so real index is maxIndex-1
-			for i := maxIndex - 1; i >= 0; i-- {
-				// for i overflow
-				if i > i+1 {
-					break
-				}
-				currentIndex := make([]byte, 8)
-				binary.BigEndian.PutUint64(currentIndex, i)
-				indexKey := append(pkHash[:], AccountIndexPrefix...)
-				indexKey = append(indexKey, currentIndex...)
-				// put accounthash+AccountIndexPrefix+index->height
-				height, err := stx.dao.Get(AccountKVNameSpace, indexKey)
-				if err != nil {
-					// The height before this height must be deleted
-					//log.L().Info("stx.dao.Get(AccountKVNameSpace, indexKey)", zap.Error(err), zap.Uint64("index", i))
-					break
-				}
-				indexHeight := binary.BigEndian.Uint64(height[:])
-
-				if indexHeight >= deleteEndHeight && indexHeight < deleteStartHeight {
-					log.L().Info("indexHeight////////////////deleteHistory", zap.Uint64("currentHeight", currentHeight), zap.Uint64("deleteEndHeight", deleteEndHeight), zap.Uint64("indexHeight", indexHeight), zap.Uint64("deleteStartHeight", deleteStartHeight))
-					// Delete accounthash+AccountIndexPrefix+index->height
-					chaindbCache.Delete(AccountKVNameSpace, indexKey, "")
-					accountHeight := append(addrHash, height...)
-					// Delete accounthash+height->account serialized
-					chaindbCache.Delete(AccountKVNameSpace, accountHeight, "")
-				}
-			}
+			//addrHash := key[len(AccountMaxVersionPrefix):]
+			//pkHash := hash.BytesToHash160(addrHash)
+			//maxIndex, maxHeight, err := stx.getMaxVersion(pkHash)
+			//if err != nil || maxIndex == 0 || maxHeight == 0 {
+			//	continue
+			//}
+			//if maxHeight < deleteEndHeight {
+			//	// not in the saved interval,already deleted
+			//	continue
+			//}
+			//log.L().Info("maxIndex", zap.Uint64("maxIndex", maxIndex), zap.Uint64("maxHeight", maxHeight))
+			//// maxIndex is num of indexs,so real index is maxIndex-1
+			//for i := maxIndex - 1; i >= 0; i-- {
+			//	// for i overflow
+			//	if i > i+1 {
+			//		break
+			//	}
+			//	currentIndex := make([]byte, 8)
+			//	binary.BigEndian.PutUint64(currentIndex, i)
+			//	indexKey := append(pkHash[:], AccountIndexPrefix...)
+			//	indexKey = append(indexKey, currentIndex...)
+			//	// put accounthash+AccountIndexPrefix+index->height
+			//	height, err := stx.dao.Get(AccountKVNameSpace, indexKey)
+			//	if err != nil {
+			//		// The height before this height must be deleted
+			//		//log.L().Info("stx.dao.Get(AccountKVNameSpace, indexKey)", zap.Error(err), zap.Uint64("index", i))
+			//		break
+			//	}
+			//	indexHeight := binary.BigEndian.Uint64(height[:])
+			//
+			//	if indexHeight >= deleteEndHeight && indexHeight < deleteStartHeight {
+			//		log.L().Info("indexHeight////////////////deleteHistory", zap.Uint64("currentHeight", currentHeight), zap.Uint64("deleteEndHeight", deleteEndHeight), zap.Uint64("indexHeight", indexHeight), zap.Uint64("deleteStartHeight", deleteStartHeight))
+			//		// Delete accounthash+AccountIndexPrefix+index->height
+			//		chaindbCache.Delete(AccountKVNameSpace, indexKey, "")
+			//		accountHeight := append(addrHash, height...)
+			//		// Delete accounthash+height->account serialized
+			//		chaindbCache.Delete(AccountKVNameSpace, accountHeight, "")
+			//	}
+			//}
 		}
-		if err := stx.dao.Commit(chaindbCache); err != nil {
-			log.L().Error("failed to commit delete account history", zap.Error(err))
-			return
-		}
+		//if err := stx.dao.Commit(chaindbCache); err != nil {
+		//	log.L().Error("failed to commit delete account history", zap.Error(err))
+		//	return
+		//}
 		<-stx.deleting
 	}()
 	return nil
@@ -352,7 +362,7 @@ func (stx *stateTX) SaveHistoryForTrie(hei uint64, batch db.CachedBatch, chaindb
 		if (write.WriteType() == db.Delete) && (strings.EqualFold(write.Namespace(), evm.ContractKVNameSpace)) {
 			heightTo := append(heightToTrieNodeKeyPrefix, heightBytes...)
 			heightTo = append(heightTo, write.Key()...)
-			heightToKeyCache.Put(heightToTrieNodeKeyNS, heightTo, []byte(""), "")
+			heightToKeyCache.Put(string(heightToTrieNodeKeyNS), heightTo, []byte(""), "")
 		}
 	}
 	if heightToKeyCache.Size() == 0 {
@@ -387,13 +397,13 @@ func (stx *stateTX) DeleteHistoryForTrie(hei uint64, chaindb db.KVStore) error {
 		heightBytes := make([]byte, 8)
 		binary.BigEndian.PutUint64(heightBytes, i)
 		keyPrefix := append(heightToTrieNodeKeyPrefix, heightBytes...)
-		allKeys, err := stx.dao.GetPrefix(heightToTrieNodeKeyNS, keyPrefix)
+		allKeys, err := stx.dao.GetKeyByPrefix(heightToTrieNodeKeyNS, keyPrefix)
 		if err != nil {
 			continue
 		}
 		log.L().Info("deleteHeight", zap.Int("len(allKeys)", len(allKeys)))
 		for _, key := range allKeys {
-			chaindbCache.Delete(heightToTrieNodeKeyNS, key, "failed to delete key %x", key)
+			chaindbCache.Delete(string(heightToTrieNodeKeyNS), key, "failed to delete key %x", key)
 			triedbCache.Delete(evm.ContractKVNameSpace, key[len(keyPrefix):], "failed to delete key %x", key[len(keyPrefix):])
 		}
 	}
