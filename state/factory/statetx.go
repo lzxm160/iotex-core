@@ -220,7 +220,7 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 //}
 
 func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
-	ns := append(pkHash[:], heightToTrieNodeKeyNS...)
+	ns := append(heightToTrieNodeKeyNS, pkHash[:]...)
 	ri, err := db.CreateRangeIndexNX(ns)
 	if err != nil {
 		return err
