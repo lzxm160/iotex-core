@@ -49,7 +49,7 @@ func TestRangeIndex(t *testing.T) {
 		require.NoError(kv.Stop(context.Background()))
 	}()
 
-	index, err := kv.CreateRangeIndexNX([]byte("test"), rangeTests[0].v)
+	index, err := kv.CreateRangeIndexNX([]byte("test"))
 	require.NoError(err)
 	one, err := index.Get(1)
 	require.NoError(err)
@@ -109,7 +109,7 @@ func TestRangeIndex(t *testing.T) {
 	//kv.Stop(context.Background())
 	//kv2 := NewBoltDB(cfg)
 	//require.NotNil(kv2)
-	index2, err := kv.CreateRangeIndexNX([]byte("test"), rangeTests[0].v)
+	index2, err := kv.CreateRangeIndexNX([]byte("test"))
 	require.NoError(err)
 	one2, err := index2.Get(1)
 	require.NoError(err)
