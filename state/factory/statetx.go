@@ -29,10 +29,10 @@ import (
 const (
 	// CheckHistoryDeleteInterval 100 block heights to check if history needs to delete
 	CheckHistoryDeleteInterval = 100
-	heightToTrieNodeKeyNS      = "htn"
 )
 
 var (
+	heightToTrieNodeKeyNS     = []byte("htn")
 	heightToTrieNodeKeyPrefix = []byte("hnk.")
 )
 
@@ -208,49 +208,55 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 	return stx.putIndex(pkHash, ss)
 }
 
-func (stx *stateTX) getMaxVersion(pkHash hash.Hash160) (index, height uint64, err error) {
-	indexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
-	value, err := stx.dao.Get(AccountKVNameSpace, indexKey)
-	if err != nil {
-		return
-	}
-	index = binary.BigEndian.Uint64(value[:8])
-	height = binary.BigEndian.Uint64(value[8:])
-	return
-}
+//func (stx *stateTX) getMaxVersion(pkHash hash.Hash160) (index, height uint64, err error) {
+//	indexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
+//	value, err := stx.dao.Get(AccountKVNameSpace, indexKey)
+//	if err != nil {
+//		return
+//	}
+//	index = binary.BigEndian.Uint64(value[:8])
+//	height = binary.BigEndian.Uint64(value[8:])
+//	return
+//}
 
 func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
-	version := stx.ver + 1
-	maxIndex, maxHeight, _ := stx.getMaxVersion(pkHash)
-	if (maxHeight != 0) && (maxHeight != 1) && (maxHeight > version) {
-		return nil
-	}
-	//log.L().Info("////////////////putIndex", zap.Uint64("maxIndex", maxIndex), zap.Uint64("maxHeight", maxHeight), zap.String("pk", hex.EncodeToString(pkHash[:])))
-	// index from 0
-	currentIndex := make([]byte, 8)
-	binary.BigEndian.PutUint64(currentIndex, maxIndex)
-	currentHeight := make([]byte, 8)
-	binary.BigEndian.PutUint64(currentHeight, version)
-	indexKey := append(pkHash[:], AccountIndexPrefix...)
-	indexKey = append(indexKey, currentIndex...)
-	// put accounthash+AccountIndexPrefix+index->height
-	err := stx.dao.Put(AccountKVNameSpace, indexKey, currentHeight)
+	ns := append(pkHash[:], heightToTrieNodeKeyNS...)
+	ri, err := db.CreateRangeIndexNX(ns)
 	if err != nil {
 		return err
 	}
 
-	// max num of index
-	maxIndex++
-	binary.BigEndian.PutUint64(currentIndex, maxIndex)
-	versionValue := append(currentIndex, currentHeight...)
-	maxIndexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
-	// put AccountMaxVersionPrefix+accounthash->index+height
-	err = stx.dao.Put(AccountKVNameSpace, maxIndexKey, versionValue)
-	if err != nil {
-		return err
-	}
-	stateKey := append(pkHash[:], currentHeight...)
-	return stx.dao.Put(AccountKVNameSpace, stateKey, ss)
+	//version := stx.ver + 1
+	//maxIndex, maxHeight, _ := stx.getMaxVersion(pkHash)
+	//if (maxHeight != 0) && (maxHeight != 1) && (maxHeight > version) {
+	//	return nil
+	//}
+	//log.L().Info("////////////////putIndex", zap.Uint64("maxIndex", maxIndex), zap.Uint64("maxHeight", maxHeight), zap.String("pk", hex.EncodeToString(pkHash[:])))
+	// index from 0
+	//currentIndex := make([]byte, 8)
+	//binary.BigEndian.PutUint64(currentIndex, maxIndex)
+	//currentHeight := make([]byte, 8)
+	//binary.BigEndian.PutUint64(currentHeight, version)
+	//indexKey := append(pkHash[:], AccountIndexPrefix...)
+	//indexKey = append(indexKey, currentIndex...)
+	//// put accounthash+AccountIndexPrefix+index->height
+	//err := stx.dao.Put(AccountKVNameSpace, indexKey, currentHeight)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//// max num of index
+	//maxIndex++
+	//binary.BigEndian.PutUint64(currentIndex, maxIndex)
+	//versionValue := append(currentIndex, currentHeight...)
+	//maxIndexKey := append(AccountMaxVersionPrefix, pkHash[:]...)
+	//// put AccountMaxVersionPrefix+accounthash->index+height
+	//err = stx.dao.Put(AccountKVNameSpace, maxIndexKey, versionValue)
+	//if err != nil {
+	//	return err
+	//}
+	//stateKey := append(pkHash[:], currentHeight...)
+	//return stx.dao.Put(AccountKVNameSpace, stateKey, ss)
 }
 
 // delete history asynchronous,this will find all account that with version
