@@ -115,8 +115,10 @@ func (r *rangeIndex) Insert(key uint64, value []byte) error {
 			if curr == nil {
 				return errors.Wrap(ErrIO, "cannot read current value")
 			}
+			currValue := make([]byte, len(curr))
+			copy(currValue, curr)
 			// keys up to key-1 should have current value
-			if err := bucket.Put(byteutil.Uint64ToBytesBigEndian(key-1), curr); err != nil {
+			if err := bucket.Put(byteutil.Uint64ToBytesBigEndian(key-1), currValue); err != nil {
 				return err
 			}
 			// write new value
