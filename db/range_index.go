@@ -116,13 +116,13 @@ func (r *rangeIndex) Insert(key uint64, value []byte) error {
 			}
 			// check if key already exists, to fix putstate insert 2 times for the same key
 			keySub1 := bucket.Get(byteutil.Uint64ToBytesBigEndian(key - 1))
-			if keySub1 != nil {
+			if keySub1 == nil {
+				// keys up to key-1 should have current value
+				if err := bucket.Put(byteutil.Uint64ToBytesBigEndian(key-1), curr); err != nil {
+					return err
+				}
+			} else {
 				log.L().Info("keySub1 already exists", zap.Uint64("height", key-1))
-				return nil
-			}
-			// keys up to key-1 should have current value
-			if err := bucket.Put(byteutil.Uint64ToBytesBigEndian(key-1), curr); err != nil {
-				return err
 			}
 			// write new value
 			return bucket.Put(CurrIndex, value)
