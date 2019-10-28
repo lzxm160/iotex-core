@@ -51,7 +51,7 @@ func TestRangeIndex(t *testing.T) {
 	require.NoError(err)
 	// Case I: key before 7
 	for i := uint64(1); i < 6; i++ {
-		_, err := kv.CreateRangeIndexNX(testNS)
+		index, err = kv.CreateRangeIndexNX(testNS)
 		require.NoError(err)
 		_, err = index.Get(i)
 		require.Error(err)
