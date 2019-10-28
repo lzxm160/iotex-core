@@ -8,7 +8,9 @@ package db
 
 import (
 	"bytes"
-	"fmt"
+
+	"github.com/iotexproject/iotex-core/pkg/log"
+	"go.uber.org/zap"
 
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
@@ -177,10 +179,10 @@ func (r *rangeIndex) Delete(key uint64) error {
 		cur := bucket.Cursor()
 		// find the key and set to specail value
 		for k, v := cur.Seek(byteutil.Uint64ToBytesBigEndian(key)); k != nil && bytes.Compare(v, NotExistValue) != 0; k, v = cur.Prev() {
-			fmt.Println("::::", byteutil.BytesToUint64BigEndian(k))
 			if k == nil {
 				break
 			}
+			log.L().Info("rangeIndex Delete/////////", zap.Uint64("height", byteutil.BytesToUint64BigEndian(k)))
 			if err := bucket.Put(k, NotExistValue); err != nil {
 				return err
 			}
