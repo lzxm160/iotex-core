@@ -171,7 +171,7 @@ func (r *rangeIndex) Get(key uint64) ([]byte, error) {
 
 // Delete deletes key before this key include this key
 func (r *rangeIndex) Delete(key uint64) error {
-	defer r.Close()
+	//defer r.Close()
 	// cannot delete key 0, which holds key-1's value
 	if key == 0 {
 		return errors.Wrap(ErrInvalid, "cannot delete key 0")
