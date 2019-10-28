@@ -92,7 +92,7 @@ func TestRangeIndex(t *testing.T) {
 	require.Equal([]byte("7777"), v)
 	// Case V: delete key 7
 	index, err = kv.CreateRangeIndexNX(testNS)
-	err = index.Delete(7)
+	err = index.Delete(10)
 	require.NoError(err)
 	for i := uint64(1); i < 66; i++ {
 		index, err = kv.CreateRangeIndexNX(testNS)
