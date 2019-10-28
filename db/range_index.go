@@ -103,7 +103,7 @@ func (r *rangeIndex) Insert(key uint64, value []byte) error {
 	}
 	var err error
 	//for i := uint8(0); i < r.numRetries; i++ {
-	for i := uint8(0); i < 0; i++ {
+	for i := uint8(0); i <= 0; i++ {
 		if err = r.db.Update(func(tx *bolt.Tx) error {
 			bucket := tx.Bucket(r.bucket)
 			if bucket == nil {
