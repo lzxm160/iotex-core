@@ -22,16 +22,16 @@ import (
 func TestRangeIndex(t *testing.T) {
 	require := require.New(t)
 
-	rangeTests := []struct {
-		k uint64
-		v []byte
-	}{
-		{0, []byte{0}},
-		{1, []byte("1")},
-		{7, []byte("7")},
-		{29, []byte("29")},
-		{100, []byte("100")},
-	}
+	//rangeTests := []struct {
+	//	k uint64
+	//	v []byte
+	//}{
+	//	{0, []byte{0}},
+	//	{1, []byte("1")},
+	//	{7, []byte("7")},
+	//	{29, []byte("29")},
+	//	{100, []byte("100")},
+	//}
 
 	path := "test-indexer"
 	testFile, _ := ioutil.TempFile(os.TempDir(), path)
@@ -51,8 +51,8 @@ func TestRangeIndex(t *testing.T) {
 
 	index, err := kv.CreateRangeIndexNX([]byte("test"))
 	require.NoError(err)
-	one, err := index.Get(1)
-	require.Error(err)
+	//one, err := index.Get(1)
+	//require.Error(err)
 	//require.Equal(rangeTests[0].v, one)
 
 	err = index.Insert(7, []byte("7"))
