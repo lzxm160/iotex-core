@@ -103,32 +103,33 @@ func (r *rangeIndex) Insert(key uint64, value []byte) error {
 		return errors.Wrap(ErrInvalid, "cannot insert key 0")
 	}
 	var err error
-	//for i := uint8(0); i < r.numRetries; i++ {
-	//for i := uint8(0); i <= 0; i++ {
-	//	if
-	err = r.db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(r.bucket)
-		if bucket == nil {
-			return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", r.bucket)
+	for i := uint8(0); i < r.numRetries; i++ {
+		if err = r.db.Update(func(tx *bolt.Tx) error {
+			bucket := tx.Bucket(r.bucket)
+			if bucket == nil {
+				return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", r.bucket)
+			}
+			// read current value
+			curr := bucket.Get(CurrIndex)
+			if curr == nil {
+				return errors.Wrap(ErrIO, "cannot read current value")
+			}
+			// check if key already exists, to fix putstate insert 2 times for the same key
+			keySub1 := bucket.Get(byteutil.Uint64ToBytesBigEndian(key - 1))
+			if keySub1 != nil {
+				log.L().Info("keySub1 already exists", zap.Uint64("height", key-1))
+				return nil
+			}
+			// keys up to key-1 should have current value
+			if err := bucket.Put(byteutil.Uint64ToBytesBigEndian(key-1), curr); err != nil {
+				return err
+			}
+			// write new value
+			return bucket.Put(CurrIndex, value)
+		}); err == nil {
+			break
 		}
-		// read current value
-		curr := bucket.Get(CurrIndex)
-		if curr == nil {
-			return errors.Wrap(ErrIO, "cannot read current value")
-		}
-		currValue := make([]byte, len(curr))
-		copy(currValue, curr)
-		// keys up to key-1 should have current value
-		if err := bucket.Put(byteutil.Uint64ToBytesBigEndian(key-1), currValue); err != nil {
-			return err
-		}
-		// write new value
-		return bucket.Put(CurrIndex, value)
-	})
-	//; err == nil {
-	//	break
-	//}
-	//}
+	}
 	if err != nil {
 		err = errors.Wrap(ErrIO, err.Error())
 	}
