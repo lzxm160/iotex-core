@@ -266,7 +266,7 @@ func (b *boltDB) CreateRangeIndexNX(name []byte) (RangeIndex, error) {
 		v := bucket.Get(CurrIndex)
 		if v == nil {
 			// write the initial value
-			return bucket.Put(CurrIndex, []byte{0})
+			return bucket.Put(CurrIndex, InitValue)
 		}
 		return nil
 	}); err != nil {

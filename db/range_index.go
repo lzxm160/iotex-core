@@ -19,6 +19,7 @@ import (
 var (
 	// CurrIndex is special key such that bytes.Compare(MaxUint64, CurrIndex) = -1
 	CurrIndex     = []byte{255, 255, 255, 255, 255, 255, 255, 255, 0}
+	InitValue     = []byte("InitValue")
 	NotExistValue = []byte("NotExistValue")
 )
 
@@ -147,6 +148,9 @@ func (r *rangeIndex) Get(key uint64) ([]byte, error) {
 
 		if bytes.Compare(v, NotExistValue) == 0 {
 			return errors.New("key already deleted")
+		}
+		if bytes.Compare(v, InitValue) == 0 {
+			return errors.New("key not exist")
 		}
 		value = make([]byte, len(v))
 		copy(value, v)
