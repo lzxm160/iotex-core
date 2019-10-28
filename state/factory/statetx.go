@@ -226,7 +226,9 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	if err != nil {
 		return err
 	}
-	return ri.Insert(version, ss)
+	insertValue := make([]byte, len(ss))
+	copy(insertValue, ss)
+	return ri.Insert(version, insertValue)
 	//version := stx.ver + 1
 	//maxIndex, maxHeight, _ := stx.getMaxVersion(pkHash)
 	//if (maxHeight != 0) && (maxHeight != 1) && (maxHeight > version) {
