@@ -108,6 +108,9 @@ func TestRangeIndex(t *testing.T) {
 	}
 	// Case VI: delete 66,all keys deleted
 	index, err = kv.CreateRangeIndexNX(testNS)
+	err = index.Insert(20, []byte("20"))
+	require.NoError(err)
+	index, err = kv.CreateRangeIndexNX(testNS)
 	err = index.Insert(30, []byte("30"))
 	require.NoError(err)
 	index, err = kv.CreateRangeIndexNX(testNS)
