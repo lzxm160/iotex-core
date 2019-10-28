@@ -193,6 +193,9 @@ func (r *rangeIndex) Delete(key uint64) error {
 				break
 			}
 			log.L().Info("rangeIndex Delete/////////", zap.Uint64("height", byteutil.BytesToUint64BigEndian(k)))
+			if bytes.Compare(v, NotExistValue) == 0 {
+				break
+			}
 			if err := bucket.Put(k, NotExistValue); err != nil {
 				return err
 			}
