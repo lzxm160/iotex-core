@@ -84,6 +84,10 @@ func NewRangeIndex(db *bolt.DB, retry uint8, name []byte) (RangeIndex, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "bucket get CurrIndex error")
 	}
+	fmt.Println("NewRangeIndex curr:", curr)
+	if curr == nil {
+		curr = []byte{0}
+	}
 	return &rangeIndex{
 		db:         db,
 		numRetries: retry,
@@ -110,6 +114,7 @@ func (r *rangeIndex) Insert(key uint64, value []byte) error {
 			if curr == nil {
 				return errors.Wrap(ErrIO, "cannot read current value")
 			}
+			fmt.Println(curr)
 			// keys up to key-1 should have current value
 			if err := bucket.Put(byteutil.Uint64ToBytesBigEndian(key-1), curr); err != nil {
 				return err
