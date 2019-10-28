@@ -7,6 +7,7 @@
 package factory
 
 import (
+	"bytes"
 	"context"
 	"encoding/binary"
 	"strings"
@@ -205,10 +206,17 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 	//if !stx.cfg.EnableHistoryState {
 	//	return nil
 	//}
-	acc, ok := s.(*state.Account)
-	if ok {
-		log.L().Info("////////////////PutState ", zap.String("balance", acc.Balance.Text(10)))
+	addr, err := address.FromString("io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg")
+	if err != nil {
+		return err
 	}
+	if bytes.Compare(addr.Bytes(), pkHash[:]) == 0 {
+		acc, ok := s.(*state.Account)
+		if ok {
+			log.L().Info("////////////////PutState ", zap.String("balance", acc.Balance.Text(10)))
+		}
+	}
+
 	return stx.putIndex(pkHash, ss)
 }
 
@@ -232,7 +240,14 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	}
 	insertValue := make([]byte, len(ss))
 	copy(insertValue, ss)
-	log.L().Info("////////////////putIndex ", zap.Uint64("version", version))
+	addr, err := address.FromString("io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg")
+	if err != nil {
+		return err
+	}
+	if bytes.Compare(addr.Bytes(), pkHash[:]) == 0 {
+		log.L().Info("////////////////putIndex ", zap.Uint64("version", version))
+	}
+
 	return ri.Insert(version, insertValue)
 	//version := stx.ver + 1
 	//maxIndex, maxHeight, _ := stx.getMaxVersion(pkHash)
