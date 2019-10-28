@@ -97,6 +97,7 @@ func NewRangeIndex(db *bolt.DB, retry uint8, name []byte) (RangeIndex, error) {
 
 // Insert inserts a value into the index
 func (r *rangeIndex) Insert(key uint64, value []byte) error {
+	defer r.Close()
 	// cannot insert key 0, which holds key-1's value
 	if key == 0 {
 		return errors.Wrap(ErrInvalid, "cannot insert key 0")
@@ -135,6 +136,7 @@ func (r *rangeIndex) Insert(key uint64, value []byte) error {
 
 // Get returns value by the key
 func (r *rangeIndex) Get(key uint64) ([]byte, error) {
+	defer r.Close()
 	var value []byte
 	err := r.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(r.bucket)
@@ -167,6 +169,7 @@ func (r *rangeIndex) Get(key uint64) ([]byte, error) {
 
 // Delete deletes key before this key include this key
 func (r *rangeIndex) Delete(key uint64) error {
+	defer r.Close()
 	// cannot delete key 0, which holds key-1's value
 	if key == 0 {
 		return errors.Wrap(ErrInvalid, "cannot delete key 0")
