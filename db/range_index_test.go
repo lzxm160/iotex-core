@@ -8,7 +8,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -22,16 +21,11 @@ import (
 func TestRangeIndex(t *testing.T) {
 	require := require.New(t)
 
-	//rangeTests := []struct {
-	//	k uint64
-	//	v []byte
-	//}{
 	//	{0, []byte{0}},
 	//	{1, []byte("1")},
 	//	{7, []byte("7")},
 	//	{29, []byte("29")},
 	//	{100, []byte("100")},
-	//}
 
 	path := "test-indexer"
 	testFile, _ := ioutil.TempFile(os.TempDir(), path)
@@ -49,35 +43,49 @@ func TestRangeIndex(t *testing.T) {
 		require.NoError(kv.Stop(context.Background()))
 	}()
 
-	index, err := kv.CreateRangeIndexNX([]byte("test"))
+	testNS := []byte("test")
+	index, err := kv.CreateRangeIndexNX(testNS)
 	require.NoError(err)
-	//one, err := index.Get(1)
-	//require.Error(err)
-	//require.Equal(rangeTests[0].v, one)
 
 	err = index.Insert(7, []byte("7"))
-	fmt.Println(err)
-	for i := 0; i < 7; i++ {
-		v, err := index.Get(uint64(i))
-		fmt.Println(string(v), ":", err)
-	}
-	v, err := index.Get(7)
-	fmt.Println(string(v), ":", err)
-
-	v, err = index.Get(8)
-	fmt.Println(string(v), ":", err)
-
-	index.Close()
-
-	index2, err := kv.CreateRangeIndexNX([]byte("test"))
 	require.NoError(err)
-
-	err = index2.Insert(20, []byte("20"))
-	fmt.Println(err)
-	for i := 7; i < 22; i++ {
-		v, err := index2.Get(uint64(i))
-		fmt.Println(string(v), ":", err)
+	// Case I: key before 7
+	for i := 1; i < 6; i++ {
+		_, err := kv.CreateRangeIndexNX(testNS)
+		require.Error(err)
 	}
+	// Case II: key is 7 and greater than 7
+	for i := uint64(7); i < 10; i++ {
+		index, err = kv.CreateRangeIndexNX(testNS)
+		v, err := index.Get(7)
+		require.NoError(err)
+		require.Equal([]byte("7"), v)
+	}
+	// Case III: duplicate key
+	index, err = kv.CreateRangeIndexNX(testNS)
+	require.NoError(err)
+	err = index.Insert(7, []byte("7777"))
+	require.NoError(err)
+	for i := uint64(7); i < 10; i++ {
+		index, err = kv.CreateRangeIndexNX(testNS)
+		v, err := index.Get(7)
+		require.NoError(err)
+		require.Equal([]byte("7777"), v)
+	}
+	//v, err = index.Get(8)
+	//fmt.Println(string(v), ":", err)
+	//
+	//index.Close()
+	//
+	//index2, err := kv.CreateRangeIndexNX(testNS)
+	//require.NoError(err)
+	//
+	//err = index2.Insert(20, []byte("20"))
+	//fmt.Println(err)
+	//for i := 7; i < 22; i++ {
+	//	v, err := index2.Get(uint64(i))
+	//	fmt.Println(string(v), ":", err)
+	//}
 	//for i, e := range rangeTests {
 	//	if i == 0 {
 	//		continue
