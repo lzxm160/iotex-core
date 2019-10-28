@@ -50,14 +50,17 @@ func TestRangeIndex(t *testing.T) {
 	err = index.Insert(7, []byte("7"))
 	require.NoError(err)
 	// Case I: key before 7
-	for i := 1; i < 6; i++ {
+	for i := uint64(1); i < 6; i++ {
 		_, err := kv.CreateRangeIndexNX(testNS)
+		require.NoError(err)
+		_, err = index.Get(i)
 		require.Error(err)
 	}
 	// Case II: key is 7 and greater than 7
 	for i := uint64(7); i < 10; i++ {
 		index, err = kv.CreateRangeIndexNX(testNS)
-		v, err := index.Get(7)
+		require.NoError(err)
+		v, err := index.Get(i)
 		require.NoError(err)
 		require.Equal([]byte("7"), v)
 	}
@@ -68,7 +71,7 @@ func TestRangeIndex(t *testing.T) {
 	require.NoError(err)
 	for i := uint64(7); i < 10; i++ {
 		index, err = kv.CreateRangeIndexNX(testNS)
-		v, err := index.Get(7)
+		v, err := index.Get(i)
 		require.NoError(err)
 		require.Equal([]byte("7777"), v)
 	}
