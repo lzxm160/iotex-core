@@ -66,10 +66,16 @@ func TestRangeIndex(t *testing.T) {
 
 	v, err = index.Get(8)
 	fmt.Println(string(v), ":", err)
-	err = index.Insert(20, []byte("20"))
+
+	index.Close()
+
+	index2, err := kv.CreateRangeIndexNX([]byte("test"))
+	require.NoError(err)
+
+	err = index2.Insert(20, []byte("20"))
 	fmt.Println(err)
 	for i := 7; i < 22; i++ {
-		v, err := index.Get(uint64(i))
+		v, err := index2.Get(uint64(i))
 		fmt.Println(string(v), ":", err)
 	}
 	//for i, e := range rangeTests {
