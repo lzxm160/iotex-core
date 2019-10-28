@@ -51,8 +51,8 @@ func defaultConfig() Genesis {
 			AleutianBlockHeight:   864001,
 			BeringBlockHeight:     1512001,
 			CookBlockHeight:       1641601,
-			HudsonBlockHeight:     1855201,
-			HistoryHeight:         2000000,
+			HudsonBlockHeight:     3000000,
+			HistoryHeight:         5000000,
 		},
 		Account: Account{
 			InitBalanceMap: make(map[string]string),
