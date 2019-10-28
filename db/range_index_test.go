@@ -106,17 +106,17 @@ func TestRangeIndex(t *testing.T) {
 		v, err = index.Get(i)
 		require.Equal([]byte("66"), v)
 	}
-	// Case VI: delete 66,all keys deleted
+	// Case VI: delete key before 90,all keys deleted
 	index, err = kv.CreateRangeIndexNX(testNS)
-	err = index.Insert(20, []byte("20"))
+	err = index.Insert(70, []byte("70"))
 	require.NoError(err)
 	index, err = kv.CreateRangeIndexNX(testNS)
-	err = index.Insert(30, []byte("30"))
+	err = index.Insert(80, []byte("80"))
 	require.NoError(err)
 	index, err = kv.CreateRangeIndexNX(testNS)
-	err = index.Delete(70)
+	err = index.Delete(90)
 	require.NoError(err)
-	for i := uint64(1); i < 70; i++ {
+	for i := uint64(1); i < 100; i++ {
 		index, err = kv.CreateRangeIndexNX(testNS)
 		require.NoError(err)
 		_, err = index.Get(i)
