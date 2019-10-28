@@ -57,10 +57,11 @@ func TestRangeIndex(t *testing.T) {
 
 	err = index.Insert(7, []byte("7"))
 	fmt.Println(err)
-	v, err := index.Get(6)
-	fmt.Println(string(v), ":", err)
-
-	v, err = index.Get(7)
+	for i := 0; i < 7; i++ {
+		v, err := index.Get(uint64(i))
+		fmt.Println(string(v), ":", err)
+	}
+	v, err := index.Get(7)
 	fmt.Println(string(v), ":", err)
 
 	v, err = index.Get(8)
