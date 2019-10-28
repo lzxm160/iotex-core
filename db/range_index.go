@@ -121,9 +121,10 @@ func (r *rangeIndex) Insert(key uint64, value []byte) error {
 				if err := bucket.Put(byteutil.Uint64ToBytesBigEndian(key-1), curr); err != nil {
 					return err
 				}
-			} else {
-				log.L().Info("keySub1 already exists", zap.Uint64("height", key-1))
 			}
+			//else {
+			//	log.L().Info("keySub1 already exists", zap.Uint64("height", key-1))
+			//}
 			// write new value
 			return bucket.Put(CurrIndex, value)
 		}); err == nil {
