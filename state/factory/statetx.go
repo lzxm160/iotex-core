@@ -207,7 +207,10 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 		return errors.Wrapf(err, "failed to convert account %v to bytes", s)
 	}
 	stx.cb.Put(AccountKVNameSpace, pkHash[:], ss, "error when putting k = %x", pkHash)
-	return stx.putIndex(pkHash, ss)
+	if stx.saveHistory {
+		return stx.putIndex(pkHash, ss)
+	}
+	return nil
 }
 
 func (stx *stateTX) getMaxVersion(pkHash hash.Hash160) (index, height uint64, err error) {
