@@ -1099,11 +1099,11 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			return errors.Wrap(err, "Failed to obtain working set from state factory")
 		}
-
-		log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("size", uint64(ws.GetCachedBatch().Size())), zap.Uint64("blk.RunnableActions() size", uint64(len(blk.RunnableActions().Actions()))))
+		log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions() size", uint64(len(blk.RunnableActions().Actions()))))
 		if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
 			log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 		}
+		log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
 		err = ws.SaveHistoryForTrie(blk.Height())
 		if err != nil {
 			return errors.Wrapf(err, "failed to save history on height %d", blk.Height())
