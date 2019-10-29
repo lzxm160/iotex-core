@@ -1078,7 +1078,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to put smart contract receipts into DB on height %d", blk.Height())
 		}
-
+		//blk.WorkingSet.
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
 		err = bc.sf.Commit(blk.WorkingSet)
 		sfTimer.End()
@@ -1095,14 +1095,14 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 
 	if bc.sf2 != nil {
 		// run actions with history retention
-		//ws, err := bc.sf2.NewWorkingSet(true)
-		//if err != nil {
-		//	return errors.Wrap(err, "Failed to obtain working set from state factory")
-		//}
-		//if _, err := bc.runActions(blk.RunnableActions(), ws, false); err != nil {
-		//	log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
-		//}
-		if err = bc.sf2.Commit(blk.WorkingSet); err != nil {
+		ws, err := bc.sf2.NewWorkingSet(true)
+		if err != nil {
+			return errors.Wrap(err, "Failed to obtain working set from state factory")
+		}
+		if _, err := bc.runActions(blk.RunnableActions(), ws, false); err != nil {
+			log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
+		}
+		if err = bc.sf2.Commit(ws); err != nil {
 			log.L().Panic("Error when committing states with history.", zap.Error(err))
 		}
 		// regularly check and purge history
