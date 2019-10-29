@@ -928,6 +928,9 @@ func (bc *blockchain) startEmptyBlockchain() error {
 	if ws, err = bc.sf.NewWorkingSet(false); err != nil {
 		return errors.Wrap(err, "failed to obtain working set from state factory")
 	}
+	if ws2, err = bc.sf2.NewWorkingSet(true); err != nil {
+		return errors.Wrap(err, "failed to obtain working set from state factory")
+	}
 	//defer bc.sf2.Stop(context.Background())
 	//if ws2, err = bc.sf.NewWorkingSet(true); err != nil {
 	//	return errors.Wrap(err, "failed to obtain working set from state factory")
