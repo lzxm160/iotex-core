@@ -935,16 +935,16 @@ func (bc *blockchain) startEmptyBlockchain() error {
 		_ = ws.UpdateBlockLevelInfo(0)
 
 		//if err := bc.createGenesisStates(ws2); err != nil {
-	//		return err
+		//		return err
 		//}
-	//	_ = ws2.UpdateBlockLevelInfo(0)
+		//	_ = ws2.UpdateBlockLevelInfo(0)
 	}
 	// add Genesis states
 	if err := bc.sf.Commit(ws); err != nil {
 		return errors.Wrap(err, "failed to commit Genesis states")
 	}
 	//if bc.sf2 != nil {
-//		if err := bc.sf2.Commit(ws2); err != nil {
+	//		if err := bc.sf2.Commit(ws2); err != nil {
 	//		return errors.Wrap(err, "failed to commit Genesis states")
 	//	}
 	//}
@@ -975,7 +975,7 @@ func (bc *blockchain) startExistingBlockchain() error {
 			return errors.Wrap(err, "failed to obtain working set from state factory")
 		}
 
-		receipts, err := bc.runActions(blk.RunnableActions(), ws)
+		receipts, err := bc.runActions(blk.RunnableActions(), ws, true)
 		if err != nil {
 			return err
 		}
@@ -1021,7 +1021,7 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 		return errors.Wrap(err, "Failed to obtain working set from state factory")
 	}
 	runTimer := bc.timerFactory.NewTimer("runActions")
-	receipts, err := bc.runActions(blk.RunnableActions(), ws)
+	receipts, err := bc.runActions(blk.RunnableActions(), ws, true)
 	runTimer.End()
 	if err != nil {
 		log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
@@ -1095,7 +1095,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			return errors.Wrap(err, "Failed to obtain working set from state factory")
 		}
-		if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
+		if _, err := bc.runActions(blk.RunnableActions(), ws, false); err != nil {
 			log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 		}
 		if err = bc.sf2.Commit(blk.WorkingSet); err != nil {
@@ -1135,6 +1135,7 @@ func (bc *blockchain) deleteHistory() error {
 func (bc *blockchain) runActions(
 	acts block.RunnableActions,
 	ws factory.WorkingSet,
+	update bool,
 ) ([]*action.Receipt, error) {
 	if bc.sf == nil {
 		return nil, errors.New("statefactory cannot be nil")
@@ -1155,16 +1156,17 @@ func (bc *blockchain) runActions(
 			Registry:       bc.registry,
 			History:        ws.History(),
 		})
-
-	if acts.BlockHeight() == bc.config.Genesis.AleutianBlockHeight {
-		if err := bc.updateAleutianEpochRewardAmount(ctx, ws); err != nil {
-			return nil, err
+	if update {
+		if acts.BlockHeight() == bc.config.Genesis.AleutianBlockHeight {
+			if err := bc.updateAleutianEpochRewardAmount(ctx, ws); err != nil {
+				return nil, err
+			}
 		}
-	}
 
-	if acts.BlockHeight() == bc.config.Genesis.DardanellesBlockHeight {
-		if err := bc.updateDardanellesBlockRewardAmount(ctx, ws); err != nil {
-			return nil, err
+		if acts.BlockHeight() == bc.config.Genesis.DardanellesBlockHeight {
+			if err := bc.updateDardanellesBlockRewardAmount(ctx, ws); err != nil {
+				return nil, err
+			}
 		}
 	}
 
