@@ -207,6 +207,7 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 		return errors.Wrapf(err, "failed to convert account %v to bytes", s)
 	}
 	stx.cb.Put(AccountKVNameSpace, pkHash[:], ss, "error when putting k = %x", pkHash)
+	log.L().Info("PutState////////////////////", zap.String("path", stx.cfg.DbPath), zap.Error(errors.New("who is calling me")))
 	if stx.saveHistory {
 		return stx.putIndex(pkHash, ss)
 	}
