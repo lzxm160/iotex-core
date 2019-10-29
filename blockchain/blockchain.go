@@ -804,7 +804,15 @@ func (bc *blockchain) CreateState(addr string, init *big.Int) (*state.Account, e
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create clean working set")
 	}
+	ws2, err := bc.sf.NewWorkingSet(true)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create clean working set")
+	}
 	account, err := accountutil.LoadOrCreateAccount(ws, addr, init)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create new account %s", addr)
+	}
+	_, err = accountutil.LoadOrCreateAccount(ws2, addr, init)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create new account %s", addr)
 	}
@@ -825,6 +833,12 @@ func (bc *blockchain) CreateState(addr string, init *big.Int) (*state.Account, e
 		return nil, errors.Wrap(err, "failed to run the account creation")
 	}
 	if err = bc.sf.Commit(ws); err != nil {
+		return nil, errors.Wrap(err, "failed to commit the account creation")
+	}
+	if _, err = ws2.RunActions(ctx, 0, nil); err != nil {
+		return nil, errors.Wrap(err, "failed to run the account creation")
+	}
+	if err = bc.sf.Commit(ws2); err != nil {
 		return nil, errors.Wrap(err, "failed to commit the account creation")
 	}
 	return account, nil
@@ -978,8 +992,15 @@ func (bc *blockchain) startExistingBlockchain() error {
 		if err != nil {
 			return errors.Wrap(err, "failed to obtain working set from state factory")
 		}
-
+		ws2, err := bc.sf2.NewWorkingSet(true)
+		if err != nil {
+			return errors.Wrap(err, "Failed to obtain working set from state factory")
+		}
 		receipts, err := bc.runActions(blk.RunnableActions(), ws)
+		if err != nil {
+			return err
+		}
+		_, err = bc.runActions(blk.RunnableActions(), ws2)
 		if err != nil {
 			return err
 		}
@@ -993,6 +1014,9 @@ func (bc *blockchain) startExistingBlockchain() error {
 		}
 
 		if err := bc.sf.Commit(ws); err != nil {
+			return err
+		}
+		if err := bc.sf2.Commit(ws2); err != nil {
 			return err
 		}
 	}
@@ -1024,13 +1048,20 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 	if err != nil {
 		return errors.Wrap(err, "Failed to obtain working set from state factory")
 	}
+	ws2, err := bc.sf2.NewWorkingSet(true)
+	if err != nil {
+		return errors.Wrap(err, "Failed to obtain working set from state factory")
+	}
 	runTimer := bc.timerFactory.NewTimer("runActions")
 	receipts, err := bc.runActions(blk.RunnableActions(), ws)
 	runTimer.End()
 	if err != nil {
 		log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 	}
-
+	_, err = bc.runActions(blk.RunnableActions(), ws2)
+	if err != nil {
+		log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
+	}
 	if err = blk.VerifyDeltaStateDigest(ws.Digest()); err != nil {
 		return err
 	}
@@ -1043,6 +1074,9 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 
 	// attach working set to be committed to state factory
 	blk.WorkingSet = ws
+		if err := bc.sf2.Commit(ws2); err != nil {
+			return err
+		}
 	return nil
 }
 
