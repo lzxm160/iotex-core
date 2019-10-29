@@ -931,10 +931,6 @@ func (bc *blockchain) startEmptyBlockchain() error {
 	if ws2, err = bc.sf2.NewWorkingSet(true); err != nil {
 		return errors.Wrap(err, "failed to obtain working set from state factory")
 	}
-	//defer bc.sf2.Stop(context.Background())
-	//if ws2, err = bc.sf.NewWorkingSet(true); err != nil {
-	//	return errors.Wrap(err, "failed to obtain working set from state factory")
-	//}
 	if !bc.config.Chain.EmptyGenesis {
 		// Initialize the states before any actions happen on the blockchain
 		if err := bc.createGenesisStates(ws); err != nil {
@@ -1105,7 +1101,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		}
 
 		log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("size", uint64(ws.GetCachedBatch().Size())), zap.Uint64("blk.RunnableActions() size", uint64(len(blk.RunnableActions().Actions()))))
-		if _, err := bc.runActions(blk.RunnableActions(), ws, true); err != nil {
+		if _, err := bc.runActions(blk.RunnableActions(), ws, false); err != nil {
 			log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 		}
 		err = ws.SaveHistoryForTrie(blk.Height())
