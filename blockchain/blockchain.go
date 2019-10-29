@@ -979,7 +979,7 @@ func (bc *blockchain) startExistingBlockchain() error {
 			return errors.Wrap(err, "failed to obtain working set from state factory")
 		}
 
-		receipts, err := bc.runActions(blk.RunnableActions(), ws, true)
+		receipts, err := bc.runActions(blk.RunnableActions(), ws)
 		if err != nil {
 			return err
 		}
@@ -1025,7 +1025,7 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 		return errors.Wrap(err, "Failed to obtain working set from state factory")
 	}
 	runTimer := bc.timerFactory.NewTimer("runActions")
-	receipts, err := bc.runActions(blk.RunnableActions(), ws, true)
+	receipts, err := bc.runActions(blk.RunnableActions(), ws)
 	runTimer.End()
 	if err != nil {
 		log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
@@ -1101,7 +1101,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		}
 
 		log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("size", uint64(ws.GetCachedBatch().Size())), zap.Uint64("blk.RunnableActions() size", uint64(len(blk.RunnableActions().Actions()))))
-		if _, err := bc.runActions(blk.RunnableActions(), ws, false); err != nil {
+		if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
 			log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 		}
 		err = ws.SaveHistoryForTrie(blk.Height())
@@ -1146,7 +1146,6 @@ func (bc *blockchain) deleteHistory() error {
 func (bc *blockchain) runActions(
 	acts block.RunnableActions,
 	ws factory.WorkingSet,
-	update bool,
 ) ([]*action.Receipt, error) {
 	if bc.sf == nil {
 		return nil, errors.New("statefactory cannot be nil")
@@ -1167,17 +1166,15 @@ func (bc *blockchain) runActions(
 			Registry:       bc.registry,
 			History:        ws.History(),
 		})
-	if update {
-		if acts.BlockHeight() == bc.config.Genesis.AleutianBlockHeight {
-			if err := bc.updateAleutianEpochRewardAmount(ctx, ws); err != nil {
-				return nil, err
-			}
+	if acts.BlockHeight() == bc.config.Genesis.AleutianBlockHeight {
+		if err := bc.updateAleutianEpochRewardAmount(ctx, ws); err != nil {
+			return nil, err
 		}
+	}
 
-		if acts.BlockHeight() == bc.config.Genesis.DardanellesBlockHeight {
-			if err := bc.updateDardanellesBlockRewardAmount(ctx, ws); err != nil {
-				return nil, err
-			}
+	if acts.BlockHeight() == bc.config.Genesis.DardanellesBlockHeight {
+		if err := bc.updateDardanellesBlockRewardAmount(ctx, ws); err != nil {
+			return nil, err
 		}
 	}
 
