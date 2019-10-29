@@ -226,7 +226,7 @@ func (stx *stateTX) getMaxVersion(pkHash hash.Hash160) (index, height uint64, er
 
 func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	version := stx.ver + 1
-	log.L().Info("putIndex////////////////////", zap.Uint64("tipHeight", version), zap.String("path", stx.cfg.DbPath))
+	log.L().Info("putIndex////////////////////", zap.Uint64("tipHeight", version), zap.String("path", stx.cfg.DbPath), zap.Error(errors.New("who is calling me")))
 	maxIndex, maxHeight, _ := stx.getMaxVersion(pkHash)
 	if (maxHeight != 0) && (maxHeight != 1) && (maxHeight > version) {
 		return nil
