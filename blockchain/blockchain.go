@@ -182,10 +182,10 @@ type blockchain struct {
 	timerFactory  *prometheustimer.TimerFactory
 
 	// used by account-based model
-	sf  factory.Factory
-	sf2 factory.Factory // for state history
-	deletingHistory chan struct{} // make sure there's only one goroutine deleting
-	registry *protocol.Registry
+	sf              factory.Factory
+	sf2             factory.Factory // for state history
+	deletingHistory chan struct{}   // make sure there's only one goroutine deleting
+	registry        *protocol.Registry
 }
 
 // ActPoolManager defines the actpool interface
@@ -346,6 +346,9 @@ func NewBlockchain(cfg config.Config, opts ...Option) Blockchain {
 	if chain.sf != nil {
 		chain.lifecycle.Add(chain.sf)
 	}
+	if chain.sf2 != nil {
+		chain.lifecycle.Add(chain.sf2)
+	}
 	return chain
 }
 
@@ -363,9 +366,6 @@ func (bc *blockchain) Start(ctx context.Context) (err error) {
 	defer bc.mu.Unlock()
 	if err = bc.lifecycle.OnStart(ctx); err != nil {
 		return err
-	}
-	if err := bc.sf2.Start(context.Background()); err != nil {
-		return errors.Wrap(err, "failed to start state factory")
 	}
 	// get blockchain tip height
 	if bc.tipHeight, err = bc.dao.GetBlockchainHeight(); err != nil {
@@ -1073,9 +1073,9 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 
 	// attach working set to be committed to state factory
 	blk.WorkingSet = ws
-		if err := bc.sf2.Commit(ws2); err != nil {
-			return err
-		}
+	if err := bc.sf2.Commit(ws2); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -1144,7 +1144,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			log.L().Panic("Error when committing states with history.", zap.Error(err))
 		}
 		// regularly check and purge history
-		if blk.Height() % factory.CheckHistoryDeleteInterval == 0 {
+		if blk.Height()%factory.CheckHistoryDeleteInterval == 0 {
 			if err := bc.deleteHistory(); err != nil {
 				return err
 			}
@@ -1193,7 +1193,7 @@ func (bc *blockchain) runActions(
 			Producer:       producer,
 			GasLimit:       gasLimit,
 			Registry:       bc.registry,
-			History: ws.History(),
+			History:        ws.History(),
 		})
 
 	if acts.BlockHeight() == bc.config.Genesis.AleutianBlockHeight {
