@@ -375,6 +375,10 @@ func (bc *blockchain) Start(ctx context.Context) (err error) {
 	if bc.tipHash, err = bc.dao.GetBlockHash(bc.tipHeight); err != nil {
 		return err
 	}
+
+	if err := bc.sf2.Start(context.Background()); err != nil {
+		return errors.Wrap(err, "failed to start state factory")
+	}
 	return bc.startExistingBlockchain()
 }
 
