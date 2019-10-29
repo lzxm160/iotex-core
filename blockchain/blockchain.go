@@ -182,10 +182,10 @@ type blockchain struct {
 	timerFactory  *prometheustimer.TimerFactory
 
 	// used by account-based model
-	sf  factory.Factory
-	sf2 factory.Factory // for state history
-	deletingHistory chan struct{} // make sure there's only one goroutine deleting
-	registry *protocol.Registry
+	sf              factory.Factory
+	sf2             factory.Factory // for state history
+	deletingHistory chan struct{}   // make sure there's only one goroutine deleting
+	registry        *protocol.Registry
 }
 
 // ActPoolManager defines the actpool interface
@@ -1064,8 +1064,8 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
 		err = bc.sf.Commit(blk.WorkingSet)
 		sfTimer.End()
-		// detach working set so it can be freed by GC
-		blk.WorkingSet = nil
+		//// detach working set so it can be freed by GC
+		//blk.WorkingSet = nil
 		if err != nil {
 			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
@@ -1088,12 +1088,14 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			log.L().Panic("Error when committing states with history.", zap.Error(err))
 		}
 		// regularly check and purge history
-		if blk.Height() % factory.CheckHistoryDeleteInterval == 0 {
+		if blk.Height()%factory.CheckHistoryDeleteInterval == 0 {
 			if err := bc.deleteHistory(); err != nil {
 				return err
 			}
 		}
 	}
+	// detach working set so it can be freed by GC
+	blk.WorkingSet = nil
 	return nil
 }
 
@@ -1137,7 +1139,7 @@ func (bc *blockchain) runActions(
 			Producer:       producer,
 			GasLimit:       gasLimit,
 			Registry:       bc.registry,
-			History: ws.History(),
+			History:        ws.History(),
 		})
 
 	if acts.BlockHeight() == bc.config.Genesis.AleutianBlockHeight {
