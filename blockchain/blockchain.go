@@ -919,13 +919,10 @@ func (bc *blockchain) blockFooterByHeight(height uint64) (*block.Footer, error) 
 
 func (bc *blockchain) startEmptyBlockchain() error {
 	var ws factory.WorkingSet
-	//var ws2 factory.WorkingSet
+	var ws2 factory.WorkingSet
 	var err error
 	if ws, err = bc.sf.NewWorkingSet(false); err != nil {
 		return errors.Wrap(err, "failed to obtain working set from state factory")
-	}
-	if err := bc.sf2.Start(context.Background()); err != nil {
-		return errors.Wrap(err, "failed to start state factory")
 	}
 	//defer bc.sf2.Stop(context.Background())
 	//if ws2, err = bc.sf.NewWorkingSet(true); err != nil {
@@ -938,20 +935,20 @@ func (bc *blockchain) startEmptyBlockchain() error {
 		}
 		_ = ws.UpdateBlockLevelInfo(0)
 
-		//if err := bc.createGenesisStates(ws2); err != nil {
-		//		return err
-		//}
-		//	_ = ws2.UpdateBlockLevelInfo(0)
+		if err := bc.createGenesisStates(ws2); err != nil {
+			return err
+		}
+		_ = ws2.UpdateBlockLevelInfo(0)
 	}
 	// add Genesis states
 	if err := bc.sf.Commit(ws); err != nil {
 		return errors.Wrap(err, "failed to commit Genesis states")
 	}
-	//if bc.sf2 != nil {
-	//		if err := bc.sf2.Commit(ws2); err != nil {
-	//		return errors.Wrap(err, "failed to commit Genesis states")
-	//	}
-	//}
+	if bc.sf2 != nil {
+		if err := bc.sf2.Commit(ws2); err != nil {
+			return errors.Wrap(err, "failed to commit Genesis states")
+		}
+	}
 	return nil
 }
 
