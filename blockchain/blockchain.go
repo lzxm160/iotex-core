@@ -1093,6 +1093,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err := bc.sf2.Start(context.Background()); err != nil {
 			return errors.Wrap(err, "failed to start state factory")
 		}
+		defer bc.sf2.Stop(context.Background())
 		// run actions with history retention
 		ws, err := bc.sf2.NewWorkingSet(true)
 		if err != nil {
