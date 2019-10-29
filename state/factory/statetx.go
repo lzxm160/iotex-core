@@ -9,6 +9,7 @@ package factory
 import (
 	"context"
 	"encoding/binary"
+
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -56,7 +57,7 @@ func newStateTX(
 ) *stateTX {
 	return &stateTX{
 		ver:            version,
-		saveHistory: saveHistory,
+		saveHistory:    saveHistory,
 		cb:             db.NewCachedBatch(),
 		dao:            kv,
 		actionHandlers: actionHandlers,
@@ -320,39 +321,6 @@ func (stx *stateTX) deleteHistory() error {
 	}()
 	return nil
 }
-
-/*
-// TODOHISTORY: we can do processing according to stx.saveHistory flag
-// this SaveHistory() can be removed from WorkingSet interface
-func (stx *stateTX) SaveHistory(hei uint64, batch db.CachedBatch, chaindb db.KVStore) error {
-	trieBatch, ok := batch.(db.KVStoreBatch)
-	if !ok {
-		log.L().Error("trieBatch,ok:=batch.(db.KVStoreBatch)")
-		return nil
-	}
-	heightToKeyCache := db.NewCachedBatch()
-	heightBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(heightBytes, hei)
-	for i := 0; i < trieBatch.Size(); i++ {
-		write, err := trieBatch.Entry(i)
-		if err != nil {
-			return err
-		}
-		// only save trie node in evm's name space
-		if (write.WriteType() == db.Delete) && (strings.EqualFold(write.Namespace(), evm.ContractKVNameSpace)) {
-			heightTo := append(heightToTrieNodeKeyPrefix, heightBytes...)
-			heightTo = append(heightTo, write.Key()...)
-			heightToKeyCache.Put(heightToTrieNodeKeyNS, heightTo, []byte(""), "")
-		}
-	}
-	if heightToKeyCache.Size() == 0 {
-		return nil
-	}
-	log.L().Info("len of history SaveDeletedTrieNode", zap.Int("heighttokey", heightToKeyCache.Size()))
-	// commit to chain.db
-	return chaindb.Commit(heightToKeyCache)
-}
-*/
 
 // DeleteHistory delete account/state history asynchronous
 func (stx *stateTX) DeleteHistory(hei uint64, chaindb db.KVStore) error {
