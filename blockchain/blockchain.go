@@ -924,6 +924,10 @@ func (bc *blockchain) startEmptyBlockchain() error {
 	if ws, err = bc.sf.NewWorkingSet(false); err != nil {
 		return errors.Wrap(err, "failed to obtain working set from state factory")
 	}
+	if err := bc.sf2.Start(context.Background()); err != nil {
+		return errors.Wrap(err, "failed to start state factory")
+	}
+	//defer bc.sf2.Stop(context.Background())
 	//if ws2, err = bc.sf.NewWorkingSet(true); err != nil {
 	//	return errors.Wrap(err, "failed to obtain working set from state factory")
 	//}
@@ -1090,10 +1094,6 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 	bc.emitToSubscribers(blk)
 
 	if bc.sf2 != nil {
-		if err := bc.sf2.Start(context.Background()); err != nil {
-			return errors.Wrap(err, "failed to start state factory")
-		}
-		defer bc.sf2.Stop(context.Background())
 		// run actions with history retention
 		ws, err := bc.sf2.NewWorkingSet(true)
 		if err != nil {
