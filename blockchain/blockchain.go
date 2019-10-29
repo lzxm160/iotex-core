@@ -1082,8 +1082,8 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
 		err = bc.sf.Commit(blk.WorkingSet)
 		sfTimer.End()
-		//// detach working set so it can be freed by GC
-		//blk.WorkingSet = nil
+		// detach working set so it can be freed by GC
+		blk.WorkingSet = nil
 		if err != nil {
 			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
@@ -1102,18 +1102,23 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if _, err := bc.runActions(blk.RunnableActions(), ws, false); err != nil {
 			log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 		}
+		err = ws.SaveHistoryForTrie(blk.Height())
+		if err != nil {
+			return errors.Wrapf(err, "failed to save history on height %d", blk.Height())
+		}
+
 		if err = bc.sf2.Commit(ws); err != nil {
 			log.L().Panic("Error when committing states with history.", zap.Error(err))
 		}
+
 		// regularly check and purge history
 		if blk.Height()%factory.CheckHistoryDeleteInterval == 0 {
-			//if err := bc.deleteHistory(); err != nil {
-			//	return err
-			//}
+			if err := bc.deleteHistory(); err != nil {
+				return err
+			}
 		}
 	}
-	// detach working set so it can be freed by GC
-	blk.WorkingSet = nil
+
 	return nil
 }
 

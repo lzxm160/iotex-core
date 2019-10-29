@@ -9,6 +9,7 @@ package factory
 import (
 	"context"
 	"encoding/binary"
+	"strings"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -320,6 +321,41 @@ func (stx *stateTX) deleteHistory() error {
 		<-stx.deleting
 	}()
 	return nil
+}
+
+// SaveHistoryForTrie save history for trie node
+func (stx *stateTX) SaveHistoryForTrie(hei uint64) error {
+	trieBatch, ok := stx.cb.(db.KVStoreBatch)
+	if !ok {
+		log.L().Error("trieBatch,ok:=batch.(db.KVStoreBatch)")
+		return nil
+	}
+	heightToKeyCache := db.NewCachedBatch()
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, hei)
+	for i := 0; i < trieBatch.Size(); i++ {
+		write, err := trieBatch.Entry(i)
+		if err != nil {
+			return err
+		}
+		// only save trie node in evm's name space
+		if (write.WriteType() == db.Delete) && (strings.EqualFold(write.Namespace(), evm.ContractKVNameSpace)) {
+			heightTo := append(heightToTrieNodeKeyPrefix, heightBytes...)
+			heightTo = append(heightTo, write.Key()...)
+			heightToKeyCache.Put(string(heightToTrieNodeKeyNS), heightTo, []byte(""), "")
+		}
+	}
+	if heightToKeyCache.Size() == 0 {
+		return nil
+	}
+	log.L().Info("len of history SaveDeletedTrieNode", zap.Int("heighttokey", heightToKeyCache.Size()))
+	// commit to chain.db
+	return stx.dao.Commit(heightToKeyCache)
+	//if err != nil {
+	//	log.L().Error("Error when bc.dao.kvstore.Commit.", zap.Error(err))
+	//	return errors.Wrapf(err, "Error when commit height->trie node key hash on height %d", blk.Height())
+	//}
+	//return err
 }
 
 // DeleteHistory delete account/state history asynchronous
