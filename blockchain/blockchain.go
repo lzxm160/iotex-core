@@ -919,14 +919,14 @@ func (bc *blockchain) blockFooterByHeight(height uint64) (*block.Footer, error) 
 
 func (bc *blockchain) startEmptyBlockchain() error {
 	var ws factory.WorkingSet
-	var ws2 factory.WorkingSet
+	//var ws2 factory.WorkingSet
 	var err error
 	if ws, err = bc.sf.NewWorkingSet(false); err != nil {
 		return errors.Wrap(err, "failed to obtain working set from state factory")
 	}
-	if ws2, err = bc.sf.NewWorkingSet(true); err != nil {
-		return errors.Wrap(err, "failed to obtain working set from state factory")
-	}
+	//if ws2, err = bc.sf.NewWorkingSet(true); err != nil {
+	//	return errors.Wrap(err, "failed to obtain working set from state factory")
+	//}
 	if !bc.config.Chain.EmptyGenesis {
 		// Initialize the states before any actions happen on the blockchain
 		if err := bc.createGenesisStates(ws); err != nil {
@@ -934,20 +934,20 @@ func (bc *blockchain) startEmptyBlockchain() error {
 		}
 		_ = ws.UpdateBlockLevelInfo(0)
 
-		if err := bc.createGenesisStates(ws2); err != nil {
-			return err
-		}
-		_ = ws2.UpdateBlockLevelInfo(0)
+		//if err := bc.createGenesisStates(ws2); err != nil {
+	//		return err
+		//}
+	//	_ = ws2.UpdateBlockLevelInfo(0)
 	}
 	// add Genesis states
 	if err := bc.sf.Commit(ws); err != nil {
 		return errors.Wrap(err, "failed to commit Genesis states")
 	}
-	if bc.sf2 != nil {
-		if err := bc.sf2.Commit(ws2); err != nil {
-			return errors.Wrap(err, "failed to commit Genesis states")
-		}
-	}
+	//if bc.sf2 != nil {
+//		if err := bc.sf2.Commit(ws2); err != nil {
+	//		return errors.Wrap(err, "failed to commit Genesis states")
+	//	}
+	//}
 	return nil
 }
 
@@ -978,15 +978,6 @@ func (bc *blockchain) startExistingBlockchain() error {
 		receipts, err := bc.runActions(blk.RunnableActions(), ws)
 		if err != nil {
 			return err
-		}
-		if bc.sf2 != nil {
-			ws2, err := bc.sf.NewWorkingSet(false)
-			if err != nil {
-				return errors.Wrap(err, "failed to obtain working set from state factory")
-			}
-			if err := bc.sf2.Commit(ws2); err != nil {
-				return err
-			}
 		}
 		_, err = bc.GetReceiptsByHeight(i)
 		if errors.Cause(err) == db.ErrNotExist {
