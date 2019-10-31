@@ -1157,7 +1157,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 	// update tip hash and height
 	atomic.StoreUint64(&bc.tipHeight, blk.Height())
 	bc.tipHash = blk.HashBlock()
-
+	var ws2 factory.WorkingSet
 	if bc.sf != nil {
 		// write smart contract receipt into DB
 		receiptTimer := bc.timerFactory.NewTimer("putReceipt")
@@ -1166,6 +1166,8 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to put smart contract receipts into DB on height %d", blk.Height())
 		}
+		ws2 = blk.WorkingSet
+		snapshot := blk.WorkingSet.GetCachedBatch().Snapshot()
 		//blk.WorkingSet.
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
 		err = bc.sf.Commit(blk.WorkingSet)
@@ -1175,6 +1177,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
+		ws2.Revert(snapshot)
 	}
 	blk.HeaderLogger(log.L()).Info("Committed a block.", log.Hex("tipHash", bc.tipHash[:]))
 
@@ -1196,8 +1199,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		//if err != nil {
 		//	return errors.Wrapf(err, "failed to save history on height %d", blk.Height())
 		//}
-
-		if err = bc.sf2.Commit(blk.WorkingSet); err != nil {
+		if err = bc.sf2.Commit(ws2); err != nil {
 			log.L().Error("Error when committing states with history.", zap.Error(err))
 		}
 
