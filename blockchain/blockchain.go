@@ -1177,7 +1177,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
-		if err = blk.WorkingSet.Revert(snapshot); err != nil {
+		if err = blk.WorkingSet.GetCachedBatch().Revert(snapshot); err != nil {
 			log.L().Info("err=ws2.Revert(snapshot);err!=nil", zap.Error(err))
 		}
 		ws2 = blk.WorkingSet
