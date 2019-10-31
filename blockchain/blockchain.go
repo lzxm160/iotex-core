@@ -1113,10 +1113,10 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 		return errors.Wrap(err, "Failed to obtain working set from state factory")
 	}
 	// run actions and update state factory
-	ws2, err := bc.sf2.NewWorkingSet(true)
-	if err != nil {
-		return errors.Wrap(err, "Failed to obtain working set from state factory")
-	}
+	//ws2, err := bc.sf2.NewWorkingSet(true)
+	//if err != nil {
+	//	return errors.Wrap(err, "Failed to obtain working set from state factory")
+	//}
 	runTimer := bc.timerFactory.NewTimer("runActions")
 
 	receipts, err := bc.runActions(blk.RunnableActions(), ws)
@@ -1125,11 +1125,11 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 		log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 	}
 	log.L().Info("blk.RunnableActions()", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("validateBlock ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
-	_, err = bc.runActions(blk.RunnableActions(), ws2)
-	if err != nil {
-		log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
-	}
-	log.L().Info("blk.RunnableActions()", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("validateBlock ws2.GetCachedBatch().Size()", uint64(ws2.GetCachedBatch().Size())))
+	//_, err = bc.runActions(blk.RunnableActions(), ws2)
+	//if err != nil {
+	//	log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
+	//}
+	//log.L().Info("blk.RunnableActions()", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("validateBlock ws2.GetCachedBatch().Size()", uint64(ws2.GetCachedBatch().Size())))
 	if err = blk.VerifyDeltaStateDigest(ws.Digest()); err != nil {
 		return err
 	}
