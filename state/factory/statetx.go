@@ -218,7 +218,7 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 	if bytes.Compare(addr.Bytes(), pkHash[:]) == 0 {
 		acc, ok := s.(*state.Account)
 		if ok {
-			log.L().Info("////////////////PutState ", zap.String("balance", acc.Balance.Text(10)), zap.String("db", stx.cfg.DbPath))
+			log.L().Info("////////////////PutState ", zap.String("balance", acc.Balance.Text(10)), zap.String("db", stx.cfg.DbPath), zap.Error(errors.New("who is calling me")))
 		}
 	}
 
