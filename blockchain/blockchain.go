@@ -709,6 +709,17 @@ func (bc *blockchain) CommitBlock(blk *block.Block) error {
 
 // StateByAddr returns the account of an address
 func (bc *blockchain) StateByAddr(address string) (*state.Account, error) {
+	if len(address) > 41 {
+		if bc.sf2 != nil {
+			s, err := bc.sf2.AccountState(address)
+			if err != nil {
+				log.L().Warn("Failed to get account.", zap.String("address", address), zap.Error(err))
+				return nil, err
+			}
+			return s, nil
+		}
+		return nil, errors.New("state factory is nil")
+	}
 	if bc.sf != nil {
 		s, err := bc.sf.AccountState(address)
 		if err != nil {
