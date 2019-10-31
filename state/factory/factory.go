@@ -60,7 +60,7 @@ type (
 		RootHash() hash.Hash256
 		RootHashByHeight(uint64) (hash.Hash256, error)
 		Height() (uint64, error)
-		NewWorkingSet() (WorkingSet, error)
+		NewWorkingSet(bool) (WorkingSet, error)
 		Commit(WorkingSet) error
 		// Candidate pool
 		CandidatesByHeight(uint64) ([]*state.Candidate, error)
@@ -99,6 +99,19 @@ func PrecreatedTrieDBOption(kv db.KVStore) Option {
 func DefaultTrieOption() Option {
 	return func(sf *factory, cfg config.Config) (err error) {
 		dbPath := cfg.Chain.TrieDBPath
+		if len(dbPath) == 0 {
+			return errors.New("Invalid empty trie db path")
+		}
+		cfg.DB.DbPath = dbPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
+		sf.dao = db.NewBoltDB(cfg.DB)
+		return nil
+	}
+}
+
+// DefaultHistoryTrieOption creates trie from config for history state factory
+func DefaultHistoryTrieOption() Option {
+	return func(sf *factory, cfg config.Config) (err error) {
+		dbPath := cfg.Chain.TrieDBPath + "2"
 		if len(dbPath) == 0 {
 			return errors.New("Invalid empty trie db path")
 		}
@@ -244,10 +257,10 @@ func (sf *factory) Height() (uint64, error) {
 	return byteutil.BytesToUint64(height), nil
 }
 
-func (sf *factory) NewWorkingSet() (WorkingSet, error) {
+func (sf *factory) NewWorkingSet(saveHistory bool) (WorkingSet, error) {
 	sf.mutex.RLock()
 	defer sf.mutex.RUnlock()
-	return NewWorkingSet(sf.currentChainHeight, sf.dao, sf.rootHash(), sf.actionHandlers)
+	return NewWorkingSet(sf.currentChainHeight, sf.dao, sf.rootHash(), sf.actionHandlers, saveHistory)
 }
 
 // Commit persists all changes in RunActions() into the DB

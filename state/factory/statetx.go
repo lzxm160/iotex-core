@@ -41,6 +41,7 @@ var (
 type stateTX struct {
 	ver            uint64
 	blkHeight      uint64
+	saveHistory    bool
 	cb             db.CachedBatch // cached batch for pending writes
 	dao            db.KVStore     // the underlying DB for account/contract storage
 	actionHandlers []protocol.ActionHandler
@@ -54,9 +55,11 @@ func newStateTX(
 	kv db.KVStore,
 	actionHandlers []protocol.ActionHandler,
 	cfg config.DB,
+	saveHistory bool,
 ) *stateTX {
 	return &stateTX{
 		ver:            version,
+		saveHistory:    saveHistory,
 		cb:             db.NewCachedBatch(),
 		dao:            kv,
 		actionHandlers: actionHandlers,
@@ -76,6 +79,8 @@ func (stx *stateTX) Version() uint64 { return stx.ver }
 
 // Height returns the Height of the block being worked on
 func (stx *stateTX) Height() uint64 { return stx.blkHeight }
+
+func (stx *stateTX) History() bool { return stx.saveHistory }
 
 // RunActions runs actions in the block and track pending changes in working set
 func (stx *stateTX) RunActions(
@@ -144,7 +149,7 @@ func (stx *stateTX) RunAction(
 // UpdateBlockLevelInfo runs action in the block and track pending changes in working set
 func (stx *stateTX) UpdateBlockLevelInfo(blockHeight uint64) hash.Hash256 {
 	if blockHeight%CheckHistoryDeleteInterval == 0 && blockHeight != 0 {
-		stx.deleteHistory()
+		//stx.deleteHistory()
 	}
 	stx.blkHeight = blockHeight
 	// Persist current chain Height
@@ -365,8 +370,8 @@ func (stx *stateTX) deleteHistory() error {
 }
 
 // SaveHistoryForTrie save history for trie node
-func (stx *stateTX) SaveHistoryForTrie(hei uint64, batch db.CachedBatch, chaindb db.KVStore) error {
-	trieBatch, ok := batch.(db.KVStoreBatch)
+func (stx *stateTX) SaveHistoryForTrie(hei uint64) error {
+	trieBatch, ok := stx.cb.(db.KVStoreBatch)
 	if !ok {
 		log.L().Error("trieBatch,ok:=batch.(db.KVStoreBatch)")
 		return nil
@@ -391,7 +396,7 @@ func (stx *stateTX) SaveHistoryForTrie(hei uint64, batch db.CachedBatch, chaindb
 	}
 	log.L().Info("len of history SaveDeletedTrieNode", zap.Int("heighttokey", heightToKeyCache.Size()))
 	// commit to chain.db
-	return chaindb.Commit(heightToKeyCache)
+	return stx.dao.Commit(heightToKeyCache)
 	//if err != nil {
 	//	log.L().Error("Error when bc.dao.kvstore.Commit.", zap.Error(err))
 	//	return errors.Wrapf(err, "Error when commit height->trie node key hash on height %d", blk.Height())
@@ -399,12 +404,12 @@ func (stx *stateTX) SaveHistoryForTrie(hei uint64, batch db.CachedBatch, chaindb
 	//return err
 }
 
-// DeleteHistoryForTrie delete history asynchronous for trie node
-func (stx *stateTX) DeleteHistoryForTrie(hei uint64, chaindb db.KVStore) error {
-	if hei < stx.cfg.HistoryStateSaveLength {
+// DeleteHistory delete account/state history asynchronous
+func (stx *stateTX) DeleteHistory(hei uint64, chaindb db.KVStore) error {
+	if hei < stx.cfg.HistoryStateRetention {
 		return nil
 	}
-	deleteStartHeight := hei - stx.cfg.HistoryStateSaveLength
+	deleteStartHeight := hei - stx.cfg.HistoryStateRetention
 	var deleteEndHeight uint64
 	if deleteStartHeight < CheckHistoryDeleteInterval {
 		deleteEndHeight = 1
@@ -418,13 +423,13 @@ func (stx *stateTX) DeleteHistoryForTrie(hei uint64, chaindb db.KVStore) error {
 		heightBytes := make([]byte, 8)
 		binary.BigEndian.PutUint64(heightBytes, i)
 		keyPrefix := append(heightToTrieNodeKeyPrefix, heightBytes...)
-		allKeys, err := stx.dao.GetKeyByPrefix(heightToTrieNodeKeyNS, keyPrefix)
+		allKeys, err := stx.dao.GetPrefix(heightToTrieNodeKeyNS, keyPrefix)
 		if err != nil {
 			continue
 		}
 		log.L().Info("deleteHeight", zap.Int("len(allKeys)", len(allKeys)))
 		for _, key := range allKeys {
-			chaindbCache.Delete(string(heightToTrieNodeKeyNS), key, "failed to delete key %x", key)
+			chaindbCache.Delete(heightToTrieNodeKeyNS, key, "failed to delete key %x", key)
 			triedbCache.Delete(evm.ContractKVNameSpace, key[len(keyPrefix):], "failed to delete key %x", key[len(keyPrefix):])
 		}
 	}

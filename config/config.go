@@ -72,16 +72,16 @@ func (ss *strs) Set(str string) error {
 	return nil
 }
 
-// Hudson consensus config
+// Dardanelles consensus config
 const (
-	HudsonUnmatchedEventTTL            = 2 * time.Second
-	HudsonUnmatchedEventInterval       = 100 * time.Millisecond
-	HudsonAcceptBlockTTL               = 2 * time.Second
-	HudsonAcceptProposalEndorsementTTL = time.Second
-	HudsonAcceptLockEndorsementTTL     = time.Second
-	HudsonCommitTTL                    = time.Second
-	HudsonBlockInterval                = 5 * time.Second
-	HudsonDelay                        = 2 * time.Second
+	DardanellesUnmatchedEventTTL            = 2 * time.Second
+	DardanellesUnmatchedEventInterval       = 100 * time.Millisecond
+	DardanellesAcceptBlockTTL               = 2 * time.Second
+	DardanellesAcceptProposalEndorsementTTL = time.Second
+	DardanellesAcceptLockEndorsementTTL     = time.Second
+	DardanellesCommitTTL                    = time.Second
+	DardanellesBlockInterval                = 5 * time.Second
+	DardanellesDelay                        = 2 * time.Second
 )
 
 var (
@@ -117,6 +117,7 @@ var (
 			AllowedBlockGasResidue:        10000,
 			MaxCacheSize:                  0,
 			PollInitialCandidatesInterval: 10 * time.Second,
+			EnableHistoryStateDB:true,
 		},
 		ActPool: ActPool{
 			MaxNumActsPerPool:  32000,
@@ -176,10 +177,10 @@ var (
 			SQLITE3: SQLITE3{
 				SQLite3File: "./explorer.db",
 			},
-			SplitDBSizeMB:          0,
-			SplitDBHeight:          900000,
-			Reindex:                false,
-			HistoryStateSaveLength: 180,
+			SplitDBSizeMB:         0,
+			SplitDBHeight:         900000,
+			Reindex:               false,
+			HistoryStateRetention: 2000,
 		},
 		Genesis: genesis.Default,
 	}
@@ -228,6 +229,7 @@ type (
 
 		EnableFallBackToFreshDB bool `yaml:"enableFallbackToFreshDb"`
 		EnableTrielessStateDB   bool `yaml:"enableTrielessStateDB"`
+		EnableHistoryStateDB    bool `yaml:"enableHistoryStateDB"`
 		// EnableAsyncIndexWrite enables writing the block actions' and receipts' index asynchronously
 		EnableAsyncIndexWrite bool `yaml:"enableAsyncIndexWrite"`
 		// CompressBlock enables gzip compression on block data
@@ -342,8 +344,8 @@ type (
 		SplitDBHeight uint64 `yaml:"splitDBHeight"`
 		// Reindex will rebuild index if set to true
 		Reindex bool `yaml:"reindex"`
-		// HistoryStateSaveLength is the config for DB history height
-		HistoryStateSaveLength uint64 `yaml:"historyStateSaveLength"`
+		// HistoryStateRetention is the number of blocks account/contract state will be retained
+		HistoryStateRetention uint64 `yaml:"historyStateRetention"`
 	}
 
 	// RDS is the cloud rds config

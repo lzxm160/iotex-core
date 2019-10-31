@@ -67,6 +67,20 @@ func DefaultStateDBOption() StateDBOption {
 	}
 }
 
+// DefaultHistoryDBOption creates default history state db from config
+func DefaultHistoryDBOption() StateDBOption {
+	return func(sdb *stateDB, cfg config.Config) error {
+		dbPath := cfg.Chain.TrieDBPath + "2"
+		if len(dbPath) == 0 {
+			return errors.New("Invalid empty trie db path")
+		}
+		cfg.DB.DbPath = dbPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
+		sdb.cfg = cfg.DB
+		sdb.dao = db.NewBoltDB(cfg.DB)
+		return nil
+	}
+}
+
 // InMemStateDBOption creates in memory state db
 func InMemStateDBOption() StateDBOption {
 	return func(sdb *stateDB, cfg config.Config) error {
@@ -170,10 +184,10 @@ func (sdb *stateDB) Height() (uint64, error) {
 	return byteutil.BytesToUint64(height), nil
 }
 
-func (sdb *stateDB) NewWorkingSet() (WorkingSet, error) {
+func (sdb *stateDB) NewWorkingSet(saveHistory bool) (WorkingSet, error) {
 	sdb.mutex.RLock()
 	defer sdb.mutex.RUnlock()
-	return newStateTX(sdb.currentChainHeight, sdb.dao, sdb.actionHandlers, sdb.cfg), nil
+	return newStateTX(sdb.currentChainHeight, sdb.dao, sdb.actionHandlers, sdb.cfg, saveHistory), nil
 }
 
 // Commit persists all changes in RunActions() into the DB
