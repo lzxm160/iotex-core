@@ -1172,6 +1172,8 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
 		err = bc.sf.Commit(blk.WorkingSet)
 		sfTimer.End()
+		log.L().Info("original blk.WorkingSet", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("original blk.WorkingSet ws.GetCachedBatch().Size()", uint64(blk.WorkingSet.GetCachedBatch().Size())))
+
 		// detach working set so it can be freed by GC
 		//blk.WorkingSet = nil
 		if err != nil {
