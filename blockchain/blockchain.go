@@ -1126,9 +1126,10 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 
 	// attach working set to be committed to state factory
 	blk.WorkingSet = ws
-	if err = bc.sf2.Commit(ws2); err != nil {
-		log.L().Panic("Error when committing states with history.", zap.Error(err))
-	}
+	blk.WorkingSet2 = ws2
+	//if err = bc.sf2.Commit(ws2); err != nil {
+	//	log.L().Panic("Error when committing states with history.", zap.Error(err))
+	//}
 	return nil
 }
 
@@ -1182,24 +1183,24 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 
 	if bc.sf2 != nil {
 		// run actions with history retention
-		ws, err := bc.sf2.NewWorkingSet(true)
-		if err != nil {
-			return errors.Wrap(err, "Failed to obtain working set from state factory")
-		}
-		log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions() size", uint64(len(blk.RunnableActions().Actions()))))
-		if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
-			log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
-		}
-		log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
-		err = ws.SaveHistoryForTrie(blk.Height())
-		if err != nil {
-			return errors.Wrapf(err, "failed to save history on height %d", blk.Height())
-		}
+		//ws, err := bc.sf2.NewWorkingSet(true)
+		//if err != nil {
+		//	return errors.Wrap(err, "Failed to obtain working set from state factory")
+		//}
+		//log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions() size", uint64(len(blk.RunnableActions().Actions()))))
+		//if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
+		//	log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
+		//}
+		//log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
+		//err = ws.SaveHistoryForTrie(blk.Height())
+		//if err != nil {
+		//	return errors.Wrapf(err, "failed to save history on height %d", blk.Height())
+		//}
 
-		if err = bc.sf2.Commit(ws); err != nil {
+		if err = bc.sf2.Commit(blk.WorkingSet2); err != nil {
 			log.L().Panic("Error when committing states with history.", zap.Error(err))
 		}
-
+		blk.WorkingSet2 = nil
 		// regularly check and purge history
 		if blk.Height()%factory.CheckHistoryDeleteInterval == 0 {
 			if err := bc.deleteHistory(); err != nil {
