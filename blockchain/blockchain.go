@@ -1208,9 +1208,9 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 
 		// regularly check and purge history
 		if blk.Height()%factory.CheckHistoryDeleteInterval == 0 {
-			if err := bc.deleteHistory(); err != nil {
-				return err
-			}
+			//if err := bc.deleteHistory(); err != nil {
+			//	return err
+			//}
 		}
 	}
 	blk.WorkingSet = nil

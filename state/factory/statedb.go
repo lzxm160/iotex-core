@@ -280,9 +280,10 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 	}
 	accountValue, err := ri.Get(height)
 	if err != nil {
+		log.L().Info("stateHeight get hegith/////////1", zap.Uint64("height", height), zap.String("path:", sdb.cfg.DbPath))
 		return err
 	}
-	log.L().Info("stateHeight get hegith/////////", zap.Uint64("height", height), zap.String("acccount:", hex.EncodeToString(accountValue)))
+	log.L().Info("stateHeight get hegith/////////2", zap.Uint64("height", height), zap.String("acccount:", hex.EncodeToString(accountValue)))
 
 	return state.Deserialize(s, accountValue)
 	//currentHeight, err := sdb.Height()
