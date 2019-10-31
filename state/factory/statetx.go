@@ -291,10 +291,10 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 func (stx *stateTX) deleteHistory() error {
 	log.L().Info("deleteHistory start")
 	currentHeight := stx.ver + 1
-	if currentHeight <= stx.cfg.HistoryStateSaveLength {
+	if currentHeight <= stx.cfg.HistoryStateRetention {
 		return nil
 	}
-	deleteStartHeight := currentHeight - stx.cfg.HistoryStateSaveLength
+	deleteStartHeight := currentHeight - stx.cfg.HistoryStateRetention
 	//var deleteEndHeight uint64
 	//if deleteStartHeight < CheckHistoryDeleteInterval {
 	//	deleteEndHeight = 1
@@ -305,7 +305,7 @@ func (stx *stateTX) deleteHistory() error {
 		stx.deleting <- struct{}{}
 		log.L().Info("////////////////deleteHistory", zap.Uint64("currentHeight", currentHeight), zap.Uint64("deleteStartHeight", deleteStartHeight))
 		// find all keys that with version
-		allKeys, err := stx.dao.GetBucketByPrefix(heightToTrieNodeKeyNS)
+		allKeys, err := stx.dao.GetPrefix(string(heightToTrieNodeKeyNS), heightToTrieNodeKeyPrefix)
 		if err != nil {
 			log.L().Info("get prefix", zap.Error(err))
 			return
@@ -416,20 +416,20 @@ func (stx *stateTX) DeleteHistory(hei uint64, chaindb db.KVStore) error {
 	} else {
 		deleteEndHeight = deleteStartHeight - CheckHistoryDeleteInterval
 	}
-	log.L().Info("deleteHeight", zap.Uint64("deleteStartHeight", deleteStartHeight), zap.Uint64("endHeight", deleteEndHeight), zap.Uint64("height", hei), zap.Uint64("historystateheight", stx.cfg.HistoryStateSaveLength))
+	log.L().Info("deleteHeight", zap.Uint64("deleteStartHeight", deleteStartHeight), zap.Uint64("endHeight", deleteEndHeight), zap.Uint64("height", hei), zap.Uint64("historystateheight", stx.cfg.HistoryStateRetention))
 	chaindbCache := db.NewCachedBatch()
 	triedbCache := db.NewCachedBatch()
 	for i := deleteStartHeight; i >= deleteEndHeight; i-- {
 		heightBytes := make([]byte, 8)
 		binary.BigEndian.PutUint64(heightBytes, i)
 		keyPrefix := append(heightToTrieNodeKeyPrefix, heightBytes...)
-		allKeys, err := stx.dao.GetPrefix(heightToTrieNodeKeyNS, keyPrefix)
+		allKeys, err := stx.dao.GetPrefix(string(heightToTrieNodeKeyNS), keyPrefix)
 		if err != nil {
 			continue
 		}
 		log.L().Info("deleteHeight", zap.Int("len(allKeys)", len(allKeys)))
 		for _, key := range allKeys {
-			chaindbCache.Delete(heightToTrieNodeKeyNS, key, "failed to delete key %x", key)
+			chaindbCache.Delete(string(heightToTrieNodeKeyNS), key, "failed to delete key %x", key)
 			triedbCache.Delete(evm.ContractKVNameSpace, key[len(keyPrefix):], "failed to delete key %x", key[len(keyPrefix):])
 		}
 	}
