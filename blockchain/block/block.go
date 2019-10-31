@@ -28,9 +28,8 @@ type Block struct {
 	Footer
 
 	// TODO: move receipts out of block struct
-	Receipts    []*action.Receipt
-	WorkingSet  factory.WorkingSet
-	WorkingSet2 factory.WorkingSet
+	Receipts   []*action.Receipt
+	WorkingSet factory.WorkingSet
 }
 
 // ConvertToBlockHeaderPb converts BlockHeader to BlockHeader

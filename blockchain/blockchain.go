@@ -1126,7 +1126,7 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 
 	// attach working set to be committed to state factory
 	blk.WorkingSet = ws
-	blk.WorkingSet2 = ws2
+	//blk.WorkingSet2 = ws2
 	//if err = bc.sf2.Commit(ws2); err != nil {
 	//	log.L().Panic("Error when committing states with history.", zap.Error(err))
 	//}
@@ -1171,7 +1171,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		err = bc.sf.Commit(blk.WorkingSet)
 		sfTimer.End()
 		// detach working set so it can be freed by GC
-		blk.WorkingSet = nil
+		//blk.WorkingSet = nil
 		if err != nil {
 			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
@@ -1197,10 +1197,10 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		//	return errors.Wrapf(err, "failed to save history on height %d", blk.Height())
 		//}
 
-		if err = bc.sf2.Commit(blk.WorkingSet2); err != nil {
-			log.L().Panic("Error when committing states with history.", zap.Error(err))
+		if err = bc.sf2.Commit(blk.WorkingSet); err != nil {
+			log.L().Error("Error when committing states with history.", zap.Error(err))
 		}
-		blk.WorkingSet2 = nil
+
 		// regularly check and purge history
 		if blk.Height()%factory.CheckHistoryDeleteInterval == 0 {
 			if err := bc.deleteHistory(); err != nil {
@@ -1208,7 +1208,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			}
 		}
 	}
-
+	blk.WorkingSet = nil
 	return nil
 }
 
