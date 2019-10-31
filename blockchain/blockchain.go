@@ -374,6 +374,19 @@ func (bc *blockchain) Start(ctx context.Context) (err error) {
 	if err = bc.lifecycle.OnStart(ctx); err != nil {
 		return err
 	}
+	if bc.sf2 != nil {
+		p, ok := bc.registry.Find(account.ProtocolID)
+		if !ok {
+			return errors.New("can not find account protocol")
+		}
+		bc.sf2.AddActionHandlers(p)
+		p, ok = bc.registry.Find(execution.ProtocolID)
+		if !ok {
+			return errors.New("can not find execution protocol")
+		}
+		bc.sf2.AddActionHandlers(p)
+	}
+
 	// get blockchain tip height
 	if bc.tipHeight, err = bc.dao.GetBlockchainHeight(); err != nil {
 		return err
@@ -1494,17 +1507,6 @@ func (bc *blockchain) refreshStateDB() error {
 	for _, p := range bc.registry.All() {
 		bc.sf.AddActionHandlers(p)
 	}
-
-	p, ok := bc.registry.Find(account.ProtocolID)
-	if !ok {
-		return errors.New("can not find account protocol")
-	}
-	bc.sf2.AddActionHandlers(p)
-	p, ok = bc.registry.Find(execution.ProtocolID)
-	if !ok {
-		return errors.New("can not find execution protocol")
-	}
-	bc.sf2.AddActionHandlers(p)
 
 	if err := bc.sf.Start(context.Background()); err != nil {
 		return errors.Wrap(err, "failed to start state factory")
