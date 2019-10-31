@@ -1097,9 +1097,19 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 	if err != nil {
 		return errors.Wrap(err, "Failed to obtain working set from state factory")
 	}
+	// run actions and update state factory
+	ws2, err := bc.sf2.NewWorkingSet(true)
+	if err != nil {
+		return errors.Wrap(err, "Failed to obtain working set from state factory")
+	}
 	runTimer := bc.timerFactory.NewTimer("runActions")
 	receipts, err := bc.runActions(blk.RunnableActions(), ws)
 	runTimer.End()
+	if err != nil {
+		log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
+	}
+
+	_, err = bc.runActions(blk.RunnableActions(), ws2)
 	if err != nil {
 		log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 	}
@@ -1116,6 +1126,9 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 
 	// attach working set to be committed to state factory
 	blk.WorkingSet = ws
+	if err = bc.sf2.Commit(ws2); err != nil {
+		log.L().Panic("Error when committing states with history.", zap.Error(err))
+	}
 	return nil
 }
 
