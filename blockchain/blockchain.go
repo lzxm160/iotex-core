@@ -1126,9 +1126,9 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 
 	// attach working set to be committed to state factory
 	blk.WorkingSet = ws
-	if err = bc.sf2.Commit(ws2); err != nil {
-		log.L().Panic("Error when committing states with history.", zap.Error(err))
-	}
+	//if err = bc.sf2.Commit(ws2); err != nil {
+	//	log.L().Panic("Error when committing states with history.", zap.Error(err))
+	//}
 	return nil
 }
 
