@@ -218,7 +218,7 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 	if bytes.Compare(addr.Bytes(), pkHash[:]) == 0 {
 		acc, ok := s.(*state.Account)
 		if ok {
-			log.L().Info("////////////////PutState ", zap.String("balance", acc.Balance.Text(10)))
+			log.L().Info("////////////////PutState ", zap.String("balance", acc.Balance.Text(10)), zap.String("db", stx.cfg.DbPath))
 		}
 	}
 
@@ -250,7 +250,7 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 		return err
 	}
 	if bytes.Compare(addr.Bytes(), pkHash[:]) == 0 {
-		log.L().Info("////////////////putIndex ", zap.Uint64("version", version))
+		log.L().Info("////////////////putIndex ", zap.Uint64("version", version), zap.String("db", stx.cfg.DbPath))
 	}
 
 	return ri.Insert(version, insertValue)
