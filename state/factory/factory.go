@@ -265,6 +265,7 @@ func (sf *factory) NewWorkingSet(saveHistory bool) (WorkingSet, error) {
 
 // Commit persists all changes in RunActions() into the DB
 func (sf *factory) Commit(ws WorkingSet) error {
+	log.L().Info("(sf *factory) Commit(ws WorkingSet) error {", zap.Error(errors.New("who is calling me ")))
 	if ws == nil {
 		return errors.New("working set doesn't exist")
 	}
