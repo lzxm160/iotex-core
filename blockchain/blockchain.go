@@ -1103,17 +1103,18 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 		return errors.Wrap(err, "Failed to obtain working set from state factory")
 	}
 	runTimer := bc.timerFactory.NewTimer("runActions")
+	log.L().Info("blk.RunnableActions()", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions()1", uint64(len(blk.RunnableActions().Actions()))))
 	receipts, err := bc.runActions(blk.RunnableActions(), ws)
 	runTimer.End()
 	if err != nil {
 		log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 	}
-
+	log.L().Info("blk.RunnableActions()", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions()2", uint64(len(blk.RunnableActions().Actions()))))
 	_, err = bc.runActions(blk.RunnableActions(), ws2)
 	if err != nil {
 		log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 	}
-
+	log.L().Info("blk.RunnableActions()", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions()3", uint64(len(blk.RunnableActions().Actions()))))
 	if err = blk.VerifyDeltaStateDigest(ws.Digest()); err != nil {
 		return err
 	}
