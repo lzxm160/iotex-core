@@ -15,6 +15,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/iotexproject/iotex-core/action/protocol/execution"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ecrypto "github.com/ethereum/go-ethereum/crypto"
@@ -1492,6 +1494,17 @@ func (bc *blockchain) refreshStateDB() error {
 	for _, p := range bc.registry.All() {
 		bc.sf.AddActionHandlers(p)
 	}
+
+	p, ok := bc.registry.Find(account.ProtocolID)
+	if !ok {
+		return errors.New("can not find account protocol")
+	}
+	bc.sf2.AddActionHandlers(p)
+	p, ok = bc.registry.Find(execution.ProtocolID)
+	if !ok {
+		return errors.New("can not find execution protocol")
+	}
+	bc.sf2.AddActionHandlers(p)
 
 	if err := bc.sf.Start(context.Background()); err != nil {
 		return errors.Wrap(err, "failed to start state factory")
