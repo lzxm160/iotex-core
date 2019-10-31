@@ -1103,18 +1103,18 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 		return errors.Wrap(err, "Failed to obtain working set from state factory")
 	}
 	runTimer := bc.timerFactory.NewTimer("runActions")
-	log.L().Info("blk.RunnableActions()", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions()1", uint64(len(blk.RunnableActions().Actions()))))
+
 	receipts, err := bc.runActions(blk.RunnableActions(), ws)
 	runTimer.End()
 	if err != nil {
 		log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 	}
-	log.L().Info("blk.RunnableActions()", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions()2", uint64(len(blk.RunnableActions().Actions()))))
+	log.L().Info("blk.RunnableActions()", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("validateBlock ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
 	_, err = bc.runActions(blk.RunnableActions(), ws2)
 	if err != nil {
 		log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 	}
-	log.L().Info("blk.RunnableActions()", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions()3", uint64(len(blk.RunnableActions().Actions()))))
+	log.L().Info("blk.RunnableActions()", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("validateBlock ws2.GetCachedBatch().Size()", uint64(ws2.GetCachedBatch().Size())))
 	if err = blk.VerifyDeltaStateDigest(ws.Digest()); err != nil {
 		return err
 	}
@@ -1128,7 +1128,6 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 	// attach working set to be committed to state factory
 	blk.WorkingSet = ws
 	//blk.WorkingSet2 = ws2
-	log.L().Info("validateBlock ws2", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("validateBlock ws2.GetCachedBatch().Size()", uint64(ws2.GetCachedBatch().Size())))
 	if err = bc.sf2.Commit(ws2); err != nil {
 		log.L().Panic("Error when committing states with history.", zap.Error(err))
 	}
