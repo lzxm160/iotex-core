@@ -1177,7 +1177,9 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
-		ws2.Revert(snapshot)
+		if err = ws2.Revert(snapshot); err != nil {
+			log.L().Info("err=ws2.Revert(snapshot);err!=nil", zap.Error(err))
+		}
 	}
 	blk.HeaderLogger(log.L()).Info("Committed a block.", log.Hex("tipHash", bc.tipHash[:]))
 
