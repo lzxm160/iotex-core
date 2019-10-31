@@ -1166,7 +1166,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to put smart contract receipts into DB on height %d", blk.Height())
 		}
-		ws2 = blk.WorkingSet
+
 		snapshot := blk.WorkingSet.GetCachedBatch().Snapshot()
 		//blk.WorkingSet.
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
@@ -1177,9 +1177,10 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
-		if err = ws2.Revert(snapshot); err != nil {
+		if err = blk.WorkingSet.Revert(snapshot); err != nil {
 			log.L().Info("err=ws2.Revert(snapshot);err!=nil", zap.Error(err))
 		}
+		ws2 = blk.WorkingSet
 	}
 	blk.HeaderLogger(log.L()).Info("Committed a block.", log.Hex("tipHash", bc.tipHash[:]))
 
