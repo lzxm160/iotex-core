@@ -1157,7 +1157,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 	// update tip hash and height
 	atomic.StoreUint64(&bc.tipHeight, blk.Height())
 	bc.tipHash = blk.HashBlock()
-	var ws2 factory.WorkingSet
+	//var ws2 factory.WorkingSet
 	if bc.sf != nil {
 		// write smart contract receipt into DB
 		receiptTimer := bc.timerFactory.NewTimer("putReceipt")
@@ -1167,7 +1167,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			return errors.Wrapf(err, "failed to put smart contract receipts into DB on height %d", blk.Height())
 		}
 
-		snapshot := blk.WorkingSet.GetCachedBatch().Snapshot()
+		//snapshot := blk.WorkingSet.GetCachedBatch().Snapshot()
 		//blk.WorkingSet.
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
 		err = bc.sf.Commit(blk.WorkingSet)
@@ -1177,10 +1177,10 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
-		if err = blk.WorkingSet.GetCachedBatch().Revert(snapshot); err != nil {
-			log.L().Info("err=ws2.Revert(snapshot);err!=nil", zap.Error(err))
-		}
-		ws2 = blk.WorkingSet
+		//if err = blk.WorkingSet.GetCachedBatch().Revert(snapshot); err != nil {
+		//	log.L().Info("err=ws2.Revert(snapshot);err!=nil", zap.Error(err))
+		//}
+		//ws2 = blk.WorkingSet
 	}
 	blk.HeaderLogger(log.L()).Info("Committed a block.", log.Hex("tipHash", bc.tipHash[:]))
 
@@ -1189,20 +1189,20 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 
 	if bc.sf2 != nil {
 		// run actions with history retention
-		//ws, err := bc.sf2.NewWorkingSet(true)
-		//if err != nil {
-		//	return errors.Wrap(err, "Failed to obtain working set from state factory")
-		//}
-		//log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions() size", uint64(len(blk.RunnableActions().Actions()))))
-		//if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
-		//	log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
-		//}
+		ws, err := bc.sf2.NewWorkingSet(true)
+		if err != nil {
+			return errors.Wrap(err, "Failed to obtain working set from state factory")
+		}
+		log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions() size", uint64(len(blk.RunnableActions().Actions()))))
+		if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
+			log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
+		}
 		//log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
 		//err = ws.SaveHistoryForTrie(blk.Height())
 		//if err != nil {
 		//	return errors.Wrapf(err, "failed to save history on height %d", blk.Height())
 		//}
-		if err = bc.sf2.Commit(ws2); err != nil {
+		if err = bc.sf2.Commit(ws); err != nil {
 			log.L().Error("Error when committing states with history.", zap.Error(err))
 		}
 
