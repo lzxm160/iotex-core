@@ -88,6 +88,7 @@ func (stx *stateTX) RunActions(
 	blockHeight uint64,
 	elps []action.SealedEnvelope,
 ) ([]*action.Receipt, error) {
+	log.L().Info("ws RunActions", zap.Uint64("tipHeight", blockHeight), zap.Uint64("ws RunActions action size", uint64(len(elps))), zap.String("path", stx.cfg.DbPath))
 	// Handle actions
 	receipts := make([]*action.Receipt, 0)
 	var raCtx protocol.RunActionsCtx
