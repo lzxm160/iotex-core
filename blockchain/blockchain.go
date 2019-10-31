@@ -1197,7 +1197,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
 			log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 		}
-		//log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
+		log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
 		//err = ws.SaveHistoryForTrie(blk.Height())
 		//if err != nil {
 		//	return errors.Wrapf(err, "failed to save history on height %d", blk.Height())
