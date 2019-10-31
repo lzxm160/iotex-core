@@ -346,6 +346,9 @@ func NewBlockchain(cfg config.Config, opts ...Option) Blockchain {
 	if chain.sf != nil {
 		chain.lifecycle.Add(chain.sf)
 	}
+	if chain.sf2 != nil {
+		chain.lifecycle.Add(chain.sf2)
+	}
 	return chain
 }
 
@@ -363,9 +366,6 @@ func (bc *blockchain) Start(ctx context.Context) (err error) {
 	defer bc.mu.Unlock()
 	if err = bc.lifecycle.OnStart(ctx); err != nil {
 		return err
-	}
-	if err := bc.sf2.Start(context.Background()); err != nil {
-		return errors.Wrap(err, "failed to start state factory")
 	}
 	// get blockchain tip height
 	if bc.tipHeight, err = bc.dao.GetBlockchainHeight(); err != nil {
