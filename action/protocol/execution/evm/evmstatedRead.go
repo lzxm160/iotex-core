@@ -251,6 +251,11 @@ func (stateDB *StateDBAdapterRead) GetState(evmAddr common.Address, k common.Has
 		return codeHash
 	}
 	contract, err := stateDB.getContract(addr.String())
+	if err != nil {
+		log.L().Error("Failed to get contract.", zap.Error(err))
+		stateDB.logError(err)
+		return common.Hash{}
+	}
 	v, err := contract.GetState(hash.BytesToHash256(k[:]))
 	if err != nil {
 		log.L().Error("Failed to get state.", zap.Error(err))
