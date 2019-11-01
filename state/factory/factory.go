@@ -260,6 +260,7 @@ func (sf *factory) Height() (uint64, error) {
 func (sf *factory) NewWorkingSet(saveHistory bool) (WorkingSet, error) {
 	sf.mutex.RLock()
 	defer sf.mutex.RUnlock()
+	log.L().Info("factoryNewWorkingSet////////////////", zap.Bool("factory sdb.saveHistory", saveHistory))
 	return NewWorkingSet(sf.currentChainHeight, sf.dao, sf.rootHash(), sf.actionHandlers, saveHistory)
 }
 

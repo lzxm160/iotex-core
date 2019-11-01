@@ -189,7 +189,7 @@ func (sdb *stateDB) NewWorkingSet(saveHistory bool) (WorkingSet, error) {
 	sdb.mutex.RLock()
 	defer sdb.mutex.RUnlock()
 	sdb.saveHistory = saveHistory
-	log.L().Info("NewWorkingSet////////////////", zap.Bool("sdb.saveHistory", sdb.saveHistory))
+	log.L().Info("NewWorkingSet////////////////", zap.Bool("sdb.saveHistory", sdb.saveHistory), zap.String("path", sdb.cfg.DbPath))
 	return newStateTX(sdb.currentChainHeight, sdb.dao, sdb.actionHandlers, sdb.cfg, saveHistory), nil
 }
 
