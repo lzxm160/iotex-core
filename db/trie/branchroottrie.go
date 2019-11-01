@@ -11,6 +11,9 @@ import (
 	"context"
 	"sync"
 
+	"github.com/iotexproject/iotex-core/pkg/log"
+	"go.uber.org/zap"
+
 	"github.com/iotexproject/iotex-core/db"
 
 	"github.com/golang/protobuf/proto"
@@ -138,6 +141,7 @@ func (tr *branchRootTrie) DB() KVStore {
 }
 
 func (tr *branchRootTrie) deleteNodeFromDB(tn Node) error {
+	log.L().Info("deleteNodeFromDB", zap.Bool("tr.saveTrieNode", tr.saveTrieNode))
 	if tr.saveTrieNode {
 		return nil
 	}

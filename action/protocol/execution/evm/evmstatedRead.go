@@ -182,7 +182,7 @@ func (stateDB *StateDBAdapterRead) ForEachStorage(addr common.Address, cb func(c
 
 // AccountState returns an account state
 func (stateDB *StateDBAdapterRead) AccountState(encodedAddr string) (*state.Account, error) {
-	log.L().Info("StateDBAdapterRead Called AccountState.")
+	log.L().Info("StateDBAdapterRead Called AccountState.", zap.Uint64("height", stateDB.blockHeight))
 	hei := fmt.Sprintf("%d", stateDB.blockHeight)
 	return stateDB.cm.StateByAddr(encodedAddr + hei)
 }
