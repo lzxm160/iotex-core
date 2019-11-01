@@ -371,6 +371,7 @@ func (bc *blockchain) Start(ctx context.Context) (err error) {
 	if err = bc.lifecycle.OnStart(ctx); err != nil {
 		return err
 	}
+	// sf2 only deal with account and contract
 	if bc.sf2 != nil {
 		p, ok := bc.registry.Find(account.ProtocolID)
 		if !ok {

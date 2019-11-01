@@ -91,7 +91,6 @@ func (stx *stateTX) RunActions(
 	if len(elps) > 0 {
 		raCtx = protocol.MustGetRunActionsCtx(ctx)
 	}
-	//raCtx.History = stx.saveHistory
 	for _, elp := range elps {
 		receipt, err := stx.RunAction(raCtx, elp)
 		if err != nil {
@@ -220,17 +219,6 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	if err != nil {
 		return err
 	}
-	//insertValue := make([]byte, len(ss))
-	//copy(insertValue, ss)
-	//addr, err := address.FromString("io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg")
-	//if err != nil {
-	//	return err
-	//}
-	//if bytes.Compare(addr.Bytes(), pkHash[:]) == 0 {
-	//	log.L().Info("////////////////putIndex ", zap.Uint64("version", version), zap.String("db", stx.cfg.DbPath))
-	//}
-
-	return ri.Insert(version, ss)
 }
 
 // delete history asynchronous,this will find all account that with version
