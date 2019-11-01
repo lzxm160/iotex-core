@@ -793,7 +793,11 @@ func (api *Server) readState(ctx context.Context, in *iotexapi.ReadStateRequest)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if bytes.Equal(in.MethodName, []byte("GetStorageAt")) {
-		return api.getstorageAt(ws, in.Arguments...)
+		ws2, err := api.bc.GetFactory2().NewWorkingSet(true)
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		return api.getstorageAt(ws2, in.Arguments...)
 	}
 	data, err := p.ReadState(ctx, ws, in.MethodName, in.Arguments...)
 	// TODO: need to distinguish user error and system error

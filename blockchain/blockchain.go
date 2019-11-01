@@ -123,6 +123,8 @@ type Blockchain interface {
 	GetReceiptsByHeight(height uint64) ([]*action.Receipt, error)
 	// GetFactory returns the state factory
 	GetFactory() factory.Factory
+	// GetFactory2 returns the state factory
+	GetFactory2() factory.Factory
 	// GetBlockDAO returns the block DAO
 	GetBlockDAO() blockdao.BlockDAO
 	// ChainID returns the chain ID
@@ -608,6 +610,11 @@ func (bc *blockchain) GetFactory() factory.Factory {
 	return bc.sf
 }
 
+// GetFactory returns the state factory
+func (bc *blockchain) GetFactory2() factory.Factory {
+	return bc.sf2
+}
+
 // GetBlockDAO returns the block DAO
 func (bc *blockchain) GetBlockDAO() blockdao.BlockDAO {
 	return bc.dao
@@ -807,6 +814,7 @@ func (bc *blockchain) ExecuteContractReadHistory(caller address.Address, ex *act
 		GasLimit:       gasLimit,
 		GasPrice:       big.NewInt(0),
 		IntrinsicGas:   0,
+		History:        true,
 	})
 	return evm.ExecuteContractRead(
 		ctx,
