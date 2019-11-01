@@ -180,7 +180,7 @@ var (
 			SplitDBSizeMB:         0,
 			SplitDBHeight:         900000,
 			Reindex:               false,
-			HistoryStateRetention: 2000,
+			HistoryStateRetention: 30,
 		},
 		Genesis: genesis.Default,
 	}
