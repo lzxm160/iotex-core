@@ -7,7 +7,6 @@
 package factory
 
 import (
-	"bytes"
 	"context"
 	"encoding/binary"
 
@@ -86,14 +85,13 @@ func (stx *stateTX) RunActions(
 	blockHeight uint64,
 	elps []action.SealedEnvelope,
 ) ([]*action.Receipt, error) {
-	log.L().Info("ws RunActions", zap.Uint64("tipHeight", blockHeight), zap.Uint64("ws RunActions action size", uint64(len(elps))), zap.String("path", stx.cfg.DbPath), zap.Bool("stx.saveHistory", stx.saveHistory))
 	// Handle actions
 	receipts := make([]*action.Receipt, 0)
 	var raCtx protocol.RunActionsCtx
 	if len(elps) > 0 {
 		raCtx = protocol.MustGetRunActionsCtx(ctx)
 	}
-	raCtx.History = stx.saveHistory
+	//raCtx.History = stx.saveHistory
 	for _, elp := range elps {
 		receipt, err := stx.RunAction(raCtx, elp)
 		if err != nil {
@@ -212,17 +210,6 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 	if !stx.saveHistory {
 		return nil
 	}
-	addr, err := address.FromString("io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg")
-	if err != nil {
-		return err
-	}
-	if bytes.Compare(addr.Bytes(), pkHash[:]) == 0 {
-		acc, ok := s.(*state.Account)
-		if ok {
-			log.L().Info("////////////////PutState ", zap.String("balance", acc.Balance.Text(10)), zap.String("db", stx.cfg.DbPath), zap.Error(errors.New("who is calling me")))
-		}
-	}
-
 	return stx.putIndex(pkHash, ss)
 }
 
@@ -233,17 +220,17 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	if err != nil {
 		return err
 	}
-	insertValue := make([]byte, len(ss))
-	copy(insertValue, ss)
-	addr, err := address.FromString("io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg")
-	if err != nil {
-		return err
-	}
-	if bytes.Compare(addr.Bytes(), pkHash[:]) == 0 {
-		log.L().Info("////////////////putIndex ", zap.Uint64("version", version), zap.String("db", stx.cfg.DbPath))
-	}
+	//insertValue := make([]byte, len(ss))
+	//copy(insertValue, ss)
+	//addr, err := address.FromString("io1vdtfpzkwpyngzvx7u2mauepnzja7kd5rryp0sg")
+	//if err != nil {
+	//	return err
+	//}
+	//if bytes.Compare(addr.Bytes(), pkHash[:]) == 0 {
+	//	log.L().Info("////////////////putIndex ", zap.Uint64("version", version), zap.String("db", stx.cfg.DbPath))
+	//}
 
-	return ri.Insert(version, insertValue)
+	return ri.Insert(version, ss)
 }
 
 // delete history asynchronous,this will find all account that with version

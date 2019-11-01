@@ -11,14 +11,11 @@ import (
 	"context"
 	"sync"
 
-	"github.com/iotexproject/iotex-core/pkg/log"
-	"go.uber.org/zap"
+	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
 
 	"github.com/iotexproject/iotex-core/db"
-
-	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/iotex-core/db/trie/triepb"
-	"github.com/pkg/errors"
 )
 
 type (
@@ -141,7 +138,6 @@ func (tr *branchRootTrie) DB() KVStore {
 }
 
 func (tr *branchRootTrie) deleteNodeFromDB(tn Node) error {
-	log.L().Info("deleteNodeFromDB", zap.Bool("tr.saveTrieNode", tr.saveTrieNode))
 	if tr.saveTrieNode {
 		return nil
 	}

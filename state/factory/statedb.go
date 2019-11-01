@@ -189,13 +189,11 @@ func (sdb *stateDB) NewWorkingSet(saveHistory bool) (WorkingSet, error) {
 	sdb.mutex.RLock()
 	defer sdb.mutex.RUnlock()
 	sdb.saveHistory = saveHistory
-	log.L().Info("NewWorkingSet////////////////", zap.Bool("sdb.saveHistory", sdb.saveHistory), zap.String("path", sdb.cfg.DbPath))
 	return newStateTX(sdb.currentChainHeight, sdb.dao, sdb.actionHandlers, sdb.cfg, saveHistory), nil
 }
 
 // Commit persists all changes in RunActions() into the DB
 func (sdb *stateDB) Commit(ws WorkingSet) error {
-	log.L().Info("(sf *factory) Commit(ws WorkingSet) error {", zap.String("path", sdb.cfg.DbPath), zap.Error(errors.New("who is calling me ")))
 	if ws == nil {
 		return errors.New("working set doesn't exist")
 	}

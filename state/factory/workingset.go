@@ -103,7 +103,7 @@ func NewWorkingSet(
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate state tire db")
 	}
-	tr, err := trie.NewTrie(trie.KVStoreOption(dbForTrie), trie.RootHashOption(root[:]), trie.SaveHistoryOption(true))
+	tr, err := trie.NewTrie(trie.KVStoreOption(dbForTrie), trie.RootHashOption(root[:]))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate state trie from config")
 	}

@@ -1170,7 +1170,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to put smart contract receipts into DB on height %d", blk.Height())
 		}
-		log.L().Info("original blk.WorkingSet", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("original blk.WorkingSet ws.GetCachedBatch().Size()", uint64(blk.WorkingSet.GetCachedBatch().Size())))
+
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
 		err = bc.sf.Commit(blk.WorkingSet)
 		sfTimer.End()
