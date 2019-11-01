@@ -245,7 +245,7 @@ func (stx *stateTX) deleteHistory() error {
 		stx.deleting <- struct{}{}
 		log.L().Info("////////////////deleteHistory", zap.Uint64("currentHeight", currentHeight), zap.Uint64("deleteStartHeight", deleteStartHeight))
 		// find all keys that with version
-		allKeys, err := stx.dao.GetPrefix(string(AccountKVNameSpace), heightToTrieNodeKeyPrefix)
+		allKeys, err := stx.dao.GetBucketByPrefix([]byte(AccountKVNameSpace))
 		if err != nil {
 			log.L().Info("get prefix", zap.Error(err))
 			return
