@@ -54,10 +54,6 @@ import (
 	"github.com/iotexproject/iotex-core/state/factory"
 )
 
-//const (
-//	heightToTrieNodeKeyNS = "htn"
-//)
-
 var (
 	blockMtc = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -68,7 +64,6 @@ var (
 		[]string{"type"},
 	)
 	errDelegatesNotExist = errors.New("delegates cannot be found")
-	//heightToTrieNodeKeyPrefix = []byte("hnk.")
 )
 
 func init() {
@@ -1112,11 +1107,6 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 	if err != nil {
 		return errors.Wrap(err, "Failed to obtain working set from state factory")
 	}
-	// run actions and update state factory
-	//ws2, err := bc.sf2.NewWorkingSet(true)
-	//if err != nil {
-	//	return errors.Wrap(err, "Failed to obtain working set from state factory")
-	//}
 	runTimer := bc.timerFactory.NewTimer("runActions")
 
 	receipts, err := bc.runActions(blk.RunnableActions(), ws)
@@ -1124,12 +1114,7 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 	if err != nil {
 		log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 	}
-	log.L().Info("blk.RunnableActions()", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("validateBlock ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
-	//_, err = bc.runActions(blk.RunnableActions(), ws2)
-	//if err != nil {
-	//	log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
-	//}
-	//log.L().Info("blk.RunnableActions()", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("validateBlock ws2.GetCachedBatch().Size()", uint64(ws2.GetCachedBatch().Size())))
+
 	if err = blk.VerifyDeltaStateDigest(ws.Digest()); err != nil {
 		return err
 	}
@@ -1142,16 +1127,11 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 
 	// attach working set to be committed to state factory
 	blk.WorkingSet = ws
-	//blk.WorkingSet2 = ws2
-	//if err = bc.sf2.Commit(ws2); err != nil {
-	//	log.L().Panic("Error when committing states with history.", zap.Error(err))
-	//}
 	return nil
 }
 
 // commitBlock commits a block to the chain
 func (bc *blockchain) commitBlock(blk *block.Block) error {
-	//log.L().Info("who is calling me", zap.Error(errors.New("test is")))
 	// Check if it is already exists, and return earlier
 	blkHash, err := bc.dao.GetBlockHash(blk.Height())
 	if blkHash != hash.ZeroHash256 {
@@ -1173,7 +1153,7 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 	// update tip hash and height
 	atomic.StoreUint64(&bc.tipHeight, blk.Height())
 	bc.tipHash = blk.HashBlock()
-	//var ws2 factory.WorkingSet
+
 	if bc.sf != nil {
 		// write smart contract receipt into DB
 		receiptTimer := bc.timerFactory.NewTimer("putReceipt")
@@ -1183,21 +1163,15 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			return errors.Wrapf(err, "failed to put smart contract receipts into DB on height %d", blk.Height())
 		}
 		log.L().Info("original blk.WorkingSet", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("original blk.WorkingSet ws.GetCachedBatch().Size()", uint64(blk.WorkingSet.GetCachedBatch().Size())))
-		//snapshot := blk.WorkingSet.GetCachedBatch().Snapshot()
-		//blk.WorkingSet.
 		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
 		err = bc.sf.Commit(blk.WorkingSet)
 		sfTimer.End()
 
 		// detach working set so it can be freed by GC
-		//blk.WorkingSet = nil
+		blk.WorkingSet = nil
 		if err != nil {
 			log.L().Panic("Error when committing states.", zap.Error(err))
 		}
-		//if err = blk.WorkingSet.GetCachedBatch().Revert(snapshot); err != nil {
-		//	log.L().Info("err=ws2.Revert(snapshot);err!=nil", zap.Error(err))
-		//}
-		//ws2 = blk.WorkingSet
 	}
 	blk.HeaderLogger(log.L()).Info("Committed a block.", log.Hex("tipHash", bc.tipHash[:]))
 
@@ -1215,10 +1189,6 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			log.L().Panic("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 		}
 		log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
-		//err = ws.SaveHistoryForTrie(blk.Height())
-		//if err != nil {
-		//	return errors.Wrapf(err, "failed to save history on height %d", blk.Height())
-		//}
 		if err = bc.sf2.Commit(ws); err != nil {
 			log.L().Error("Error when committing states with history.", zap.Error(err))
 		}
@@ -1230,7 +1200,6 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 			//}
 		}
 	}
-	blk.WorkingSet = nil
 	return nil
 }
 

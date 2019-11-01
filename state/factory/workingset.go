@@ -65,7 +65,6 @@ type (
 		State(hash.Hash160, interface{}) error
 		PutState(hash.Hash160, interface{}) error
 		DelState(pkHash hash.Hash160) error
-		SaveHistoryForTrie(hei uint64) error
 		DeleteHistory(uint64, db.KVStore) error
 		GetDB() db.KVStore
 		GetCachedBatch() db.CachedBatch
@@ -298,9 +297,4 @@ func (ws *workingSet) DeleteHistory(uint64, db.KVStore) error {
 func (ws *workingSet) clear() {
 	ws.trieRoots = nil
 	ws.trieRoots = make(map[int]hash.Hash256)
-}
-
-// SaveHistoryForTrie save history for trie node
-func (ws *workingSet) SaveHistoryForTrie(hei uint64) error {
-	return nil
 }
