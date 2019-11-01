@@ -739,7 +739,7 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 			return trie.DefaultHashFunc(append(addrHash[:], data...))
 		}),
 	}
-	options = append(options, trie.RootHashOption(acc.Root[:]))
+	options = append(options, trie.RootHashOption(acc.Root[:]), trie.SaveHistoryOption(true))
 
 	tr, err := trie.NewTrie(options...)
 	if err != nil {
