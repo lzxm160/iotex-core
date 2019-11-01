@@ -288,7 +288,7 @@ func (stx *stateTX) DeleteHistory(hei uint64, chaindb db.KVStore) error {
 		heightBytes := make([]byte, 8)
 		binary.BigEndian.PutUint64(heightBytes, i)
 		keyPrefix := append(heightToTrieNodeKeyPrefix, heightBytes...)
-		allKeys, err := stx.dao.GetPrefix(evm.ContractKVNameSpace, keyPrefix)
+		allKeys, err := stx.dao.GetKeyByPrefix([]byte(evm.ContractKVNameSpace), keyPrefix)
 		if err != nil {
 			continue
 		}
