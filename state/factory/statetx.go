@@ -86,7 +86,7 @@ func (stx *stateTX) RunActions(
 	blockHeight uint64,
 	elps []action.SealedEnvelope,
 ) ([]*action.Receipt, error) {
-	log.L().Info("ws RunActions", zap.Uint64("tipHeight", blockHeight), zap.Uint64("ws RunActions action size", uint64(len(elps))), zap.String("path", stx.cfg.DbPath))
+	log.L().Info("ws RunActions", zap.Uint64("tipHeight", blockHeight), zap.Uint64("ws RunActions action size", uint64(len(elps))), zap.String("path", stx.cfg.DbPath), zap.Bool("stx.saveHistory", stx.saveHistory))
 	// Handle actions
 	receipts := make([]*action.Receipt, 0)
 	var raCtx protocol.RunActionsCtx
@@ -128,7 +128,7 @@ func (stx *stateTX) RunAction(
 	raCtx.IntrinsicGas = intrinsicGas
 	raCtx.Nonce = elp.Nonce()
 	ctx := protocol.WithRunActionsCtx(context.Background(), raCtx)
-	log.L().Info("ws RunActions", zap.Uint64("ws RunAction stx.actionHandlers size", uint64(len(stx.actionHandlers))), zap.String("path", stx.cfg.DbPath))
+	//log.L().Info("ws RunActions", zap.Uint64("ws RunAction stx.actionHandlers size", uint64(len(stx.actionHandlers))), zap.String("path", stx.cfg.DbPath))
 	for _, actionHandler := range stx.actionHandlers {
 		receipt, err := actionHandler.Handle(ctx, elp.Action(), stx)
 		if err != nil {
