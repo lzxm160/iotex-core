@@ -75,7 +75,7 @@ func (li *LeafIterator) All() error {
 		li.stack = append(li.stack, children...)
 		for _, v := range children {
 			copyNode := make([]byte, len(v.Key()))
-			copy(copyNode, node.Key())
+			copy(copyNode, v.Key())
 			li.allNode = append(li.allNode, copyNode)
 		}
 	}
