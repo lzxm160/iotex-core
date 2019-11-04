@@ -382,22 +382,32 @@ func TestIterator(t *testing.T) {
 	require.NotNil(tr)
 	require.NoError(err)
 	require.Nil(tr.Start(context.Background()))
-
+	//ham = []byte{1, 2, 3, 4, 2, 3, 4, 5}
+	//car = []byte{1, 2, 3, 4, 5, 6, 7, 7}
+	//cat = []byte{1, 2, 3, 4, 5, 6, 7, 8}
+	//rat = []byte{1, 2, 3, 4, 5, 6, 7, 9}
+	//egg = []byte{1, 2, 3, 4, 5, 8, 1, 0}
+	//dog = []byte{1, 2, 3, 4, 6, 7, 1, 0}
+	//fox = []byte{1, 2, 3, 5, 6, 7, 8, 9}
+	//cow = []byte{1, 2, 5, 6, 7, 8, 9, 0}
+	//ant = []byte{2, 3, 4, 5, 6, 7, 8, 9}
+	err = tr.Upsert(ham, testV[0])
+	require.NoError(err)
+	err = tr.Upsert(car, testV[1])
+	require.NoError(err)
 	err = tr.Upsert(cat, testV[2])
 	require.NoError(err)
 	err = tr.Upsert(rat, []byte("rat"))
-	require.NoError(err)
-	err = tr.Upsert(car, testV[1])
 	require.NoError(err)
 	err = tr.Upsert(dog, testV[3])
 	require.NoError(err)
 	err = tr.Upsert(egg, testV[4])
 	require.NoError(err)
-	err = tr.Upsert(ham, testV[0])
-	require.NoError(err)
 	err = tr.Upsert(fox, testV[5])
 	require.NoError(err)
 	err = tr.Upsert(cow, testV[6])
+	require.NoError(err)
+	err = tr.Upsert(ant, testV[7])
 	require.NoError(err)
 
 	iter, err := NewLeafIterator(tr)
