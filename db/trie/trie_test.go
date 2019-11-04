@@ -395,7 +395,7 @@ func TestIterator(t *testing.T) {
 	dbForTrie1, err := db.NewKVStoreForTrie("bucket1", d, db.CachedBatchOption(db.NewCachedBatch()))
 	require.NoError(err)
 	//tr, err := NewTrie(KVStoreOption(dbForTrie), RootHashOption(root[:]))
-	tr, err := NewTrie(KVStoreOption(dbForTrie1))
+	tr, err := NewTrie(KVStoreOption(dbForTrie1), KeyLengthOption(8))
 	require.NotNil(tr)
 	require.NoError(err)
 	require.Nil(tr.Start(context.Background()))
@@ -434,7 +434,7 @@ func TestIterator(t *testing.T) {
 	require.NoError(err)
 	leafIterator, ok := iter.(*LeafIterator)
 	require.True(ok)
-
+	var allHash [][]byte
 	for {
 		ret, err := leafIterator.All()
 		if err == ErrEndOfIterator {
@@ -446,25 +446,52 @@ func TestIterator(t *testing.T) {
 			fmt.Println(err)
 			break
 		}
-		//ckey := common.Hash{}
-		//copy(ckey[:], key[:])
-		//cvalue := common.Hash{}
-		//copy(cvalue[:], value[:])
-		//fmt.Println(key, ":", string(value))
 		for _, c := range ret {
 			fmt.Println("hash:", hex.EncodeToString(c))
+			allHash = append(allHash, c)
 		}
 	}
-	//for _, v := range leafIterator.allNode {
-	//	fmt.Println(v)
-	//}
-	//rootNode, err := tr.loadNodeFromDB(tr.RootHash())
-	//require.NoError(err)
-	//chil, err := rootNode.children(tr)
-	//require.NoError(err)
-	//for _, c := range chil {
-	//	fmt.Println(c.Key(), ":", c.Value())
-	//}
+
+	// save key value to bucket2,then read from bucket2 to check value
+	dbForTrie2, err := db.NewKVStoreForTrie("bucket2", d, db.CachedBatchOption(db.NewCachedBatch()))
+	require.NoError(err)
+	for _, key := range allHash {
+		value, err := dbForTrie1.Get(key)
+		require.NoError(err)
+		require.NoError(dbForTrie2.Put(key, value))
+	}
+
+	tr2, err := NewTrie(KVStoreOption(dbForTrie2), KeyLengthOption(8), RootHashOption(tr.RootHash()[:]))
+	require.NotNil(tr2)
+	require.NoError(err)
+
+	b, err = tr2.Get(ham)
+	require.NoError(err)
+	require.Equal(testV[0], b)
+	b, err = tr2.Get(car)
+	require.NoError(err)
+	require.Equal(testV[1], b)
+	b, err = tr2.Get(cat)
+	require.NoError(err)
+	require.Equal(testV[2], b)
+	b, err = tr2.Get(rat)
+	require.NoError(err)
+	require.Equal([]byte("rat"), b)
+	b, err = tr2.Get(dog)
+	require.NoError(err)
+	require.Equal(testV[3], b)
+	b, err = tr2.Get(egg)
+	require.NoError(err)
+	require.Equal(testV[4], b)
+	b, err = tr2.Get(fox)
+	require.NoError(err)
+	require.Equal(testV[5], b)
+	b, err = tr2.Get(cow)
+	require.NoError(err)
+	require.Equal(testV[6], b)
+	b, err = tr2.Get(ant)
+	require.NoError(err)
+	require.Equal(testV[7], b)
 }
 
 func TestBatchCommit(t *testing.T) {
