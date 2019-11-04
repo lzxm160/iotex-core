@@ -219,6 +219,7 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	if err != nil {
 		return err
 	}
+	return ri.Insert(version, ss)
 }
 
 // delete history asynchronous,this will find all account that with version
