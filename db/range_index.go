@@ -9,9 +9,6 @@ package db
 import (
 	"bytes"
 
-	"github.com/iotexproject/iotex-core/pkg/log"
-	"go.uber.org/zap"
-
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 
@@ -122,9 +119,6 @@ func (r *rangeIndex) Insert(key uint64, value []byte) error {
 					return err
 				}
 			}
-			//else {
-			//	log.L().Info("keySub1 already exists", zap.Uint64("height", key-1))
-			//}
 			// write new value
 			return bucket.Put(CurrIndex, value)
 		}); err == nil {
@@ -192,7 +186,6 @@ func (r *rangeIndex) Delete(key uint64) error {
 			if k == nil {
 				break
 			}
-			log.L().Info("rangeIndex Delete/////////", zap.Uint64("height", byteutil.BytesToUint64BigEndian(k)))
 			if err := bucket.Put(k, NotExistValue); err != nil {
 				return err
 			}
