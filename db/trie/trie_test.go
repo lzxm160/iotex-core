@@ -441,7 +441,7 @@ func TestIterator(t *testing.T) {
 	chil, err := rootNode.children(tr)
 	require.NoError(err)
 	for _, c := range chil {
-		fmt.Println(c.Key(), ":", string(c.Value()))
+		fmt.Println(c.Key(), ":", c.Value())
 	}
 }
 
