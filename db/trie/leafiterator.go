@@ -63,8 +63,8 @@ func (li *LeafIterator) All() error {
 		node := li.stack[size-1]
 		li.stack = li.stack[:size-1]
 		if node.Type() == LEAF {
-			copyNode := make([]byte, len(node.Key()))
-			copy(copyNode, node.Key())
+			copyNode := make([]byte, len(node.Value()))
+			copy(copyNode, node.Value())
 			li.allNode = append(li.allNode, copyNode)
 			return nil
 		}
@@ -74,8 +74,8 @@ func (li *LeafIterator) All() error {
 		}
 		li.stack = append(li.stack, children...)
 		for _, v := range children {
-			copyNode := make([]byte, len(v.Key()))
-			copy(copyNode, v.Key())
+			copyNode := make([]byte, len(v.Value()))
+			copy(copyNode, v.Value())
 			li.allNode = append(li.allNode, copyNode)
 		}
 	}
