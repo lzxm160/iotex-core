@@ -8,6 +8,8 @@ package trie
 
 import (
 	"context"
+	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"testing"
 	"time"
 
@@ -371,6 +373,51 @@ func TestInsert(t *testing.T) {
 	require.Nil(err)
 	require.True(tr.isEmptyRootHash(tr.RootHash()))
 	require.Nil(tr.Stop(context.Background()))
+}
+
+func TestIterator(t *testing.T) {
+	require := require.New(t)
+	tr, err := NewTrie(KVStoreOption(newInMemKVStore()), KeyLengthOption(8))
+	require.NotNil(tr)
+	require.NoError(err)
+	require.Nil(tr.Start(context.Background()))
+
+	err = tr.Upsert(cat, testV[2])
+	require.NoError(err)
+	err = tr.Upsert(rat, []byte("rat"))
+	require.NoError(err)
+	err = tr.Upsert(car, testV[1])
+	require.NoError(err)
+	err = tr.Upsert(dog, testV[3])
+	require.NoError(err
+	err = tr.Upsert(egg, testV[4])
+	require.NoError(err)
+	err = tr.Upsert(ham, testV[0])
+	require.NoError(err)
+	err = tr.Upsert(fox, testV[5])
+	require.NoError(err)
+	err = tr.Upsert(cow, testV[6])
+	require.NoError(err)
+
+	iter,err:=NewLeafIterator(tr)
+	require.NoError(err)
+	for {
+		key, value, err := iter.Next()
+		if err == ErrEndOfIterator {
+			// hit the end of the iterator, exit now
+			fmt.Println("end")
+			break
+		}
+		if err != nil {
+			fmt.Println(err)
+			break
+		}
+		ckey := common.Hash{}
+		copy(ckey[:], key[:])
+		cvalue := common.Hash{}
+		copy(cvalue[:], value[:])
+		fmt.Println(key,":",string(value))
+	}
 }
 
 func TestBatchCommit(t *testing.T) {
