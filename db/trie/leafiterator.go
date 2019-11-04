@@ -16,6 +16,7 @@ var ErrEndOfIterator = errors.New("hit the end of the iterator, no more item")
 // Iterator iterates a trie
 type Iterator interface {
 	Next() ([]byte, []byte, error)
+	AllNodes() ([][]byte, error)
 }
 
 // LeafIterator defines an iterator to go through all the leaves under given node
@@ -58,26 +59,38 @@ func (li *LeafIterator) Next() ([]byte, []byte, error) {
 	return nil, nil, ErrEndOfIterator
 }
 
-// Next moves iterator to next node
-func (li *LeafIterator) All() (ret [][]byte, err error) {
+// AllNodes returns all nodes of this trie
+func (li *LeafIterator) AllNodes() (ret [][]byte, err error) {
+	for {
+		ret, err := li.allNodes()
+		if err == ErrEndOfIterator {
+			// hit the end of the iterator, exit now
+			break
+		}
+		if err != nil {
+			break
+		}
+		for _, c := range ret {
+			ret = append(ret, c)
+		}
+	}
+	ret = append(ret, li.tr.RootHash())
+	return
+}
+func (li *LeafIterator) allNodes() (ret [][]byte, err error) {
 	for len(li.stack) > 0 {
 		size := len(li.stack)
 		node := li.stack[size-1]
 		li.stack = li.stack[:size-1]
 		if node.Type() == LEAF {
-			//	copyNode := make([]byte, len(node.Key()))
-			//	copy(copyNode, node.Key())
-			//	li.allNode = append(li.allNode, copyNode)
 			return
 		}
 		switch node.Type() {
 		case EXTENSION:
-			//fmt.Println("extension:", node.Key(), ":", hex.EncodeToString(node.Value()))
 			ret = append(ret, node.Value())
 		case BRANCH:
 			branch, _ := node.(*branchNode)
 			for _, v := range branch.hashes {
-				//fmt.Println("branch:", k, ":", hex.EncodeToString(v))
 				ret = append(ret, v)
 			}
 		}
@@ -87,11 +100,6 @@ func (li *LeafIterator) All() (ret [][]byte, err error) {
 			return
 		}
 		li.stack = append(li.stack, children...)
-		//for _, v := range children {
-		//	copyNode := make([]byte, len(v.Key()))
-		//	copy(copyNode, v.Key())
-		//	li.allNode = append(li.allNode, copyNode)
-		//}
 	}
 
 	return nil, ErrEndOfIterator

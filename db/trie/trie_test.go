@@ -432,26 +432,28 @@ func TestIterator(t *testing.T) {
 	fmt.Println("get", string(b))
 	iter, err := NewLeafIterator(tr)
 	require.NoError(err)
-	leafIterator, ok := iter.(*LeafIterator)
-	require.True(ok)
-	var allHash [][]byte
-	for {
-		ret, err := leafIterator.All()
-		if err == ErrEndOfIterator {
-			// hit the end of the iterator, exit now
-			fmt.Println("end")
-			break
-		}
-		if err != nil {
-			fmt.Println(err)
-			break
-		}
-		for _, c := range ret {
-			fmt.Println("hash:", hex.EncodeToString(c))
-			allHash = append(allHash, c)
-		}
-	}
-	allHash = append(allHash, tr.RootHash())
+	allHash, err := iter.AllNodes()
+	require.NoError(err)
+	//leafIterator, ok := iter.(*LeafIterator)
+	//require.True(ok)
+	//var allHash [][]byte
+	//for {
+	//	ret, err := leafIterator.All()
+	//	if err == ErrEndOfIterator {
+	//		// hit the end of the iterator, exit now
+	//		fmt.Println("end")
+	//		break
+	//	}
+	//	if err != nil {
+	//		fmt.Println(err)
+	//		break
+	//	}
+	//	for _, c := range ret {
+	//		fmt.Println("hash:", hex.EncodeToString(c))
+	//		allHash = append(allHash, c)
+	//	}
+	//}
+	//allHash = append(allHash, tr.RootHash())
 	// save key value to bucket2,then read from bucket2 to check value
 	dbForTrie2, err := db.NewKVStoreForTrie("bucket2", d, db.CachedBatchOption(db.NewCachedBatch()))
 	require.NoError(err)
