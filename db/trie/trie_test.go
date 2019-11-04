@@ -407,7 +407,10 @@ func TestIterator(t *testing.T) {
 	require.NoError(err)
 	err = tr.Upsert(ant, testV[7])
 	require.NoError(err)
-
+	b, err := tr.Get(cat)
+	require.NoError(err)
+	require.Equal(testV[2], b)
+	fmt.Println("get", string(b))
 	iter, err := NewLeafIterator(tr)
 	require.NoError(err)
 	for {
