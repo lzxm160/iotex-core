@@ -462,8 +462,8 @@ func TestIterator(t *testing.T) {
 		fmt.Println("value", hex.EncodeToString(value))
 		require.NoError(dbForTrie2.Put(key, value))
 	}
-
-	tr2, err := NewTrie(KVStoreOption(dbForTrie2), KeyLengthOption(8), RootHashOption(tr.RootHash()[:]))
+	root := tr.RootHash()
+	tr2, err := NewTrie(KVStoreOption(dbForTrie2), KeyLengthOption(8), RootHashOption(root[:]))
 	require.NotNil(tr2)
 	require.NoError(err)
 
