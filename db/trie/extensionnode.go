@@ -40,11 +40,11 @@ func (e *extensionNode) Type() NodeType {
 }
 
 func (e *extensionNode) Key() []byte {
-	return nil
+	return e.path
 }
 
 func (e *extensionNode) Value() []byte {
-	return nil
+	return e.childHash
 }
 
 func (e *extensionNode) children(tr Trie) ([]Node, error) {
