@@ -7,6 +7,7 @@
 package db
 
 import (
+	"bytes"
 	"context"
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
@@ -93,6 +94,21 @@ func (b *boltDB) Get(namespace string, key []byte) ([]byte, error) {
 		return nil, err
 	}
 	return nil, errors.Wrap(ErrIO, err.Error())
+}
+
+
+// GetBucketByPrefix retrieves all bucket those with const namespace prefix
+func (b *boltDB) GetBucketByPrefix(namespace []byte) (allKey [][]byte, err error) {
+	err = b.db.View(func(tx *bolt.Tx) error {
+		if err := tx.ForEach(func(name []byte, b *bolt.Bucket) error {
+			allKey = append(allKey, name)
+			return nil
+		}); err != nil {
+			return err
+		}
+		return nil
+	})
+	return
 }
 
 // Delete deletes a record,if key is nil,this will delete the whole bucket
@@ -218,6 +234,26 @@ func (b *boltDB) CreateCountingIndexNX(name []byte) (CountingIndex, error) {
 		return nil, err
 	}
 	return NewCountingIndex(b.db, b.config.NumRetries, name, size)
+}
+
+// CreateRangeIndexNX creates a new range index if it does not exist, otherwise return existing index
+func (b *boltDB) CreateRangeIndexNX(name []byte) (RangeIndex, error) {
+	if err := b.db.Update(func(tx *bolt.Tx) error {
+		bucket, err := tx.CreateBucketIfNotExists(name)
+		if err != nil {
+			return errors.Wrapf(err, "failed to create bucket %x", name)
+		}
+		// check whether init value exist or not
+		v := bucket.Get(CurrIndex)
+		if v == nil {
+			// write the initial value
+			return bucket.Put(CurrIndex, InitValue)
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return NewRangeIndex(b.db, b.config.NumRetries, name)
 }
 
 //======================================

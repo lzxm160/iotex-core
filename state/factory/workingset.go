@@ -60,10 +60,12 @@ type (
 		Digest() hash.Hash256
 		Version() uint64
 		Height() uint64
+		History() bool
 		// General state
 		State(hash.Hash160, interface{}) error
 		PutState(hash.Hash160, interface{}) error
 		DelState(pkHash hash.Hash160) error
+		DeleteHistory(uint64, db.KVStore) error
 		GetDB() db.KVStore
 		GetCachedBatch() db.CachedBatch
 	}
@@ -72,6 +74,7 @@ type (
 	workingSet struct {
 		ver            uint64
 		blkHeight      uint64
+		saveHistory    bool
 		accountTrie    trie.Trie            // global account state trie
 		trieRoots      map[int]hash.Hash256 // root of trie at time of snapshot
 		cb             db.CachedBatch       // cached batch for pending writes
@@ -86,9 +89,11 @@ func NewWorkingSet(
 	kv db.KVStore,
 	root hash.Hash256,
 	actionHandlers []protocol.ActionHandler,
+	saveHistory bool,
 ) (WorkingSet, error) {
 	ws := &workingSet{
 		ver:            version,
+		saveHistory:    saveHistory,
 		trieRoots:      make(map[int]hash.Hash256),
 		cb:             db.NewCachedBatch(),
 		dao:            kv,
@@ -125,6 +130,10 @@ func (ws *workingSet) Version() uint64 {
 // Height returns the Height of the block being worked on
 func (ws *workingSet) Height() uint64 {
 	return ws.blkHeight
+}
+
+func (ws *workingSet) History() bool {
+	return ws.saveHistory
 }
 
 // RunActions runs actions in the block and track pending changes in working set
@@ -277,6 +286,11 @@ func (ws *workingSet) PutState(pkHash hash.Hash160, s interface{}) error {
 // DelState deletes a state from DB
 func (ws *workingSet) DelState(pkHash hash.Hash160) error {
 	return ws.accountTrie.Delete(pkHash[:])
+}
+
+// DeleteHistory delete history asynchronous for account/contract states
+func (ws *workingSet) DeleteHistory(uint64, db.KVStore) error {
+	return nil
 }
 
 // clearCache removes all local changes after committing to trie

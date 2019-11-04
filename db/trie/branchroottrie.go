@@ -29,6 +29,7 @@ type (
 		root      *branchNode
 		rootHash  []byte
 		rootKey   string
+		saveTrieNode bool
 	}
 )
 
@@ -137,6 +138,9 @@ func (tr *branchRootTrie) DB() KVStore {
 }
 
 func (tr *branchRootTrie) deleteNodeFromDB(tn Node) error {
+	if tr.saveTrieNode {
+		return nil
+	}
 	h := tr.nodeHash(tn)
 	return tr.kvStore.Delete(h)
 }

@@ -117,6 +117,7 @@ var (
 			AllowedBlockGasResidue:        10000,
 			MaxCacheSize:                  0,
 			PollInitialCandidatesInterval: 10 * time.Second,
+			EnableHistoryStateDB:true,
 		},
 		ActPool: ActPool{
 			MaxNumActsPerPool:  32000,
@@ -176,9 +177,10 @@ var (
 			SQLITE3: SQLITE3{
 				SQLite3File: "./explorer.db",
 			},
-			SplitDBSizeMB: 0,
-			SplitDBHeight: 900000,
-			Reindex:       false,
+			SplitDBSizeMB:         0,
+			SplitDBHeight:         900000,
+			Reindex:               false,
+			HistoryStateRetention: 2000,
 		},
 		Genesis: genesis.Default,
 	}
@@ -227,6 +229,7 @@ type (
 
 		EnableFallBackToFreshDB bool `yaml:"enableFallbackToFreshDb"`
 		EnableTrielessStateDB   bool `yaml:"enableTrielessStateDB"`
+		EnableHistoryStateDB    bool `yaml:"enableHistoryStateDB"`
 		// EnableAsyncIndexWrite enables writing the block actions' and receipts' index asynchronously
 		EnableAsyncIndexWrite bool `yaml:"enableAsyncIndexWrite"`
 		// CompressBlock enables gzip compression on block data
@@ -341,6 +344,8 @@ type (
 		SplitDBHeight uint64 `yaml:"splitDBHeight"`
 		// Reindex will rebuild index if set to true
 		Reindex bool `yaml:"reindex"`
+		// HistoryStateRetention is the number of blocks account/contract state will be retained
+		HistoryStateRetention uint64 `yaml:"historyStateRetention"`
 	}
 
 	// RDS is the cloud rds config

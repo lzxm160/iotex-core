@@ -45,6 +45,9 @@ type KVStore interface {
 	CountingIndex([]byte) (CountingIndex, error)
 	// CreateCountingIndexNX creates a new index if it does not exist, otherwise return existing index
 	CreateCountingIndexNX([]byte) (CountingIndex, error)
+	GetBucketByPrefix([]byte) ([][]byte, error)
+	// CreateRangeIndexNX creates a new range index if it does not exist, otherwise return existing index
+	CreateRangeIndexNX([]byte) (RangeIndex, error)
 }
 
 const (
@@ -154,4 +157,14 @@ func (m *memKVStore) CreateCountingIndexNX(name []byte) (CountingIndex, error) {
 		size = byteutil.BytesToUint64BigEndian(total)
 	}
 	return NewInMemCountingIndex(m, name, size)
+}
+
+// GetBucketByPrefix retrieves all bucket those with const namespace prefix
+func (m *memKVStore) GetBucketByPrefix(namespace []byte) ([][]byte, error) {
+	return nil, nil
+}
+
+// CreateRangeIndexNX creates a new range index if it does not exist, otherwise return existing index
+func (m *memKVStore) CreateRangeIndexNX(name []byte) (RangeIndex, error) {
+	return nil, ErrInvalid
 }
