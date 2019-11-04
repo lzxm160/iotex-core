@@ -20,7 +20,7 @@ type Iterator interface {
 type LeafIterator struct {
 	tr      Trie
 	stack   []Node
-	allNode []Node
+	allNode [][]byte
 }
 
 // NewLeafIterator returns a new leaf iterator
@@ -31,7 +31,7 @@ func NewLeafIterator(tr Trie) (Iterator, error) {
 		return nil, err
 	}
 	stack := []Node{root}
-	return &LeafIterator{tr: tr, stack: stack, allNode: stack}, nil
+	return &LeafIterator{tr: tr, stack: stack}, nil
 }
 
 // Next moves iterator to next node
@@ -63,7 +63,9 @@ func (li *LeafIterator) All() error {
 		node := li.stack[size-1]
 		li.stack = li.stack[:size-1]
 		if node.Type() == LEAF {
-			li.allNode = append(li.allNode, node)
+			copyNode := make([]byte, len(node.Key()))
+			copy(copyNode, node.Key())
+			li.allNode = append(li.allNode, copyNode)
 			return nil
 		}
 		children, err := node.children(li.tr)
@@ -71,7 +73,11 @@ func (li *LeafIterator) All() error {
 			return err
 		}
 		li.stack = append(li.stack, children...)
-		li.allNode = append(li.allNode, children...)
+		for _, v := range children {
+			copyNode := make([]byte, len(v.Key()))
+			copy(copyNode, node.Key())
+			li.allNode = append(li.allNode, copyNode)
+		}
 	}
 
 	return ErrEndOfIterator
