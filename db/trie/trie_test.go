@@ -8,6 +8,7 @@ package trie
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"testing"
 	"time"
@@ -433,7 +434,7 @@ func TestIterator(t *testing.T) {
 		//copy(cvalue[:], value[:])
 		//fmt.Println(key, ":", string(value))
 		for _, c := range ret {
-			fmt.Println("hash:", c)
+			fmt.Println("hash:", hex.EncodeToString(c))
 		}
 	}
 	//for _, v := range leafIterator.allNode {
