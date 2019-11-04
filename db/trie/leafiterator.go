@@ -7,9 +7,6 @@
 package trie
 
 import (
-	"encoding/hex"
-	"fmt"
-
 	"github.com/pkg/errors"
 )
 
@@ -75,12 +72,12 @@ func (li *LeafIterator) All() (ret [][]byte, err error) {
 		}
 		switch node.Type() {
 		case EXTENSION:
-			fmt.Println("extension:", node.Key(), ":", hex.EncodeToString(node.Value()))
+			//fmt.Println("extension:", node.Key(), ":", hex.EncodeToString(node.Value()))
 			ret = append(ret, node.Value())
 		case BRANCH:
 			branch, _ := node.(*branchNode)
-			for k, v := range branch.hashes {
-				fmt.Println("branch:", k, ":", hex.EncodeToString(v))
+			for _, v := range branch.hashes {
+				//fmt.Println("branch:", k, ":", hex.EncodeToString(v))
 				ret = append(ret, v)
 			}
 		}

@@ -10,13 +10,19 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+
+	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
+	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/iotexproject/go-pkgs/hash"
+	"github.com/iotexproject/iotex-core/config"
+	"github.com/iotexproject/iotex-core/db"
+	"github.com/iotexproject/iotex-core/testutil"
 )
 
 var (
@@ -377,7 +383,19 @@ func TestInsert(t *testing.T) {
 
 func TestIterator(t *testing.T) {
 	require := require.New(t)
-	tr, err := NewTrie(KVStoreOption(newInMemKVStore()), KeyLengthOption(8))
+	testFile, _ := ioutil.TempFile(os.TempDir(), testTriePath)
+	testPath := testFile.Name()
+	cfg := config.Default.DB
+	cfg.DbPath = testPath
+	defer testutil.CleanupPath(t, testPath)
+	d := db.NewBoltDB(cfg)
+	d.Start(context.Background())
+	defer d.Stop(context.Background())
+	//tr, err := NewTrie(KVStoreOption(newInMemKVStore()), KeyLengthOption(8))
+	dbForTrie1, err := db.NewKVStoreForTrie("bucket1", d, db.CachedBatchOption(db.NewCachedBatch()))
+	require.NoError(err)
+	//tr, err := NewTrie(KVStoreOption(dbForTrie), RootHashOption(root[:]))
+	tr, err := NewTrie(KVStoreOption(dbForTrie1))
 	require.NotNil(tr)
 	require.NoError(err)
 	require.Nil(tr.Start(context.Background()))
