@@ -419,6 +419,14 @@ func TestIterator(t *testing.T) {
 		copy(cvalue[:], value[:])
 		fmt.Println(key, ":", string(value))
 	}
+
+	rootNode, err := tr.loadNodeFromDB(tr.RootHash())
+	require.NoError(err)
+	chil, err := rootNode.children(tr)
+	require.NoError(err)
+	for _, c := range chil {
+		fmt.Println(c)
+	}
 }
 
 func TestBatchCommit(t *testing.T) {
