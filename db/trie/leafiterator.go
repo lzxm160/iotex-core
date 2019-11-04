@@ -18,8 +18,9 @@ type Iterator interface {
 
 // LeafIterator defines an iterator to go through all the leaves under given node
 type LeafIterator struct {
-	tr    Trie
-	stack []Node
+	tr      Trie
+	stack   []Node
+	allNode []Node
 }
 
 // NewLeafIterator returns a new leaf iterator
@@ -30,8 +31,7 @@ func NewLeafIterator(tr Trie) (Iterator, error) {
 		return nil, err
 	}
 	stack := []Node{root}
-
-	return &LeafIterator{tr: tr, stack: stack}, nil
+	return &LeafIterator{tr: tr, stack: stack, allNode: stack}, nil
 }
 
 // Next moves iterator to next node
@@ -54,4 +54,25 @@ func (li *LeafIterator) Next() ([]byte, []byte, error) {
 	}
 
 	return nil, nil, ErrEndOfIterator
+}
+
+// Next moves iterator to next node
+func (li *LeafIterator) All() error {
+	for len(li.stack) > 0 {
+		size := len(li.stack)
+		node := li.stack[size-1]
+		li.stack = li.stack[:size-1]
+		if node.Type() == LEAF {
+			li.allNode = append(li.allNode, node)
+			return nil
+		}
+		children, err := node.children(li.tr)
+		if err != nil {
+			return err
+		}
+		li.stack = append(li.stack, children...)
+		li.allNode = append(li.allNode, children...)
+	}
+
+	return ErrEndOfIterator
 }

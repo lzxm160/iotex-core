@@ -413,8 +413,11 @@ func TestIterator(t *testing.T) {
 	fmt.Println("get", string(b))
 	iter, err := NewLeafIterator(tr)
 	require.NoError(err)
+	leafIterator, ok := iter.(*LeafIterator)
+	require.True(ok)
+
 	for {
-		key, value, err := iter.Next()
+		err := leafIterator.All()
 		if err == ErrEndOfIterator {
 			// hit the end of the iterator, exit now
 			fmt.Println("end")
@@ -428,9 +431,11 @@ func TestIterator(t *testing.T) {
 		//copy(ckey[:], key[:])
 		//cvalue := common.Hash{}
 		//copy(cvalue[:], value[:])
-		fmt.Println(key, ":", string(value))
+		//fmt.Println(key, ":", string(value))
 	}
-
+	for _, v := range leafIterator.allNode {
+		fmt.Println(v.Key(), ":", v.Value())
+	}
 	rootNode, err := tr.loadNodeFromDB(tr.RootHash())
 	require.NoError(err)
 	chil, err := rootNode.children(tr)
