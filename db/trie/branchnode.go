@@ -54,13 +54,7 @@ func (b *branchNode) Type() NodeType {
 }
 
 func (b *branchNode) Key() []byte {
-	var ret []byte
-	for k, v := range b.hashes {
-		if v != nil {
-			ret = append(ret, []byte{k}...)
-		}
-	}
-	return ret
+	return nil
 }
 
 func (b *branchNode) Value() []byte {

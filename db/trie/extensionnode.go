@@ -40,7 +40,7 @@ func (e *extensionNode) Type() NodeType {
 }
 
 func (e *extensionNode) Key() []byte {
-	return e.path
+	return nil
 }
 
 func (e *extensionNode) Value() []byte {
