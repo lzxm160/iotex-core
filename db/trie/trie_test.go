@@ -456,6 +456,7 @@ func TestIterator(t *testing.T) {
 	dbForTrie2, err := db.NewKVStoreForTrie("bucket2", d, db.CachedBatchOption(db.NewCachedBatch()))
 	require.NoError(err)
 	for _, key := range allHash {
+		fmt.Println("key", hex.EncodeToString(key))
 		value, err := dbForTrie1.Get(key)
 		require.NoError(err)
 		require.NoError(dbForTrie2.Put(key, value))
