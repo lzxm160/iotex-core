@@ -451,7 +451,7 @@ func TestIterator(t *testing.T) {
 			allHash = append(allHash, c)
 		}
 	}
-
+	allHash = append(allHash, tr.RootHash())
 	// save key value to bucket2,then read from bucket2 to check value
 	dbForTrie2, err := db.NewKVStoreForTrie("bucket2", d, db.CachedBatchOption(db.NewCachedBatch()))
 	require.NoError(err)
