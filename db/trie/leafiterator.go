@@ -60,9 +60,9 @@ func (li *LeafIterator) Next() ([]byte, []byte, error) {
 }
 
 // AllNodes returns all nodes of this trie
-func (li *LeafIterator) AllNodes() (ret [][]byte, err error) {
+func (li *LeafIterator) AllNodes() (all [][]byte, err error) {
 	for {
-		ret, err = li.allNodes()
+		ret, err := li.allNodes()
 		if err == ErrEndOfIterator {
 			// hit the end of the iterator, exit now
 			break
@@ -71,10 +71,10 @@ func (li *LeafIterator) AllNodes() (ret [][]byte, err error) {
 			break
 		}
 		for _, c := range ret {
-			ret = append(ret, c)
+			all = append(all, c)
 		}
 	}
-	ret = append(ret, li.tr.RootHash())
+	all = append(all, li.tr.RootHash())
 	return
 }
 func (li *LeafIterator) allNodes() (ret [][]byte, err error) {
