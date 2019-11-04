@@ -6,7 +6,11 @@
 
 package trie
 
-import "github.com/pkg/errors"
+import (
+	"fmt"
+
+	"github.com/pkg/errors"
+)
 
 // ErrEndOfIterator defines an error which will be returned
 var ErrEndOfIterator = errors.New("hit the end of the iterator, no more item")
@@ -57,28 +61,39 @@ func (li *LeafIterator) Next() ([]byte, []byte, error) {
 }
 
 // Next moves iterator to next node
-func (li *LeafIterator) All() error {
+func (li *LeafIterator) All() (ret [][]byte, err error) {
 	for len(li.stack) > 0 {
 		size := len(li.stack)
 		node := li.stack[size-1]
 		li.stack = li.stack[:size-1]
 		if node.Type() == LEAF {
-			copyNode := make([]byte, len(node.Key()))
-			copy(copyNode, node.Key())
-			li.allNode = append(li.allNode, copyNode)
-			return nil
+			//	copyNode := make([]byte, len(node.Key()))
+			//	copy(copyNode, node.Key())
+			//	li.allNode = append(li.allNode, copyNode)
+			return
+		}
+		switch node.Type() {
+		case EXTENSION:
+			fmt.Println("extension:", node.Key(), ":", node.Value())
+			ret = append(ret, node.Value())
+		case BRANCH:
+			branch, _ := node.(*branchNode)
+			for k, v := range branch.hashes {
+				fmt.Println("branch:", k, ":", v)
+				ret = append(ret, v)
+			}
 		}
 		children, err := node.children(li.tr)
 		if err != nil {
-			return err
+			return
 		}
 		li.stack = append(li.stack, children...)
-		for _, v := range children {
-			copyNode := make([]byte, len(v.Key()))
-			copy(copyNode, v.Key())
-			li.allNode = append(li.allNode, copyNode)
-		}
+		//for _, v := range children {
+		//	copyNode := make([]byte, len(v.Key()))
+		//	copy(copyNode, v.Key())
+		//	li.allNode = append(li.allNode, copyNode)
+		//}
 	}
 
-	return ErrEndOfIterator
+	return nil, ErrEndOfIterator
 }

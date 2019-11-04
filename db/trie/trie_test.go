@@ -417,7 +417,7 @@ func TestIterator(t *testing.T) {
 	require.True(ok)
 
 	for {
-		err := leafIterator.All()
+		ret, err := leafIterator.All()
 		if err == ErrEndOfIterator {
 			// hit the end of the iterator, exit now
 			fmt.Println("end")
@@ -432,17 +432,20 @@ func TestIterator(t *testing.T) {
 		//cvalue := common.Hash{}
 		//copy(cvalue[:], value[:])
 		//fmt.Println(key, ":", string(value))
+		for _, c := range ret {
+			fmt.Println("hash:", c)
+		}
 	}
-	for _, v := range leafIterator.allNode {
-		fmt.Println(v)
-	}
-	rootNode, err := tr.loadNodeFromDB(tr.RootHash())
-	require.NoError(err)
-	chil, err := rootNode.children(tr)
-	require.NoError(err)
-	for _, c := range chil {
-		fmt.Println(c.Key(), ":", c.Value())
-	}
+	//for _, v := range leafIterator.allNode {
+	//	fmt.Println(v)
+	//}
+	//rootNode, err := tr.loadNodeFromDB(tr.RootHash())
+	//require.NoError(err)
+	//chil, err := rootNode.children(tr)
+	//require.NoError(err)
+	//for _, c := range chil {
+	//	fmt.Println(c.Key(), ":", c.Value())
+	//}
 }
 
 func TestBatchCommit(t *testing.T) {
