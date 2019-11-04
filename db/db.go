@@ -45,6 +45,7 @@ type KVStore interface {
 	CountingIndex([]byte) (CountingIndex, error)
 	// CreateCountingIndexNX creates a new index if it does not exist, otherwise return existing index
 	CreateCountingIndexNX([]byte) (CountingIndex, error)
+	// GetBucketByPrefix retrieves all bucket those with const namespace prefix
 	GetBucketByPrefix([]byte) ([][]byte, error)
 	// CreateRangeIndexNX creates a new range index if it does not exist, otherwise return existing index
 	CreateRangeIndexNX([]byte) (RangeIndex, error)

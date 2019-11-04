@@ -36,7 +36,6 @@ type stateDB struct {
 	actionHandlers     []protocol.ActionHandler // the handlers to handle actions
 	timerFactory       *prometheustimer.TimerFactory
 	cfg                config.DB // for history state
-	saveHistory        bool
 }
 
 // StateDBOption sets stateDB construction parameter

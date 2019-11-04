@@ -216,11 +216,11 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	if err != nil {
 		return err
 	}
+	return ri.Insert(version, ss)
 }
 
 // delete history asynchronous,this will find all account that with version
 func (stx *stateTX) deleteHistory() error {
-	log.L().Info("deleteHistory start")
 	currentHeight := stx.ver + 1
 	if currentHeight <= stx.cfg.HistoryStateRetention {
 		return nil
@@ -228,7 +228,6 @@ func (stx *stateTX) deleteHistory() error {
 	deleteStartHeight := currentHeight - stx.cfg.HistoryStateRetention
 	go func() {
 		stx.deleting <- struct{}{}
-		log.L().Info("////////////////deleteHistory", zap.Uint64("currentHeight", currentHeight), zap.Uint64("deleteStartHeight", deleteStartHeight))
 		// find all keys that with version
 		allKeys, err := stx.dao.GetBucketByPrefix([]byte(AccountKVNameSpace))
 		if err != nil {
