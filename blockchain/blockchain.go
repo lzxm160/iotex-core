@@ -15,7 +15,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/iotexproject/iotex-core/action/protocol/execution"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ecrypto "github.com/ethereum/go-ethereum/crypto"
@@ -23,6 +22,7 @@ import (
 	"github.com/iotexproject/go-pkgs/bloom"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
+	"github.com/iotexproject/iotex-core/action/protocol/execution"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
@@ -1137,11 +1137,9 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 		if err != nil {
 			return errors.Wrap(err, "Failed to obtain working set from state factory")
 		}
-		log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions() size", uint64(len(blk.RunnableActions().Actions()))))
 		if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
 			log.L().Error("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 		}
-		log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
 		if err = bc.sf2.Commit(ws); err != nil {
 			log.L().Error("Error when committing states with history.", zap.Error(err))
 		}
