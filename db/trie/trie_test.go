@@ -12,8 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
@@ -423,10 +421,10 @@ func TestIterator(t *testing.T) {
 			fmt.Println(err)
 			break
 		}
-		ckey := common.Hash{}
-		copy(ckey[:], key[:])
-		cvalue := common.Hash{}
-		copy(cvalue[:], value[:])
+		//ckey := common.Hash{}
+		//copy(ckey[:], key[:])
+		//cvalue := common.Hash{}
+		//copy(cvalue[:], value[:])
 		fmt.Println(key, ":", string(value))
 	}
 
