@@ -83,8 +83,9 @@ func (li *LeafIterator) All() (ret [][]byte, err error) {
 				ret = append(ret, v)
 			}
 		}
-		children, err := node.children(li.tr)
-		if err != nil {
+		children, errs := node.children(li.tr)
+		if errs != nil {
+			err = errs
 			return
 		}
 		li.stack = append(li.stack, children...)
