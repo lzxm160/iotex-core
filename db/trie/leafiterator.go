@@ -44,7 +44,7 @@ func (li *LeafIterator) Next() ([]byte, []byte, error) {
 			key := node.Key()
 			value := node.Value()
 
-			return append(key[:0:0], key...), append(value, value...), nil
+			return append(key[:0:0], key...), value, nil
 		}
 		children, err := node.children(li.tr)
 		if err != nil {
