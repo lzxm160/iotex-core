@@ -14,16 +14,12 @@ import (
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/db/trie"
+	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/state"
+	"github.com/iotexproject/iotex-core/state/factory"
 )
 
 const (
-	// CodeKVNameSpace is the bucket name for code
-	CodeKVNameSpace = "Code"
-
-	// ContractKVNameSpace is the bucket name for contract data storage
-	ContractKVNameSpace = "Contract"
-
 	// PreimageKVNameSpace is the bucket name for preimage data storage
 	PreimageKVNameSpace = "Preimage"
 )
@@ -46,15 +42,30 @@ type (
 
 	contract struct {
 		*state.Account
-		dirtyCode  bool   // contract's code has been set
-		dirtyState bool   // contract's account state has changed
-		code       []byte // contract byte-code
-		root       hash.Hash256
-		committed  map[hash.Hash256][]byte
-		dao        db.KVStore
-		trie       trie.Trie // storage trie of the contract
+		dirtyCode   bool   // contract's code has been set
+		dirtyState  bool   // contract's account state has changed
+		code        []byte // contract byte-code
+		root        hash.Hash256
+		committed   map[hash.Hash256][]byte
+		dao         db.KVStore
+		trie        trie.Trie // storage trie of the contract
+		saveHistory bool
+		height      uint64 // height at which contract state changes
+
 	}
 )
+
+// ContractOption set contract construction param
+type ContractOption func(*contract) error
+
+// HistoryRetentionOption creates contract with history
+func HistoryRetentionOption(height uint64) ContractOption {
+	return func(c *contract) error {
+		c.saveHistory = true
+		c.height = height
+		return nil
+	}
+}
 
 func (c *contract) Iterator() (trie.Iterator, error) {
 	return trie.NewLeafIterator(c.trie)
@@ -96,7 +107,7 @@ func (c *contract) GetCode() ([]byte, error) {
 	if c.code != nil {
 		return c.code, nil
 	}
-	return c.dao.Get(CodeKVNameSpace, c.Account.CodeHash)
+	return c.dao.Get(factory.CodeKVNameSpace, c.Account.CodeHash)
 }
 
 // SetCode sets the contract's byte-code
@@ -123,7 +134,7 @@ func (c *contract) Commit() error {
 	}
 	if c.dirtyCode {
 		// put the code into storage DB
-		if err := c.dao.Put(CodeKVNameSpace, c.Account.CodeHash, c.code); err != nil {
+		if err := c.dao.Put(factory.CodeKVNameSpace, c.Account.CodeHash, c.code); err != nil {
 			return errors.Wrapf(err, "Failed to store code for new contract, codeHash %x", c.Account.CodeHash[:])
 		}
 		c.dirtyCode = false
@@ -157,9 +168,20 @@ func (c *contract) Snapshot() Contract {
 	}
 }
 
-// NewContract returns a Contract instance
-func newContract(addr hash.Hash160, state *state.Account, dao db.KVStore, batch db.CachedBatch) (Contract, error) {
-	dbForTrie, err := db.NewKVStoreForTrie(ContractKVNameSpace, dao, db.CachedBatchOption(batch))
+// newContract returns a Contract instance
+func newContract(addr hash.Hash160, state *state.Account, dao db.KVStore, batch db.CachedBatch, opts ...ContractOption) (Contract, error) {
+	c := &contract{
+		Account:   state,
+		root:      state.Root,
+		committed: make(map[hash.Hash256][]byte),
+		dao:       dao,
+	}
+	for _, opt := range opts {
+		if err := opt(c); err != nil {
+			log.L().Panic("failed to execute contract creation option")
+		}
+	}
+	dbForTrie, err := db.NewKVStoreForTrie(factory.ContractKVNameSpace, factory.PruneKVNameSpace, dao, db.CachedBatchOption(batch))
 	if err != nil {
 		return nil, err
 	}
@@ -169,6 +191,9 @@ func newContract(addr hash.Hash160, state *state.Account, dao db.KVStore, batch 
 		trie.HashFuncOption(func(data []byte) []byte {
 			return trie.DefaultHashFunc(append(addr[:], data...))
 		}),
+	}
+	if c.saveHistory {
+		options = append(options, trie.HistoryRetentionOption(c.height))
 	}
 	if state.Root != hash.ZeroHash256 {
 		options = append(options, trie.RootHashOption(state.Root[:]))
@@ -181,12 +206,6 @@ func newContract(addr hash.Hash160, state *state.Account, dao db.KVStore, batch 
 	if err := tr.Start(context.Background()); err != nil {
 		return nil, err
 	}
-
-	return &contract{
-		Account:   state,
-		root:      state.Root,
-		committed: make(map[hash.Hash256][]byte),
-		dao:       dao,
-		trie:      tr,
-	}, nil
+	c.trie = tr
+	return c, nil
 }

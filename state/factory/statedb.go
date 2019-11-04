@@ -32,6 +32,7 @@ import (
 type stateDB struct {
 	mutex              sync.RWMutex
 	currentChainHeight uint64
+	saveHistory        bool
 	cfg                config.Config
 	dao                db.KVStore               // the underlying DB for account/contract storage
 	actionHandlers     []protocol.ActionHandler // the handlers to handle actions
@@ -61,6 +62,20 @@ func DefaultStateDBOption() StateDBOption {
 		}
 		cfg.DB.DbPath = dbPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
 		sdb.dao = db.NewBoltDB(cfg.DB)
+		return nil
+	}
+}
+
+// DefaultHistoryDBOption creates default history state db from config
+func DefaultHistoryDBOption() StateDBOption {
+	return func(sdb *stateDB, cfg config.Config) error {
+		dbPath := cfg.Chain.HistoryDBPath
+		if len(dbPath) == 0 {
+			return errors.New("Invalid empty trie db path")
+		}
+		cfg.DB.DbPath = dbPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
+		sdb.dao = db.NewBoltDB(cfg.DB)
+		sdb.saveHistory = true
 		return nil
 	}
 }
@@ -181,7 +196,7 @@ func (sdb *stateDB) Height() (uint64, error) {
 func (sdb *stateDB) NewWorkingSet() (WorkingSet, error) {
 	sdb.mutex.RLock()
 	defer sdb.mutex.RUnlock()
-	return newStateTX(sdb.currentChainHeight, sdb.dao, sdb.actionHandlers), nil
+	return newStateTX(sdb.currentChainHeight, sdb.dao, sdb.actionHandlers, sdb.saveHistory), nil
 }
 
 // Commit persists all changes in RunActions() into the DB

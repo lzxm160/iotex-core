@@ -10,11 +10,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/iotexproject/go-pkgs/hash"
+	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/iotexproject/go-pkgs/hash"
-	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/db"
@@ -60,6 +60,7 @@ type (
 		Digest() hash.Hash256
 		Version() uint64
 		Height() uint64
+		History() bool
 		// General state
 		State(hash.Hash160, interface{}) error
 		PutState(hash.Hash160, interface{}) error
@@ -72,6 +73,7 @@ type (
 	workingSet struct {
 		ver            uint64
 		blkHeight      uint64
+		saveHistory    bool
 		accountTrie    trie.Trie            // global account state trie
 		trieRoots      map[int]hash.Hash256 // root of trie at time of snapshot
 		cb             db.CachedBatch       // cached batch for pending writes
@@ -80,21 +82,23 @@ type (
 	}
 )
 
-// NewWorkingSet creates a new working set
-func NewWorkingSet(
+// newWorkingSet creates a new working set
+func newWorkingSet(
 	version uint64,
 	kv db.KVStore,
 	root hash.Hash256,
 	actionHandlers []protocol.ActionHandler,
+	saveHistory bool,
 ) (WorkingSet, error) {
 	ws := &workingSet{
 		ver:            version,
+		saveHistory:    saveHistory,
 		trieRoots:      make(map[int]hash.Hash256),
 		cb:             db.NewCachedBatch(),
 		dao:            kv,
 		actionHandlers: actionHandlers,
 	}
-	dbForTrie, err := db.NewKVStoreForTrie(AccountKVNameSpace, ws.dao, db.CachedBatchOption(ws.cb))
+	dbForTrie, err := db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, ws.dao, db.CachedBatchOption(ws.cb))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate state tire db")
 	}
@@ -125,6 +129,10 @@ func (ws *workingSet) Version() uint64 {
 // Height returns the Height of the block being worked on
 func (ws *workingSet) Height() uint64 {
 	return ws.blkHeight
+}
+
+func (ws *workingSet) History() bool {
+	return ws.saveHistory
 }
 
 // RunActions runs actions in the block and track pending changes in working set
@@ -234,7 +242,14 @@ func (ws *workingSet) Revert(snapshot int) error {
 func (ws *workingSet) Commit() error {
 	// Commit all changes in a batch
 	dbBatchSizelMtc.WithLabelValues().Set(float64(ws.cb.Size()))
-	if err := ws.dao.Commit(ws.cb); err != nil {
+	var cb db.KVStoreBatch
+	if ws.saveHistory {
+		// exclude trie deletion
+		cb = ws.cb.ExcludeEntries(ContractKVNameSpace, db.Delete)
+	} else {
+		cb = ws.cb
+	}
+	if err := ws.dao.Commit(cb); err != nil {
 		return errors.Wrap(err, "failed to Commit all changes to underlying DB in a batch")
 	}
 	ws.clear()

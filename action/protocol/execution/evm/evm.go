@@ -147,7 +147,12 @@ func ExecuteContract(
 	hu config.HeightUpgrade,
 ) ([]byte, *action.Receipt, error) {
 	raCtx := protocol.MustGetRunActionsCtx(ctx)
-	stateDB := NewStateDBAdapter(getBlockHash, sm, hu, raCtx.BlockHeight, execution.Hash())
+	var stateDB *StateDBAdapter
+	if raCtx.History {
+		stateDB = NewStateDBAdapter(getBlockHash, sm, hu, raCtx.BlockHeight, execution.Hash(), SaveHistoryOption())
+	} else {
+		stateDB = NewStateDBAdapter(getBlockHash, sm, hu, raCtx.BlockHeight, execution.Hash())
+	}
 	ps, err := NewParams(raCtx, execution, stateDB, hu)
 	if err != nil {
 		return nil, nil, err

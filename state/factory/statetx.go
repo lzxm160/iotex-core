@@ -9,9 +9,9 @@ package factory
 import (
 	"context"
 
+	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/pkg/errors"
 
-	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
@@ -27,6 +27,7 @@ type stateTX struct {
 	cb             db.CachedBatch // cached batch for pending writes
 	dao            db.KVStore     // the underlying DB for account/contract storage
 	actionHandlers []protocol.ActionHandler
+	saveHistory    bool
 }
 
 // newStateTX creates a new state tx
@@ -34,12 +35,14 @@ func newStateTX(
 	version uint64,
 	kv db.KVStore,
 	actionHandlers []protocol.ActionHandler,
+	saveHistory bool,
 ) *stateTX {
 	return &stateTX{
 		ver:            version,
 		cb:             db.NewCachedBatch(),
 		dao:            kv,
 		actionHandlers: actionHandlers,
+		saveHistory:    saveHistory,
 	}
 }
 
@@ -47,13 +50,25 @@ func newStateTX(
 func (stx *stateTX) RootHash() hash.Hash256 { return hash.ZeroHash256 }
 
 // Digest returns the delta state digest
-func (stx *stateTX) Digest() hash.Hash256 { return stx.GetCachedBatch().Digest() }
+func (stx *stateTX) Digest() hash.Hash256 {
+	var cb db.KVStoreBatch
+	if stx.saveHistory {
+		// exclude trie pruning entries before calculating digest
+		cb = stx.cb.ExcludeEntries(PruneKVNameSpace, db.Put)
+	} else {
+		cb = stx.cb
+	}
+	return cb.Digest()
+}
 
 // Version returns the Version of this working set
 func (stx *stateTX) Version() uint64 { return stx.ver }
 
 // Height returns the Height of the block being worked on
 func (stx *stateTX) Height() uint64 { return stx.blkHeight }
+
+// History returns if the DB retains history
+func (stx *stateTX) History() bool { return stx.saveHistory }
 
 // RunActions runs actions in the block and track pending changes in working set
 func (stx *stateTX) RunActions(
@@ -136,7 +151,14 @@ func (stx *stateTX) Revert(snapshot int) error { return stx.cb.Revert(snapshot) 
 func (stx *stateTX) Commit() error {
 	// Commit all changes in a batch
 	dbBatchSizelMtc.WithLabelValues().Set(float64(stx.cb.Size()))
-	if err := stx.dao.Commit(stx.cb); err != nil {
+	var cb db.KVStoreBatch
+	if stx.saveHistory {
+		// exclude trie deletion
+		cb = stx.cb.ExcludeEntries(ContractKVNameSpace, db.Delete)
+	} else {
+		cb = stx.cb
+	}
+	if err := stx.dao.Commit(cb); err != nil {
 		return errors.Wrap(err, "failed to Commit all changes to underlying DB in a batch")
 	}
 	return nil
@@ -178,6 +200,9 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 		return errors.Wrapf(err, "failed to convert account %v to bytes", s)
 	}
 	stx.cb.Put(AccountKVNameSpace, pkHash[:], ss, "error when putting k = %x", pkHash)
+	if stx.saveHistory {
+		return stx.putIndex(pkHash, ss)
+	}
 	return nil
 }
 
@@ -186,3 +211,47 @@ func (stx *stateTX) DelState(pkHash hash.Hash160) error {
 	stx.cb.Delete(AccountKVNameSpace, pkHash[:], "error when deleting k = %x", pkHash)
 	return nil
 }
+
+func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
+	version := stx.ver + 1
+	ns := append([]byte(AccountKVNameSpace), pkHash[:]...)
+	ri, err := stx.dao.CreateRangeIndexNX(ns, db.NotExist)
+	if err != nil {
+		return err
+	}
+	return ri.Insert(version, ss)
+}
+
+/*
+// delete history asynchronous,this will find all account that with version
+func (stx *stateTX) deleteHistory() error {
+	currentHeight := stx.ver + 1
+	if currentHeight <= stx.cfg.HistoryStateRetention {
+		return nil
+	}
+	deleteStartHeight := currentHeight - stx.cfg.HistoryStateRetention
+	go func() {
+		stx.deleting <- struct{}{}
+		// find all keys that with version
+		allKeys, err := stx.dao.GetBucketByPrefix([]byte(AccountKVNameSpace))
+		if err != nil {
+			log.L().Info("get prefix", zap.Error(err))
+			return
+		}
+		//chaindbCache := db.NewCachedBatch()
+		for _, key := range allKeys {
+			ri, err := stx.dao.CreateRangeIndexNX(key, db.NotExist)
+			if err != nil {
+				continue
+			}
+			err = ri.Purge(deleteStartHeight)
+			if err != nil {
+				continue
+			}
+		}
+		<-stx.deleting
+	}()
+	return nil
+}
+
+*/
