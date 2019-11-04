@@ -455,6 +455,7 @@ func TestIterator(t *testing.T) {
 	// save key value to bucket2,then read from bucket2 to check value
 	dbForTrie2, err := db.NewKVStoreForTrie("bucket2", d, db.CachedBatchOption(db.NewCachedBatch()))
 	require.NoError(err)
+
 	for _, key := range allHash {
 		fmt.Println("key", hex.EncodeToString(key))
 		value, err := dbForTrie1.Get(key)
@@ -466,6 +467,7 @@ func TestIterator(t *testing.T) {
 	tr2, err := NewTrie(KVStoreOption(dbForTrie2), KeyLengthOption(8), RootHashOption(root[:]))
 	require.NotNil(tr2)
 	require.NoError(err)
+	require.Nil(tr2.Start(context.Background()))
 
 	b, err = tr2.Get(ham)
 	require.NoError(err)
