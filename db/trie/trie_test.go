@@ -434,7 +434,7 @@ func TestIterator(t *testing.T) {
 		//fmt.Println(key, ":", string(value))
 	}
 	for _, v := range leafIterator.allNode {
-		fmt.Println(v.Key(), ":", v.Value())
+		fmt.Println(v)
 	}
 	rootNode, err := tr.loadNodeFromDB(tr.RootHash())
 	require.NoError(err)
