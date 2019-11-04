@@ -459,6 +459,7 @@ func TestIterator(t *testing.T) {
 		fmt.Println("key", hex.EncodeToString(key))
 		value, err := dbForTrie1.Get(key)
 		require.NoError(err)
+		fmt.Println("value", hex.EncodeToString(value))
 		require.NoError(dbForTrie2.Put(key, value))
 	}
 
