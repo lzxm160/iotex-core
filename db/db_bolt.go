@@ -7,8 +7,8 @@
 package db
 
 import (
-	"bytes"
 	"context"
+
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 
@@ -95,7 +95,6 @@ func (b *boltDB) Get(namespace string, key []byte) ([]byte, error) {
 	}
 	return nil, errors.Wrap(ErrIO, err.Error())
 }
-
 
 // GetBucketByPrefix retrieves all bucket those with const namespace prefix
 func (b *boltDB) GetBucketByPrefix(namespace []byte) (allKey [][]byte, err error) {
