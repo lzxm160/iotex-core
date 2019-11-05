@@ -31,6 +31,7 @@ func TestRangeIndex(t *testing.T) {
 		{7, []byte("seven")},
 		{29, []byte("twenty-nine")},
 		{100, []byte("hundred")},
+		{999, []byte("nine-nine-nine")},
 	}
 
 	path := "test-indexer"
@@ -93,7 +94,7 @@ func TestRangeIndex(t *testing.T) {
 	v, err = index.Get(rangeTests[1].k)
 	require.NoError(err)
 	require.Equal(rangeTests[0].v, v)
-	for i := 2; i <= 3; i++ {
+	for i := 2; i < len(rangeTests); i++ {
 		v, err = index.Get(rangeTests[i].k)
 		require.NoError(err)
 		require.Equal(rangeTests[i].v, v)
@@ -105,9 +106,51 @@ func TestRangeIndex(t *testing.T) {
 	// delete rangeTests[3].k
 	require.NoError(index.Delete(rangeTests[3].k))
 	v, err = index.Get(rangeTests[3].k)
+	for i := 2; i <= 3; i++ {
+		v, err = index.Get(rangeTests[i].k)
+		require.NoError(err)
+		require.Equal(rangeTests[2].v, v)
+		v, err = index.Get(rangeTests[i].k + 1)
+		require.NoError(err)
+		require.Equal(rangeTests[2].v, v)
+	}
+
+	// key 4 not affected
+	v, err = index.Get(rangeTests[4].k)
 	require.NoError(err)
-	require.Equal(rangeTests[2].v, v)
-	v, err = index.Get(rangeTests[3].k + 1)
+	require.Equal(rangeTests[4].v, v)
+	v, err = index.Get(rangeTests[4].k + 1)
 	require.NoError(err)
-	require.Equal(rangeTests[2].v, v)
+	require.Equal(rangeTests[4].v, v)
+
+	// add rangeTests[3].k back with a diff value
+	rangeTests[3].v = []byte("not-hundred")
+	require.NoError(index.Insert(rangeTests[3].k, rangeTests[3].v))
+	for i := 2; i < len(rangeTests); i++ {
+		v, err = index.Get(rangeTests[i].k)
+		require.NoError(err)
+		require.Equal(rangeTests[i].v, v)
+		v, err = index.Get(rangeTests[i].k + 1)
+		require.NoError(err)
+		require.Equal(rangeTests[i].v, v)
+	}
+
+	// purge rangeTests[3].k
+	require.NoError(index.Purge(rangeTests[3].k))
+	for i := 1; i <= 3; i++ {
+		v, err = index.Get(rangeTests[i].k)
+		require.NoError(err)
+		require.Equal(NotExist, v)
+		v, err = index.Get(rangeTests[i].k + 1)
+		require.NoError(err)
+		require.Equal(NotExist, v)
+	}
+
+	// key 4 not affected
+	v, err = index.Get(rangeTests[4].k)
+	require.NoError(err)
+	require.Equal(rangeTests[4].v, v)
+	v, err = index.Get(rangeTests[4].k + 1)
+	require.NoError(err)
+	require.Equal(rangeTests[4].v, v)
 }
