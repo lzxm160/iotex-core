@@ -497,6 +497,9 @@ func TestBlockchain_MintNewBlock_PopAccount(t *testing.T) {
 	ctx := context.Background()
 	cfg := config.Default
 	cfg.Genesis.EnableGravityChainVoting = false
+	cfg.Genesis.NumCandidateDelegates = genesis.Default.NumCandidateDelegates
+	cfg.Genesis.NumDelegates = genesis.Default.NumDelegates
+	cfg.Genesis.NumSubEpochs = genesis.Default.NumSubEpochs
 	//registry := protocol.Registry{}
 	//hu := config.NewHeightUpgrade(cfg)
 	//acc := account.NewProtocol(hu)
