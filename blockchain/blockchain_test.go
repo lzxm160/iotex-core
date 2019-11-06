@@ -784,25 +784,32 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 		require.Equal(24, ms.Counter())
 
 		// Load a blockchain from DB
-		accountProtocol := account.NewProtocol(config.NewHeightUpgrade(cfg))
-		registry := protocol.Registry{}
-		require.NoError(registry.Register(account.ProtocolID, accountProtocol))
-		bc = NewBlockchain(
-			cfg,
-			dao,
-			PrecreatedStateFactoryOption(sf),
-			RegistryOption(&registry),
-		)
-		rolldposProtocol := rolldpos.NewProtocol(
-			genesis.Default.NumCandidateDelegates,
-			genesis.Default.NumDelegates,
-			genesis.Default.NumSubEpochs,
-		)
-		require.NoError(registry.Register(rolldpos.ProtocolID, rolldposProtocol))
-		rewardingProtocol := rewarding.NewProtocol(bc, rolldposProtocol)
-		require.NoError(registry.Register(rewarding.ProtocolID, rewardingProtocol))
-		bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-		bc.Validator().AddActionValidators(accountProtocol)
+		cfg.Genesis.NumCandidateDelegates = genesis.Default.NumCandidateDelegates
+		cfg.Genesis.NumDelegates = genesis.Default.NumDelegates
+		cfg.Genesis.NumSubEpochs = genesis.Default.NumSubEpochs
+		//
+		//accountProtocol := account.NewProtocol(config.NewHeightUpgrade(cfg))
+		//registry := protocol.Registry{}
+		//require.NoError(registry.Register(account.ProtocolID, accountProtocol))
+		//bc = NewBlockchain(
+		//	cfg,
+		//	dao,
+		//	PrecreatedStateFactoryOption(sf),
+		//	RegistryOption(&registry),
+		//)
+		//rolldposProtocol := rolldpos.NewProtocol(
+		//	genesis.Default.NumCandidateDelegates,
+		//	genesis.Default.NumDelegates,
+		//	genesis.Default.NumSubEpochs,
+		//)
+		//require.NoError(registry.Register(rolldpos.ProtocolID, rolldposProtocol))
+		//rewardingProtocol := rewarding.NewProtocol(bc, rolldposProtocol)
+		//require.NoError(registry.Register(rewarding.ProtocolID, rewardingProtocol))
+		//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
+		//bc.Validator().AddActionValidators(accountProtocol)
+		//require.NoError(bc.Start(ctx))
+		bc, dao, indexer, _, sf, err = CreateBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID})
+		require.NoError(err)
 		require.NoError(bc.Start(ctx))
 		defer func() {
 			require.NoError(bc.Stop(ctx))
