@@ -48,26 +48,29 @@ func PickAction(gasLimit uint64, actionIterator actioniterator.ActionIterator) (
 
 func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blockchain, dao blockdao.BlockDAO, indexer blockindex.Indexer, registry *protocol.Registry, sf factory.Factory, err error) {
 
-	//// create indexer
-	//cfg.DB.DbPath = cfg.Chain.IndexDBPath
-	//indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
-	//require.NoError(err)
-	//// create BlockDAO
-	//cfg.DB.DbPath = cfg.Chain.ChainDBPath
-	//dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
-	//require.NotNil(dao)
-	//bc := NewBlockchain(
-	//	cfg,
-	//	dao,
-	//	PrecreatedStateFactoryOption(sf),
-	//	RegistryOption(&registry),
-	//)
-	//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-	//exec := execution.NewProtocol(bc, hc)
-	//require.NoError(registry.Register(execution.ProtocolID, exec))
-	//bc.Validator().AddActionValidators(acc, exec)
-	//sf.AddActionHandlers(exec)
-	//require.NoError(bc.Start(ctx))
+	defer func() {
+		delete(cfg.Plugins, config.GatewayPlugin)
+	}()
+	//
+
+	//	if err := registry.Register(rolldpos.ProtocolID, rolldposProtocol); err != nil {
+	//		return nil, nil, nil, nil, err
+	//	}
+	//	if err := registry.Register(account.ProtocolID, acc); err != nil {
+	//		return nil, nil, nil, nil, err
+	//	}
+	//	if err := registry.Register(execution.ProtocolID, evm); err != nil {
+	//		return nil, nil, nil, nil, err
+	//	}
+	//	if err := registry.Register(rewarding.ProtocolID, r); err != nil {
+	//		return nil, nil, nil, nil, err
+	//	}
+	//	if err := registry.Register(poll.ProtocolID, p); err != nil {
+	//		return nil, nil, nil, nil, err
+	//	}
+	//	sf.AddActionHandlers(acc, evm, r)
+	//	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
+	//	bc.Validator().AddActionValidators(acc, evm, r)
 	if inMem {
 		sf, err = factory.NewFactory(cfg, factory.InMemTrieOption())
 		if err != nil {
@@ -94,13 +97,11 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 	if err != nil {
 		return
 	}
-
 	// create BlockDAO
 	dao = blockdao.NewBlockDAO(blockdaoDB, indexer, cfg.Chain.CompressBlock, cfg.DB)
 	if dao == nil {
 		return
 	}
-
 	// create chain
 	registry = &protocol.Registry{}
 
@@ -117,7 +118,16 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 			if err = registry.Register(rolldpos.ProtocolID, rolldposProtocol); err != nil {
 				return
 			}
-
+			//	acc := account.NewProtocol(config.NewHeightUpgrade(cfg))
+			//	evm := execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
+			//	p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
+			//	rolldposProtocol := rolldpos.NewProtocol(
+			//		genesis.Default.NumCandidateDelegates,
+			//		genesis.Default.NumDelegates,
+			//		genesis.Default.NumSubEpochs,
+			//	)
+			//	r := rewarding.NewProtocol(bc, rolldposProtocol)
+			//
 		case account.ProtocolID:
 			acc = account.NewProtocol(config.NewHeightUpgrade(cfg))
 			if err = registry.Register(account.ProtocolID, acc); err != nil {
@@ -150,7 +160,7 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 		RegistryOption(registry),
 	)
 	if bc == nil {
-		err = errors.New("bc is nil")
+		err = errors.New("failed to create blockchain")
 		return
 	}
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
