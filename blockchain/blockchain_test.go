@@ -27,7 +27,6 @@ import (
 	"github.com/iotexproject/iotex-core/action/protocol/account"
 	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
-	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/blockchain/block"
@@ -497,22 +496,6 @@ func TestBlockchain_MintNewBlock_PopAccount(t *testing.T) {
 	ctx := context.Background()
 	cfg := config.Default
 	cfg.Genesis.EnableGravityChainVoting = false
-	cfg.Genesis.NumCandidateDelegates = genesis.Default.NumCandidateDelegates
-	cfg.Genesis.NumDelegates = genesis.Default.NumDelegates
-	cfg.Genesis.NumSubEpochs = genesis.Default.NumSubEpochs
-	//registry := protocol.Registry{}
-	//hu := config.NewHeightUpgrade(cfg)
-	//acc := account.NewProtocol(hu)
-	//require.NoError(t, registry.Register(account.ProtocolID, acc))
-	//bc := NewBlockchain(cfg, nil, InMemStateFactoryOption(), InMemDaoOption(), RegistryOption(&registry))
-	//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-	//require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
-	//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-	//exec := execution.NewProtocol(bc, hu)
-	//require.NoError(t, registry.Register(execution.ProtocolID, exec))
-	//bc.Validator().AddActionValidators(acc, exec)
-	//bc.GetFactory().AddActionHandlers(acc, exec)
-	//require.NoError(t, bc.Start(ctx))
 	bc, _, _, _, _, err := CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, execution.ProtocolID})
 	require.NoError(t, err)
 	require.NoError(t, bc.Start(ctx))
@@ -965,28 +948,34 @@ func TestBlockchainInitialCandidate(t *testing.T) {
 	cfg.Chain.ChainDBPath = testDBPath
 	cfg.Chain.IndexDBPath = testIndexPath
 	cfg.Consensus.Scheme = config.RollDPoSScheme
-	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
+	//sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
+	//require.NoError(err)
+	//accountProtocol := account.NewProtocol(config.NewHeightUpgrade(cfg))
+	//sf.AddActionHandlers(accountProtocol)
+	//registry := protocol.Registry{}
+	//require.NoError(registry.Register(account.ProtocolID, accountProtocol))
+	//bc := NewBlockchain(
+	//	cfg,
+	//	nil,
+	//	PrecreatedStateFactoryOption(sf),
+	//	BoltDBDaoOption(),
+	//	RegistryOption(&registry),
+	//)
+	//rolldposProtocol := rolldpos.NewProtocol(
+	//	genesis.Default.NumCandidateDelegates,
+	//	genesis.Default.NumDelegates,
+	//	genesis.Default.NumSubEpochs,
+	//)
+	//require.NoError(registry.Register(rolldpos.ProtocolID, rolldposProtocol))
+	//rewardingProtocol := rewarding.NewProtocol(bc, rolldposProtocol)
+	//require.NoError(registry.Register(rewarding.ProtocolID, rewardingProtocol))
+	//require.NoError(registry.Register(poll.ProtocolID, poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)))
+	//require.NoError(bc.Start(context.Background()))
+	cfg.Genesis.NumCandidateDelegates = genesis.Default.NumCandidateDelegates
+	cfg.Genesis.NumDelegates = genesis.Default.NumDelegates
+	cfg.Genesis.NumSubEpochs = genesis.Default.NumSubEpochs
+	bc, _, _, _, sf, err := CreateBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID})
 	require.NoError(err)
-	accountProtocol := account.NewProtocol(config.NewHeightUpgrade(cfg))
-	sf.AddActionHandlers(accountProtocol)
-	registry := protocol.Registry{}
-	require.NoError(registry.Register(account.ProtocolID, accountProtocol))
-	bc := NewBlockchain(
-		cfg,
-		nil,
-		PrecreatedStateFactoryOption(sf),
-		BoltDBDaoOption(),
-		RegistryOption(&registry),
-	)
-	rolldposProtocol := rolldpos.NewProtocol(
-		genesis.Default.NumCandidateDelegates,
-		genesis.Default.NumDelegates,
-		genesis.Default.NumSubEpochs,
-	)
-	require.NoError(registry.Register(rolldpos.ProtocolID, rolldposProtocol))
-	rewardingProtocol := rewarding.NewProtocol(bc, rolldposProtocol)
-	require.NoError(registry.Register(rewarding.ProtocolID, rewardingProtocol))
-	require.NoError(registry.Register(poll.ProtocolID, poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)))
 	require.NoError(bc.Start(context.Background()))
 	defer func() {
 		require.NoError(bc.Stop(context.Background()))

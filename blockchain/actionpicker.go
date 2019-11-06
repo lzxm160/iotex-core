@@ -99,9 +99,6 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 		switch proto {
 		case rolldpos.ProtocolID:
 			rolldposProtocol = rolldpos.NewProtocol(
-				//genesis.Default.NumCandidateDelegates,
-				//genesis.Default.NumDelegates,
-				//genesis.Default.NumSubEpochs,
 				cfg.Genesis.NumCandidateDelegates,
 				cfg.Genesis.NumDelegates,
 				cfg.Genesis.NumSubEpochs,
