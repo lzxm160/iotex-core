@@ -19,7 +19,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Frankonly/iotex-core/action/protocol/execution"
 	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"github.com/iotexproject/iotex-core/state/factory"
 
@@ -906,9 +905,9 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc blo
 				return
 			}
 			sf.AddActionHandlers(acc)
-		case execution.ProtocolID:
-			evm = execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
-			if err = registry.Register(execution.ProtocolID, evm); err != nil {
+		case ProtocolID:
+			evm = NewProtocol(bc, config.NewHeightUpgrade(cfg))
+			if err = registry.Register(ProtocolID, evm); err != nil {
 				return
 			}
 			sf.AddActionHandlers(evm)
