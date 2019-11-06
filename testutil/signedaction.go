@@ -66,19 +66,17 @@ func SignedExecution(contractAddr string, executorPriKey crypto.PrivateKey, nonc
 	}
 	return selp, nil
 }
-func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (blockchain.Blockchain, blockdao.BlockDAO, blockindex.Indexer, *protocol.Registry, error) {
+func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc blockchain.Blockchain, dao blockdao.BlockDAO, indexer blockindex.Indexer, registry *protocol.Registry, sf factory.Factory, err error) {
 	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
-	var sf factory.Factory
-	var err error
 	if inMem {
 		sf, err = factory.NewFactory(cfg, factory.InMemTrieOption())
 		if err != nil {
-			return nil, nil, nil, nil, err
+			return
 		}
 	} else {
 		sf, err = factory.NewFactory(cfg, factory.DefaultTrieOption())
 		if err != nil {
-			return nil, nil, nil, nil, err
+			return
 		}
 	}
 
@@ -91,25 +89,25 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (blockc
 		blockdaoDB = db.NewBoltDB(cfg.DB)
 	}
 	// create indexer
-	indexer, err := blockindex.NewIndexer(indexerDB, cfg.Genesis.Hash())
+	indexer, err = blockindex.NewIndexer(indexerDB, cfg.Genesis.Hash())
 	if err != nil {
-		return nil, nil, nil, nil, errors.New("failed to create indexer")
+		return
 	}
 	// create BlockDAO
-	dao := blockdao.NewBlockDAO(blockdaoDB, indexer, cfg.Chain.CompressBlock, cfg.DB)
+	dao = blockdao.NewBlockDAO(blockdaoDB, indexer, cfg.Chain.CompressBlock, cfg.DB)
 	if dao == nil {
-		return nil, nil, nil, nil, errors.New("failed to create blockdao")
+		return
 	}
 	// create chain
-	registry := protocol.Registry{}
-	bc := blockchain.NewBlockchain(
+	registry = &protocol.Registry{}
+	bc = blockchain.NewBlockchain(
 		cfg,
 		dao,
 		blockchain.PrecreatedStateFactoryOption(sf),
-		blockchain.RegistryOption(&registry),
+		blockchain.RegistryOption(registry),
 	)
 	if bc == nil {
-		return nil, nil, nil, nil, errors.New("failed to create blockchain")
+		return
 	}
 	defer func() {
 		delete(cfg.Plugins, config.GatewayPlugin)
@@ -124,27 +122,27 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (blockc
 				genesis.Default.NumSubEpochs,
 			)
 			reward = rewarding.NewProtocol(bc, rolldposProtocol)
-			if err := registry.Register(rolldpos.ProtocolID, rolldposProtocol); err != nil {
-				return nil, nil, nil, nil, err
+			if err = registry.Register(rolldpos.ProtocolID, rolldposProtocol); err != nil {
+				return
 			}
 		case account.ProtocolID:
 			acc = account.NewProtocol(config.NewHeightUpgrade(cfg))
-			if err := registry.Register(account.ProtocolID, acc); err != nil {
-				return nil, nil, nil, nil, err
+			if err = registry.Register(account.ProtocolID, acc); err != nil {
+				return
 			}
 		case execution.ProtocolID:
 			evm = execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
-			if err := registry.Register(execution.ProtocolID, evm); err != nil {
-				return nil, nil, nil, nil, err
+			if err = registry.Register(execution.ProtocolID, evm); err != nil {
+				return
 			}
 		case rewarding.ProtocolID:
-			if err := registry.Register(rewarding.ProtocolID, reward); err != nil {
-				return nil, nil, nil, nil, err
+			if err = registry.Register(rewarding.ProtocolID, reward); err != nil {
+				return
 			}
 		case poll.ProtocolID:
 			p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
-			if err := registry.Register(poll.ProtocolID, p); err != nil {
-				return nil, nil, nil, nil, err
+			if err = registry.Register(poll.ProtocolID, p); err != nil {
+				return
 			}
 		}
 	}
@@ -153,5 +151,5 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (blockc
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
 	bc.Validator().AddActionValidators(acc, evm, reward)
 
-	return bc, dao, indexer, &registry, nil
+	return
 }

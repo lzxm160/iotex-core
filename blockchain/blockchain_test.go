@@ -605,35 +605,36 @@ func TestConstantinople(t *testing.T) {
 		ctx := context.Background()
 
 		// Create a blockchain from scratch
-		sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
-		require.NoError(err)
-		hc := config.NewHeightUpgrade(cfg)
-		acc := account.NewProtocol(hc)
-		sf.AddActionHandlers(acc)
-		registry := protocol.Registry{}
-		require.NoError(registry.Register(account.ProtocolID, acc))
-		rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-		require.NoError(registry.Register(rolldpos.ProtocolID, rp))
-		// create indexer
-		cfg.DB.DbPath = cfg.Chain.IndexDBPath
-		indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
-		require.NoError(err)
-		// create BlockDAO
-		cfg.DB.DbPath = cfg.Chain.ChainDBPath
-		dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
-		require.NotNil(dao)
-		bc := NewBlockchain(
-			cfg,
-			dao,
-			PrecreatedStateFactoryOption(sf),
-			RegistryOption(&registry),
-		)
-		bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-		exec := execution.NewProtocol(bc, hc)
-		require.NoError(registry.Register(execution.ProtocolID, exec))
-		bc.Validator().AddActionValidators(acc, exec)
-		sf.AddActionHandlers(exec)
-		require.NoError(bc.Start(ctx))
+		//sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
+		//require.NoError(err)
+		//hc := config.NewHeightUpgrade(cfg)
+		//acc := account.NewProtocol(hc)
+		//sf.AddActionHandlers(acc)
+		//registry := protocol.Registry{}
+		//require.NoError(registry.Register(account.ProtocolID, acc))
+		//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+		//require.NoError(registry.Register(rolldpos.ProtocolID, rp))
+		//// create indexer
+		//cfg.DB.DbPath = cfg.Chain.IndexDBPath
+		//indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
+		//require.NoError(err)
+		//// create BlockDAO
+		//cfg.DB.DbPath = cfg.Chain.ChainDBPath
+		//dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
+		//require.NotNil(dao)
+		//bc := NewBlockchain(
+		//	cfg,
+		//	dao,
+		//	PrecreatedStateFactoryOption(sf),
+		//	RegistryOption(&registry),
+		//)
+		//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
+		//exec := execution.NewProtocol(bc, hc)
+		//require.NoError(registry.Register(execution.ProtocolID, exec))
+		//bc.Validator().AddActionValidators(acc, exec)
+		//sf.AddActionHandlers(exec)
+		//require.NoError(bc.Start(ctx))
+		bc, dao, indexer, _, sf, err := testutil.CreateBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID})
 		require.NoError(addCreatorToFactory(sf))
 		defer func() {
 			require.NoError(bc.Stop(ctx))

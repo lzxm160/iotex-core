@@ -1749,7 +1749,7 @@ func newConfig() config.Config {
 }
 
 func createServer(cfg config.Config, needActPool bool) (*Server, error) {
-	bc, dao, indexer, registry, err := testutil.CreateBlockchain(true, cfg, []string{rolldpos.ProtocolID, account.ProtocolID, execution.ProtocolID, rewarding.ProtocolID, poll.ProtocolID})
+	bc, dao, indexer, registry, _, err := testutil.CreateBlockchain(true, cfg, []string{rolldpos.ProtocolID, account.ProtocolID, execution.ProtocolID, rewarding.ProtocolID, poll.ProtocolID})
 	if err != nil {
 		return nil, err
 	}
