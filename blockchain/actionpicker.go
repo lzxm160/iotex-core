@@ -7,6 +7,8 @@
 package blockchain
 
 import (
+	"encoding/hex"
+
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
@@ -16,11 +18,11 @@ import (
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/actpool/actioniterator"
 	"github.com/iotexproject/iotex-core/blockchain/blockdao"
-	"github.com/iotexproject/iotex-core/blockchain/genesis"
 	"github.com/iotexproject/iotex-core/blockindex"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/state/factory"
+	"github.com/iotexproject/iotex-core/test/identityset"
 )
 
 // PickAction returns picked action list
@@ -47,36 +49,7 @@ func PickAction(gasLimit uint64, actionIterator actioniterator.ActionIterator) (
 
 func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blockchain, dao blockdao.BlockDAO, indexer blockindex.Indexer, registry *protocol.Registry, sf factory.Factory, err error) {
 
-	//sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
-	//require.NoError(err)
-	//hc := config.NewHeightUpgrade(cfg)
-	//acc := account.NewProtocol(hc)
-	//sf.AddActionHandlers(acc)
-	//registry := protocol.Registry{}
-	//require.NoError(registry.Register(account.ProtocolID, acc))
-	//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-	//require.NoError(registry.Register(rolldpos.ProtocolID, rp))
-	//// create indexer
-	//cfg.DB.DbPath = cfg.Chain.IndexDBPath
-	//indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
-	//require.NoError(err)
-	//// create BlockDAO
-	//cfg.DB.DbPath = cfg.Chain.ChainDBPath
-	//dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
-	//require.NotNil(dao)
-	//bc := NewBlockchain(
-	//	cfg,
-	//	dao,
-	//	PrecreatedStateFactoryOption(sf),
-	//	RegistryOption(&registry),
-	//)
-	//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-	//exec := execution.NewProtocol(bc, hc)
-	//require.NoError(registry.Register(execution.ProtocolID, exec))
-	//bc.Validator().AddActionValidators(acc, exec)
-	//sf.AddActionHandlers(exec)
-
-	//cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
+	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
 	if inMem {
 		sf, err = factory.NewFactory(cfg, factory.InMemTrieOption())
 		if err != nil {
@@ -103,11 +76,13 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 	if err != nil {
 		return
 	}
+
 	// create BlockDAO
 	dao = blockdao.NewBlockDAO(blockdaoDB, indexer, cfg.Chain.CompressBlock, cfg.DB)
 	if dao == nil {
 		return
 	}
+
 	// create chain
 	registry = &protocol.Registry{}
 	bc = NewBlockchain(
@@ -119,6 +94,7 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 	if bc == nil {
 		return
 	}
+
 	defer func() {
 		delete(cfg.Plugins, config.GatewayPlugin)
 	}()
@@ -127,14 +103,14 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 		switch protocol {
 		case rolldpos.ProtocolID:
 			rolldposProtocol := rolldpos.NewProtocol(
-				genesis.Default.NumCandidateDelegates,
-				genesis.Default.NumDelegates,
-				genesis.Default.NumSubEpochs,
+				cfg.Genesis.NumCandidateDelegates,
+				cfg.Genesis.NumDelegates,
+				cfg.Genesis.NumSubEpochs,
 			)
-			reward = rewarding.NewProtocol(bc, rolldposProtocol)
 			if err = registry.Register(rolldpos.ProtocolID, rolldposProtocol); err != nil {
 				return
 			}
+			reward = rewarding.NewProtocol(bc, rolldposProtocol)
 		case account.ProtocolID:
 			acc = account.NewProtocol(config.NewHeightUpgrade(cfg))
 			if err = registry.Register(account.ProtocolID, acc); err != nil {
@@ -160,6 +136,5 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 	sf.AddActionHandlers(acc, evm, reward)
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
 	bc.Validator().AddActionValidators(acc, evm, reward)
-
 	return
 }
