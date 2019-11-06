@@ -441,19 +441,6 @@ func TestBlockchain_MintNewBlock(t *testing.T) {
 	cfg := config.Default
 	cfg.Genesis.BlockGasLimit = uint64(100000)
 	cfg.Genesis.EnableGravityChainVoting = false
-	//registry := protocol.Registry{}
-	//hu := config.NewHeightUpgrade(cfg)
-	//acc := account.NewProtocol(hu)
-	//require.NoError(t, registry.Register(account.ProtocolID, acc))
-	//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-	//require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
-	//bc := NewBlockchain(cfg, nil, InMemStateFactoryOption(), InMemDaoOption(), RegistryOption(&registry))
-	//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-	//exec := execution.NewProtocol(bc, hu)
-	//require.NoError(t, registry.Register(execution.ProtocolID, exec))
-	//bc.Validator().AddActionValidators(acc, exec)
-	//bc.GetFactory().AddActionHandlers(acc, exec)
-	//require.NoError(t, bc.Start(ctx))
 	bc, _, _, _, _, err := CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, execution.ProtocolID})
 	require.NoError(err)
 	require.NoError(bc.Start(ctx))
@@ -510,18 +497,21 @@ func TestBlockchain_MintNewBlock_PopAccount(t *testing.T) {
 	ctx := context.Background()
 	cfg := config.Default
 	cfg.Genesis.EnableGravityChainVoting = false
-	registry := protocol.Registry{}
-	hu := config.NewHeightUpgrade(cfg)
-	acc := account.NewProtocol(hu)
-	require.NoError(t, registry.Register(account.ProtocolID, acc))
-	bc := NewBlockchain(cfg, nil, InMemStateFactoryOption(), InMemDaoOption(), RegistryOption(&registry))
-	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-	require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
-	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-	exec := execution.NewProtocol(bc, hu)
-	require.NoError(t, registry.Register(execution.ProtocolID, exec))
-	bc.Validator().AddActionValidators(acc, exec)
-	bc.GetFactory().AddActionHandlers(acc, exec)
+	//registry := protocol.Registry{}
+	//hu := config.NewHeightUpgrade(cfg)
+	//acc := account.NewProtocol(hu)
+	//require.NoError(t, registry.Register(account.ProtocolID, acc))
+	//bc := NewBlockchain(cfg, nil, InMemStateFactoryOption(), InMemDaoOption(), RegistryOption(&registry))
+	//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+	//require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
+	//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
+	//exec := execution.NewProtocol(bc, hu)
+	//require.NoError(t, registry.Register(execution.ProtocolID, exec))
+	//bc.Validator().AddActionValidators(acc, exec)
+	//bc.GetFactory().AddActionHandlers(acc, exec)
+	//require.NoError(t, bc.Start(ctx))
+	bc, _, _, _, _, err := CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, execution.ProtocolID})
+	require.NoError(t, err)
 	require.NoError(t, bc.Start(ctx))
 	defer func() {
 		require.NoError(t, bc.Stop(ctx))
