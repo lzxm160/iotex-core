@@ -16,28 +16,25 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-core/action/protocol/account"
+	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
+
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/hash"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
-	"github.com/iotexproject/iotex-core/action/protocol/account"
 	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
 	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
-	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/actpool"
 	"github.com/iotexproject/iotex-core/blockchain"
-	"github.com/iotexproject/iotex-core/blockchain/blockdao"
 	"github.com/iotexproject/iotex-core/blockchain/genesis"
-	"github.com/iotexproject/iotex-core/blockindex"
 	"github.com/iotexproject/iotex-core/config"
-	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/gasstation"
 	"github.com/iotexproject/iotex-core/pkg/unit"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
@@ -1656,68 +1653,68 @@ func addActsToActPool(ap actpool.ActPool) error {
 	return ap.Add(execution1)
 }
 
-func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, blockindex.Indexer, *protocol.Registry, error) {
-	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
-	sf, err := factory.NewFactory(cfg, factory.InMemTrieOption())
-	if err != nil {
-		return nil, nil, nil, nil, err
-	}
-	// create indexer
-	indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), cfg.Genesis.Hash())
-	if err != nil {
-		return nil, nil, nil, nil, errors.New("failed to create indexer")
-	}
-	// create BlockDAO
-	dao := blockdao.NewBlockDAO(db.NewMemKVStore(), indexer, cfg.Chain.CompressBlock, cfg.DB)
-	if dao == nil {
-		return nil, nil, nil, nil, errors.New("failed to create blockdao")
-	}
-	// create chain
-	registry := protocol.Registry{}
-	bc := blockchain.NewBlockchain(
-		cfg,
-		dao,
-		blockchain.PrecreatedStateFactoryOption(sf),
-		blockchain.RegistryOption(&registry),
-	)
-	if bc == nil {
-		return nil, nil, nil, nil, errors.New("failed to create blockchain")
-	}
-	defer func() {
-		delete(cfg.Plugins, config.GatewayPlugin)
-	}()
-
-	acc := account.NewProtocol(config.NewHeightUpgrade(cfg))
-	evm := execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
-	p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
-	rolldposProtocol := rolldpos.NewProtocol(
-		genesis.Default.NumCandidateDelegates,
-		genesis.Default.NumDelegates,
-		genesis.Default.NumSubEpochs,
-	)
-	r := rewarding.NewProtocol(bc, rolldposProtocol)
-
-	if err := registry.Register(rolldpos.ProtocolID, rolldposProtocol); err != nil {
-		return nil, nil, nil, nil, err
-	}
-	if err := registry.Register(account.ProtocolID, acc); err != nil {
-		return nil, nil, nil, nil, err
-	}
-	if err := registry.Register(execution.ProtocolID, evm); err != nil {
-		return nil, nil, nil, nil, err
-	}
-	if err := registry.Register(rewarding.ProtocolID, r); err != nil {
-		return nil, nil, nil, nil, err
-	}
-	if err := registry.Register(poll.ProtocolID, p); err != nil {
-		return nil, nil, nil, nil, err
-	}
-	sf.AddActionHandlers(acc, evm, r)
-	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-	bc.Validator().AddActionValidators(acc, evm, r)
-
-	return bc, dao, indexer, &registry, nil
-}
+//func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, blockindex.Indexer, *protocol.Registry, error) {
+//	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
+//	sf, err := factory.NewFactory(cfg, factory.InMemTrieOption())
+//	if err != nil {
+//		return nil, nil, nil, nil, err
+//	}
+//	// create indexer
+//	indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), cfg.Genesis.Hash())
+//	if err != nil {
+//		return nil, nil, nil, nil, errors.New("failed to create indexer")
+//	}
+//	// create BlockDAO
+//	dao := blockdao.NewBlockDAO(db.NewMemKVStore(), indexer, cfg.Chain.CompressBlock, cfg.DB)
+//	if dao == nil {
+//		return nil, nil, nil, nil, errors.New("failed to create blockdao")
+//	}
+//	// create chain
+//	registry := protocol.Registry{}
+//	bc := blockchain.NewBlockchain(
+//		cfg,
+//		dao,
+//		blockchain.PrecreatedStateFactoryOption(sf),
+//		blockchain.RegistryOption(&registry),
+//	)
+//	if bc == nil {
+//		return nil, nil, nil, nil, errors.New("failed to create blockchain")
+//	}
+//	defer func() {
+//		delete(cfg.Plugins, config.GatewayPlugin)
+//	}()
+//
+//	acc := account.NewProtocol(config.NewHeightUpgrade(cfg))
+//	evm := execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
+//	p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
+//	rolldposProtocol := rolldpos.NewProtocol(
+//		genesis.Default.NumCandidateDelegates,
+//		genesis.Default.NumDelegates,
+//		genesis.Default.NumSubEpochs,
+//	)
+//	r := rewarding.NewProtocol(bc, rolldposProtocol)
+//
+//	if err := registry.Register(rolldpos.ProtocolID, rolldposProtocol); err != nil {
+//		return nil, nil, nil, nil, err
+//	}
+//	if err := registry.Register(account.ProtocolID, acc); err != nil {
+//		return nil, nil, nil, nil, err
+//	}
+//	if err := registry.Register(execution.ProtocolID, evm); err != nil {
+//		return nil, nil, nil, nil, err
+//	}
+//	if err := registry.Register(rewarding.ProtocolID, r); err != nil {
+//		return nil, nil, nil, nil, err
+//	}
+//	if err := registry.Register(poll.ProtocolID, p); err != nil {
+//		return nil, nil, nil, nil, err
+//	}
+//	sf.AddActionHandlers(acc, evm, r)
+//	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
+//	bc.Validator().AddActionValidators(acc, evm, r)
+//
+//	return bc, dao, indexer, &registry, nil
+//}
 
 func setupActPool(bc blockchain.Blockchain, cfg config.ActPool) (actpool.ActPool, error) {
 	ap, err := actpool.NewActPool(bc, cfg, actpool.EnableExperimentalActions())
@@ -1752,7 +1749,7 @@ func newConfig() config.Config {
 }
 
 func createServer(cfg config.Config, needActPool bool) (*Server, error) {
-	bc, dao, indexer, registry, err := setupChain(cfg)
+	bc, dao, indexer, registry, err := testutil.CreateBlockchain(true, cfg, []string{rolldpos.ProtocolID, account.ProtocolID, execution.ProtocolID, rewarding.ProtocolID, poll.ProtocolID})
 	if err != nil {
 		return nil, err
 	}
