@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/iotexproject/iotex-address/address"
-	"github.com/iotexproject/iotex-core/db"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
@@ -34,7 +33,6 @@ import (
 	"github.com/iotexproject/iotex-core/blockchain/block"
 	"github.com/iotexproject/iotex-core/blockchain/blockdao"
 	"github.com/iotexproject/iotex-core/blockchain/genesis"
-	"github.com/iotexproject/iotex-core/blockindex"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/pkg/unit"
 	"github.com/iotexproject/iotex-core/state/factory"
@@ -738,41 +736,41 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 		ctx := context.Background()
 
 		// Create a blockchain from scratch
-		sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
-		require.NoError(err)
-		hu := config.NewHeightUpgrade(cfg)
-		acc := account.NewProtocol(hu)
-		sf.AddActionHandlers(acc)
-		registry := protocol.Registry{}
-		require.NoError(registry.Register(account.ProtocolID, acc))
-		rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-		require.NoError(registry.Register(rolldpos.ProtocolID, rp))
-		var indexer blockindex.Indexer
-		if _, gateway := cfg.Plugins[config.GatewayPlugin]; gateway && !cfg.Chain.EnableAsyncIndexWrite {
-			// create indexer
-			cfg.DB.DbPath = cfg.Chain.IndexDBPath
-			indexer, err = blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
-			require.NoError(err)
-		}
-		// create BlockDAO
-		cfg.DB.DbPath = cfg.Chain.ChainDBPath
-		dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
-		require.NotNil(dao)
-		bc := NewBlockchain(
-			cfg,
-			dao,
-			PrecreatedStateFactoryOption(sf),
-			RegistryOption(&registry),
-		)
-		bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-		exec := execution.NewProtocol(bc, hu)
-		require.NoError(registry.Register(execution.ProtocolID, exec))
-		bc.Validator().AddActionValidators(acc, exec)
-		sf.AddActionHandlers(exec)
-		require.NoError(bc.Start(ctx))
-		//bc, dao, indexer, _, sf, err := CreateBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID})
+		//sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
 		//require.NoError(err)
+		//hu := config.NewHeightUpgrade(cfg)
+		//acc := account.NewProtocol(hu)
+		//sf.AddActionHandlers(acc)
+		//registry := protocol.Registry{}
+		//require.NoError(registry.Register(account.ProtocolID, acc))
+		//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+		//require.NoError(registry.Register(rolldpos.ProtocolID, rp))
+		//var indexer blockindex.Indexer
+		//if _, gateway := cfg.Plugins[config.GatewayPlugin]; gateway && !cfg.Chain.EnableAsyncIndexWrite {
+		//	// create indexer
+		//	cfg.DB.DbPath = cfg.Chain.IndexDBPath
+		//	indexer, err = blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
+		//	require.NoError(err)
+		//}
+		//// create BlockDAO
+		//cfg.DB.DbPath = cfg.Chain.ChainDBPath
+		//dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
+		//require.NotNil(dao)
+		//bc := NewBlockchain(
+		//	cfg,
+		//	dao,
+		//	PrecreatedStateFactoryOption(sf),
+		//	RegistryOption(&registry),
+		//)
+		//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
+		//exec := execution.NewProtocol(bc, hu)
+		//require.NoError(registry.Register(execution.ProtocolID, exec))
+		//bc.Validator().AddActionValidators(acc, exec)
+		//sf.AddActionHandlers(exec)
 		//require.NoError(bc.Start(ctx))
+		bc, dao, indexer, _, sf, err := CreateBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID})
+		require.NoError(err)
+		require.NoError(bc.Start(ctx))
 		require.NoError(addCreatorToFactory(sf))
 
 		ms := &MockSubscriber{counter: 0}
@@ -786,8 +784,8 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 		require.Equal(24, ms.Counter())
 
 		// Load a blockchain from DB
-		accountProtocol := account.NewProtocol(hu)
-		registry = protocol.Registry{}
+		accountProtocol := account.NewProtocol(config.NewHeightUpgrade(cfg))
+		registry := protocol.Registry{}
 		require.NoError(registry.Register(account.ProtocolID, accountProtocol))
 		bc = NewBlockchain(
 			cfg,
