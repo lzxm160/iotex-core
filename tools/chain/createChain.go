@@ -11,7 +11,6 @@ import (
 
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	"github.com/iotexproject/iotex-core/action/protocol/execution"
 	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
@@ -69,7 +68,7 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc blo
 		return
 	}
 
-	var reward, acc, evm protocol.Protocol
+	var reward, acc protocol.Protocol
 	var rolldposProtocol *rolldpos.Protocol
 	var haveReward bool
 	for _, proto := range protocols {
@@ -90,12 +89,12 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc blo
 				return
 			}
 			sf.AddActionHandlers(acc)
-		case execution.ProtocolID:
-			evm = execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
-			if err = registry.Register(execution.ProtocolID, evm); err != nil {
-				return
-			}
-			sf.AddActionHandlers(evm)
+		//case execution.ProtocolID:
+		//	evm = execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
+		//	if err = registry.Register(execution.ProtocolID, evm); err != nil {
+		//		return
+		//	}
+		//	sf.AddActionHandlers(evm)
 		case rewarding.ProtocolID:
 			haveReward = true
 		case poll.ProtocolID:
@@ -118,9 +117,9 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc blo
 	if acc != nil {
 		bc.Validator().AddActionValidators(acc)
 	}
-	if evm != nil {
-		bc.Validator().AddActionValidators(evm)
-	}
+	//if evm != nil {
+	//	bc.Validator().AddActionValidators(evm)
+	//}
 	if reward != nil {
 		bc.Validator().AddActionValidators(reward)
 	}
