@@ -491,7 +491,7 @@ func TestProtocol_Handle(t *testing.T) {
 		//	blockchain.DefaultStateFactoryOption(),
 		//	blockchain.RegistryOption(&registry),
 		//)
-		bc, dao, indexer, _, sf, err := CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID})
+		bc, dao, indexer, _, sf, err := CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID})
 		require.NoError(err)
 		require.NoError(bc.Start(ctx))
 		bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
