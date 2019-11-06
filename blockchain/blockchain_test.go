@@ -634,7 +634,7 @@ func TestConstantinople(t *testing.T) {
 		//bc.Validator().AddActionValidators(acc, exec)
 		//sf.AddActionHandlers(exec)
 		//require.NoError(bc.Start(ctx))
-		bc, dao, indexer, _, sf, err := testutil.CreateBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID})
+		bc, dao, indexer, _, sf, err := CreateBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID})
 		require.NoError(addCreatorToFactory(sf))
 		defer func() {
 			require.NoError(bc.Stop(ctx))
