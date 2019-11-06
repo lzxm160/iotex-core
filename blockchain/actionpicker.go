@@ -122,21 +122,18 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 				return
 			}
 			sf.AddActionHandlers(acc)
-			bc.Validator().AddActionValidators(acc)
 		case execution.ProtocolID:
 			evm = execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
 			if err = registry.Register(execution.ProtocolID, evm); err != nil {
 				return
 			}
 			sf.AddActionHandlers(evm)
-			bc.Validator().AddActionValidators(evm)
 		case rewarding.ProtocolID:
 			reward = rewarding.NewProtocol(bc, rolldposProtocol)
 			if err = registry.Register(rewarding.ProtocolID, reward); err != nil {
 				return
 			}
 			sf.AddActionHandlers(reward)
-			bc.Validator().AddActionValidators(reward)
 		case poll.ProtocolID:
 			p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
 			if err = registry.Register(poll.ProtocolID, p); err != nil {
