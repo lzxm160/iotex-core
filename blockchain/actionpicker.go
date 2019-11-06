@@ -95,9 +95,9 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 		return
 	}
 
-	defer func() {
-		delete(cfg.Plugins, config.GatewayPlugin)
-	}()
+	//defer func() {
+	//	delete(cfg.Plugins, config.GatewayPlugin)
+	//}()
 	var reward, acc, evm protocol.Protocol
 	for _, protocol := range protocols {
 		switch protocol {
