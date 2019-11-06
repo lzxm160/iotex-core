@@ -9,6 +9,8 @@ package blockchain
 import (
 	"errors"
 
+	"github.com/iotexproject/iotex-core/blockchain/genesis"
+
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
@@ -89,9 +91,12 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 		switch protocol {
 		case rolldpos.ProtocolID:
 			rolldposProtocol = rolldpos.NewProtocol(
-				cfg.Genesis.NumCandidateDelegates,
-				cfg.Genesis.NumDelegates,
-				cfg.Genesis.NumSubEpochs,
+				//cfg.Genesis.NumCandidateDelegates,
+				//cfg.Genesis.NumDelegates,
+				//cfg.Genesis.NumSubEpochs,
+				genesis.Default.NumCandidateDelegates,
+				genesis.Default.NumDelegates,
+				genesis.Default.NumSubEpochs,
 			)
 			if err = registry.Register(rolldpos.ProtocolID, rolldposProtocol); err != nil {
 				return
