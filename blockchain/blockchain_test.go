@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -974,7 +975,7 @@ func TestBlockchainInitialCandidate(t *testing.T) {
 	cfg.Genesis.NumCandidateDelegates = genesis.Default.NumCandidateDelegates
 	cfg.Genesis.NumDelegates = genesis.Default.NumDelegates
 	cfg.Genesis.NumSubEpochs = genesis.Default.NumSubEpochs
-	bc, _, _, _, sf, err := CreateBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID})
+	bc, _, _, _, sf, err := CreateBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID, poll.ProtocolID})
 	require.NoError(err)
 	require.NoError(bc.Start(context.Background()))
 	defer func() {
@@ -1158,3 +1159,4 @@ func addCreatorToFactory(sf factory.Factory) error {
 	}
 	return sf.Commit(ws)
 }
+
