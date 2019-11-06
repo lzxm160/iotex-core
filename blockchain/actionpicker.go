@@ -7,8 +7,6 @@
 package blockchain
 
 import (
-	"encoding/hex"
-
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
@@ -23,7 +21,6 @@ import (
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/state/factory"
-	"github.com/iotexproject/iotex-core/test/identityset"
 )
 
 // PickAction returns picked action list
@@ -49,7 +46,37 @@ func PickAction(gasLimit uint64, actionIterator actioniterator.ActionIterator) (
 }
 
 func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blockchain, dao blockdao.BlockDAO, indexer blockindex.Indexer, registry *protocol.Registry, sf factory.Factory, err error) {
-	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
+
+	//sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
+	//require.NoError(err)
+	//hc := config.NewHeightUpgrade(cfg)
+	//acc := account.NewProtocol(hc)
+	//sf.AddActionHandlers(acc)
+	//registry := protocol.Registry{}
+	//require.NoError(registry.Register(account.ProtocolID, acc))
+	//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+	//require.NoError(registry.Register(rolldpos.ProtocolID, rp))
+	//// create indexer
+	//cfg.DB.DbPath = cfg.Chain.IndexDBPath
+	//indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
+	//require.NoError(err)
+	//// create BlockDAO
+	//cfg.DB.DbPath = cfg.Chain.ChainDBPath
+	//dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
+	//require.NotNil(dao)
+	//bc := NewBlockchain(
+	//	cfg,
+	//	dao,
+	//	PrecreatedStateFactoryOption(sf),
+	//	RegistryOption(&registry),
+	//)
+	//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
+	//exec := execution.NewProtocol(bc, hc)
+	//require.NoError(registry.Register(execution.ProtocolID, exec))
+	//bc.Validator().AddActionValidators(acc, exec)
+	//sf.AddActionHandlers(exec)
+
+	//cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
 	if inMem {
 		sf, err = factory.NewFactory(cfg, factory.InMemTrieOption())
 		if err != nil {
