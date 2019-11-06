@@ -19,6 +19,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Frankonly/iotex-core/action/protocol/execution"
+	"github.com/iotexproject/iotex-core/action/protocol/poll"
+	"github.com/iotexproject/iotex-core/state/factory"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
@@ -282,35 +286,35 @@ func (sct *SmartContractTest) prepareBlockchain(
 	if sct.InitGenesis.IsBering {
 		cfg.Genesis.Blockchain.BeringBlockHeight = 0
 	}
-	registry := protocol.Registry{}
+	//registry := protocol.Registry{}
 	hu := config.NewHeightUpgrade(cfg)
-	acc := account.NewProtocol(hu)
-	r.NoError(registry.Register(account.ProtocolID, acc))
-	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-	r.NoError(registry.Register(rolldpos.ProtocolID, rp))
-	// create indexer
-	indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), cfg.Genesis.Hash())
-	r.NoError(err)
-	// create BlockDAO
-	dao := blockdao.NewBlockDAO(db.NewMemKVStore(), indexer, cfg.Chain.CompressBlock, cfg.DB)
-	r.NotNil(dao)
-	bc := blockchain.NewBlockchain(
-		cfg,
-		dao,
-		blockchain.InMemStateFactoryOption(),
-		blockchain.RegistryOption(&registry),
-	)
-	reward := rewarding.NewProtocol(bc, rp)
-	r.NoError(registry.Register(rewarding.ProtocolID, reward))
-	//bc, dao, _, _, sf, err := chain.CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID})
+	//acc := account.NewProtocol(hu)
+	//r.NoError(registry.Register(account.ProtocolID, acc))
+	//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+	//r.NoError(registry.Register(rolldpos.ProtocolID, rp))
+	//// create indexer
+	//indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), cfg.Genesis.Hash())
 	//r.NoError(err)
-	//r.NoError(bc.Start(ctx))
+	//// create BlockDAO
+	//dao := blockdao.NewBlockDAO(db.NewMemKVStore(), indexer, cfg.Chain.CompressBlock, cfg.DB)
+	//r.NotNil(dao)
+	//bc := blockchain.NewBlockchain(
+	//	cfg,
+	//	dao,
+	//	blockchain.InMemStateFactoryOption(),
+	//	blockchain.RegistryOption(&registry),
+	//)
+	//reward := rewarding.NewProtocol(bc, rp)
+	//r.NoError(registry.Register(rewarding.ProtocolID, reward))
+	bc, dao, _, _, sf, err := CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID})
+	r.NoError(err)
+	r.NoError(bc.Start(ctx))
 	r.NotNil(bc)
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-	bc.Validator().AddActionValidators(account.NewProtocol(hu), NewProtocol(bc, hu), reward)
-	sf := bc.GetFactory()
-	r.NotNil(sf)
-	sf.AddActionHandlers(NewProtocol(bc, hu), reward)
+	bc.Validator().AddActionValidators(NewProtocol(bc, hu))
+	//sf := bc.GetFactory()
+	//r.NotNil(sf)
+	sf.AddActionHandlers(NewProtocol(bc, hu))
 	r.NoError(bc.Start(ctx))
 	ws, err := sf.NewWorkingSet()
 	r.NoError(err)
@@ -833,4 +837,108 @@ func TestMaxTime(t *testing.T) {
 	t.Run("max-time-2", func(t *testing.T) {
 		NewSmartContractTest(t, "testdata/maxtime2.json")
 	})
+}
+
+func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc blockchain.Blockchain, dao blockdao.BlockDAO, indexer blockindex.Indexer, registry *protocol.Registry, sf factory.Factory, err error) {
+	if inMem {
+		sf, err = factory.NewFactory(cfg, factory.InMemTrieOption())
+		if err != nil {
+			return
+		}
+	} else {
+		sf, err = factory.NewFactory(cfg, factory.DefaultTrieOption())
+		if err != nil {
+			return
+		}
+	}
+	var indexerDB, blockdaoDB db.KVStore
+	if inMem {
+		indexerDB = db.NewMemKVStore()
+		blockdaoDB = db.NewMemKVStore()
+	} else {
+		cfg.DB.DbPath = cfg.Chain.IndexDBPath
+		indexerDB = db.NewBoltDB(cfg.DB)
+		cfg.DB.DbPath = cfg.Chain.ChainDBPath
+		blockdaoDB = db.NewBoltDB(cfg.DB)
+	}
+	// create indexer
+	indexer, err = blockindex.NewIndexer(indexerDB, cfg.Genesis.Hash())
+	if err != nil {
+		return
+	}
+	// create BlockDAO
+	dao = blockdao.NewBlockDAO(blockdaoDB, indexer, cfg.Chain.CompressBlock, cfg.DB)
+	if dao == nil {
+		err = errors.New("failed to create blockdao")
+		return
+	}
+	// create chain
+	registry = &protocol.Registry{}
+	bc = blockchain.NewBlockchain(
+		cfg,
+		dao,
+		blockchain.PrecreatedStateFactoryOption(sf),
+		blockchain.RegistryOption(registry),
+	)
+	if bc == nil {
+		err = errors.New("failed to create blockchain")
+		return
+	}
+
+	var reward, acc, evm protocol.Protocol
+	var rolldposProtocol *rolldpos.Protocol
+	var haveReward bool
+	for _, proto := range protocols {
+		switch proto {
+		case rolldpos.ProtocolID:
+			rolldposProtocol = rolldpos.NewProtocol(
+				cfg.Genesis.NumCandidateDelegates,
+				cfg.Genesis.NumDelegates,
+				cfg.Genesis.NumSubEpochs,
+			)
+			if err = registry.Register(rolldpos.ProtocolID, rolldposProtocol); err != nil {
+				return
+			}
+
+		case account.ProtocolID:
+			acc = account.NewProtocol(config.NewHeightUpgrade(cfg))
+			if err = registry.Register(account.ProtocolID, acc); err != nil {
+				return
+			}
+			sf.AddActionHandlers(acc)
+		case execution.ProtocolID:
+			evm = execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
+			if err = registry.Register(execution.ProtocolID, evm); err != nil {
+				return
+			}
+			sf.AddActionHandlers(evm)
+		case rewarding.ProtocolID:
+			haveReward = true
+		case poll.ProtocolID:
+			p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
+			if err = registry.Register(poll.ProtocolID, p); err != nil {
+				return
+			}
+		}
+	}
+
+	if haveReward && rolldposProtocol != nil {
+		reward = rewarding.NewProtocol(bc, rolldposProtocol)
+		if err = registry.Register(rewarding.ProtocolID, reward); err != nil {
+			return
+		}
+		sf.AddActionHandlers(reward)
+	}
+
+	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
+	if acc != nil {
+		bc.Validator().AddActionValidators(acc)
+	}
+	if evm != nil {
+		bc.Validator().AddActionValidators(evm)
+	}
+	if reward != nil {
+		bc.Validator().AddActionValidators(reward)
+	}
+	return
 }
