@@ -67,7 +67,9 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 		indexerDB = db.NewMemKVStore()
 		blockdaoDB = db.NewMemKVStore()
 	} else {
+		cfg.DB.DbPath = cfg.Chain.IndexDBPath
 		indexerDB = db.NewBoltDB(cfg.DB)
+		cfg.DB.DbPath = cfg.Chain.ChainDBPath
 		blockdaoDB = db.NewBoltDB(cfg.DB)
 	}
 	// create indexer
