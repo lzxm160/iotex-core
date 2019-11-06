@@ -418,21 +418,6 @@ func TestCreateBlockchain(t *testing.T) {
 	// disable account-based testing
 	cfg.Chain.TrieDBPath = ""
 	cfg.Genesis.EnableGravityChainVoting = false
-	// create chain
-	//registry := protocol.Registry{}
-	//hu := config.NewHeightUpgrade(cfg)
-	//acc := account.NewProtocol(hu)
-	//require.NoError(registry.Register(account.ProtocolID, acc))
-	//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-	//require.NoError(registry.Register(rolldpos.ProtocolID, rp))
-	//bc := NewBlockchain(cfg, nil, InMemStateFactoryOption(), InMemDaoOption(), RegistryOption(&registry))
-	//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-	//exec := execution.NewProtocol(bc, hu)
-	//require.NoError(registry.Register(execution.ProtocolID, exec))
-	//bc.Validator().AddActionValidators(acc, exec)
-	//bc.GetFactory().AddActionHandlers(acc, exec)
-	//require.NoError(bc.Start(ctx))
-	//require.NotNil(bc)
 	bc, _, _, _, _, err := CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, execution.ProtocolID})
 	require.NoError(err)
 	require.NoError(bc.Start(ctx))
@@ -451,25 +436,29 @@ func TestCreateBlockchain(t *testing.T) {
 }
 
 func TestBlockchain_MintNewBlock(t *testing.T) {
+	require := require.New(t)
 	ctx := context.Background()
 	cfg := config.Default
 	cfg.Genesis.BlockGasLimit = uint64(100000)
 	cfg.Genesis.EnableGravityChainVoting = false
-	registry := protocol.Registry{}
-	hu := config.NewHeightUpgrade(cfg)
-	acc := account.NewProtocol(hu)
-	require.NoError(t, registry.Register(account.ProtocolID, acc))
-	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-	require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
-	bc := NewBlockchain(cfg, nil, InMemStateFactoryOption(), InMemDaoOption(), RegistryOption(&registry))
-	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-	exec := execution.NewProtocol(bc, hu)
-	require.NoError(t, registry.Register(execution.ProtocolID, exec))
-	bc.Validator().AddActionValidators(acc, exec)
-	bc.GetFactory().AddActionHandlers(acc, exec)
-	require.NoError(t, bc.Start(ctx))
+	//registry := protocol.Registry{}
+	//hu := config.NewHeightUpgrade(cfg)
+	//acc := account.NewProtocol(hu)
+	//require.NoError(t, registry.Register(account.ProtocolID, acc))
+	//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+	//require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
+	//bc := NewBlockchain(cfg, nil, InMemStateFactoryOption(), InMemDaoOption(), RegistryOption(&registry))
+	//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
+	//exec := execution.NewProtocol(bc, hu)
+	//require.NoError(t, registry.Register(execution.ProtocolID, exec))
+	//bc.Validator().AddActionValidators(acc, exec)
+	//bc.GetFactory().AddActionHandlers(acc, exec)
+	//require.NoError(t, bc.Start(ctx))
+	bc, _, _, _, _, err := CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, execution.ProtocolID})
+	require.NoError(err)
+	require.NoError(bc.Start(ctx))
 	defer func() {
-		require.NoError(t, bc.Stop(ctx))
+		require.NoError(bc.Stop(ctx))
 	}()
 
 	tsf, err := action.NewTransfer(
@@ -479,11 +468,11 @@ func TestBlockchain_MintNewBlock(t *testing.T) {
 		[]byte{}, uint64(100000),
 		big.NewInt(10),
 	)
-	require.NoError(t, err)
+	require.NoError(err)
 
 	data, _ := hex.DecodeString("608060405234801561001057600080fd5b5060df8061001f6000396000f3006080604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b114604e5780636d4ce63c146078575b600080fd5b348015605957600080fd5b5060766004803603810190808035906020019092919050505060a0565b005b348015608357600080fd5b50608a60aa565b6040518082815260200191505060405180910390f35b8060008190555050565b600080549050905600a165627a7a7230582002faabbefbbda99b20217cf33cb8ab8100caf1542bf1f48117d72e2c59139aea0029")
 	execution, err := action.NewExecution(action.EmptyAddress, 2, big.NewInt(0), uint64(100000), big.NewInt(0), data)
-	require.NoError(t, err)
+	require.NoError(err)
 
 	bd := &action.EnvelopeBuilder{}
 	elp1 := bd.SetAction(tsf).
@@ -491,14 +480,14 @@ func TestBlockchain_MintNewBlock(t *testing.T) {
 		SetGasLimit(100000).
 		SetGasPrice(big.NewInt(10)).Build()
 	selp1, err := action.Sign(elp1, identityset.PrivateKey(0))
-	require.NoError(t, err)
+	require.NoError(err)
 	// This execution should not be included in block because block is out of gas
 	elp2 := bd.SetAction(execution).
 		SetNonce(2).
 		SetGasLimit(100000).
 		SetGasPrice(big.NewInt(10)).Build()
 	selp2, err := action.Sign(elp2, identityset.PrivateKey(0))
-	require.NoError(t, err)
+	require.NoError(err)
 
 	actionMap := make(map[string][]action.SealedEnvelope)
 	actionMap[identityset.Address(0).String()] = []action.SealedEnvelope{selp1, selp2}
@@ -507,14 +496,14 @@ func TestBlockchain_MintNewBlock(t *testing.T) {
 		actionMap,
 		testutil.TimestampNow(),
 	)
-	require.NoError(t, err)
-	require.Equal(t, 2, len(blk.Actions))
-	require.Equal(t, 1, len(blk.Receipts))
+	require.NoError(err)
+	require.Equal(2, len(blk.Actions))
+	require.Equal(1, len(blk.Receipts))
 	var gasConsumed uint64
 	for _, receipt := range blk.Receipts {
 		gasConsumed += receipt.GasConsumed
 	}
-	require.True(t, gasConsumed <= cfg.Genesis.BlockGasLimit)
+	require.True(gasConsumed <= cfg.Genesis.BlockGasLimit)
 }
 
 func TestBlockchain_MintNewBlock_PopAccount(t *testing.T) {
