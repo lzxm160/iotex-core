@@ -473,28 +473,31 @@ func TestProtocol_Handle(t *testing.T) {
 		cfg.Genesis.EnableGravityChainVoting = false
 		registry := protocol.Registry{}
 		hu := config.NewHeightUpgrade(cfg)
-		acc := account.NewProtocol(hu)
-		require.NoError(registry.Register(account.ProtocolID, acc))
-		rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-		require.NoError(registry.Register(rolldpos.ProtocolID, rp))
-		// create indexer
-		cfg.DB.DbPath = cfg.Chain.IndexDBPath
-		indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), hash.ZeroHash256)
+		//acc := account.NewProtocol(hu)
+		//require.NoError(registry.Register(account.ProtocolID, acc))
+		//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+		//require.NoError(registry.Register(rolldpos.ProtocolID, rp))
+		//// create indexer
+		//cfg.DB.DbPath = cfg.Chain.IndexDBPath
+		//indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), hash.ZeroHash256)
+		//require.NoError(err)
+		//// create BlockDAO
+		//cfg.DB.DbPath = cfg.Chain.ChainDBPath
+		//dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
+		//require.NotNil(dao)
+		//bc := blockchain.NewBlockchain(
+		//	cfg,
+		//	dao,
+		//	blockchain.DefaultStateFactoryOption(),
+		//	blockchain.RegistryOption(&registry),
+		//)
+		bc, dao, _, _, sf, err := CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID})
 		require.NoError(err)
-		// create BlockDAO
-		cfg.DB.DbPath = cfg.Chain.ChainDBPath
-		dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
-		require.NotNil(dao)
-		bc := blockchain.NewBlockchain(
-			cfg,
-			dao,
-			blockchain.DefaultStateFactoryOption(),
-			blockchain.RegistryOption(&registry),
-		)
+		require.NoError(bc.Start(ctx))
 		bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-		bc.Validator().AddActionValidators(account.NewProtocol(hu), NewProtocol(bc, hu))
-		sf := bc.GetFactory()
-		require.NotNil(sf)
+		bc.Validator().AddActionValidators(NewProtocol(bc, hu))
+		//sf := bc.GetFactory()
+		//require.NotNil(sf)
 		sf.AddActionHandlers(NewProtocol(bc, hu))
 
 		require.NoError(bc.Start(ctx))
