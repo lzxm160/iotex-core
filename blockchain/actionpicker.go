@@ -61,7 +61,6 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 			return
 		}
 	}
-
 	var indexerDB, blockdaoDB db.KVStore
 	if inMem {
 		indexerDB = db.NewMemKVStore()
