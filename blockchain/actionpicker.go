@@ -158,15 +158,6 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 			}
 		}
 	}
-	//	acc := account.NewProtocol(config.NewHeightUpgrade(cfg))
-	//	evm := execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
-	//	p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
-	//	rolldposProtocol := rolldpos.NewProtocol(
-	//		genesis.Default.NumCandidateDelegates,
-	//		genesis.Default.NumDelegates,
-	//		genesis.Default.NumSubEpochs,
-	//	)
-	//	r := rewarding.NewProtocol(bc, rolldposProtocol)
 
 	if haveReward && rolldposProtocol != nil {
 		reward = rewarding.NewProtocol(bc, rolldposProtocol)
