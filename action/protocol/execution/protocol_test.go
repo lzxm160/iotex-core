@@ -302,7 +302,7 @@ func (sct *SmartContractTest) prepareBlockchain(
 	//	//	blockchain.RegistryOption(&registry),
 	//	//)
 
-	bc, dao, _, _, sf, err := blockchain.CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID})
+	bc, dao, _, _, sf, err := testutil.CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID})
 	r.NoError(err)
 	r.NoError(bc.Start(ctx))
 	r.NotNil(bc)
