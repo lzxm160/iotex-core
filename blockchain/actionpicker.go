@@ -49,6 +49,34 @@ func PickAction(gasLimit uint64, actionIterator actioniterator.ActionIterator) (
 }
 
 func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blockchain, dao blockdao.BlockDAO, indexer blockindex.Indexer, registry *protocol.Registry, sf factory.Factory, err error) {
+
+	//	// create chain
+
+	//	defer func() {
+	//		delete(cfg.Plugins, config.GatewayPlugin)
+	//	}()
+	//
+
+	//
+	//	if err := registry.Register(rolldpos.ProtocolID, rolldposProtocol); err != nil {
+	//		return nil, nil, nil, nil, err
+	//	}
+	//	if err := registry.Register(account.ProtocolID, acc); err != nil {
+	//		return nil, nil, nil, nil, err
+	//	}
+	//	if err := registry.Register(execution.ProtocolID, evm); err != nil {
+	//		return nil, nil, nil, nil, err
+	//	}
+	//	if err := registry.Register(rewarding.ProtocolID, r); err != nil {
+	//		return nil, nil, nil, nil, err
+	//	}
+	//	if err := registry.Register(poll.ProtocolID, p); err != nil {
+	//		return nil, nil, nil, nil, err
+	//	}
+	//	sf.AddActionHandlers(acc, evm, r)
+	//	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
+	//	bc.Validator().AddActionValidators(acc, evm, r)
+
 	if inMem {
 		sf, err = factory.NewFactory(cfg, factory.InMemTrieOption())
 		if err != nil {
@@ -83,17 +111,24 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 	}
 	// create chain
 	registry = &protocol.Registry{}
+	bc = NewBlockchain(
+		cfg,
+		dao,
+		PrecreatedStateFactoryOption(sf),
+		RegistryOption(registry),
+	)
+	if bc == nil {
+		err = errors.New("failed to create blockchain")
+		return
+	}
 
 	var reward, acc, evm protocol.Protocol
 	var rolldposProtocol *rolldpos.Protocol
 	var haveReward bool
-	for _, protocol := range protocols {
-		switch protocol {
+	for _, proto := range protocols {
+		switch proto {
 		case rolldpos.ProtocolID:
 			rolldposProtocol = rolldpos.NewProtocol(
-				//cfg.Genesis.NumCandidateDelegates,
-				//cfg.Genesis.NumDelegates,
-				//cfg.Genesis.NumSubEpochs,
 				genesis.Default.NumCandidateDelegates,
 				genesis.Default.NumDelegates,
 				genesis.Default.NumSubEpochs,
@@ -108,7 +143,6 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 				return
 			}
 			sf.AddActionHandlers(acc)
-
 		case execution.ProtocolID:
 			evm = execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
 			if err = registry.Register(execution.ProtocolID, evm); err != nil {
@@ -124,6 +158,16 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 			}
 		}
 	}
+	//	acc := account.NewProtocol(config.NewHeightUpgrade(cfg))
+	//	evm := execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
+	//	p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
+	//	rolldposProtocol := rolldpos.NewProtocol(
+	//		genesis.Default.NumCandidateDelegates,
+	//		genesis.Default.NumDelegates,
+	//		genesis.Default.NumSubEpochs,
+	//	)
+	//	r := rewarding.NewProtocol(bc, rolldposProtocol)
+
 	if haveReward && rolldposProtocol != nil {
 		reward = rewarding.NewProtocol(bc, rolldposProtocol)
 		if err = registry.Register(rewarding.ProtocolID, reward); err != nil {
@@ -131,16 +175,7 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 		}
 		sf.AddActionHandlers(reward)
 	}
-	bc = NewBlockchain(
-		cfg,
-		dao,
-		PrecreatedStateFactoryOption(sf),
-		RegistryOption(registry),
-	)
-	if bc == nil {
-		err = errors.New("failed to create blockchain")
-		return
-	}
+
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
 	if acc != nil {
 		bc.Validator().AddActionValidators(acc)
