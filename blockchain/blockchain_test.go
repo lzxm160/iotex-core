@@ -734,40 +734,6 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 	testValidateBlockchain := func(cfg config.Config, t *testing.T) {
 		require := require.New(t)
 		ctx := context.Background()
-
-		// Create a blockchain from scratch
-		//sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
-		//require.NoError(err)
-		//hu := config.NewHeightUpgrade(cfg)
-		//acc := account.NewProtocol(hu)
-		//sf.AddActionHandlers(acc)
-		//registry := protocol.Registry{}
-		//require.NoError(registry.Register(account.ProtocolID, acc))
-		//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-		//require.NoError(registry.Register(rolldpos.ProtocolID, rp))
-		//var indexer blockindex.Indexer
-		//if _, gateway := cfg.Plugins[config.GatewayPlugin]; gateway && !cfg.Chain.EnableAsyncIndexWrite {
-		//	// create indexer
-		//	cfg.DB.DbPath = cfg.Chain.IndexDBPath
-		//	indexer, err = blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
-		//	require.NoError(err)
-		//}
-		//// create BlockDAO
-		//cfg.DB.DbPath = cfg.Chain.ChainDBPath
-		//dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
-		//require.NotNil(dao)
-		//bc := NewBlockchain(
-		//	cfg,
-		//	dao,
-		//	PrecreatedStateFactoryOption(sf),
-		//	RegistryOption(&registry),
-		//)
-		//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-		//exec := execution.NewProtocol(bc, hu)
-		//require.NoError(registry.Register(execution.ProtocolID, exec))
-		//bc.Validator().AddActionValidators(acc, exec)
-		//sf.AddActionHandlers(exec)
-		//require.NoError(bc.Start(ctx))
 		bc, dao, indexer, _, sf, err := CreateBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, execution.ProtocolID})
 		require.NoError(err)
 		require.NoError(bc.Start(ctx))
@@ -787,27 +753,6 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 		cfg.Genesis.NumCandidateDelegates = genesis.Default.NumCandidateDelegates
 		cfg.Genesis.NumDelegates = genesis.Default.NumDelegates
 		cfg.Genesis.NumSubEpochs = genesis.Default.NumSubEpochs
-		//
-		//accountProtocol := account.NewProtocol(config.NewHeightUpgrade(cfg))
-		//registry := protocol.Registry{}
-		//require.NoError(registry.Register(account.ProtocolID, accountProtocol))
-		//bc = NewBlockchain(
-		//	cfg,
-		//	dao,
-		//	PrecreatedStateFactoryOption(sf),
-		//	RegistryOption(&registry),
-		//)
-		//rolldposProtocol := rolldpos.NewProtocol(
-		//	genesis.Default.NumCandidateDelegates,
-		//	genesis.Default.NumDelegates,
-		//	genesis.Default.NumSubEpochs,
-		//)
-		//require.NoError(registry.Register(rolldpos.ProtocolID, rolldposProtocol))
-		//rewardingProtocol := rewarding.NewProtocol(bc, rolldposProtocol)
-		//require.NoError(registry.Register(rewarding.ProtocolID, rewardingProtocol))
-		//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-		//bc.Validator().AddActionValidators(accountProtocol)
-		//require.NoError(bc.Start(ctx))
 		bc, dao, indexer, _, sf, err = CreateBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID})
 		require.NoError(err)
 		require.NoError(bc.Start(ctx))
