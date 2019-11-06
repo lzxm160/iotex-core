@@ -76,6 +76,7 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 	// create BlockDAO
 	dao = blockdao.NewBlockDAO(blockdaoDB, indexer, cfg.Chain.CompressBlock, cfg.DB)
 	if dao == nil {
+		err = errors.New("failed to create blockdao")
 		return
 	}
 	// create chain
