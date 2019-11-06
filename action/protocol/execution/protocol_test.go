@@ -471,7 +471,7 @@ func TestProtocol_Handle(t *testing.T) {
 		cfg.Chain.IndexDBPath = testIndexPath
 		cfg.Chain.EnableAsyncIndexWrite = false
 		cfg.Genesis.EnableGravityChainVoting = false
-		registry := protocol.Registry{}
+		//registry := protocol.Registry{}
 		hu := config.NewHeightUpgrade(cfg)
 		//acc := account.NewProtocol(hu)
 		//require.NoError(registry.Register(account.ProtocolID, acc))
@@ -491,7 +491,7 @@ func TestProtocol_Handle(t *testing.T) {
 		//	blockchain.DefaultStateFactoryOption(),
 		//	blockchain.RegistryOption(&registry),
 		//)
-		bc, dao, _, _, sf, err := CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID})
+		bc, dao, indexer, _, sf, err := CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID})
 		require.NoError(err)
 		require.NoError(bc.Start(ctx))
 		bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
