@@ -7,6 +7,8 @@
 package blockchain
 
 import (
+	"errors"
+
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
@@ -148,6 +150,7 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 		RegistryOption(registry),
 	)
 	if bc == nil {
+		err = errors.New("bc is nil")
 		return
 	}
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
