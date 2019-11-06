@@ -154,5 +154,14 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 		return
 	}
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
+	if acc != nil {
+		bc.Validator().AddActionValidators(acc)
+	}
+	if evm != nil {
+		bc.Validator().AddActionValidators(evm)
+	}
+	if reward != nil {
+		bc.Validator().AddActionValidators(reward)
+	}
 	return
 }
