@@ -47,9 +47,6 @@ func PickAction(gasLimit uint64, actionIterator actioniterator.ActionIterator) (
 }
 
 func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blockchain, dao blockdao.BlockDAO, indexer blockindex.Indexer, registry *protocol.Registry, sf factory.Factory, err error) {
-	defer func() {
-		delete(cfg.Plugins, config.GatewayPlugin)
-	}()
 	if inMem {
 		sf, err = factory.NewFactory(cfg, factory.InMemTrieOption())
 		if err != nil {
