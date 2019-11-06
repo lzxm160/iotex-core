@@ -1753,7 +1753,6 @@ func createServer(cfg config.Config, needActPool bool) (*Server, error) {
 	cfg.Genesis.NumCandidateDelegates = genesis.Default.NumCandidateDelegates
 	cfg.Genesis.NumDelegates = genesis.Default.NumDelegates
 	cfg.Genesis.NumSubEpochs = genesis.Default.NumSubEpochs
-
 	bc, dao, indexer, registry, _, err := blockchain.CreateBlockchain(true, cfg, []string{rolldpos.ProtocolID, account.ProtocolID, execution.ProtocolID, rewarding.ProtocolID, poll.ProtocolID})
 	if err != nil {
 		return nil, err

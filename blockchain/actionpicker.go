@@ -47,30 +47,9 @@ func PickAction(gasLimit uint64, actionIterator actioniterator.ActionIterator) (
 }
 
 func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blockchain, dao blockdao.BlockDAO, indexer blockindex.Indexer, registry *protocol.Registry, sf factory.Factory, err error) {
-
 	defer func() {
 		delete(cfg.Plugins, config.GatewayPlugin)
 	}()
-	//
-
-	//	if err := registry.Register(rolldpos.ProtocolID, rolldposProtocol); err != nil {
-	//		return nil, nil, nil, nil, err
-	//	}
-	//	if err := registry.Register(account.ProtocolID, acc); err != nil {
-	//		return nil, nil, nil, nil, err
-	//	}
-	//	if err := registry.Register(execution.ProtocolID, evm); err != nil {
-	//		return nil, nil, nil, nil, err
-	//	}
-	//	if err := registry.Register(rewarding.ProtocolID, r); err != nil {
-	//		return nil, nil, nil, nil, err
-	//	}
-	//	if err := registry.Register(poll.ProtocolID, p); err != nil {
-	//		return nil, nil, nil, nil, err
-	//	}
-	//	sf.AddActionHandlers(acc, evm, r)
-	//	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-	//	bc.Validator().AddActionValidators(acc, evm, r)
 	if inMem {
 		sf, err = factory.NewFactory(cfg, factory.InMemTrieOption())
 		if err != nil {
@@ -118,22 +97,14 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 			if err = registry.Register(rolldpos.ProtocolID, rolldposProtocol); err != nil {
 				return
 			}
-			//	acc := account.NewProtocol(config.NewHeightUpgrade(cfg))
-			//	evm := execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
-			//	p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
-			//	rolldposProtocol := rolldpos.NewProtocol(
-			//		genesis.Default.NumCandidateDelegates,
-			//		genesis.Default.NumDelegates,
-			//		genesis.Default.NumSubEpochs,
-			//	)
-			//	r := rewarding.NewProtocol(bc, rolldposProtocol)
-			//
+
 		case account.ProtocolID:
 			acc = account.NewProtocol(config.NewHeightUpgrade(cfg))
 			if err = registry.Register(account.ProtocolID, acc); err != nil {
 				return
 			}
 			sf.AddActionHandlers(acc)
+
 		case execution.ProtocolID:
 			evm = execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
 			if err = registry.Register(execution.ProtocolID, evm); err != nil {
