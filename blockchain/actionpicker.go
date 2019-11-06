@@ -86,6 +86,7 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 
 	var reward, acc, evm protocol.Protocol
 	var rolldposProtocol *rolldpos.Protocol
+	var haveReward bool
 	for _, protocol := range protocols {
 		switch protocol {
 		case rolldpos.ProtocolID:
@@ -112,17 +113,20 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 			}
 			sf.AddActionHandlers(evm)
 		case rewarding.ProtocolID:
-			reward = rewarding.NewProtocol(bc, rolldposProtocol)
-			if err = registry.Register(rewarding.ProtocolID, reward); err != nil {
-				return
-			}
-			sf.AddActionHandlers(reward)
+			haveReward = true
 		case poll.ProtocolID:
 			p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
 			if err = registry.Register(poll.ProtocolID, p); err != nil {
 				return
 			}
 		}
+	}
+	if haveReward && rolldposProtocol != nil {
+		reward = rewarding.NewProtocol(bc, rolldposProtocol)
+		if err = registry.Register(rewarding.ProtocolID, reward); err != nil {
+			return
+		}
+		sf.AddActionHandlers(reward)
 	}
 	bc = NewBlockchain(
 		cfg,
