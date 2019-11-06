@@ -9,8 +9,6 @@ package blockchain
 import (
 	"errors"
 
-	"github.com/iotexproject/iotex-core/blockchain/genesis"
-
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
@@ -49,34 +47,6 @@ func PickAction(gasLimit uint64, actionIterator actioniterator.ActionIterator) (
 }
 
 func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blockchain, dao blockdao.BlockDAO, indexer blockindex.Indexer, registry *protocol.Registry, sf factory.Factory, err error) {
-
-	//	// create chain
-
-	//	defer func() {
-	//		delete(cfg.Plugins, config.GatewayPlugin)
-	//	}()
-	//
-
-	//
-	//	if err := registry.Register(rolldpos.ProtocolID, rolldposProtocol); err != nil {
-	//		return nil, nil, nil, nil, err
-	//	}
-	//	if err := registry.Register(account.ProtocolID, acc); err != nil {
-	//		return nil, nil, nil, nil, err
-	//	}
-	//	if err := registry.Register(execution.ProtocolID, evm); err != nil {
-	//		return nil, nil, nil, nil, err
-	//	}
-	//	if err := registry.Register(rewarding.ProtocolID, r); err != nil {
-	//		return nil, nil, nil, nil, err
-	//	}
-	//	if err := registry.Register(poll.ProtocolID, p); err != nil {
-	//		return nil, nil, nil, nil, err
-	//	}
-	//	sf.AddActionHandlers(acc, evm, r)
-	//	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-	//	bc.Validator().AddActionValidators(acc, evm, r)
-
 	if inMem {
 		sf, err = factory.NewFactory(cfg, factory.InMemTrieOption())
 		if err != nil {
@@ -129,9 +99,12 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blo
 		switch proto {
 		case rolldpos.ProtocolID:
 			rolldposProtocol = rolldpos.NewProtocol(
-				genesis.Default.NumCandidateDelegates,
-				genesis.Default.NumDelegates,
-				genesis.Default.NumSubEpochs,
+				//genesis.Default.NumCandidateDelegates,
+				//genesis.Default.NumDelegates,
+				//genesis.Default.NumSubEpochs,
+				cfg.Genesis.NumCandidateDelegates,
+				cfg.Genesis.NumDelegates,
+				cfg.Genesis.NumSubEpochs,
 			)
 			if err = registry.Register(rolldpos.ProtocolID, rolldposProtocol); err != nil {
 				return
