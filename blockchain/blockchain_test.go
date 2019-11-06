@@ -420,7 +420,7 @@ func TestCreateBlockchain(t *testing.T) {
 	// disable account-based testing
 	cfg.Chain.TrieDBPath = ""
 	cfg.Genesis.EnableGravityChainVoting = false
-	bc, _, _, _, _, err := CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, execution.ProtocolID})
+	bc, _, _, _, _, err := createBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, execution.ProtocolID})
 	require.NoError(err)
 	require.NoError(bc.Start(ctx))
 	height := bc.TipHeight()
@@ -443,7 +443,7 @@ func TestBlockchain_MintNewBlock(t *testing.T) {
 	cfg := config.Default
 	cfg.Genesis.BlockGasLimit = uint64(100000)
 	cfg.Genesis.EnableGravityChainVoting = false
-	bc, _, _, _, _, err := CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, execution.ProtocolID})
+	bc, _, _, _, _, err := createBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, execution.ProtocolID})
 	require.NoError(err)
 	require.NoError(bc.Start(ctx))
 	defer func() {
@@ -499,7 +499,7 @@ func TestBlockchain_MintNewBlock_PopAccount(t *testing.T) {
 	ctx := context.Background()
 	cfg := config.Default
 	cfg.Genesis.EnableGravityChainVoting = false
-	bc, _, _, _, _, err := CreateBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, execution.ProtocolID})
+	bc, _, _, _, _, err := createBlockchain(true, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, execution.ProtocolID})
 	require.NoError(t, err)
 	require.NoError(t, bc.Start(ctx))
 	defer func() {
@@ -575,7 +575,7 @@ func TestConstantinople(t *testing.T) {
 		cfg.Genesis.NumDelegates = genesis.Default.NumDelegates
 		cfg.Genesis.NumSubEpochs = genesis.Default.NumSubEpochs
 		ctx := context.Background()
-		bc, dao, indexer, _, sf, err := CreateBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, execution.ProtocolID})
+		bc, dao, indexer, _, sf, err := createBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, execution.ProtocolID})
 		require.NoError(err)
 		require.NoError(bc.Start(ctx))
 		require.NoError(addCreatorToFactory(sf))
@@ -705,7 +705,7 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 	testValidateBlockchain := func(cfg config.Config, t *testing.T) {
 		require := require.New(t)
 		ctx := context.Background()
-		bc, dao, indexer, _, sf, err := CreateBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, execution.ProtocolID})
+		bc, dao, indexer, _, sf, err := createBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, execution.ProtocolID})
 		require.NoError(err)
 		require.NoError(bc.Start(ctx))
 		require.NoError(addCreatorToFactory(sf))
@@ -724,7 +724,7 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 		cfg.Genesis.NumCandidateDelegates = genesis.Default.NumCandidateDelegates
 		cfg.Genesis.NumDelegates = genesis.Default.NumDelegates
 		cfg.Genesis.NumSubEpochs = genesis.Default.NumSubEpochs
-		bc, dao, indexer, _, sf, err = CreateBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID})
+		bc, dao, indexer, _, sf, err = createBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID})
 		require.NoError(err)
 		require.NoError(bc.Start(ctx))
 		defer func() {
@@ -954,7 +954,7 @@ func TestBlockchainInitialCandidate(t *testing.T) {
 	cfg.Genesis.NumCandidateDelegates = genesis.Default.NumCandidateDelegates
 	cfg.Genesis.NumDelegates = genesis.Default.NumDelegates
 	cfg.Genesis.NumSubEpochs = genesis.Default.NumSubEpochs
-	bc, _, _, _, sf, err := CreateBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID, poll.ProtocolID})
+	bc, _, _, _, sf, err := createBlockchain(false, cfg, []string{account.ProtocolID, rolldpos.ProtocolID, rewarding.ProtocolID, poll.ProtocolID})
 	require.NoError(err)
 	require.NoError(bc.Start(context.Background()))
 	defer func() {
@@ -1139,7 +1139,7 @@ func addCreatorToFactory(sf factory.Factory) error {
 	return sf.Commit(ws)
 }
 
-func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blockchain, dao blockdao.BlockDAO, indexer blockindex.Indexer, registry *protocol.Registry, sf factory.Factory, err error) {
+func createBlockchain(inMem bool, cfg config.Config, protocols []string) (bc Blockchain, dao blockdao.BlockDAO, indexer blockindex.Indexer, registry *protocol.Registry, sf factory.Factory, err error) {
 	if inMem {
 		sf, err = factory.NewFactory(cfg, factory.InMemTrieOption())
 		if err != nil {

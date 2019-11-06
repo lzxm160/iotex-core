@@ -9,7 +9,6 @@ package api
 import (
 	"context"
 	"encoding/hex"
-	"errors"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -20,6 +19,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/hash"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -1656,69 +1656,6 @@ func addActsToActPool(ap actpool.ActPool) error {
 	return ap.Add(execution1)
 }
 
-//func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, blockindex.Indexer, *protocol.Registry, error) {
-//	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
-//	sf, err := factory.NewFactory(cfg, factory.InMemTrieOption())
-//	if err != nil {
-//		return nil, nil, nil, nil, err
-//	}
-//	// create indexer
-//	indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), cfg.Genesis.Hash())
-//	if err != nil {
-//		return nil, nil, nil, nil, errors.New("failed to create indexer")
-//	}
-//	// create BlockDAO
-//	dao := blockdao.NewBlockDAO(db.NewMemKVStore(), indexer, cfg.Chain.CompressBlock, cfg.DB)
-//	if dao == nil {
-//		return nil, nil, nil, nil, errors.New("failed to create blockdao")
-//	}
-//	// create chain
-//	registry := protocol.Registry{}
-//	bc := blockchain.NewBlockchain(
-//		cfg,
-//		dao,
-//		blockchain.PrecreatedStateFactoryOption(sf),
-//		blockchain.RegistryOption(&registry),
-//	)
-//	if bc == nil {
-//		return nil, nil, nil, nil, errors.New("failed to create blockchain")
-//	}
-//	defer func() {
-//		delete(cfg.Plugins, config.GatewayPlugin)
-//	}()
-//
-//	acc := account.NewProtocol(config.NewHeightUpgrade(cfg))
-//	evm := execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
-//	p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
-//	rolldposProtocol := rolldpos.NewProtocol(
-//		genesis.Default.NumCandidateDelegates,
-//		genesis.Default.NumDelegates,
-//		genesis.Default.NumSubEpochs,
-//	)
-//	r := rewarding.NewProtocol(bc, rolldposProtocol)
-//
-//	if err := registry.Register(rolldpos.ProtocolID, rolldposProtocol); err != nil {
-//		return nil, nil, nil, nil, err
-//	}
-//	if err := registry.Register(account.ProtocolID, acc); err != nil {
-//		return nil, nil, nil, nil, err
-//	}
-//	if err := registry.Register(execution.ProtocolID, evm); err != nil {
-//		return nil, nil, nil, nil, err
-//	}
-//	if err := registry.Register(rewarding.ProtocolID, r); err != nil {
-//		return nil, nil, nil, nil, err
-//	}
-//	if err := registry.Register(poll.ProtocolID, p); err != nil {
-//		return nil, nil, nil, nil, err
-//	}
-//	sf.AddActionHandlers(acc, evm, r)
-//	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
-//	bc.Validator().AddActionValidators(acc, evm, r)
-//
-//	return bc, dao, indexer, &registry, nil
-//}
-
 func setupActPool(bc blockchain.Blockchain, cfg config.ActPool) (actpool.ActPool, error) {
 	ap, err := actpool.NewActPool(bc, cfg, actpool.EnableExperimentalActions())
 	if err != nil {
@@ -1753,7 +1690,7 @@ func newConfig() config.Config {
 
 func createServer(cfg config.Config, needActPool bool) (*Server, error) {
 	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
-	bc, dao, indexer, registry, _, err := CreateBlockchain(true, cfg, []string{rolldpos.ProtocolID, account.ProtocolID, execution.ProtocolID, rewarding.ProtocolID, poll.ProtocolID})
+	bc, dao, indexer, registry, _, err := createBlockchain(true, cfg, []string{rolldpos.ProtocolID, account.ProtocolID, execution.ProtocolID, rewarding.ProtocolID, poll.ProtocolID})
 	if err != nil {
 		return nil, err
 	}
@@ -1801,7 +1738,7 @@ func createServer(cfg config.Config, needActPool bool) (*Server, error) {
 	return svr, nil
 }
 
-func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc blockchain.Blockchain, dao blockdao.BlockDAO, indexer blockindex.Indexer, registry *protocol.Registry, sf factory.Factory, err error) {
+func createBlockchain(inMem bool, cfg config.Config, protocols []string) (bc blockchain.Blockchain, dao blockdao.BlockDAO, indexer blockindex.Indexer, registry *protocol.Registry, sf factory.Factory, err error) {
 	if inMem {
 		sf, err = factory.NewFactory(cfg, factory.InMemTrieOption())
 		if err != nil {
