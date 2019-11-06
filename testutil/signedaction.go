@@ -9,24 +9,21 @@ package testutil
 import (
 	"math/big"
 
-	"github.com/iotexproject/iotex-core/blockchain"
+	"github.com/iotexproject/go-pkgs/crypto"
+	"github.com/pkg/errors"
 
+	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	"github.com/iotexproject/iotex-core/action/protocol/execution"
 	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
+	"github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/blockchain/blockdao"
 	"github.com/iotexproject/iotex-core/blockindex"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/state/factory"
-
-	"github.com/iotexproject/go-pkgs/crypto"
-	"github.com/pkg/errors"
-
-	"github.com/iotexproject/iotex-core/action"
 )
 
 // SignedTransfer return a signed transfer
@@ -133,12 +130,6 @@ func CreateBlockchain(inMem bool, cfg config.Config, protocols []string) (bc blo
 				return
 			}
 			sf.AddActionHandlers(acc)
-		case execution.ProtocolID:
-			evm = execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
-			if err = registry.Register(execution.ProtocolID, evm); err != nil {
-				return
-			}
-			sf.AddActionHandlers(evm)
 		case rewarding.ProtocolID:
 			haveReward = true
 		case poll.ProtocolID:
