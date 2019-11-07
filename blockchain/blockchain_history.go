@@ -12,6 +12,9 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/iotexproject/iotex-core/db"
+	"github.com/iotexproject/iotex-core/state"
+
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
@@ -132,6 +135,22 @@ func (bc *blockchainHistory) ExecuteContractReadHistory(caller address.Address, 
 		bc,
 		config.NewHeightUpgrade(bc.config),
 	)
+}
+
+// StateByAddr returns the account of an address
+func (bc *blockchainHistory) StateByAddr(address string) (*state.Account, error) {
+	if len(address) > 41 {
+		if bc.sfHistory != nil {
+			s, err := bc.sfHistory.AccountState(address)
+			if err != nil {
+				log.L().Warn("Failed to get account.", zap.String("address", address), zap.Error(err))
+				return nil, err
+			}
+			return s, nil
+		}
+		return nil, errors.New("state factory is nil")
+	}
+	return nil, db.ErrNotExist
 }
 
 // Start starts the blockchain
