@@ -171,18 +171,19 @@ func (bc *blockchainHistory) Start(ctx context.Context) (err error) {
 		return errors.New("can not find execution protocol")
 	}
 	bc.sfHistory.AddActionHandlers(p)
+	return nil
 	// get blockchain tip height
-	if bc.tipHeight, err = bc.dao.GetTipHeight(); err != nil {
-		return err
-	}
-	if bc.tipHeight == 0 {
-		return bc.startEmptyBlockchain()
-	}
-	// get blockchain tip hash
-	if bc.tipHash, err = bc.dao.GetTipHash(); err != nil {
-		return err
-	}
-	return bc.startExistingBlockchain()
+	//if bc.tipHeight, err = bc.dao.GetTipHeight(); err != nil {
+	//	return err
+	//}
+	//if bc.tipHeight == 0 {
+	//	return bc.startEmptyBlockchain()
+	//}
+	//// get blockchain tip hash
+	//if bc.tipHash, err = bc.dao.GetTipHash(); err != nil {
+	//	return err
+	//}
+	//return bc.startExistingBlockchain()
 }
 
 //  CommitBlock validates and appends a block to the chain
