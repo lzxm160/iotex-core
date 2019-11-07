@@ -86,7 +86,7 @@ func NewLifeLongDelegatesProtocol(delegates []genesis.Delegate) Protocol {
 		if rewardAddress == nil {
 			rewardAddress = delegate.OperatorAddr()
 		}
-		l = append(l, &state.Candidate{
+		l = append(l, &state.CandidateLocal{
 			Address: delegate.OperatorAddr().String(),
 			// TODO: load votes from genesis
 			Votes:         delegate.Votes(),
@@ -272,7 +272,7 @@ func (p *governanceChainCommitteeProtocol) delegatesByGravityChainHeight(height 
 			)
 			continue
 		}
-		l = append(l, &state.Candidate{
+		l = append(l, &state.CandidateLocal{
 			Address:       operatorAddress,
 			Votes:         c.Score(),
 			RewardAddress: rewardAddress,
@@ -374,7 +374,7 @@ func (p *governanceChainCommitteeProtocol) readActiveBlockProducersByEpoch(epoch
 	}
 
 	var blockProducerList []string
-	blockProducerMap := make(map[string]*state.Candidate)
+	blockProducerMap := make(map[string]*state.CandidateLocal)
 	for _, bp := range blockProducers {
 		blockProducerList = append(blockProducerList, bp.Address)
 		blockProducerMap[bp.Address] = bp
