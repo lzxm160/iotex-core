@@ -89,6 +89,8 @@ func main() {
 		dbFilePaths = append(dbFilePaths, indexDBPath)
 		consensusDBPath := fmt.Sprintf("./consensus%d.db", i+1)
 		dbFilePaths = append(dbFilePaths, consensusDBPath)
+		trieHistoryDBPath := fmt.Sprintf("./trie-history%d.db", i+1)
+		dbFilePaths = append(dbFilePaths, trieHistoryDBPath)
 		networkPort := 4689 + i
 		apiPort := 14014 + i
 		config := newConfig(chainAddrs[i].PriKey, networkPort, apiPort)
@@ -96,6 +98,7 @@ func main() {
 		config.Chain.TrieDBPath = trieDBPath
 		config.Chain.IndexDBPath = indexDBPath
 		config.Consensus.RollDPoS.ConsensusDBPath = consensusDBPath
+		config.Chain.HistoryDBPath = trieHistoryDBPath
 		if i == 0 {
 			config.Network.BootstrapNodes = []string{}
 			config.Network.MasterKey = "bootnode"
