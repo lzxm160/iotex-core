@@ -9,7 +9,6 @@ package blockchain
 import (
 	"context"
 	"math/big"
-	"os"
 	"strconv"
 
 	"github.com/iotexproject/iotex-core/db"
@@ -31,7 +30,6 @@ import (
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/prometheustimer"
-	"github.com/iotexproject/iotex-core/pkg/util/fileutil"
 	"github.com/iotexproject/iotex-core/state/factory"
 )
 
@@ -220,9 +218,9 @@ func (bc *blockchainHistory) RecoverChainAndState(targetHeight uint64) error {
 //=====================================
 
 func (bc *blockchainHistory) startEmptyBlockchain() error {
-	if err := bc.blockchain.startEmptyBlockchain(); err != nil {
-		return err
-	}
+	//if err := bc.blockchain.startEmptyBlockchain(); err != nil {
+	//	return err
+	//}
 	var ws factory.WorkingSet
 	var err error
 	if ws, err = bc.sfHistory.NewWorkingSet(true); err != nil {
@@ -296,36 +294,32 @@ func (bc *blockchainHistory) commitBlock(blk *block.Block) error {
 }
 
 // RefreshStateDB deletes the existing state DB and creates a new one with state changes from genesis block
-func (bc *blockchainHistory) refreshStateDB() error {
-	if err := bc.blockchain.refreshStateDB(); err != nil {
-		return err
-	}
-	// Delete existing state DB and reinitialize it
-	if fileutil.FileExists(bc.config.Chain.HistoryDBPath) && os.Remove(bc.config.Chain.HistoryDBPath) != nil {
-		return errors.New("failed to delete existing state DB")
-	}
-	var err error
-	if bc.config.Chain.EnableTrielessStateDB {
-		bc.sfHistory, err = factory.NewStateDB(bc.config, factory.DefaultHistoryDBOption())
-	} else {
-		bc.sfHistory, err = factory.NewFactory(bc.config, factory.DefaultHistoryTrieOption())
-	}
-	if err != nil {
-		return errors.Wrap(err, "failed to reinitialize state DB")
-	}
-
-	//for _, p := range bc.registry.All() {
-	//	bc.sfHistory.AddActionHandlers(p)
-	//}
-
-	if err := bc.sfHistory.Start(context.Background()); err != nil {
-		return errors.Wrap(err, "failed to start state factory")
-	}
-	if err := bc.startEmptyBlockchain(); err != nil {
-		return err
-	}
-	if err := bc.sfHistory.Stop(context.Background()); err != nil {
-		return errors.Wrap(err, "failed to stop state factory")
-	}
-	return nil
-}
+//func (bc *blockchainHistory) refreshStateDB() error {
+//	if err := bc.blockchain.refreshStateDB(); err != nil {
+//		return err
+//	}
+//	// Delete existing state DB and reinitialize it
+//	if fileutil.FileExists(bc.config.Chain.HistoryDBPath) && os.Remove(bc.config.Chain.HistoryDBPath) != nil {
+//		return errors.New("failed to delete existing state DB")
+//	}
+//	var err error
+//	if bc.config.Chain.EnableTrielessStateDB {
+//		bc.sfHistory, err = factory.NewStateDB(bc.config, factory.DefaultHistoryDBOption())
+//	} else {
+//		bc.sfHistory, err = factory.NewFactory(bc.config, factory.DefaultHistoryTrieOption())
+//	}
+//	if err != nil {
+//		return errors.Wrap(err, "failed to reinitialize state DB")
+//	}
+//
+//	if err := bc.sfHistory.Start(context.Background()); err != nil {
+//		return errors.Wrap(err, "failed to start state factory")
+//	}
+//	if err := bc.startEmptyBlockchain(); err != nil {
+//		return err
+//	}
+//	if err := bc.sfHistory.Stop(context.Background()); err != nil {
+//		return errors.Wrap(err, "failed to stop state factory")
+//	}
+//	return nil
+//}
