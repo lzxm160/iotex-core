@@ -194,6 +194,8 @@ func TestRangeIndex2(t *testing.T) {
 		v, err := index.Get(i)
 		//require.Error(err)
 		fmt.Println(i, ":", string(v), ":", err)
+		require.NoError(err)
+		require.Equal(v, NotExist)
 	}
 	// Case II: key is 7 and greater than 7
 	for i := uint64(7); i < 10; i++ {
