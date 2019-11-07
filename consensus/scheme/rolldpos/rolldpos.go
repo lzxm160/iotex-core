@@ -41,7 +41,7 @@ var (
 // ChainManager defines the blockchain interface
 type ChainManager interface {
 	// CandidatesByHeight returns the candidate list by a given height
-	CandidatesByHeight(height uint64) ([]*state.Candidate, error)
+	CandidatesByHeight(height uint64) ([]*state.CandidateLocal, error)
 	// GenesisTimestamp returns the timestamp of genesis
 	GenesisTimestamp() int64
 	// BlockHeaderByHeight return block header by height
