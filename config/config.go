@@ -116,7 +116,7 @@ var (
 			AllowedBlockGasResidue:        10000,
 			MaxCacheSize:                  0,
 			PollInitialCandidatesInterval: 10 * time.Second,
-			EnableHistoryStateDB:          false,
+			EnableHistoryStateDB:          true,
 		},
 		ActPool: ActPool{
 			MaxNumActsPerPool:  32000,
