@@ -91,6 +91,9 @@ func New(
 	}
 	registry := protocol.Registry{}
 	chainOpts = append(chainOpts, blockchain.RegistryOption(&registry))
+	if cfg.Chain.EnableHistoryStateDB {
+		chainOpts = append(chainOpts, blockchain.FullHistoryStateFactoryOption())
+	}
 	var electionCommittee committee.Committee
 	if cfg.Genesis.EnableGravityChainVoting {
 		committeeConfig := cfg.Chain.Committee

@@ -54,7 +54,7 @@ type (
 
 	// VoteTally is a map of candidates on native chain
 	VoteTally struct {
-		Candidates map[[12]byte]*state.Candidate
+		Candidates map[[12]byte]*state.CandidateLocal
 		Buckets    []*types.Bucket
 	}
 )
@@ -90,7 +90,7 @@ func (ns *NativeStaking) Votes() (*VoteTally, time.Time, error) {
 	}
 	// read voter list from staking contract
 	votes := VoteTally{
-		Candidates: make(map[[12]byte]*state.Candidate),
+		Candidates: make(map[[12]byte]*state.CandidateLocal),
 		Buckets:    make([]*types.Bucket, 0),
 	}
 	prevIndex := big.NewInt(0)
@@ -179,7 +179,7 @@ func (vt *VoteTally) tally(buckets []*types.Bucket, now time.Time) error {
 		}
 		k := to12Bytes(v.Candidate())
 		if c, ok := vt.Candidates[k]; !ok {
-			vt.Candidates[k] = &state.Candidate{
+			vt.Candidates[k] = &state.CandidateLocal{
 				Address:       "",
 				Votes:         weighted,
 				RewardAddress: "",

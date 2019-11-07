@@ -8,6 +8,7 @@ package factory
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -35,6 +36,8 @@ type stateDB struct {
 	dao                db.KVStore               // the underlying DB for account/contract storage
 	actionHandlers     []protocol.ActionHandler // the handlers to handle actions
 	timerFactory       *prometheustimer.TimerFactory
+	cfg                config.DB // for history state
+	saveHistory        bool
 }
 
 // StateDBOption sets stateDB construction parameter
@@ -59,6 +62,21 @@ func DefaultStateDBOption() StateDBOption {
 			return errors.New("Invalid empty trie db path")
 		}
 		cfg.DB.DbPath = dbPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
+		sdb.cfg = cfg.DB
+		sdb.dao = db.NewBoltDB(cfg.DB)
+		return nil
+	}
+}
+
+// DefaultHistoryDBOption creates default history state db from config
+func DefaultHistoryDBOption() StateDBOption {
+	return func(sdb *stateDB, cfg config.Config) error {
+		dbPath := cfg.Chain.HistoryDBPath
+		if len(dbPath) == 0 {
+			return errors.New("Invalid empty trie db path")
+		}
+		cfg.DB.DbPath = dbPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
+		sdb.cfg = cfg.DB
 		sdb.dao = db.NewBoltDB(cfg.DB)
 		return nil
 	}
@@ -167,10 +185,11 @@ func (sdb *stateDB) Height() (uint64, error) {
 	return byteutil.BytesToUint64(height), nil
 }
 
-func (sdb *stateDB) NewWorkingSet() (WorkingSet, error) {
+func (sdb *stateDB) NewWorkingSet(saveHistory bool) (WorkingSet, error) {
 	sdb.mutex.RLock()
 	defer sdb.mutex.RUnlock()
-	return newStateTX(sdb.currentChainHeight, sdb.dao, sdb.actionHandlers), nil
+	sdb.saveHistory = saveHistory
+	return newStateTX(sdb.currentChainHeight, sdb.dao, sdb.actionHandlers, sdb.cfg, saveHistory), nil
 }
 
 // Commit persists all changes in RunActions() into the DB
@@ -202,7 +221,7 @@ func (sdb *stateDB) Commit(ws WorkingSet) error {
 // Candidate functions
 //======================================
 // CandidatesByHeight returns array of Candidates in candidate pool of a given height
-func (sdb *stateDB) CandidatesByHeight(height uint64) ([]*state.Candidate, error) {
+func (sdb *stateDB) CandidatesByHeight(height uint64) ([]*state.CandidateLocal, error) {
 	sdb.mutex.RLock()
 	defer sdb.mutex.RUnlock()
 	var candidates state.CandidateList
@@ -254,20 +273,65 @@ func (sdb *stateDB) state(addr hash.Hash160, s interface{}) error {
 	return nil
 }
 
-func (sdb *stateDB) accountState(encodedAddr string) (*state.Account, error) {
+func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{}) error {
+	if !sdb.saveHistory {
+		return db.ErrNotExist
+	}
+	ns := append([]byte(AccountKVNameSpace), addr[:]...)
+	ri, err := sdb.dao.CreateRangeIndexNX(ns, []byte{0})
+	if err != nil {
+		return err
+	}
+	accountValue, err := ri.Get(height)
+	if err != nil {
+		log.L().Info("stateHeight get hegith/////////1", zap.Uint64("height", height), zap.String("path:", sdb.cfg.DbPath))
+		return err
+	}
+	log.L().Info("stateHeight get hegith/////////2", zap.Uint64("height", height), zap.String("acccount:", hex.EncodeToString(accountValue)))
+
+	return state.Deserialize(s, accountValue)
+}
+
+func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, err error) {
 	// TODO: state db shouldn't serve this function
-	addr, err := address.FromString(encodedAddr)
+	height := uint64(0)
+	if len(encodedAddrs) > 41 {
+		height, err = strconv.ParseUint(encodedAddrs[41:], 10, 64)
+		if err != nil {
+			return
+		}
+		encodedAddrs = encodedAddrs[:41]
+	}
+
+	addr, err := address.FromString(encodedAddrs)
 	if err != nil {
 		return nil, err
 	}
+
 	pkHash := hash.BytesToHash160(addr.Bytes())
-	var account state.Account
-	if err := sdb.state(pkHash, &account); err != nil {
-		if errors.Cause(err) == state.ErrStateNotExist {
-			account = state.EmptyAccount()
-			return &account, nil
+	acc := state.EmptyAccount()
+	account = &acc
+	if height != 0 {
+		log.L().Info("////////////////", zap.Uint64("height", height), zap.String("address", encodedAddrs))
+		err = sdb.stateHeight(pkHash, height, account)
+		if err != nil {
+			log.L().Info("////////////////stateHeight ", zap.Error(err))
+			//����ط�����˺�û��ת���˻��Ҳ�����Ϣ�������Ҫ�ٵ���sdb.state(pkHash, account)�����ص�ǰ���
+		} else {
+			log.L().Info("////////////////accountState ", zap.Uint64("height", height), zap.String("balance", account.Balance.Text(10)))
 		}
-		return nil, errors.Wrapf(err, "error when loading state of %x", pkHash)
+
+	} else {
+		err = sdb.state(pkHash, account)
 	}
-	return &account, nil
+	if err != nil {
+		if errors.Cause(err) == state.ErrStateNotExist {
+			acc = state.EmptyAccount()
+			account = &acc
+			return
+		}
+		err = errors.Wrapf(err, "error when loading state of %x", pkHash)
+		return
+	}
+	return
 }

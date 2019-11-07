@@ -30,7 +30,7 @@ var (
 )
 
 // Candidate indicates the structure of a candidate
-type Candidate struct {
+type CandidateLocal struct {
 	Address       string
 	Votes         *big.Int
 	RewardAddress string
@@ -38,7 +38,7 @@ type Candidate struct {
 }
 
 // Equal compares two candidate instances
-func (c *Candidate) Equal(d *Candidate) bool {
+func (c *CandidateLocal) Equal(d *CandidateLocal) bool {
 	if c == d {
 		return true
 	}
@@ -51,13 +51,13 @@ func (c *Candidate) Equal(d *Candidate) bool {
 }
 
 // Clone makes a copy of the candidate
-func (c *Candidate) Clone() *Candidate {
+func (c *CandidateLocal) Clone() *CandidateLocal {
 	if c == nil {
 		return nil
 	}
 	name := make([]byte, len(c.CanName))
 	copy(name, c.CanName)
-	return &Candidate{
+	return &CandidateLocal{
 		Address:       c.Address,
 		Votes:         new(big.Int).Set(c.Votes),
 		RewardAddress: c.RewardAddress,
@@ -66,7 +66,7 @@ func (c *Candidate) Clone() *Candidate {
 }
 
 // CandidateList indicates the list of Candidates which is sortable
-type CandidateList []*Candidate
+type CandidateList []*CandidateLocal
 
 func (l CandidateList) Len() int      { return len(l) }
 func (l CandidateList) Swap(i, j int) { l[i], l[j] = l[j], l[i] }
@@ -117,7 +117,7 @@ func (l *CandidateList) LoadProto(candList *iotextypes.CandidateList) error {
 }
 
 // candidateToPb converts a candidate to protobuf's candidate message
-func candidateToPb(cand *Candidate) *iotextypes.Candidate {
+func candidateToPb(cand *CandidateLocal) *iotextypes.Candidate {
 	candidatePb := &iotextypes.Candidate{
 		Address:       cand.Address,
 		Votes:         cand.Votes.Bytes(),
@@ -130,11 +130,11 @@ func candidateToPb(cand *Candidate) *iotextypes.Candidate {
 }
 
 // pbToCandidate converts a protobuf's candidate message to candidate
-func pbToCandidate(candPb *iotextypes.Candidate) (*Candidate, error) {
+func pbToCandidate(candPb *iotextypes.Candidate) (*CandidateLocal, error) {
 	if candPb == nil {
 		return nil, errors.Wrap(ErrCandidatePb, "protobuf's candidate message cannot be nil")
 	}
-	candidate := &Candidate{
+	candidate := &CandidateLocal{
 		Address:       candPb.Address,
 		Votes:         big.NewInt(0).SetBytes(candPb.Votes),
 		RewardAddress: candPb.RewardAddress,
@@ -143,7 +143,7 @@ func pbToCandidate(candPb *iotextypes.Candidate) (*Candidate, error) {
 }
 
 // MapToCandidates converts a map of cachedCandidates to candidate list
-func MapToCandidates(candidateMap map[hash.Hash160]*Candidate) (CandidateList, error) {
+func MapToCandidates(candidateMap map[hash.Hash160]*CandidateLocal) (CandidateList, error) {
 	candidates := make(CandidateList, 0, len(candidateMap))
 	for _, cand := range candidateMap {
 		candidates = append(candidates, cand)
@@ -152,8 +152,8 @@ func MapToCandidates(candidateMap map[hash.Hash160]*Candidate) (CandidateList, e
 }
 
 // CandidatesToMap converts a candidate list to map of cachedCandidates
-func CandidatesToMap(candidates CandidateList) (map[hash.Hash160]*Candidate, error) {
-	candidateMap := make(map[hash.Hash160]*Candidate)
+func CandidatesToMap(candidates CandidateList) (map[hash.Hash160]*CandidateLocal, error) {
+	candidateMap := make(map[hash.Hash160]*CandidateLocal)
 	for _, candidate := range candidates {
 		if candidate == nil {
 			return nil, errors.Wrap(ErrCandidate, "candidate cannot be nil")
