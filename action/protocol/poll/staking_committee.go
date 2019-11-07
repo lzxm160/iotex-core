@@ -149,7 +149,7 @@ func (sc *stakingCommittee) mergeDelegates(list state.CandidateList, votes *Vote
 	// as of now, native staking does not have register contract, only voting/staking contract
 	// it is assumed that all votes done on native staking target for delegates registered on Ethereum
 	// votes cast to all outside address will not be counted and simply ignored
-	candidates := make(map[string]*state.Candidate)
+	candidates := make(map[string]*state.CandidateLocal)
 	candidateScores := make(map[string]*big.Int)
 	for _, cand := range list {
 		clone := cand.Clone()
