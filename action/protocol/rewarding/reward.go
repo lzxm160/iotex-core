@@ -361,14 +361,14 @@ func (p *Protocol) updateRewardHistory(sm protocol.StateManager, prefix []byte, 
 
 func (p *Protocol) splitEpochReward(
 	sm protocol.StateManager,
-	candidates []*state.Candidate,
+	candidates []*state.CandidateLocal,
 	totalAmount *big.Int,
 	numDelegatesForEpochReward uint64,
 	exemptAddrs map[string]interface{},
 	uqd map[string]interface{},
 ) ([]address.Address, []*big.Int, error) {
 
-	filteredCandidates := make([]*state.Candidate, 0)
+	filteredCandidates := make([]*state.CandidateLocal, 0)
 	for _, candidate := range candidates {
 		if _, ok := exemptAddrs[candidate.Address]; ok {
 			continue
