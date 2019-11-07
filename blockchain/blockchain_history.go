@@ -314,9 +314,9 @@ func (bc *blockchainHistory) refreshStateDB() error {
 		return errors.Wrap(err, "failed to reinitialize state DB")
 	}
 
-	for _, p := range bc.registry.All() {
-		bc.sfHistory.AddActionHandlers(p)
-	}
+	//for _, p := range bc.registry.All() {
+	//	bc.sfHistory.AddActionHandlers(p)
+	//}
 
 	if err := bc.sfHistory.Start(context.Background()); err != nil {
 		return errors.Wrap(err, "failed to start state factory")
