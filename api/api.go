@@ -798,7 +798,7 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 	log.L().Info("account root:", zap.String("root", hex.EncodeToString(acc.Root[:])))
 
 	dao := ws.GetDB()
-	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, dao, db.CachedBatchOption(db.NewCachedBatch()))
+	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, evm.PruneKVNameSpace, dao, db.CachedBatchOption(db.NewCachedBatch()))
 	if err != nil {
 		return nil, err
 	}
@@ -810,7 +810,7 @@ func (api *Server) getstorageAt(ws protocol.StateManager, args ...[]byte) (res *
 			return trie.DefaultHashFunc(append(addrHash[:], data...))
 		}),
 	}
-	options = append(options, trie.RootHashOption(acc.Root[:]), trie.SaveHistoryOption(true))
+	options = append(options, trie.RootHashOption(acc.Root[:]), trie.SaveHistoryOption(api.cfg.DB.HistoryStateRetention))
 
 	tr, err := trie.NewTrie(options...)
 	if err != nil {

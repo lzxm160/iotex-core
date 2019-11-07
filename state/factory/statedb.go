@@ -278,7 +278,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 		return db.ErrNotExist
 	}
 	ns := append([]byte(AccountKVNameSpace), addr[:]...)
-	ri, err := sdb.dao.CreateRangeIndexNX(ns, []byte{0})
+	ri, err := sdb.dao.CreateRangeIndexNX(ns, db.NotExist)
 	if err != nil {
 		return err
 	}
@@ -316,7 +316,7 @@ func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, e
 		err = sdb.stateHeight(pkHash, height, account)
 		if err != nil {
 			log.L().Info("////////////////stateHeight ", zap.Error(err))
-			//����ط�����˺�û��ת���˻��Ҳ�����Ϣ�������Ҫ�ٵ���sdb.state(pkHash, account)�����ص�ǰ���
+			//if history is not exist then turn to sdb.state to get latest account
 		} else {
 			log.L().Info("////////////////accountState ", zap.Uint64("height", height), zap.String("balance", account.Balance.Text(10)))
 		}

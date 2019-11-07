@@ -91,9 +91,6 @@ func New(
 	}
 	registry := protocol.Registry{}
 	chainOpts = append(chainOpts, blockchain.RegistryOption(&registry))
-	if cfg.Chain.EnableHistoryStateDB {
-		chainOpts = append(chainOpts, blockchain.FullHistoryStateFactoryOption())
-	}
 	var electionCommittee committee.Committee
 	if cfg.Genesis.EnableGravityChainVoting {
 		committeeConfig := cfg.Chain.Committee
@@ -147,7 +144,12 @@ func New(
 		dao = blockdao.NewBlockDAO(kvstore, nil, cfg.Chain.CompressBlock, cfg.DB)
 	}
 	// create Blockchain
-	chain := blockchain.NewBlockchain(cfg, dao, chainOpts...)
+	var chain blockchain.Blockchain
+	if cfg.Chain.EnableHistoryStateDB {
+		chain = blockchain.NewBlockchainHistory(cfg, dao, chainOpts...)
+	} else {
+		chain = blockchain.NewBlockchain(cfg, dao, chainOpts...)
+	}
 	if chain == nil {
 		panic("failed to create blockchain")
 	}

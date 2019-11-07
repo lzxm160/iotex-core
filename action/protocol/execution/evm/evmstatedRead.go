@@ -289,7 +289,7 @@ func (stateDB *StateDBAdapterRead) getNewContract(addr string) (Contract, error)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load account state for address %s", addr)
 	}
-	contract, err := newContract(hash.Hash160b(a.Bytes()), account, stateDB.dao, stateDB.cb, true)
+	contract, err := newContract(hash.Hash160b(a.Bytes()), account, stateDB.dao, stateDB.cb, true, stateDB.blockHeight)
 
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create storage trie for new contract %x", addr)
