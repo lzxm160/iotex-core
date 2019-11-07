@@ -59,7 +59,7 @@ type ChainManager interface {
 	// Nonce returns the nonce if the account exists
 	Nonce(addr string) (uint64, error)
 	// CandidatesByHeight returns the candidate list by a given height
-	CandidatesByHeight(height uint64) ([]*state.Candidate, error)
+	CandidatesByHeight(height uint64) ([]*state.CandidateLocal, error)
 	// ProductivityByEpoch returns the number of produced blocks per delegate in an epoch
 	ProductivityByEpoch(epochNum uint64) (uint64, map[string]uint64, error)
 	// ExecuteContractRead runs a read-only smart contract operation
@@ -108,7 +108,7 @@ func (m *MockChainManager) StateByAddr(address string) (*state.Account, error) {
 }
 
 // CandidatesByHeight returns the candidate list by a given height
-func (m *MockChainManager) CandidatesByHeight(height uint64) ([]*state.Candidate, error) {
+func (m *MockChainManager) CandidatesByHeight(height uint64) ([]*state.CandidateLocal, error) {
 	return nil, nil
 }
 
