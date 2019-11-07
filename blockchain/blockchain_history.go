@@ -219,6 +219,9 @@ func (bc *blockchainHistory) RecoverChainAndState(targetHeight uint64) error {
 //=====================================
 
 func (bc *blockchainHistory) startEmptyBlockchain() error {
+	if err := bc.blockchain.startEmptyBlockchain(); err != nil {
+		return err
+	}
 	var ws factory.WorkingSet
 	var err error
 	if ws, err = bc.sfHistory.NewWorkingSet(true); err != nil {
@@ -239,6 +242,9 @@ func (bc *blockchainHistory) startEmptyBlockchain() error {
 }
 
 func (bc *blockchainHistory) startExistingBlockchain() error {
+	if err := bc.blockchain.startExistingBlockchain(); err != nil {
+		return err
+	}
 	if bc.sfHistory == nil {
 		return errors.New("statefactory cannot be nil")
 	}
@@ -269,10 +275,7 @@ func (bc *blockchainHistory) startExistingBlockchain() error {
 			return err
 		}
 	}
-	stateHeight, err = bc.sfHistory.Height()
-	if err != nil {
-		return errors.Wrap(err, "failed to get factory's height")
-	}
+
 	return nil
 }
 
