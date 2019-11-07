@@ -8,7 +8,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -193,7 +192,7 @@ func TestRangeIndex2(t *testing.T) {
 		require.NoError(err)
 		v, err := index.Get(i)
 		//require.Error(err)
-		fmt.Println(i, ":", string(v), ":", err)
+		//fmt.Println(i, ":", string(v), ":", err)
 		require.NoError(err)
 		require.Equal(v, NotExist)
 	}
@@ -238,8 +237,10 @@ func TestRangeIndex2(t *testing.T) {
 	for i := uint64(1); i < 66; i++ {
 		index, err = kv.CreateRangeIndexNX(testNS, []byte{})
 		require.NoError(err)
-		_, err = index.Get(i)
-		require.Error(err)
+		v, err := index.Get(i)
+		//require.Error(err)
+		require.NoError(err)
+		require.Equal(v, NotExist)
 	}
 	for i := uint64(66); i < 70; i++ {
 		index, err = kv.CreateRangeIndexNX(testNS, []byte{})
@@ -260,8 +261,9 @@ func TestRangeIndex2(t *testing.T) {
 	for i := uint64(1); i < 80; i++ {
 		index, err = kv.CreateRangeIndexNX(testNS, []byte{})
 		require.NoError(err)
-		_, err = index.Get(i)
-		require.Error(err)
+		v, err := index.Get(i)
+		require.NoError(err)
+		require.Equal(v, NotExist)
 	}
 	for i := uint64(80); i < 90; i++ {
 		index, err = kv.CreateRangeIndexNX(testNS, []byte{})
