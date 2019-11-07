@@ -296,6 +296,9 @@ func (bc *blockchainHistory) commitBlock(blk *block.Block) error {
 
 // RefreshStateDB deletes the existing state DB and creates a new one with state changes from genesis block
 func (bc *blockchainHistory) refreshStateDB() error {
+	if err := bc.blockchain.refreshStateDB(); err != nil {
+		return err
+	}
 	// Delete existing state DB and reinitialize it
 	if fileutil.FileExists(bc.config.Chain.HistoryDBPath) && os.Remove(bc.config.Chain.HistoryDBPath) != nil {
 		return errors.New("failed to delete existing state DB")
