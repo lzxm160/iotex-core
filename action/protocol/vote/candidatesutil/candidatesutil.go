@@ -64,7 +64,7 @@ func LoadAndUpdateCandidates(sm protocol.StateManager, blkHeight uint64, addr st
 }
 
 // GetMostRecentCandidateMap gets the most recent candidateMap from trie
-func GetMostRecentCandidateMap(sm protocol.StateManager, blkHeight uint64) (map[hash.Hash160]*state.Candidate, error) {
+func GetMostRecentCandidateMap(sm protocol.StateManager, blkHeight uint64) (map[hash.Hash160]*state.CandidateLocal, error) {
 	var sc state.CandidateList
 	for h := int(blkHeight); h >= 0; h-- {
 		candidatesKey := ConstructKey(uint64(h))
@@ -77,7 +77,7 @@ func GetMostRecentCandidateMap(sm protocol.StateManager, blkHeight uint64) (map[
 		}
 	}
 	if blkHeight == uint64(0) || blkHeight == uint64(1) {
-		return make(map[hash.Hash160]*state.Candidate), nil
+		return make(map[hash.Hash160]*state.CandidateLocal), nil
 	}
 	return nil, errors.Wrap(state.ErrStateNotExist, "failed to get most recent state of candidateList")
 }
@@ -91,14 +91,14 @@ func ConstructKey(height uint64) hash.Hash160 {
 }
 
 // addCandidate adds a new candidate to candidateMap
-func addCandidate(candidateMap map[hash.Hash160]*state.Candidate, encodedAddr string) error {
+func addCandidate(candidateMap map[hash.Hash160]*state.CandidateLocal, encodedAddr string) error {
 	addr, err := address.FromString(encodedAddr)
 	if err != nil {
 		return errors.Wrap(err, "failed to get public key hash from account address")
 	}
 	addrHash := hash.BytesToHash160(addr.Bytes())
 	if _, ok := candidateMap[addrHash]; !ok {
-		candidateMap[addrHash] = &state.Candidate{
+		candidateMap[addrHash] = &state.CandidateLocal{
 			Address: encodedAddr,
 			Votes:   big.NewInt(0),
 		}
@@ -108,7 +108,7 @@ func addCandidate(candidateMap map[hash.Hash160]*state.Candidate, encodedAddr st
 
 // updateCandidate updates a candidate state
 func updateCandidate(
-	candidateMap map[hash.Hash160]*state.Candidate,
+	candidateMap map[hash.Hash160]*state.CandidateLocal,
 	encodedAddr string,
 	totalWeight *big.Int,
 	blockHeight uint64,
@@ -126,7 +126,7 @@ func updateCandidate(
 }
 
 // storeCandidates puts updated candidates to trie
-func storeCandidates(candidateMap map[hash.Hash160]*state.Candidate, sm protocol.StateManager, blkHeight uint64) error {
+func storeCandidates(candidateMap map[hash.Hash160]*state.CandidateLocal, sm protocol.StateManager, blkHeight uint64) error {
 	candidateList, err := state.MapToCandidates(candidateMap)
 	if err != nil {
 		return errors.Wrap(err, "failed to convert candidate map to candidate list")
