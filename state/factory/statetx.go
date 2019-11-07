@@ -217,6 +217,7 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	if err != nil {
 		return err
 	}
+	log.L().Info("ri.Insert(version, ss)", zap.Uint64("version", version))
 	return ri.Insert(version, ss)
 }
 
