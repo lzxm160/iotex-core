@@ -230,7 +230,7 @@ func (b *boltDB) CountingIndex(name []byte) (CountingIndex, error) {
 	return NewCountingIndex(b.db, b.config.NumRetries, name, byteutil.BytesToUint64BigEndian(total))
 }
 
-// CreateCountingIndexNX creates a new index if it does not exist, otherwise return existing index
+// CreateCountingIndexNX creates a new counting index if it does not exist, otherwise return existing index
 func (b *boltDB) CreateCountingIndexNX(name []byte) (CountingIndex, error) {
 	var size uint64
 	if err := b.db.Update(func(tx *bolt.Tx) error {
@@ -253,18 +253,19 @@ func (b *boltDB) CreateCountingIndexNX(name []byte) (CountingIndex, error) {
 }
 
 // CreateRangeIndexNX creates a new range index if it does not exist, otherwise return existing index
-func (b *boltDB) CreateRangeIndexNX(name []byte) (RangeIndex, error) {
+func (b *boltDB) CreateRangeIndexNX(name, init []byte) (RangeIndex, error) {
 	if err := b.db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists(name)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create bucket %x", name)
 		}
 		// check whether init value exist or not
-		v := bucket.Get(CurrIndex)
+		v := bucket.Get(MaxKey)
 		if v == nil {
 			// write the initial value
-			return bucket.Put(CurrIndex, InitValue)
+			return bucket.Put(MaxKey, init)
 		}
+		init = v
 		return nil
 	}); err != nil {
 		return nil, err

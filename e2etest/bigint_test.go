@@ -73,7 +73,6 @@ func TestAction_Negative(t *testing.T) {
 func prepareBlockchain(
 	ctx context.Context, executor string, r *require.Assertions) blockchain.Blockchain {
 	cfg := config.Default
-	cfg.Plugins[config.GatewayPlugin] = true
 	cfg.Chain.EnableAsyncIndexWrite = false
 	cfg.Genesis.EnableGravityChainVoting = false
 	registry := protocol.Registry{}
@@ -84,6 +83,7 @@ func prepareBlockchain(
 	r.NoError(registry.Register(rolldpos.ProtocolID, rp))
 	bc := blockchain.NewBlockchain(
 		cfg,
+		nil,
 		blockchain.InMemDaoOption(),
 		blockchain.InMemStateFactoryOption(),
 		blockchain.RegistryOption(&registry),
@@ -139,6 +139,7 @@ func prepareAction(bc blockchain.Blockchain, r *require.Assertions) (*block.Bloc
 }
 func prepare(bc blockchain.Blockchain, elp action.Envelope, r *require.Assertions) (*block.Block, error) {
 	priKey, err := crypto.HexStringToPrivateKey(executorPriKey)
+	r.NoError(err)
 	selp, err := action.Sign(elp, priKey)
 	r.NoError(err)
 	actionMap := make(map[string][]action.SealedEnvelope)

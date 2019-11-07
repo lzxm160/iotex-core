@@ -10,9 +10,10 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
-
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/iotexproject/iotex-core/db"
 )
 
 var (
@@ -60,7 +61,7 @@ type Trie interface {
 	// SetRootHash sets a new root to trie
 	SetRootHash([]byte) error
 	// DB returns the KVStore storing the node data
-	DB() KVStore
+	DB() *db.KVStoreForTrie
 	// deleteNodeFromDB deletes the data of node from db
 	deleteNodeFromDB(tn Node) error
 	// putNodeIntoDB puts the data of a node into db
@@ -109,11 +110,12 @@ func RootHashOption(h []byte) Option {
 }
 
 // SaveHistoryOption sets the save history option for the trie
-func SaveHistoryOption(save bool) Option {
+func SaveHistoryOption(height uint64) Option {
 	return func(tr Trie) error {
 		switch t := tr.(type) {
 		case *branchRootTrie:
-			t.saveTrieNode = save
+			t.saveNode = true
+			t.height = height
 		default:
 			return errors.New("invalid trie type")
 		}
@@ -148,7 +150,7 @@ func HashFuncOption(hashFunc HashFunc) Option {
 }
 
 // KVStoreOption sets the kvstore for the trie
-func KVStoreOption(kvStore KVStore) Option {
+func KVStoreOption(kvStore *db.KVStoreForTrie) Option {
 	return func(tr Trie) error {
 		switch t := tr.(type) {
 		case *branchRootTrie:
@@ -175,7 +177,7 @@ func NewTrie(options ...Option) (Trie, error) {
 		t.rootHash = t.emptyRootHash()
 	}
 	if t.kvStore == nil {
-		t.kvStore = newInMemKVStore()
+		t.kvStore, _ = db.NewKVStoreForTrie("", "prune", db.NewMemKVStore())
 	}
 
 	return t, nil

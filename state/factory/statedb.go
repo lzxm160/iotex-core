@@ -71,7 +71,7 @@ func DefaultStateDBOption() StateDBOption {
 // DefaultHistoryDBOption creates default history state db from config
 func DefaultHistoryDBOption() StateDBOption {
 	return func(sdb *stateDB, cfg config.Config) error {
-		dbPath := cfg.Chain.TrieDBPath + "2"
+		dbPath := cfg.Chain.HistoryDBPath
 		if len(dbPath) == 0 {
 			return errors.New("Invalid empty trie db path")
 		}

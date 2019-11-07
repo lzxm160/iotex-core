@@ -13,17 +13,18 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
+	"github.com/iotexproject/go-pkgs/crypto"
+	"github.com/iotexproject/go-pkgs/hash"
+	"github.com/iotexproject/iotex-address/address"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/iotexproject/go-pkgs/crypto"
-	"github.com/iotexproject/go-pkgs/hash"
-	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
+	"github.com/iotexproject/iotex-core/api"
 	"github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/pkg/log"
@@ -61,6 +62,8 @@ func TestBlockReward(t *testing.T) {
 	testTriePath := testTrieFile.Name()
 	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
 	testDBPath := testDBFile.Name()
+	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+	testIndexPath := testIndexFile.Name()
 
 	cfg := config.Default
 	cfg.Consensus.Scheme = config.StandaloneScheme
@@ -69,6 +72,7 @@ func TestBlockReward(t *testing.T) {
 	cfg.Chain.ProducerPrivKey = identityset.PrivateKey(0).HexString()
 	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.ChainDBPath = testDBPath
+	cfg.Chain.IndexDBPath = testIndexPath
 	cfg.Network.Port = testutil.RandomPort()
 
 	svr, err := itx.NewServer(cfg)
@@ -139,13 +143,15 @@ func TestBlockEpochReward(t *testing.T) {
 		dbFilePaths = append(dbFilePaths, chainDBPath)
 		trieDBPath := fmt.Sprintf("./trie%d.db", i+1)
 		dbFilePaths = append(dbFilePaths, trieDBPath)
+		indexDBPath := fmt.Sprintf("./index%d.db", i+1)
+		dbFilePaths = append(dbFilePaths, indexDBPath)
 		consensusDBPath := fmt.Sprintf("./consensus%d.db", i+1)
 		dbFilePaths = append(dbFilePaths, consensusDBPath)
 		networkPort := 4689 + i
 		apiPort := 14014 + i
 		HTTPStatsPort := 8080 + i
 		HTTPAdminPort := 9009 + i
-		cfg := newConfig(chainDBPath, trieDBPath, identityset.PrivateKey(i),
+		cfg := newConfig(chainDBPath, trieDBPath, indexDBPath, identityset.PrivateKey(i),
 			networkPort, apiPort, uint64(numNodes))
 		cfg.Consensus.RollDPoS.ConsensusDBPath = consensusDBPath
 		if i == 0 {
@@ -212,6 +218,7 @@ func TestBlockEpochReward(t *testing.T) {
 	rps := make([]*rewarding.Protocol, numNodes)
 	wss := make([]factory.WorkingSet, numNodes)
 	chains := make([]blockchain.Blockchain, numNodes)
+	apis := make([]*api.Server, numNodes)
 	//Map of expected unclaimed balance for each reward address
 	exptUnclaimed := make(map[string]*big.Int, numNodes)
 	//Map of real unclaimed balance for each reward address
@@ -236,6 +243,7 @@ func TestBlockEpochReward(t *testing.T) {
 		wss[i] = ws
 
 		chains[i] = svrs[i].ChainService(configs[i].Chain.ID).Blockchain()
+		apis[i] = svrs[i].ChainService(configs[i].Chain.ID).APIServer()
 
 		rewardAddrStr := identityset.Address(i + numNodes).String()
 		exptUnclaimed[rewardAddrStr] = big.NewInt(0)
@@ -298,7 +306,7 @@ func TestBlockEpochReward(t *testing.T) {
 				//check pending Claim actions, if a claim is executed, then adjust the expectation accordingly
 				//Wait until all the pending actions are settled
 
-				updateExpectationWithPendingClaimList(t, chains[0], exptUnclaimed, claimedAmount, pendingClaimActions)
+				updateExpectationWithPendingClaimList(t, apis[0], exptUnclaimed, claimedAmount, pendingClaimActions)
 				if len(pendingClaimActions) > 0 {
 					// if there is pending action, retry
 					return false, nil
@@ -352,7 +360,7 @@ func TestBlockEpochReward(t *testing.T) {
 				}
 
 				//check pending Claim actions, if a claim is executed, then adjust the expectation accordingly
-				updateExpectationWithPendingClaimList(t, chains[0], exptUnclaimed, claimedAmount, pendingClaimActions)
+				updateExpectationWithPendingClaimList(t, apis[0], exptUnclaimed, claimedAmount, pendingClaimActions)
 
 				curHighCheck := chains[0].TipHeight()
 				preHeight = curHighCheck
@@ -420,7 +428,7 @@ func TestBlockEpochReward(t *testing.T) {
 
 	//Wait until all the pending actions are settled
 	err = testutil.WaitUntil(100*time.Millisecond, 40*time.Second, func() (bool, error) {
-		updateExpectationWithPendingClaimList(t, chains[0], exptUnclaimed, claimedAmount, pendingClaimActions)
+		updateExpectationWithPendingClaimList(t, apis[0], exptUnclaimed, claimedAmount, pendingClaimActions)
 		return len(pendingClaimActions) == 0, nil
 	})
 	require.NoError(t, err)
@@ -462,6 +470,7 @@ func injectClaim(
 	}
 	payload := []byte{}
 	beneficiaryAddr, err := address.FromBytes(beneficiaryPri.PublicKey().Hash())
+	require.NoError(t, err)
 	ctx := context.Background()
 	request := iotexapi.GetAccountRequest{Address: beneficiaryAddr.String()}
 	response, err := c.GetAccount(ctx, &request)
@@ -498,17 +507,17 @@ func injectClaim(
 
 func updateExpectationWithPendingClaimList(
 	t *testing.T,
-	bc blockchain.Blockchain,
+	api *api.Server,
 	exptUnclaimed map[string]*big.Int,
 	claimedAmount map[string]*big.Int,
 	pendingClaimActions map[hash.Hash256]bool,
 ) bool {
 	updated := false
 	for selpHash, expectedSuccess := range pendingClaimActions {
-		receipt, err := bc.GetReceiptByActionHash(selpHash)
+		receipt, err := api.GetReceiptByActionHash(selpHash)
 
 		if err == nil {
-			selp, err := bc.GetActionByActionHash(selpHash)
+			selp, err := api.GetActionByActionHash(selpHash)
 			require.NoError(t, err)
 			addr, err := address.FromBytes(selp.SrcPubkey().Hash())
 			require.NoError(t, err)
@@ -537,62 +546,10 @@ func updateExpectationWithPendingClaimList(
 	return updated
 }
 
-//waitActionToSettle wait the claim action on given reward address to settle to update expectation correctly
-func waitActionToSettle(
-	t *testing.T,
-	rewardAddrStr string,
-	bc blockchain.Blockchain,
-	exptUnclaimed map[string]*big.Int,
-	claimedAmount map[string]*big.Int,
-	unClaimedBalances map[string]*big.Int,
-	pendingClaimActions map[hash.Hash256]bool,
-) error {
-	err := testutil.WaitUntil(100*time.Millisecond, 20*time.Second, func() (bool, error) {
-		for selpHash, expectedSuccess := range pendingClaimActions {
-			receipt, receipterr := bc.GetReceiptByActionHash(selpHash)
-			selp, err := bc.GetActionByActionHash(selpHash)
-			require.Equal(t, err == nil, receipterr == nil)
-
-			if err == nil {
-				addr, err := address.FromBytes(selp.SrcPubkey().Hash())
-				require.NoError(t, err)
-				if addr.String() != rewardAddrStr {
-					continue
-				}
-
-				act := &action.ClaimFromRewardingFund{}
-				err = act.LoadProto(selp.Proto().Core.GetClaimFromRewardingFund())
-				require.NoError(t, err)
-				amount := act.Amount()
-
-				newExpectUnclaimed := big.NewInt(0).Sub(exptUnclaimed[addr.String()], amount)
-
-				if newExpectUnclaimed.Cmp(unClaimedBalances[rewardAddrStr]) != 0 {
-					continue
-				}
-				require.Equal(t, receipt.Status, uint64(iotextypes.ReceiptStatus_Success))
-
-				exptUnclaimed[addr.String()] = newExpectUnclaimed
-
-				newClaimedAmount := big.NewInt(0).Add(claimedAmount[addr.String()], amount)
-				claimedAmount[addr.String()] = newClaimedAmount
-
-				//An test case expected to fail should never success
-				require.NotEqual(t, expectedSuccess, false)
-
-				delete(pendingClaimActions, selpHash)
-				return true, nil
-			}
-		}
-		return false, nil
-	})
-
-	return err
-}
-
 func newConfig(
 	chainDBPath,
-	trieDBPath string,
+	trieDBPath,
+	indexDBPath string,
 	producerPriKey crypto.PrivateKey,
 	networkPort,
 	apiPort int,
@@ -600,14 +557,13 @@ func newConfig(
 ) config.Config {
 	cfg := config.Default
 
-	cfg.Plugins[config.GatewayPlugin] = true
-
 	cfg.Network.Port = networkPort
 	cfg.Network.BootstrapNodes = []string{"/ip4/127.0.0.1/tcp/4689/ipfs/12D3KooWJwW6pUpTkxPTMv84RPLPMQVEAjZ6fvJuX4oZrvW5DAGQ"}
 
 	cfg.Chain.ID = 1
 	cfg.Chain.ChainDBPath = chainDBPath
 	cfg.Chain.TrieDBPath = trieDBPath
+	cfg.Chain.IndexDBPath = indexDBPath
 	cfg.Chain.CompressBlock = true
 	cfg.Chain.ProducerPrivKey = producerPriKey.HexString()
 	cfg.Chain.EnableAsyncIndexWrite = false

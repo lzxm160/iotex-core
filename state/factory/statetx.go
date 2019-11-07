@@ -215,7 +215,7 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	version := stx.ver + 1
 	ns := append([]byte(AccountKVNameSpace), pkHash[:]...)
-	ri, err := stx.dao.CreateRangeIndexNX(ns)
+	ri, err := stx.dao.CreateRangeIndexNX(ns, db.NotExist)
 	if err != nil {
 		return err
 	}
@@ -241,11 +241,11 @@ func (stx *stateTX) deleteHistory() error {
 		}
 		//chaindbCache := db.NewCachedBatch()
 		for _, key := range allKeys {
-			ri, err := stx.dao.CreateRangeIndexNX(key)
+			ri, err := stx.dao.CreateRangeIndexNX(key, db.NotExist)
 			if err != nil {
 				continue
 			}
-			err = ri.Delete(deleteStartHeight)
+			err = ri.Purge(deleteStartHeight)
 			if err != nil {
 				continue
 			}

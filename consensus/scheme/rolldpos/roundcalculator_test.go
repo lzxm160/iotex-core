@@ -58,13 +58,13 @@ func TestNewRound(t *testing.T) {
 	require := require.New(t)
 	bc, roll := makeChain(t)
 	rc := &roundCalculator{bc, true, roll, bc.CandidatesByHeight, 0}
-	proposer, err := rc.calculateProposer(5, 1, []string{"1", "2", "3", "4", "5"})
+	_, err := rc.calculateProposer(5, 1, []string{"1", "2", "3", "4", "5"})
 	require.Error(err)
 	var validDelegates [24]string
 	for i := 0; i < 24; i++ {
 		validDelegates[i] = identityset.Address(i).String()
 	}
-	proposer, err = rc.calculateProposer(5, 1, validDelegates[:])
+	proposer, err := rc.calculateProposer(5, 1, validDelegates[:])
 	require.NoError(err)
 	require.Equal(validDelegates[6], proposer)
 
@@ -142,14 +142,15 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	require := require.New(t)
 	cfg := config.Default
 
-	dBPath := "db.test"
-	triePath := "trie.test"
-	testTrieFile, _ := ioutil.TempFile(os.TempDir(), triePath)
+	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
 	testTriePath := testTrieFile.Name()
-	testDBFile, _ := ioutil.TempFile(os.TempDir(), dBPath)
+	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
 	testDBPath := testDBFile.Name()
+	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+	testIndexPath := testIndexFile.Name()
 	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.ChainDBPath = testDBPath
+	cfg.Chain.IndexDBPath = testIndexPath
 
 	cfg.Consensus.Scheme = config.RollDPoSScheme
 	cfg.Network.Port = testutil.RandomPort()
@@ -176,6 +177,7 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol) {
 	registry := protocol.Registry{}
 	chain := blockchain.NewBlockchain(
 		cfg,
+		nil,
 		blockchain.DefaultStateFactoryOption(),
 		blockchain.BoltDBDaoOption(),
 		blockchain.RegistryOption(&registry),

@@ -43,14 +43,12 @@ type KVStore interface {
 	Commit(KVStoreBatch) error
 	// CountingIndex returns the index, and nil if not exist
 	CountingIndex([]byte) (CountingIndex, error)
-	// CreateCountingIndexNX creates a new index if it does not exist, otherwise return existing index
+	// CreateCountingIndexNX creates a new counting index if it does not exist, otherwise return existing index
 	CreateCountingIndexNX([]byte) (CountingIndex, error)
-	// GetKeyByPrefix retrieves all keys those with const prefix
-	GetKeyByPrefix([]byte, []byte) ([][]byte, error)
+	// CreateRangeIndexNX creates a new range index if it does not exist, otherwise return existing index
+	CreateRangeIndexNX([]byte, []byte) (RangeIndex, error)
 	// GetBucketByPrefix retrieves all bucket those with const namespace prefix
 	GetBucketByPrefix([]byte) ([][]byte, error)
-	// CreateRangeIndexNX creates a new range index if it does not exist, otherwise return existing index
-	CreateRangeIndexNX([]byte) (RangeIndex, error)
 }
 
 const (
@@ -148,7 +146,7 @@ func (m *memKVStore) CountingIndex(name []byte) (CountingIndex, error) {
 	return NewInMemCountingIndex(m, name, byteutil.BytesToUint64BigEndian(size))
 }
 
-// CreateCountingIndexNX creates a new index if it does not exist, otherwise return existing index
+// CreateCountingIndexNX creates a new counting index if it does not exist, otherwise return existing index
 func (m *memKVStore) CreateCountingIndexNX(name []byte) (CountingIndex, error) {
 	var size uint64
 	if total, _ := m.Get(string(name), ZeroIndex); total == nil {
@@ -162,17 +160,12 @@ func (m *memKVStore) CreateCountingIndexNX(name []byte) (CountingIndex, error) {
 	return NewInMemCountingIndex(m, name, size)
 }
 
-// GetKeyByPrefix retrieves all keys those with const prefix
-func (m *memKVStore) GetKeyByPrefix([]byte, []byte) ([][]byte, error) {
-	return nil, nil
+// CreateRangeIndexNX creates a new range index if it does not exist, otherwise return existing index
+func (m *memKVStore) CreateRangeIndexNX(name, init []byte) (RangeIndex, error) {
+	return nil, ErrInvalid
 }
 
 // GetBucketByPrefix retrieves all bucket those with const namespace prefix
 func (m *memKVStore) GetBucketByPrefix(namespace []byte) ([][]byte, error) {
 	return nil, nil
-}
-
-// CreateRangeIndexNX creates a new range index if it does not exist, otherwise return existing index
-func (m *memKVStore) CreateRangeIndexNX(name []byte) (RangeIndex, error) {
-	return nil, ErrInvalid
 }

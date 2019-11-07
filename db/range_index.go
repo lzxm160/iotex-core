@@ -9,9 +9,6 @@ package db
 import (
 	"bytes"
 
-	"github.com/iotexproject/iotex-core/pkg/log"
-	"go.uber.org/zap"
-
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 
@@ -19,10 +16,10 @@ import (
 )
 
 var (
-	// CurrIndex is special key such that bytes.Compare(MaxUint64, CurrIndex) = -1
-	CurrIndex     = []byte{255, 255, 255, 255, 255, 255, 255, 255, 0}
-	InitValue     = []byte("InitValue")
-	NotExistValue = []byte("NotExistValue")
+	// MaxKey is the special key such that bytes.Compare(MaxUint64, MaxKey) = -1
+	MaxKey = []byte{255, 255, 255, 255, 255, 255, 255, 255, 0}
+	// NotExist is the empty byte slice to indicate a key does not exist (as a result of calling Purge())
+	NotExist = []byte{}
 )
 
 type (
@@ -47,10 +44,12 @@ type (
 		Insert(uint64, []byte) error
 		// Get returns value by the key
 		Get(uint64) ([]byte, error)
+		// Delete deletes an existing key
+		Delete(uint64) error
+		// Purge deletes an existing key and all keys before it
+		Purge(uint64) error
 		// Close makes the index not usable
 		Close()
-		// Delete deletes key before this key but keep this key
-		Delete(key uint64) error
 	}
 
 	// rangeIndex is RangeIndex implementation based on bolt DB
@@ -58,7 +57,6 @@ type (
 		db         *bolt.DB
 		numRetries uint8
 		bucket     []byte
-		curr       []byte // value to return beyond the last insertion key
 	}
 )
 
@@ -74,31 +72,17 @@ func NewRangeIndex(db *bolt.DB, retry uint8, name []byte) (RangeIndex, error) {
 
 	bucket := make([]byte, len(name))
 	copy(bucket, name)
-	var curr []byte
-	err := db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(bucket)
-		if b == nil {
-			return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", bucket)
-		}
-		// check whether init value exist or not
-		curr = b.Get(CurrIndex)
-		return nil
-	})
-	if err != nil {
-		return nil, errors.Wrap(err, "bucket get CurrIndex error")
-	}
+
 	return &rangeIndex{
 		db:         db,
 		numRetries: retry,
 		bucket:     bucket,
-		curr:       curr,
 	}, nil
 }
 
 // Insert inserts a value into the index
 func (r *rangeIndex) Insert(key uint64, value []byte) error {
-	defer r.Close()
-	// cannot insert key 0, which holds key-1's value
+	// cannot insert key 0, which holds initial value
 	if key == 0 {
 		return errors.Wrap(ErrInvalid, "cannot insert key 0")
 	}
@@ -109,24 +93,17 @@ func (r *rangeIndex) Insert(key uint64, value []byte) error {
 			if bucket == nil {
 				return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", r.bucket)
 			}
-			// read current value
-			curr := bucket.Get(CurrIndex)
-			if curr == nil {
-				return errors.Wrap(ErrIO, "cannot read current value")
+			cur := bucket.Cursor()
+			ak := byteutil.Uint64ToBytesBigEndian(key - 1)
+			k, v := cur.Seek(ak)
+			if !bytes.Equal(k, ak) {
+				// insert new key
+				bucket.Put(ak, v)
+			} else {
+				// update an existing key
+				k, _ = cur.Next()
 			}
-			// check if key already exists, to fix putstate insert 2 times for the same key
-			keySub1 := bucket.Get(byteutil.Uint64ToBytesBigEndian(key - 1))
-			if keySub1 == nil {
-				// keys up to key-1 should have current value
-				if err := bucket.Put(byteutil.Uint64ToBytesBigEndian(key-1), curr); err != nil {
-					return err
-				}
-			}
-			//else {
-			//	log.L().Info("keySub1 already exists", zap.Uint64("height", key-1))
-			//}
-			// write new value
-			return bucket.Put(CurrIndex, value)
+			return bucket.Put(k, value)
 		}); err == nil {
 			break
 		}
@@ -134,15 +111,11 @@ func (r *rangeIndex) Insert(key uint64, value []byte) error {
 	if err != nil {
 		err = errors.Wrap(ErrIO, err.Error())
 	}
-	r.curr = nil
-	r.curr = make([]byte, len(value))
-	copy(r.curr, value)
 	return nil
 }
 
 // Get returns value by the key
 func (r *rangeIndex) Get(key uint64) ([]byte, error) {
-	defer r.Close()
 	var value []byte
 	err := r.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(r.bucket)
@@ -151,18 +124,7 @@ func (r *rangeIndex) Get(key uint64) ([]byte, error) {
 		}
 		// seek to start
 		cur := bucket.Cursor()
-		k, v := cur.Seek(byteutil.Uint64ToBytesBigEndian(key))
-		if k == nil {
-			// key is beyond largest inserted key, return current value
-			v = r.curr
-		}
-
-		if bytes.Compare(v, NotExistValue) == 0 {
-			return errors.New("key already deleted")
-		}
-		if bytes.Compare(v, InitValue) == 0 {
-			return errors.New("key not exist")
-		}
+		_, v := cur.Seek(byteutil.Uint64ToBytesBigEndian(key))
 		value = make([]byte, len(v))
 		copy(value, v)
 		return nil
@@ -173,36 +135,69 @@ func (r *rangeIndex) Get(key uint64) ([]byte, error) {
 	return value, nil
 }
 
-// Delete deletes key before this key include this key
+// Delete deletes an existing key
 func (r *rangeIndex) Delete(key uint64) error {
-	defer r.Close()
-	// cannot delete key 0, which holds key-1's value
+	// cannot delete key 0, which holds initial value
 	if key == 0 {
 		return errors.Wrap(ErrInvalid, "cannot delete key 0")
 	}
-	err := r.db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(r.bucket)
-		if bucket == nil {
-			return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", r.bucket)
-		}
-		// seek to start
-		cur := bucket.Cursor()
-		// find the key and set to special value
-		for k, v := cur.Seek(byteutil.Uint64ToBytesBigEndian(key)); k != nil && bytes.Compare(v, NotExistValue) != 0; k, v = cur.Prev() {
-			if k == nil {
-				break
+	var err error
+	for i := uint8(0); i < r.numRetries; i++ {
+		if err = r.db.Update(func(tx *bolt.Tx) error {
+			bucket := tx.Bucket(r.bucket)
+			if bucket == nil {
+				return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", r.bucket)
 			}
-			log.L().Info("rangeIndex Delete/////////", zap.Uint64("height", byteutil.BytesToUint64BigEndian(k)))
-			if err := bucket.Put(k, NotExistValue); err != nil {
-				return err
+			cur := bucket.Cursor()
+			ak := byteutil.Uint64ToBytesBigEndian(key - 1)
+			k, v := cur.Seek(ak)
+			if !bytes.Equal(k, ak) {
+				// return nil if the key does not exist
+				return nil
 			}
+			bucket.Delete(ak)
+			// write the corresponding value to next key
+			k, _ = cur.Seek(byteutil.Uint64ToBytesBigEndian(key))
+			return bucket.Put(k, v)
+		}); err == nil {
+			break
 		}
-		return nil
-	})
-	if err != nil {
-		return err
 	}
-	return nil
+	return err
+}
+
+// Purge deletes an existing key and all keys before it
+func (r *rangeIndex) Purge(key uint64) error {
+	// cannot delete key 0, which holds initial value
+	if key == 0 {
+		return errors.Wrap(ErrInvalid, "cannot delete key 0")
+	}
+	var err error
+	for i := uint8(0); i < r.numRetries; i++ {
+		if err = r.db.Update(func(tx *bolt.Tx) error {
+			bucket := tx.Bucket(r.bucket)
+			if bucket == nil {
+				return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", r.bucket)
+			}
+			cur := bucket.Cursor()
+			ak := byteutil.Uint64ToBytesBigEndian(key - 1)
+			k, _ := cur.Seek(ak)
+			if !bytes.Equal(k, ak) {
+				// return nil if the key does not exist
+				return nil
+			}
+			// delete all keys before this key
+			for ; k != nil; k, _ = cur.Prev() {
+				bucket.Delete(k)
+			}
+			// write not exist value to next key
+			k, _ = cur.Seek(byteutil.Uint64ToBytesBigEndian(key))
+			return bucket.Put(k, NotExist)
+		}); err == nil {
+			break
+		}
+	}
+	return err
 }
 
 // Close makes the index not usable

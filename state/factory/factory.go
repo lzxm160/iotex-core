@@ -33,10 +33,10 @@ import (
 const (
 	// AccountKVNameSpace is the bucket name for account trie
 	AccountKVNameSpace = "Account"
-
 	// CandidateKVNameSpace is the bucket name for candidate data storage
 	CandidateKVNameSpace = "Candidate"
-
+	// PruneKVNameSpace is the bucket name for entries to be pruned
+	PruneKVNameSpace = "ap"
 	// CurrentHeightKey indicates the key of current factory height in underlying DB
 	CurrentHeightKey = "currentHeight"
 	// AccountTrieRootKey indicates the key of accountTrie root hash in underlying DB
@@ -105,7 +105,7 @@ func DefaultTrieOption() Option {
 // DefaultHistoryTrieOption creates trie from config for history state factory
 func DefaultHistoryTrieOption() Option {
 	return func(sf *factory, cfg config.Config) (err error) {
-		dbPath := cfg.Chain.TrieDBPath + "2"
+		dbPath := cfg.Chain.HistoryDBPath
 		if len(dbPath) == 0 {
 			return errors.New("Invalid empty trie db path")
 		}
@@ -135,7 +135,7 @@ func NewFactory(cfg config.Config, opts ...Option) (Factory, error) {
 			return nil, err
 		}
 	}
-	dbForTrie, err := db.NewKVStoreForTrie(AccountKVNameSpace, sf.dao)
+	dbForTrie, err := db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, sf.dao)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create db for trie")
 	}

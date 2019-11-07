@@ -23,13 +23,17 @@ import (
 //Xrc20Cmd represent erc20 standard command-line
 var Xrc20Cmd = &cobra.Command{
 	Use:   "xrc20",
-	Short: "Supporting ERC20 standard command-line from ioctl",
+	Short: "Support ERC20 standard command-line from ioctl",
 }
 
 var xrc20ContractAddress string
 
 func xrc20Contract() (address.Address, error) {
-	return alias.IOAddress(xrc20ContractAddress)
+	addr, err := alias.IOAddress(xrc20ContractAddress)
+	if err != nil {
+		return nil, output.NewError(output.FlagError, "invalid xrc20 address flag", err)
+	}
+	return addr, nil
 }
 
 type amountMessage struct {

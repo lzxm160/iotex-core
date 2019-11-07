@@ -99,7 +99,7 @@ func NewWorkingSet(
 		dao:            kv,
 		actionHandlers: actionHandlers,
 	}
-	dbForTrie, err := db.NewKVStoreForTrie(AccountKVNameSpace, ws.dao, db.CachedBatchOption(ws.cb))
+	dbForTrie, err := db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, ws.dao, db.CachedBatchOption(ws.cb))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate state tire db")
 	}

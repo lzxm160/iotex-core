@@ -12,24 +12,26 @@ import (
 	"sync"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/iotexproject/iotex-core/db/trie/triepb"
 	"github.com/pkg/errors"
 
 	"github.com/iotexproject/iotex-core/db"
-	"github.com/iotexproject/iotex-core/db/trie/triepb"
+	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 )
 
 type (
 	// HashFunc defines a function to generate the hash which will be used as key in db
 	HashFunc       func([]byte) []byte
 	branchRootTrie struct {
-		mutex        sync.RWMutex
-		keyLength    int
-		kvStore      KVStore
-		hashFunc     HashFunc
-		root         *branchNode
-		rootHash     []byte
-		rootKey      string
-		saveTrieNode bool
+		mutex     sync.RWMutex
+		keyLength int
+		kvStore   *db.KVStoreForTrie
+		hashFunc  HashFunc
+		root      *branchNode
+		rootHash  []byte
+		rootKey   string
+		saveNode  bool
+		height    uint64 // height at which the trie is updated
 	}
 )
 
@@ -133,15 +135,17 @@ func (tr *branchRootTrie) Upsert(key []byte, value []byte) error {
 	return nil
 }
 
-func (tr *branchRootTrie) DB() KVStore {
+func (tr *branchRootTrie) DB() *db.KVStoreForTrie {
 	return tr.kvStore
 }
 
 func (tr *branchRootTrie) deleteNodeFromDB(tn Node) error {
-	if tr.saveTrieNode {
-		return nil
-	}
 	h := tr.nodeHash(tn)
+	if tr.saveNode {
+		// mark the height-hash to be purged in later pruning
+		tag := byteutil.Uint64ToBytesBigEndian(tr.height)
+		return tr.kvStore.Purge(tag, h)
+	}
 	return tr.kvStore.Delete(h)
 }
 

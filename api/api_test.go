@@ -18,11 +18,11 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/proto"
+	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
@@ -33,8 +33,11 @@ import (
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/actpool"
 	"github.com/iotexproject/iotex-core/blockchain"
+	"github.com/iotexproject/iotex-core/blockchain/blockdao"
 	"github.com/iotexproject/iotex-core/blockchain/genesis"
+	"github.com/iotexproject/iotex-core/blockindex"
 	"github.com/iotexproject/iotex-core/config"
+	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/gasstation"
 	"github.com/iotexproject/iotex-core/pkg/unit"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
@@ -839,6 +842,7 @@ func TestServer_GetBlockMetas(t *testing.T) {
 
 	svr, err := createServer(cfg, false)
 	require.NoError(err)
+	require.NotNil(svr.indexer)
 
 	for _, test := range getBlockMetasTests {
 		request := &iotexapi.GetBlockMetasRequest{
@@ -898,13 +902,13 @@ func TestServer_GetBlockMeta(t *testing.T) {
 
 func TestServer_GetChainMeta(t *testing.T) {
 	require := require.New(t)
-	cfg := newConfig()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	var pol poll.Protocol
 	for _, test := range getChainMetaTests {
+		cfg := newConfig()
 		if test.pollProtocolType == lld {
 			pol = poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
 		} else if test.pollProtocolType == "governanceChainCommittee" {
@@ -1000,7 +1004,9 @@ func TestServer_ReadContract(t *testing.T) {
 	for _, test := range readContractTests {
 		hash, err := hash.HexStringToHash256(test.execHash)
 		require.NoError(err)
-		exec, err := svr.bc.GetActionByActionHash(hash)
+		ai, err := svr.indexer.GetActionIndex(hash[:])
+		require.NoError(err)
+		exec, err := svr.dao.GetActionByActionHash(hash, ai.BlockHeight())
 		require.NoError(err)
 		request := &iotexapi.ReadContractRequest{
 			Execution:     exec.Proto().GetCore().GetExecution(),
@@ -1037,7 +1043,9 @@ func TestServer_EstimateGasForAction(t *testing.T) {
 	for _, test := range estimateGasForActionTests {
 		hash, err := hash.HexStringToHash256(test.actionHash)
 		require.NoError(err)
-		act, err := svr.bc.GetActionByActionHash(hash)
+		ai, err := svr.indexer.GetActionIndex(hash[:])
+		require.NoError(err)
+		act, err := svr.dao.GetActionByActionHash(hash, ai.BlockHeight())
 		require.NoError(err)
 		request := &iotexapi.EstimateGasForActionRequest{Action: act.Proto()}
 
@@ -1648,24 +1656,36 @@ func addActsToActPool(ap actpool.ActPool) error {
 	return ap.Add(execution1)
 }
 
-func setupChain(cfg config.Config) (blockchain.Blockchain, *protocol.Registry, error) {
+func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, blockindex.Indexer, *protocol.Registry, error) {
 	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
 	sf, err := factory.NewFactory(cfg, factory.InMemTrieOption())
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, nil, err
 	}
-
+	// create indexer
+	indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), cfg.Genesis.Hash())
+	if err != nil {
+		return nil, nil, nil, nil, errors.New("failed to create indexer")
+	}
+	// create BlockDAO
+	dao := blockdao.NewBlockDAO(db.NewMemKVStore(), indexer, cfg.Chain.CompressBlock, cfg.DB)
+	if dao == nil {
+		return nil, nil, nil, nil, errors.New("failed to create blockdao")
+	}
 	// create chain
 	registry := protocol.Registry{}
 	bc := blockchain.NewBlockchain(
 		cfg,
+		dao,
 		blockchain.PrecreatedStateFactoryOption(sf),
-		blockchain.InMemDaoOption(),
 		blockchain.RegistryOption(&registry),
 	)
 	if bc == nil {
-		return nil, nil, errors.New("failed to create blockchain")
+		return nil, nil, nil, nil, errors.New("failed to create blockchain")
 	}
+	defer func() {
+		delete(cfg.Plugins, config.GatewayPlugin)
+	}()
 
 	acc := account.NewProtocol(config.NewHeightUpgrade(cfg))
 	evm := execution.NewProtocol(bc, config.NewHeightUpgrade(cfg))
@@ -1678,25 +1698,25 @@ func setupChain(cfg config.Config) (blockchain.Blockchain, *protocol.Registry, e
 	r := rewarding.NewProtocol(bc, rolldposProtocol)
 
 	if err := registry.Register(rolldpos.ProtocolID, rolldposProtocol); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	if err := registry.Register(account.ProtocolID, acc); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	if err := registry.Register(execution.ProtocolID, evm); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	if err := registry.Register(rewarding.ProtocolID, r); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	if err := registry.Register(poll.ProtocolID, p); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	sf.AddActionHandlers(acc, evm, r)
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc))
 	bc.Validator().AddActionValidators(acc, evm, r)
 
-	return bc, &registry, nil
+	return bc, dao, indexer, &registry, nil
 }
 
 func setupActPool(bc blockchain.Blockchain, cfg config.ActPool) (actpool.ActPool, error) {
@@ -1717,10 +1737,13 @@ func newConfig() config.Config {
 	testTriePath := testTrieFile.Name()
 	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
 	testDBPath := testDBFile.Name()
+	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+	testIndexPath := testIndexFile.Name()
 
 	cfg.Plugins[config.GatewayPlugin] = true
 	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.ChainDBPath = testDBPath
+	cfg.Chain.IndexDBPath = testIndexPath
 	cfg.Chain.EnableAsyncIndexWrite = false
 	cfg.Genesis.EnableGravityChainVoting = true
 	cfg.ActPool.MinGasPriceStr = "0"
@@ -1729,7 +1752,7 @@ func newConfig() config.Config {
 }
 
 func createServer(cfg config.Config, needActPool bool) (*Server, error) {
-	bc, registry, err := setupChain(cfg)
+	bc, dao, indexer, registry, err := setupChain(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -1765,6 +1788,8 @@ func createServer(cfg config.Config, needActPool bool) (*Server, error) {
 
 	svr := &Server{
 		bc:             bc,
+		dao:            dao,
+		indexer:        indexer,
 		ap:             ap,
 		cfg:            cfg,
 		gs:             gasstation.NewGasStation(bc, cfg.API),

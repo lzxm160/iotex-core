@@ -101,32 +101,10 @@ type Blockchain interface {
 	BlockFooterByHeight(height uint64) (*block.Footer, error)
 	// BlockFooterByHash return block footer by hash
 	BlockFooterByHash(h hash.Hash256) (*block.Footer, error)
-	// GetTotalActions returns the total number of actions
-	GetTotalActions() (uint64, error)
-	// GetNumActions returns the number of actions in certain block
-	GetNumActions(height uint64) (uint64, error)
-	// GetTranferAmount returns the transfer amount
-	GetTranferAmount(height uint64) (*big.Int, error)
-	// GetReceiptByActionHash returns the receipt by action hash
-	GetReceiptByActionHash(h hash.Hash256) (*action.Receipt, error)
-	// GetActionsFromIndex returns action hash from index
-	GetActionsFromIndex(uint64, uint64) ([][]byte, error)
-	// GetActionsByAddress returns actions by address
-	GetActionsByAddress(string, uint64, uint64) ([][]byte, error)
-	// GetActionCountByAddress returns action count by address
-	GetActionCountByAddress(address string) (uint64, error)
-	// GetActionByActionHash returns action by action hash
-	GetActionByActionHash(h hash.Hash256) (action.SealedEnvelope, error)
-	// GetBlockHashByActionHash returns Block hash by action hash
-	GetBlockHashByActionHash(h hash.Hash256) (hash.Hash256, error)
-	// GetReceiptsByHeight returns action receipts by block height
-	GetReceiptsByHeight(height uint64) ([]*action.Receipt, error)
 	// GetFactory returns the state factory
 	GetFactory() factory.Factory
 	// GetFactory2 returns the state factory
 	GetFactory2() factory.Factory
-	// GetBlockDAO returns the block DAO
-	GetBlockDAO() blockdao.BlockDAO
 	// ChainID returns the chain ID
 	ChainID() uint32
 	// ChainAddress returns chain address on parent chain, the root chain return empty.
@@ -176,6 +154,7 @@ type Blockchain interface {
 type blockchain struct {
 	mu            sync.RWMutex // mutex to protect utk, tipHeight and tipHash
 	dao           blockdao.BlockDAO
+	indexer       blockindex.Indexer
 	config        config.Config
 	tipHeight     uint64
 	tipHash       hash.Hash256
@@ -186,10 +165,11 @@ type blockchain struct {
 	timerFactory  *prometheustimer.TimerFactory
 
 	// used by account-based model
-	sf              factory.Factory
-	sf2             factory.Factory // for state history
-	deletingHistory chan struct{}   // make sure there's only one goroutine deleting
-	registry        *protocol.Registry
+	sf       factory.Factory
+	registry *protocol.Registry
+
+	// used by full-history node
+	sfHistory factory.Factory // full-state history
 }
 
 // ActPoolManager defines the actpool interface
@@ -211,17 +191,6 @@ func DefaultStateFactoryOption() Option {
 		}
 		if err != nil {
 			return errors.Wrapf(err, "Failed to create state factory")
-		}
-
-		if cfg.Chain.EnableHistoryStateDB {
-			if cfg.Chain.EnableTrielessStateDB {
-				bc.sf2, err = factory.NewStateDB(cfg, factory.DefaultHistoryDBOption())
-			} else {
-				bc.sf2, err = factory.NewFactory(cfg, factory.DefaultHistoryTrieOption())
-			}
-			if err != nil {
-				return errors.Wrapf(err, "Failed to create state factory")
-			}
 		}
 		return nil
 	}
@@ -249,11 +218,17 @@ func InMemStateFactoryOption() Option {
 	}
 }
 
-// PrecreatedDaoOption sets blockchain's dao
-func PrecreatedDaoOption(dao blockdao.BlockDAO) Option {
-	return func(bc *blockchain, conf config.Config) error {
-		bc.dao = dao
-
+// FullHistoryStateFactoryOption adds a full-history mode state.Factory from config
+func FullHistoryStateFactoryOption() Option {
+	return func(bc *blockchain, cfg config.Config) (err error) {
+		if cfg.Chain.EnableTrielessStateDB {
+			bc.sfHistory, err = factory.NewStateDB(cfg, factory.DefaultHistoryDBOption())
+		} else {
+			bc.sfHistory, err = factory.NewFactory(cfg, factory.DefaultHistoryTrieOption())
+		}
+		if err != nil {
+			return errors.Wrapf(err, "Failed to create state factory")
+		}
 		return nil
 	}
 }
@@ -261,13 +236,14 @@ func PrecreatedDaoOption(dao blockdao.BlockDAO) Option {
 // BoltDBDaoOption sets blockchain's dao with BoltDB from config.Chain.ChainDBPath
 func BoltDBDaoOption() Option {
 	return func(bc *blockchain, cfg config.Config) error {
+		if bc.dao != nil {
+			return nil
+		}
 		cfg.DB.DbPath = cfg.Chain.ChainDBPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
-		_, gateway := cfg.Plugins[config.GatewayPlugin]
 		bc.dao = blockdao.NewBlockDAO(
 			db.NewBoltDB(cfg.DB),
-			gateway && !cfg.Chain.EnableAsyncIndexWrite,
+			bc.indexer,
 			cfg.Chain.CompressBlock,
-			cfg.Chain.MaxCacheSize,
 			cfg.DB,
 		)
 		return nil
@@ -277,15 +253,15 @@ func BoltDBDaoOption() Option {
 // InMemDaoOption sets blockchain's dao with MemKVStore
 func InMemDaoOption() Option {
 	return func(bc *blockchain, cfg config.Config) error {
-		_, gateway := cfg.Plugins[config.GatewayPlugin]
+		if bc.dao != nil {
+			return nil
+		}
 		bc.dao = blockdao.NewBlockDAO(
 			db.NewMemKVStore(),
-			gateway && !cfg.Chain.EnableAsyncIndexWrite,
+			bc.indexer,
 			cfg.Chain.CompressBlock,
-			cfg.Chain.MaxCacheSize,
 			cfg.DB,
 		)
-
 		return nil
 	}
 }
@@ -308,12 +284,12 @@ func RegistryOption(registry *protocol.Registry) Option {
 }
 
 // NewBlockchain creates a new blockchain and DB instance
-func NewBlockchain(cfg config.Config, opts ...Option) Blockchain {
+func NewBlockchain(cfg config.Config, dao blockdao.BlockDAO, opts ...Option) Blockchain {
 	// create the Blockchain
 	chain := &blockchain{
 		config:          cfg,
+		dao:             dao,
 		clk:             clock.New(),
-		deletingHistory: make(chan struct{}, 1),
 	}
 	for _, opt := range opts {
 		if err := opt(chain, cfg); err != nil {
@@ -350,8 +326,8 @@ func NewBlockchain(cfg config.Config, opts ...Option) Blockchain {
 	if chain.sf != nil {
 		chain.lifecycle.Add(chain.sf)
 	}
-	if chain.sf2 != nil {
-		chain.lifecycle.Add(chain.sf2)
+	if chain.sfHistory != nil {
+		chain.lifecycle.Add(chain.sfHistory)
 	}
 	return chain
 }
@@ -372,31 +348,30 @@ func (bc *blockchain) Start(ctx context.Context) (err error) {
 		return err
 	}
 	// sf2 only deal with account and contract
-	if bc.sf2 != nil {
+	if bc.sfHistory != nil {
 		p, ok := bc.registry.Find(account.ProtocolID)
 		if !ok {
 			return errors.New("can not find account protocol")
 		}
-		bc.sf2.AddActionHandlers(p)
+		bc.sfHistory.AddActionHandlers(p)
 		p, ok = bc.registry.Find(execution.ProtocolID)
 		if !ok {
 			return errors.New("can not find execution protocol")
 		}
-		bc.sf2.AddActionHandlers(p)
+		bc.sfHistory.AddActionHandlers(p)
 	}
 
 	// get blockchain tip height
-	if bc.tipHeight, err = bc.dao.GetBlockchainHeight(); err != nil {
+	if bc.tipHeight, err = bc.dao.GetTipHeight(); err != nil {
 		return err
 	}
 	if bc.tipHeight == 0 {
 		return bc.startEmptyBlockchain()
 	}
 	// get blockchain tip hash
-	if bc.tipHash, err = bc.dao.GetBlockHash(bc.tipHeight); err != nil {
+	if bc.tipHash, err = bc.dao.GetTipHash(); err != nil {
 		return err
 	}
-
 	return bc.startExistingBlockchain()
 }
 
@@ -500,12 +475,7 @@ func (bc *blockchain) GetHashByHeight(height uint64) (hash.Hash256, error) {
 
 // GetBlockByHeight returns block from the blockchain hash by height
 func (bc *blockchain) GetBlockByHeight(height uint64) (*block.Block, error) {
-	blk, err := bc.getBlockByHeight(height)
-	if blk == nil || err != nil {
-		return blk, err
-	}
-	blk.HeaderLogger(log.L()).Debug("Get block.")
-	return blk, err
+	return bc.getBlockByHeight(height)
 }
 
 // GetBlockByHash returns block from the blockchain hash by hash
@@ -529,83 +499,6 @@ func (bc *blockchain) BlockFooterByHash(h hash.Hash256) (*block.Footer, error) {
 	return bc.dao.Footer(h)
 }
 
-// GetTotalActions returns the total number of actions
-func (bc *blockchain) GetTotalActions() (uint64, error) {
-	return bc.dao.GetTotalActions()
-}
-
-// GetNumActions returns the number of actions
-func (bc *blockchain) GetNumActions(height uint64) (uint64, error) {
-	return bc.dao.GetNumActions(height)
-}
-
-// GetTranferAmount returns the transfer amount
-func (bc *blockchain) GetTranferAmount(height uint64) (*big.Int, error) {
-	return bc.dao.GetTranferAmount(height)
-}
-
-// GetReceiptByActionHash returns the receipt by action hash
-func (bc *blockchain) GetReceiptByActionHash(h hash.Hash256) (*action.Receipt, error) {
-	return bc.dao.GetReceiptByActionHash(h)
-}
-
-// GetActionsFromIndex returns action hash from index
-func (bc *blockchain) GetActionsFromIndex(start, count uint64) ([][]byte, error) {
-	return bc.dao.GetActionHashFromIndex(start, count)
-}
-
-// GetActionsByAddress returns action hash by address
-func (bc *blockchain) GetActionsByAddress(addrStr string, start, count uint64) ([][]byte, error) {
-	addr, err := address.FromString(addrStr)
-	if err != nil {
-		return nil, err
-	}
-	actions, err := bc.dao.GetActionsByAddress(hash.BytesToHash160(addr.Bytes()), start, count)
-	if err != nil && errors.Cause(err) == db.ErrBucketNotExist {
-		// no actions associated with address, return nil
-		return nil, nil
-	}
-	return actions, err
-}
-
-// GetActionCountByAddress returns action count by address
-func (bc *blockchain) GetActionCountByAddress(addrStr string) (uint64, error) {
-	addr, err := address.FromString(addrStr)
-	if err != nil {
-		return 0, err
-	}
-	return bc.dao.GetActionCountByAddress(hash.BytesToHash160(addr.Bytes()))
-}
-
-// GetActionByActionHash returns action by action hash
-func (bc *blockchain) GetActionByActionHash(h hash.Hash256) (action.SealedEnvelope, error) {
-	blkHash, err := bc.dao.GetBlockHashByActionHash(h)
-	if err != nil {
-		return action.SealedEnvelope{}, err
-	}
-
-	blk, err := bc.dao.GetBlock(blkHash)
-	if err != nil {
-		return action.SealedEnvelope{}, err
-	}
-	for _, act := range blk.Actions {
-		if act.Hash() == h {
-			return act, nil
-		}
-	}
-	return action.SealedEnvelope{}, errors.Errorf("block %x does not have transfer %x", blkHash, h)
-}
-
-// GetBlockHashByActionHash returns Block hash by action hash
-func (bc *blockchain) GetBlockHashByActionHash(h hash.Hash256) (hash.Hash256, error) {
-	return bc.dao.GetBlockHashByActionHash(h)
-}
-
-// GetReceiptsByHeight returns action receipts by block height
-func (bc *blockchain) GetReceiptsByHeight(height uint64) ([]*action.Receipt, error) {
-	return bc.dao.GetReceipts(height)
-}
-
 // GetFactory returns the state factory
 func (bc *blockchain) GetFactory() factory.Factory {
 	return bc.sf
@@ -614,11 +507,7 @@ func (bc *blockchain) GetFactory() factory.Factory {
 // GetFactory returns the state factory
 func (bc *blockchain) GetFactory2() factory.Factory {
 	return bc.sf2
-}
 
-// GetBlockDAO returns the block DAO
-func (bc *blockchain) GetBlockDAO() blockdao.BlockDAO {
-	return bc.dao
 }
 
 // TipHash returns tip block's hash
@@ -722,7 +611,13 @@ func (bc *blockchain) CommitBlock(blk *block.Block) error {
 	timer := bc.timerFactory.NewTimer("CommitBlock")
 	defer timer.End()
 
-	return bc.commitBlock(blk)
+	if err := bc.commitBlock(blk); err != nil {
+		return err
+	}
+	if bc.sfHistory != nil {
+		return bc.commitBlockWithHistory(blk)
+	}
+	return nil
 }
 
 // StateByAddr returns the account of an address
@@ -929,7 +824,12 @@ func (bc *blockchain) RecoverChainAndState(targetHeight uint64) error {
 	}
 
 	if buildStateFromScratch {
-		return bc.refreshStateDB()
+		if err = bc.refreshStateDB(bc.sf, bc.config.Chain.TrieDBPath); err != nil {
+			return err
+		}
+		if bc.sfHistory != nil {
+			return bc.refreshStateDB(bc.sfHistory, bc.config.Chain.HistoryDBPath)
+		}
 	}
 	return nil
 }
@@ -980,11 +880,7 @@ func (bc *blockchain) candidatesByHeight(height uint64) (state.CandidateList, er
 }
 
 func (bc *blockchain) getBlockByHeight(height uint64) (*block.Block, error) {
-	hash, err := bc.dao.GetBlockHash(height)
-	if err != nil {
-		return nil, err
-	}
-	return bc.dao.GetBlock(hash)
+	return bc.dao.GetBlockByHeight(height)
 }
 
 func (bc *blockchain) blockHeaderByHeight(height uint64) (*block.Header, error) {
@@ -1002,15 +898,20 @@ func (bc *blockchain) blockFooterByHeight(height uint64) (*block.Footer, error) 
 	}
 	return bc.dao.Footer(hash)
 }
-
 func (bc *blockchain) startEmptyBlockchain() error {
-	var ws factory.WorkingSet
-	var ws2 factory.WorkingSet
-	var err error
-	if ws, err = bc.sf.NewWorkingSet(false); err != nil {
-		return errors.Wrap(err, "failed to obtain working set from state factory")
+	if err := bc.commitGenesisStates(bc.sf, false); err != nil {
+		return err
 	}
-	if ws2, err = bc.sf2.NewWorkingSet(true); err != nil {
+	if bc.sfHistory != nil {
+		return bc.commitGenesisStates(bc.sfHistory, true)
+	}
+	return nil
+}
+
+func (bc *blockchain) commitGenesisStates(sf factory.Factory, saveHistory bool) error {
+	var ws factory.WorkingSet
+	var err error
+	if ws, err = sf.NewWorkingSet(saveHistory); err != nil {
 		return errors.Wrap(err, "failed to obtain working set from state factory")
 	}
 	if !bc.config.Chain.EmptyGenesis {
@@ -1019,30 +920,28 @@ func (bc *blockchain) startEmptyBlockchain() error {
 			return err
 		}
 		_ = ws.UpdateBlockLevelInfo(0)
-
-		if err := bc.createGenesisStates(ws2); err != nil {
-			return err
-		}
-		_ = ws2.UpdateBlockLevelInfo(0)
 	}
 	// add Genesis states
-	if err := bc.sf.Commit(ws); err != nil {
+	if err := sf.Commit(ws); err != nil {
 		return errors.Wrap(err, "failed to commit Genesis states")
-	}
-	if bc.sf2 != nil {
-		if err := bc.sf2.Commit(ws2); err != nil {
-			return errors.Wrap(err, "failed to commit Genesis states")
-		}
 	}
 	return nil
 }
 
 func (bc *blockchain) startExistingBlockchain() error {
-	if bc.sf == nil {
-		return errors.New("statefactory cannot be nil")
+	if err := bc.commitBlocksToStateFactory(bc.sf, false); err != nil {
+		return err
 	}
+	bc.loadingNativeStakingContract()
+	log.L().Info("Restarting blockchain.", zap.Uint64("chainHeight", bc.tipHeight))
+	if bc.sfHistory != nil {
+		return bc.commitBlocksToStateFactory(bc.sfHistory, true)
+	}
+	return nil
+}
 
-	stateHeight, err := bc.sf.Height()
+func (bc *blockchain) commitBlocksToStateFactory(sf factory.Factory, saveHistory bool) error {
+	stateHeight, err := sf.Height()
 	if err != nil {
 		return err
 	}
@@ -1056,47 +955,17 @@ func (bc *blockchain) startExistingBlockchain() error {
 			return err
 		}
 
-		ws, err := bc.sf.NewWorkingSet(false)
+		ws, err := sf.NewWorkingSet(saveHistory)
 		if err != nil {
 			return errors.Wrap(err, "failed to obtain working set from state factory")
 		}
-		ws2, err := bc.sf2.NewWorkingSet(true)
-		if err != nil {
-			return errors.Wrap(err, "Failed to obtain working set from state factory")
-		}
-		receipts, err := bc.runActions(blk.RunnableActions(), ws)
-		if err != nil {
+		if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
 			return err
 		}
-		_, err = bc.runActions(blk.RunnableActions(), ws2)
-		if err != nil {
-			return err
-		}
-		_, err = bc.GetReceiptsByHeight(i)
-		if errors.Cause(err) == db.ErrNotExist {
-			// write smart contract receipt into DB
-			err = bc.dao.PutReceipts(blk.Height(), receipts)
-			if err != nil {
-				return errors.Wrapf(err, "failed to put smart contract receipts into DB on height %d", blk.Height())
-			}
-		}
-
-		if err := bc.sf.Commit(ws); err != nil {
-			return err
-		}
-		if err := bc.sf2.Commit(ws2); err != nil {
+		if err := sf.Commit(ws); err != nil {
 			return err
 		}
 	}
-	stateHeight, err = bc.sf.Height()
-	if err != nil {
-		return errors.Wrap(err, "failed to get factory's height")
-	}
-	bc.loadingNativeStakingContract()
-	log.L().Info("Restarting blockchain.",
-		zap.Uint64("chainHeight",
-			bc.tipHeight),
-		zap.Uint64("factoryHeight", stateHeight))
 	return nil
 }
 
@@ -1117,7 +986,6 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 		return errors.Wrap(err, "Failed to obtain working set from state factory")
 	}
 	runTimer := bc.timerFactory.NewTimer("runActions")
-
 	receipts, err := bc.runActions(blk.RunnableActions(), ws)
 	runTimer.End()
 	if err != nil {
@@ -1141,19 +1009,21 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 
 // commitBlock commits a block to the chain
 func (bc *blockchain) commitBlock(blk *block.Block) error {
-	// Check if it is already exists, and return earlier
+	// early exit if block already exists
 	blkHash, err := bc.dao.GetBlockHash(blk.Height())
-	if blkHash != hash.ZeroHash256 {
+	if err == nil && blkHash != hash.ZeroHash256 {
 		log.L().Debug("Block already exists.", zap.Uint64("height", blk.Height()))
 		return nil
 	}
-	// If it's a ready db io error, return earlier with the error
-	if errors.Cause(err) != db.ErrNotExist {
+	// early exit if it's a db io error
+	if err != nil && errors.Cause(err) != db.ErrNotExist && errors.Cause(err) != db.ErrBucketNotExist {
 		return err
 	}
 	// write block into DB
 	putTimer := bc.timerFactory.NewTimer("putBlock")
-	err = bc.dao.PutBlock(blk)
+	if err = bc.dao.PutBlock(blk); err == nil {
+		err = bc.dao.Commit()
+	}
 	putTimer.End()
 	if err != nil {
 		return err
@@ -1163,71 +1033,34 @@ func (bc *blockchain) commitBlock(blk *block.Block) error {
 	atomic.StoreUint64(&bc.tipHeight, blk.Height())
 	bc.tipHash = blk.HashBlock()
 
-	if bc.sf != nil {
-		// write smart contract receipt into DB
-		receiptTimer := bc.timerFactory.NewTimer("putReceipt")
-		err = bc.dao.PutReceipts(blk.Height(), blk.Receipts)
-		receiptTimer.End()
-		if err != nil {
-			return errors.Wrapf(err, "failed to put smart contract receipts into DB on height %d", blk.Height())
-		}
-
-		sfTimer := bc.timerFactory.NewTimer("sf.Commit")
-		err = bc.sf.Commit(blk.WorkingSet)
-		sfTimer.End()
-
-		// detach working set so it can be freed by GC
-		blk.WorkingSet = nil
-		if err != nil {
-			log.L().Panic("Error when committing states.", zap.Error(err))
-		}
+	// commit state/contract changes
+	sfTimer := bc.timerFactory.NewTimer("sf.Commit")
+	err = bc.sf.Commit(blk.WorkingSet)
+	sfTimer.End()
+	// detach working set so it can be freed by GC
+	blk.WorkingSet = nil
+	if err != nil {
+		log.L().Panic("Error when committing states.", zap.Error(err))
 	}
 	blk.HeaderLogger(log.L()).Info("Committed a block.", log.Hex("tipHash", bc.tipHash[:]))
 
 	// emit block to all block subscribers
 	bc.emitToSubscribers(blk)
-
-	if bc.sf2 != nil {
-		// run actions with history retention
-		ws, err := bc.sf2.NewWorkingSet(true)
-		if err != nil {
-			return errors.Wrap(err, "Failed to obtain working set from state factory")
-		}
-		log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions() size", uint64(len(blk.RunnableActions().Actions()))))
-		if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
-			log.L().Error("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
-		}
-		log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
-		if err = bc.sf2.Commit(ws); err != nil {
-			log.L().Error("Error when committing states with history.", zap.Error(err))
-		}
-
-		// regularly check and purge history
-		if blk.Height()%factory.CheckHistoryDeleteInterval == 0 {
-			//if err := bc.deleteHistory(); err != nil {
-			//	return err
-			//}
-		}
-	}
 	return nil
 }
 
-func (bc *blockchain) deleteHistory() error {
-	ws, err := bc.sf2.NewWorkingSet(true)
+func (bc *blockchain) commitBlockWithHistory(blk *block.Block) error {
+	// run actions with history retention
+	ws, err := bc.sfHistory.NewWorkingSet(true)
 	if err != nil {
-		return errors.Wrap(err, "Failed to obtain working set when deleting history")
+		return errors.Wrap(err, "Failed to obtain working set from state factory")
 	}
-
-	go func() {
-		bc.deletingHistory <- struct{}{}
-		defer func() {
-			<-bc.deletingHistory
-		}()
-		err := ws.DeleteHistory(bc.tipHeight, ws.GetDB())
-		if err != nil {
-			log.L().Error("failed delete history for trie", zap.Error(err))
-		}
-	}()
+	if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
+		log.L().Error("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
+	}
+	if err = bc.sfHistory.Commit(ws); err != nil {
+		log.L().Error("Error when committing states with history.", zap.Error(err))
+	}
 	return nil
 }
 
@@ -1254,6 +1087,7 @@ func (bc *blockchain) runActions(
 			Registry:       bc.registry,
 			History:        ws.History(),
 		})
+
 	if acts.BlockHeight() == bc.config.Genesis.AleutianBlockHeight {
 		if err := bc.updateAleutianEpochRewardAmount(ctx, ws); err != nil {
 			return nil, err
@@ -1469,36 +1303,37 @@ func (bc *blockchain) recoverToHeight(targetHeight uint64) error {
 }
 
 // RefreshStateDB deletes the existing state DB and creates a new one with state changes from genesis block
-func (bc *blockchain) refreshStateDB() error {
+func (bc *blockchain) refreshStateDB(sf factory.Factory, stateDB string) error {
 	// Delete existing state DB and reinitialize it
-	if fileutil.FileExists(bc.config.Chain.TrieDBPath) && os.Remove(bc.config.Chain.TrieDBPath) != nil {
+	if fileutil.FileExists(stateDB) && os.Remove(stateDB) != nil {
 		return errors.New("failed to delete existing state DB")
 	}
-	sf2Path := bc.config.Chain.TrieDBPath + "2"
-	if fileutil.FileExists(sf2Path) && os.Remove(sf2Path) != nil {
-		return errors.New("failed to delete existing state DB 2")
+	var (
+		err         error
+		saveHistory bool
+	)
+	if stateDB == bc.config.Chain.TrieDBPath {
+		err = DefaultStateFactoryOption()(bc, bc.config)
+		saveHistory = false
+	} else {
+		err = FullHistoryStateFactoryOption()(bc, bc.config)
+		saveHistory = true
 	}
-	if err := DefaultStateFactoryOption()(bc, bc.config); err != nil {
+	if err != nil {
 		return errors.Wrap(err, "failed to reinitialize state DB")
 	}
 
 	for _, p := range bc.registry.All() {
-		bc.sf.AddActionHandlers(p)
+		sf.AddActionHandlers(p)
 	}
 
-	if err := bc.sf.Start(context.Background()); err != nil {
+	if err := sf.Start(context.Background()); err != nil {
 		return errors.Wrap(err, "failed to start state factory")
 	}
-	if err := bc.sf2.Start(context.Background()); err != nil {
-		return errors.Wrap(err, "failed to start state factory")
-	}
-	if err := bc.startEmptyBlockchain(); err != nil {
+	if err := bc.commitGenesisStates(sf, saveHistory); err != nil {
 		return err
 	}
-	if err := bc.sf.Stop(context.Background()); err != nil {
-		return errors.Wrap(err, "failed to stop state factory")
-	}
-	if err := bc.sf2.Stop(context.Background()); err != nil {
+	if err := sf.Stop(context.Background()); err != nil {
 		return errors.Wrap(err, "failed to stop state factory")
 	}
 	return nil

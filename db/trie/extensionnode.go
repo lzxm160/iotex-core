@@ -44,7 +44,7 @@ func (e *extensionNode) Key() []byte {
 }
 
 func (e *extensionNode) Value() []byte {
-	return e.childHash
+	return nil
 }
 
 func (e *extensionNode) children(tr Trie) ([]Node, error) {

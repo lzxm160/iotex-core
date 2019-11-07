@@ -8,10 +8,10 @@ package chainservice
 
 import (
 	"context"
-	"github.com/iotexproject/iotex-core/blockchain/blockdao"
-	"os"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/iotexproject/iotex-proto/golang/iotexrpc"
+	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 	peerstore "github.com/libp2p/go-libp2p-peerstore"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -23,15 +23,16 @@ import (
 	"github.com/iotexproject/iotex-core/api"
 	"github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/blockchain/block"
+	"github.com/iotexproject/iotex-core/blockchain/blockdao"
+	"github.com/iotexproject/iotex-core/blockindex"
 	"github.com/iotexproject/iotex-core/blocksync"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/consensus"
+	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/dispatcher"
 	"github.com/iotexproject/iotex-core/p2p"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-election/committee"
-	"github.com/iotexproject/iotex-proto/golang/iotexrpc"
-	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 )
 
 // ChainService is a blockchain service with all blockchain components.
@@ -82,16 +83,17 @@ func New(
 	if ops.isTesting {
 		chainOpts = []blockchain.Option{
 			blockchain.InMemStateFactoryOption(),
-			blockchain.InMemDaoOption(),
 		}
 	} else {
 		chainOpts = []blockchain.Option{
 			blockchain.DefaultStateFactoryOption(),
-			blockchain.BoltDBDaoOption(),
 		}
 	}
 	registry := protocol.Registry{}
 	chainOpts = append(chainOpts, blockchain.RegistryOption(&registry))
+	if cfg.Chain.EnableHistoryStateDB {
+		chainOpts = append(chainOpts, blockchain.FullHistoryStateFactoryOption())
+	}
 	var electionCommittee committee.Committee
 	if cfg.Genesis.EnableGravityChainVoting {
 		committeeConfig := cfg.Chain.Committee
@@ -119,33 +121,46 @@ func New(
 			}
 		}
 	}
-	// create Blockchain
-	chain := blockchain.NewBlockchain(cfg, chainOpts...)
-	if chain == nil && cfg.Chain.EnableFallBackToFreshDB {
-		log.L().Warn("Chain db and trie db are falling back to fresh ones.")
-		if err := os.Rename(cfg.Chain.ChainDBPath, cfg.Chain.ChainDBPath+".old"); err != nil {
-			return nil, errors.Wrap(err, "failed to rename old chain db")
+	// create indexer
+	var indexer blockindex.Indexer
+	_, gateway := cfg.Plugins[config.GatewayPlugin]
+	if gateway {
+		var err error
+		cfg.DB.DbPath = cfg.Chain.IndexDBPath
+		indexer, err = blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
+		if err != nil {
+			return nil, err
 		}
-		if err := os.Rename(cfg.Chain.TrieDBPath, cfg.Chain.TrieDBPath+".old"); err != nil {
-			return nil, errors.Wrap(err, "failed to rename old trie db")
-		}
-		chainOpts = []blockchain.Option{
-			blockchain.DefaultStateFactoryOption(),
-			blockchain.BoltDBDaoOption(),
-		}
-		chain = blockchain.NewBlockchain(cfg, chainOpts...)
 	}
-
+	// create BlockDAO
+	var kvstore db.KVStore
+	if ops.isTesting {
+		kvstore = db.NewMemKVStore()
+	} else {
+		cfg.DB.DbPath = cfg.Chain.ChainDBPath
+		kvstore = db.NewBoltDB(cfg.DB)
+	}
+	var dao blockdao.BlockDAO
+	if gateway && !cfg.Chain.EnableAsyncIndexWrite {
+		dao = blockdao.NewBlockDAO(kvstore, indexer, cfg.Chain.CompressBlock, cfg.DB)
+	} else {
+		dao = blockdao.NewBlockDAO(kvstore, nil, cfg.Chain.CompressBlock, cfg.DB)
+	}
+	// create Blockchain
+	chain := blockchain.NewBlockchain(cfg, dao, chainOpts...)
+	if chain == nil {
+		panic("failed to create blockchain")
+	}
+	// config asks for a standalone indexer
 	var indexBuilder *blockdao.IndexBuilder
-	if _, ok := cfg.Plugins[config.GatewayPlugin]; ok && cfg.Chain.EnableAsyncIndexWrite {
-		if indexBuilder, err = blockdao.NewIndexBuilder(chain.ChainID(), chain.GetBlockDAO(), cfg.DB.Reindex); err != nil {
+	if gateway && cfg.Chain.EnableAsyncIndexWrite {
+		if indexBuilder, err = blockdao.NewIndexBuilder(chain.ChainID(), dao, indexer); err != nil {
 			return nil, errors.Wrap(err, "failed to create index builder")
 		}
 		if err := chain.AddSubscriber(indexBuilder); err != nil {
 			log.L().Warn("Failed to add subscriber: index builder.", zap.Error(err))
 		}
 	}
-
 	// Create ActPool
 	actOpts := make([]actpool.Option, 0)
 	actPool, err := actpool.NewActPool(chain, cfg.ActPool, actOpts...)
@@ -188,6 +203,8 @@ func New(
 	apiSvr, err = api.NewServer(
 		cfg,
 		chain,
+		dao,
+		indexer,
 		actPool,
 		&registry,
 		api.WithBroadcastOutbound(func(ctx context.Context, chainID uint32, msg proto.Message) error {
@@ -321,6 +338,11 @@ func (cs *ChainService) Blockchain() blockchain.Blockchain {
 // ActionPool returns the Action pool
 func (cs *ChainService) ActionPool() actpool.ActPool {
 	return cs.actpool
+}
+
+// APIServer returns the API server
+func (cs *ChainService) APIServer() *api.Server {
+	return cs.api
 }
 
 // Consensus returns the consensus instance

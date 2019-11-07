@@ -34,7 +34,6 @@ func init() {
 	flag.StringVar(&_secretPath, "secret-path", "", "Secret path")
 	flag.StringVar(&_subChainPath, "sub-config-path", "", "Sub chain Config path")
 	flag.Var(&_plugins, "plugin", "Plugin of the node")
-	flag.BoolVar(&_reindex, "reindex", false, "reindex actions")
 }
 
 var (
@@ -44,7 +43,6 @@ var (
 	_secretPath   string
 	_subChainPath string
 	_plugins      strs
-	_reindex      bool
 )
 
 const (
@@ -102,6 +100,8 @@ var (
 		Chain: Chain{
 			ChainDBPath:     "./chain.db",
 			TrieDBPath:      "./trie.db",
+			HistoryDBPath:   "./trie-history.db",
+			IndexDBPath:     "./index.db",
 			ID:              1,
 			Address:         "",
 			ProducerPrivKey: PrivateKey.HexString(),
@@ -110,14 +110,13 @@ var (
 			Committee: committee.Config{
 				GravityChainAPIs: []string{},
 			},
-			EnableFallBackToFreshDB:       false,
 			EnableTrielessStateDB:         true,
 			EnableAsyncIndexWrite:         true,
 			CompressBlock:                 false,
 			AllowedBlockGasResidue:        10000,
 			MaxCacheSize:                  0,
 			PollInitialCandidatesInterval: 10 * time.Second,
-			EnableHistoryStateDB:true,
+			EnableHistoryStateDB:          true,
 		},
 		ActPool: ActPool{
 			MaxNumActsPerPool:  32000,
@@ -173,13 +172,13 @@ var (
 			StartSubChainInterval: 10 * time.Second,
 		},
 		DB: DB{
-			NumRetries: 3,
+			NumRetries:   3,
+			MaxCacheSize: 64,
 			SQLITE3: SQLITE3{
 				SQLite3File: "./explorer.db",
 			},
 			SplitDBSizeMB:         0,
 			SplitDBHeight:         900000,
-			Reindex:               false,
 			HistoryStateRetention: 2000,
 		},
 		Genesis: genesis.Default,
@@ -220,6 +219,8 @@ type (
 	Chain struct {
 		ChainDBPath     string           `yaml:"chainDBPath"`
 		TrieDBPath      string           `yaml:"trieDBPath"`
+		HistoryDBPath   string           `yaml:"historyDBPath"`
+		IndexDBPath     string           `yaml:"indexDBPath"`
 		ID              uint32           `yaml:"id"`
 		Address         string           `yaml:"address"`
 		ProducerPrivKey string           `yaml:"producerPrivKey"`
@@ -227,9 +228,8 @@ type (
 		GravityChainDB  DB               `yaml:"gravityChainDB"`
 		Committee       committee.Config `yaml:"committee"`
 
-		EnableFallBackToFreshDB bool `yaml:"enableFallbackToFreshDb"`
-		EnableTrielessStateDB   bool `yaml:"enableTrielessStateDB"`
-		EnableHistoryStateDB    bool `yaml:"enableHistoryStateDB"`
+		EnableTrielessStateDB bool `yaml:"enableTrielessStateDB"`
+		EnableHistoryStateDB  bool `yaml:"enableHistoryStateDB"`
 		// EnableAsyncIndexWrite enables writing the block actions' and receipts' index asynchronously
 		EnableAsyncIndexWrite bool `yaml:"enableAsyncIndexWrite"`
 		// CompressBlock enables gzip compression on block data
@@ -334,6 +334,8 @@ type (
 		DbPath string `yaml:"dbPath"`
 		// NumRetries is the number of retries
 		NumRetries uint8 `yaml:"numRetries"`
+		// MaxCacheSize is the max number of blocks that will be put into an LRU cache. 0 means disabled
+		MaxCacheSize int `yaml:"maxCacheSize"`
 		// RDS is the config for rds
 		RDS RDS `yaml:"RDS"`
 		// SQLite3 is the config for SQLITE3
@@ -342,8 +344,6 @@ type (
 		SplitDBSizeMB uint64 `yaml:"splitDBSizeMB"`
 		// SplitDBHeight is the config for DB's split start height
 		SplitDBHeight uint64 `yaml:"splitDBHeight"`
-		// Reindex will rebuild index if set to true
-		Reindex bool `yaml:"reindex"`
 		// HistoryStateRetention is the number of blocks account/contract state will be retained
 		HistoryStateRetention uint64 `yaml:"historyStateRetention"`
 	}
@@ -416,7 +416,6 @@ func New(validates ...Validate) (Config, error) {
 	if err := yaml.Get(uconfig.Root).Populate(&cfg); err != nil {
 		return Config{}, errors.Wrap(err, "failed to unmarshal YAML config to struct")
 	}
-	cfg.DB.Reindex = _reindex
 	// set network master key to private key
 	if cfg.Network.MasterKey == "" {
 		cfg.Network.MasterKey = cfg.Chain.ProducerPrivKey
