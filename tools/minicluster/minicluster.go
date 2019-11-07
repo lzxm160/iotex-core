@@ -39,7 +39,7 @@ import (
 )
 
 const (
-	numNodes  = 4
+	numNodes  = 10
 	numAdmins = 2
 )
 
