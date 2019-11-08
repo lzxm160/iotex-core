@@ -12,16 +12,17 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
+
 	"github.com/facebookgo/clock"
-	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
+	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
 	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/blockchain/block"
@@ -98,59 +99,20 @@ func NewBlockchainHistory(cfg config.Config, dao blockdao.BlockDAO, opts ...Opti
 	return chain
 }
 func (bc *blockchainHistory) CreateState(addr string, init *big.Int) (*state.Account, error) {
-	if bc.sf == nil {
-		return nil, errors.New("empty state factory")
-	}
-	ws, err := bc.sf.NewWorkingSet(false)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create clean working set")
-	}
-	ws2, err := bc.sfHistory.NewWorkingSet(true)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create clean working set")
-	}
-	account, err := accountutil.LoadOrCreateAccount(ws, addr, init)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create new account %s", addr)
-	}
-	_, err = accountutil.LoadOrCreateAccount(ws2, addr, init)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create new account %s", addr)
-	}
-	gasLimit := bc.config.Genesis.BlockGasLimit
-	callerAddr, err := address.FromString(addr)
-	if err != nil {
-		return nil, err
-	}
-	ctx := protocol.WithRunActionsCtx(context.Background(),
-		protocol.RunActionsCtx{
-			GasLimit:   gasLimit,
-			Caller:     callerAddr,
-			ActionHash: hash.ZeroHash256,
-			Nonce:      0,
-			Registry:   bc.registry,
-		})
-	if _, err = ws.RunActions(ctx, 0, nil); err != nil {
-		return nil, errors.Wrap(err, "failed to run the account creation")
-	}
-	if err = bc.sf.Commit(ws); err != nil {
-		return nil, errors.Wrap(err, "failed to commit the account creation")
-	}
-	if _, err = ws2.RunActions(ctx, 0, nil); err != nil {
-		return nil, errors.Wrap(err, "failed to run the account creation")
-	}
-	if err = bc.sf.Commit(ws2); err != nil {
-		return nil, errors.Wrap(err, "failed to commit the account creation")
-	}
-	return account, nil
-	//account, err := bc.blockchain.CreateState(addr, init)
-	//if err != nil {
-	//	return nil, err
+	//if bc.sf == nil {
+	//	return nil, errors.New("empty state factory")
 	//}
-	////ws2, err := bc.sfHistory.NewWorkingSet(true)
-	//ws2, err := bc.sf.NewWorkingSet(true)
+	//ws, err := bc.sf.NewWorkingSet(false)
 	//if err != nil {
 	//	return nil, errors.Wrapf(err, "failed to create clean working set")
+	//}
+	//ws2, err := bc.sfHistory.NewWorkingSet(true)
+	//if err != nil {
+	//	return nil, errors.Wrapf(err, "failed to create clean working set")
+	//}
+	//account, err := accountutil.LoadOrCreateAccount(ws, addr, init)
+	//if err != nil {
+	//	return nil, errors.Wrapf(err, "failed to create new account %s", addr)
 	//}
 	//_, err = accountutil.LoadOrCreateAccount(ws2, addr, init)
 	//if err != nil {
@@ -169,13 +131,51 @@ func (bc *blockchainHistory) CreateState(addr string, init *big.Int) (*state.Acc
 	//		Nonce:      0,
 	//		Registry:   bc.registry,
 	//	})
+	//if _, err = ws.RunActions(ctx, 0, nil); err != nil {
+	//	return nil, errors.Wrap(err, "failed to run the account creation")
+	//}
+	//if err = bc.sf.Commit(ws); err != nil {
+	//	return nil, errors.Wrap(err, "failed to commit the account creation")
+	//}
 	//if _, err = ws2.RunActions(ctx, 0, nil); err != nil {
 	//	return nil, errors.Wrap(err, "failed to run the account creation")
 	//}
-	//if err = bc.sfHistory.Commit(ws2); err != nil {
+	//if err = bc.sf.Commit(ws2); err != nil {
 	//	return nil, errors.Wrap(err, "failed to commit the account creation")
 	//}
 	//return account, nil
+	account, err := bc.blockchain.CreateState(addr, init)
+	if err != nil {
+		return nil, err
+	}
+	ws2, err := bc.sfHistory.NewWorkingSet(true)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create clean working set")
+	}
+	_, err = accountutil.LoadOrCreateAccount(ws2, addr, init)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create new account %s", addr)
+	}
+	gasLimit := bc.config.Genesis.BlockGasLimit
+	callerAddr, err := address.FromString(addr)
+	if err != nil {
+		return nil, err
+	}
+	ctx := protocol.WithRunActionsCtx(context.Background(),
+		protocol.RunActionsCtx{
+			GasLimit:   gasLimit,
+			Caller:     callerAddr,
+			ActionHash: hash.ZeroHash256,
+			Nonce:      0,
+			Registry:   bc.registry,
+		})
+	if _, err = ws2.RunActions(ctx, 0, nil); err != nil {
+		return nil, errors.Wrap(err, "failed to run the account creation")
+	}
+	if err = bc.sfHistory.Commit(ws2); err != nil {
+		return nil, errors.Wrap(err, "failed to commit the account creation")
+	}
+	return account, nil
 }
 
 // GetFactory2 returns the state factory
