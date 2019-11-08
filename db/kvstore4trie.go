@@ -8,6 +8,10 @@ package db
 
 import (
 	"context"
+	"encoding/hex"
+
+	"github.com/iotexproject/iotex-core/pkg/log"
+	"go.uber.org/zap"
 
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
@@ -97,6 +101,7 @@ func (s *KVStoreForTrie) Purge(tag, key []byte) error {
 	k := make([]byte, len(tag)+len(key))
 	copy(k, tag)
 	k = append(k, key...)
+	log.L().Info("Purge(tag, key []byte) error {", zap.String("k", hex.EncodeToString(k)))
 	s.cb.Put(s.prune, k, []byte{}, "failed to put tag-key %x", k)
 	return nil
 }

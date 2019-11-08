@@ -65,7 +65,6 @@ type (
 		State(hash.Hash160, interface{}) error
 		PutState(hash.Hash160, interface{}) error
 		DelState(pkHash hash.Hash160) error
-		DeleteHistory(uint64, db.KVStore) error
 		GetDB() db.KVStore
 		GetCachedBatch() db.CachedBatch
 	}
@@ -286,11 +285,6 @@ func (ws *workingSet) PutState(pkHash hash.Hash160, s interface{}) error {
 // DelState deletes a state from DB
 func (ws *workingSet) DelState(pkHash hash.Hash160) error {
 	return ws.accountTrie.Delete(pkHash[:])
-}
-
-// DeleteHistory delete history asynchronous for account/contract states
-func (ws *workingSet) DeleteHistory(uint64, db.KVStore) error {
-	return nil
 }
 
 // clearCache removes all local changes after committing to trie

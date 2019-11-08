@@ -164,7 +164,8 @@ type blockchain struct {
 	timerFactory  *prometheustimer.TimerFactory
 
 	// used by account-based model
-	sf       factory.Factory
+	sf factory.Factory
+
 	registry *protocol.Registry
 }
 
@@ -192,19 +193,6 @@ func DefaultStateFactoryOption() Option {
 	}
 }
 
-//func DefaultStateFactoryOption2() Option {
-//	return func(bc *blockchainHistory, cfg config.Config) (err error) {
-//		if cfg.Chain.EnableTrielessStateDB {
-//			bc.sfHistory, err = factory.NewStateDB(cfg, factory.DefaultStateDBOption())
-//		} else {
-//			bc.sfHistory, err = factory.NewFactory(cfg, factory.DefaultTrieOption())
-//		}
-//		if err != nil {
-//			return errors.Wrapf(err, "Failed to create state factory")
-//		}
-//		return nil
-//	}
-//}
 // PrecreatedStateFactoryOption sets blockchain's state.Factory to sf
 func PrecreatedStateFactoryOption(sf factory.Factory) Option {
 	return func(bc *blockchain, conf config.Config) error {
@@ -592,17 +580,6 @@ func (bc *blockchain) CommitBlock(blk *block.Block) error {
 
 // StateByAddr returns the account of an address
 func (bc *blockchain) StateByAddr(address string) (*state.Account, error) {
-	//if len(address) > 41 {
-	//	if bc.sfHistory != nil {
-	//		s, err := bc.sfHistory.AccountState(address)
-	//		if err != nil {
-	//			log.L().Warn("Failed to get account.", zap.String("address", address), zap.Error(err))
-	//			return nil, err
-	//		}
-	//		return s, nil
-	//	}
-	//	return nil, errors.New("state factory is nil")
-	//}
 	if bc.sf != nil {
 		s, err := bc.sf.AccountState(address)
 		if err != nil {

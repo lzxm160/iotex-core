@@ -250,13 +250,17 @@ func (stx *stateTX) deleteHistory() error {
 				continue
 			}
 		}
+		err = stx.deleteHistoryForTrie(deleteStartHeight)
+		if err != nil {
+			log.L().Error("deleteHistoryForTrie", zap.Error(err))
+		}
 		<-stx.deleting
 	}()
 	return nil
 }
 
-// DeleteHistory delete account/state history asynchronous
-func (stx *stateTX) DeleteHistory(hei uint64, chaindb db.KVStore) error {
+// deleteHistoryForTrie delete account/state history asynchronous
+func (stx *stateTX) deleteHistoryForTrie(hei uint64) error {
 	//if !stx.saveHistory {
 	//	return nil
 	//}
