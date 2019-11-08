@@ -122,6 +122,7 @@ func (bc *blockchainHistory) CreateState(addr string, init *big.Int) (*state.Acc
 			ActionHash: hash.ZeroHash256,
 			Nonce:      0,
 			Registry:   bc.registry,
+			History:    true,
 		})
 	if _, err = ws2.RunActions(ctx, 0, nil); err != nil {
 		return nil, errors.Wrap(err, "failed to run the account creation")
