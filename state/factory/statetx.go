@@ -8,6 +8,9 @@ package factory
 
 import (
 	"context"
+	"encoding/binary"
+
+	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -262,44 +265,32 @@ func (stx *stateTX) deleteHistory() error {
 
 // deleteHistoryForTrie delete account/state history asynchronous
 func (stx *stateTX) deleteHistoryForTrie(hei uint64) error {
-	//if !stx.saveHistory {
-	//	return nil
-	//}
-	//if hei < stx.cfg.HistoryStateRetention {
-	//	return nil
-	//}
-	//deleteStartHeight := hei - stx.cfg.HistoryStateRetention
-	//var deleteEndHeight uint64
-	//if deleteStartHeight < CheckHistoryDeleteInterval {
-	//	deleteEndHeight = 1
-	//} else {
-	//	deleteEndHeight = deleteStartHeight - CheckHistoryDeleteInterval
-	//}
-	//log.L().Info("deleteHeight", zap.Uint64("deleteStartHeight", deleteStartHeight), zap.Uint64("endHeight", deleteEndHeight), zap.Uint64("height", hei), zap.Uint64("historystateheight", stx.cfg.HistoryStateRetention))
-	//chaindbCache := db.NewCachedBatch()
-	//triedbCache := db.NewCachedBatch()
-	//for i := deleteStartHeight; i >= deleteEndHeight; i-- {
-	//	heightBytes := make([]byte, 8)
-	//	binary.BigEndian.PutUint64(heightBytes, i)
-	//	keyPrefix := append(heightToTrieNodeKeyPrefix, heightBytes...)
-	//	allKeys, err := stx.dao.GetKeyByPrefix([]byte(evm.ContractKVNameSpace), keyPrefix)
-	//	if err != nil {
-	//		continue
-	//	}
-	//	log.L().Info("deleteHeight", zap.Int("len(allKeys)", len(allKeys)))
-	//	for _, key := range allKeys {
-	//		chaindbCache.Delete(string(evm.ContractKVNameSpace), key, "failed to delete key %x", key)
-	//		triedbCache.Delete(evm.ContractKVNameSpace, key[len(keyPrefix):], "failed to delete key %x", key[len(keyPrefix):])
-	//	}
-	//}
-	//// delete trie node reference
-	//if err := chaindb.Commit(chaindbCache); err != nil {
-	//	return errors.Wrap(err, "failed to commit delete trie node reference")
-	//}
-	//// delete trie node
-	//if err := stx.dao.Commit(triedbCache); err != nil {
-	//	return errors.Wrap(err, "failed to commit delete trie node")
-	//}
+	deleteStartHeight := hei
+	var deleteEndHeight uint64
+	if deleteStartHeight < CheckHistoryDeleteInterval {
+		deleteEndHeight = 1
+	} else {
+		deleteEndHeight = deleteStartHeight - CheckHistoryDeleteInterval
+	}
+	log.L().Info("deleteHeight", zap.Uint64("deleteStartHeight", deleteStartHeight), zap.Uint64("endHeight", deleteEndHeight), zap.Uint64("height", hei), zap.Uint64("historystateheight", stx.cfg.HistoryStateRetention))
+	triedbCache := db.NewCachedBatch()
+	for i := deleteStartHeight; i >= deleteEndHeight; i-- {
+		heightBytes := make([]byte, 8)
+		binary.BigEndian.PutUint64(heightBytes, i)
+		allKeys, err := stx.dao.GetKeyByPrefix([]byte(evm.PruneKVNameSpace), heightBytes)
+		if err != nil {
+			continue
+		}
+		log.L().Info("deleteHeight", zap.Int("len(allKeys)", len(allKeys)))
+		for _, key := range allKeys {
+			triedbCache.Delete(string(evm.PruneKVNameSpace), key, "failed to delete key %x", key)
+			triedbCache.Delete(evm.ContractKVNameSpace, key[len(heightBytes):], "failed to delete key %x", key[len(heightBytes):])
+		}
+	}
+	// delete trie node
+	if err := stx.dao.Commit(triedbCache); err != nil {
+		return errors.Wrap(err, "failed to commit delete trie node")
+	}
 	return nil
 }
 

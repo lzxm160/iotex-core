@@ -50,6 +50,7 @@ type KVStore interface {
 	CreateRangeIndexNXForHistory(name []byte) (RangeIndex, error)
 	// GetBucketByPrefix retrieves all bucket those with const namespace prefix
 	GetBucketByPrefix([]byte) ([][]byte, error)
+	GetKeyByPrefix(namespace, prefix []byte) (allKey [][]byte, err error)
 }
 
 const (
@@ -171,5 +172,8 @@ func (m *memKVStore) CreateRangeIndexNXForHistory(name []byte) (RangeIndex, erro
 
 // GetBucketByPrefix retrieves all bucket those with const namespace prefix
 func (m *memKVStore) GetBucketByPrefix(namespace []byte) ([][]byte, error) {
+	return nil, nil
+}
+func (m *memKVStore) GetKeyByPrefix(namespace, prefix []byte) (allKey [][]byte, err error) {
 	return nil, nil
 }

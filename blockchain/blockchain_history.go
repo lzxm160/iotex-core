@@ -311,13 +311,6 @@ func (bc *blockchainHistory) commitBlock(blk *block.Block) error {
 	if err = bc.sfHistory.Commit(ws); err != nil {
 		log.L().Error("Error when committing states with history.", zap.Error(err))
 	}
-
-	// regularly check and purge history
-	if blk.Height()%factory.CheckHistoryDeleteInterval == 0 {
-		//if err := bc.deleteHistory(); err != nil {
-		//	return err
-		//}
-	}
 	return nil
 }
 
