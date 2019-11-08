@@ -175,16 +175,17 @@ func (bc *blockchainHistory) ExecuteContractReadHistory(caller address.Address, 
 
 // StateByAddr returns the account of an address
 func (bc *blockchainHistory) StateByAddr(address string) (*state.Account, error) {
-	if len(address) > 41 {
-		if bc.sfHistory != nil {
-			s, err := bc.sfHistory.AccountState(address)
-			if err != nil {
-				log.L().Warn("Failed to get account.", zap.String("address", address), zap.Error(err))
-				return nil, err
-			}
-			return s, nil
+	if len(address) <= 41 {
+		return bc.blockchain.StateByAddr(address)
+	}
+
+	if bc.sfHistory != nil {
+		s, err := bc.sfHistory.AccountState(address)
+		if err != nil {
+			log.L().Warn("Failed to get account.", zap.String("address", address), zap.Error(err))
+			return nil, err
 		}
-		return nil, errors.New("state factory is nil")
+		return s, nil
 	}
 	return nil, db.ErrNotExist
 }
