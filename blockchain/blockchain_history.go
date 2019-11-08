@@ -11,6 +11,7 @@ import (
 	"math/big"
 	"os"
 	"strconv"
+	"sync/atomic"
 
 	"github.com/facebookgo/clock"
 	"github.com/pkg/errors"
@@ -295,9 +296,47 @@ func (bc *blockchainHistory) startExistingBlockchain() error {
 }
 
 func (bc *blockchainHistory) commitBlock(blk *block.Block) error {
-	if err := bc.blockchain.commitBlock(blk); err != nil {
+	//if err := bc.blockchain.commitBlock(blk); err != nil {
+	//	return err
+	//}
+	// early exit if block already exists
+	blkHash, err := bc.dao.GetBlockHash(blk.Height())
+	if err == nil && blkHash != hash.ZeroHash256 {
+		log.L().Debug("Block already exists.", zap.Uint64("height", blk.Height()))
+		return nil
+	}
+	// early exit if it's a db io error
+	if err != nil && errors.Cause(err) != db.ErrNotExist && errors.Cause(err) != db.ErrBucketNotExist {
 		return err
 	}
+	// write block into DB
+	putTimer := bc.timerFactory.NewTimer("putBlock")
+	if err = bc.dao.PutBlock(blk); err == nil {
+		err = bc.dao.Commit()
+	}
+	putTimer.End()
+	if err != nil {
+		return err
+	}
+
+	// update tip hash and height
+	atomic.StoreUint64(&bc.tipHeight, blk.Height())
+	bc.tipHash = blk.HashBlock()
+
+	// commit state/contract changes
+	sfTimer := bc.timerFactory.NewTimer("sf.Commit")
+	err = bc.sf.Commit(blk.WorkingSet)
+	sfTimer.End()
+	// detach working set so it can be freed by GC
+	blk.WorkingSet = nil
+	if err != nil {
+		log.L().Panic("Error when committing states.", zap.Error(err))
+	}
+	blk.HeaderLogger(log.L()).Info("Committed a block.", log.Hex("tipHash", bc.tipHash[:]))
+
+	// emit block to all block subscribers
+	bc.emitToSubscribers(blk)
+
 	// run actions with history retention
 	ws, err := bc.sfHistory.NewWorkingSet(true)
 	if err != nil {
