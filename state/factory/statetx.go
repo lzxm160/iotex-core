@@ -89,6 +89,7 @@ func (stx *stateTX) RunActions(
 	if len(elps) > 0 {
 		raCtx = protocol.MustGetRunActionsCtx(ctx)
 	}
+	log.L().Info("111111111runActions", zap.Bool("history", raCtx.History))
 	for _, elp := range elps {
 		receipt, err := stx.RunAction(raCtx, elp)
 		if err != nil {
