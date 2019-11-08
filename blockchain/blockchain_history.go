@@ -565,7 +565,7 @@ func (bc *blockchainHistory) commitBlock(blk *block.Block) error {
 		//	return err
 		//}
 	}
-	//return nil
+	return nil
 }
 
 // RefreshStateDB deletes the existing state DB and creates a new one with state changes from genesis block
