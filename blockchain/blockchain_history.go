@@ -12,8 +12,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/iotexproject/iotex-core/action/protocol/account/util"
-
 	"github.com/facebookgo/clock"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -23,6 +21,7 @@ import (
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
 	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/blockchain/block"
@@ -191,66 +190,37 @@ func (bc *blockchainHistory) StateByAddr(address string) (*state.Account, error)
 
 // Start starts the blockchain
 func (bc *blockchainHistory) Start(ctx context.Context) (err error) {
-	//bc.mu.Lock()
-	//defer bc.mu.Unlock()
-	//if err = bc.lifecycle.OnStart(ctx); err != nil {
-	//	return err
-	//}
-	//// sf2 only deal with account and contract
-	//if bc.sfHistory != nil {
-	//	p, ok := bc.registry.Find(account.ProtocolID)
-	//	if !ok {
-	//		return errors.New("can not find account protocol")
-	//	}
-	//	bc.sfHistory.AddActionHandlers(p)
-	//	p, ok = bc.registry.Find(execution.ProtocolID)
-	//	if !ok {
-	//		return errors.New("can not find execution protocol")
-	//	}
-	//	bc.sfHistory.AddActionHandlers(p)
-	//}
-	//
-	//// get blockchain tip height
-	//if bc.tipHeight, err = bc.dao.GetTipHeight(); err != nil {
-	//	return err
-	//}
-	//if bc.tipHeight == 0 {
-	//	return bc.startEmptyBlockchain()
-	//}
-	//// get blockchain tip hash
-	//if bc.tipHash, err = bc.dao.GetTipHash(); err != nil {
-	//	return err
-	//}
-	//return bc.startExistingBlockchain()
-	if err := bc.blockchain.Start(ctx); err != nil {
-		return err
-	}
 	bc.mu.Lock()
 	defer bc.mu.Unlock()
-	// sfHistory only deal with account and contract
-	p, ok := bc.registry.Find(account.ProtocolID)
-	if !ok {
-		return errors.New("can not find account protocol")
+	if err = bc.lifecycle.OnStart(ctx); err != nil {
+		return err
 	}
-	bc.sfHistory.AddActionHandlers(p)
-	p, ok = bc.registry.Find(execution.ProtocolID)
-	if !ok {
-		return errors.New("can not find execution protocol")
+	// sf2 only deal with account and contract
+	if bc.sfHistory != nil {
+		p, ok := bc.registry.Find(account.ProtocolID)
+		if !ok {
+			return errors.New("can not find account protocol")
+		}
+		bc.sfHistory.AddActionHandlers(p)
+		p, ok = bc.registry.Find(execution.ProtocolID)
+		if !ok {
+			return errors.New("can not find execution protocol")
+		}
+		bc.sfHistory.AddActionHandlers(p)
 	}
-	bc.sfHistory.AddActionHandlers(p)
-	return nil
-	//get blockchain tip height
-	//if bc.tipHeight, err = bc.dao.GetTipHeight(); err != nil {
-	//	return err
-	//}
-	//if bc.tipHeight == 0 {
-	//	return bc.startEmptyBlockchain()
-	//}
-	//// get blockchain tip hash
-	//if bc.tipHash, err = bc.dao.GetTipHash(); err != nil {
-	//	return err
-	//}
-	//return bc.startExistingBlockchain()
+
+	// get blockchain tip height
+	if bc.tipHeight, err = bc.dao.GetTipHeight(); err != nil {
+		return err
+	}
+	if bc.tipHeight == 0 {
+		return bc.startEmptyBlockchain()
+	}
+	// get blockchain tip hash
+	if bc.tipHash, err = bc.dao.GetTipHash(); err != nil {
+		return err
+	}
+	return bc.startExistingBlockchain()
 }
 
 //  CommitBlock validates and appends a block to the chain
