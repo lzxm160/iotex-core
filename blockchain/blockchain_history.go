@@ -8,19 +8,32 @@ package blockchain
 
 import (
 	"context"
+	"math/big"
+	"os"
 	"strconv"
+
+	"github.com/iotexproject/iotex-core/pkg/util/fileutil"
+
+	"github.com/iotexproject/go-pkgs/hash"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 
 	"github.com/facebookgo/clock"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
+	"github.com/iotexproject/iotex-address/address"
+	"github.com/iotexproject/iotex-core/action"
+	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
+	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/blockchain/block"
 	"github.com/iotexproject/iotex-core/blockchain/blockdao"
 	"github.com/iotexproject/iotex-core/config"
+	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/prometheustimer"
+	"github.com/iotexproject/iotex-core/state"
 	"github.com/iotexproject/iotex-core/state/factory"
 )
 
@@ -86,61 +99,95 @@ func NewBlockchainHistory(cfg config.Config, dao blockdao.BlockDAO, opts ...Opti
 	}
 	return chain
 }
+func (bc *blockchainHistory) CreateState(addr string, init *big.Int) (*state.Account, error) {
+	account, err := bc.blockchain.CreateState(addr, init)
+	if err != nil {
+		return nil, err
+	}
+	ws2, err := bc.sfHistory.NewWorkingSet(true)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create clean working set")
+	}
+	_, err = accountutil.LoadOrCreateAccount(ws2, addr, init)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create new account %s", addr)
+	}
+	gasLimit := bc.config.Genesis.BlockGasLimit
+	callerAddr, err := address.FromString(addr)
+	if err != nil {
+		return nil, err
+	}
+	ctx := protocol.WithRunActionsCtx(context.Background(),
+		protocol.RunActionsCtx{
+			GasLimit:   gasLimit,
+			Caller:     callerAddr,
+			ActionHash: hash.ZeroHash256,
+			Nonce:      0,
+			Registry:   bc.registry,
+		})
+	if _, err = ws2.RunActions(ctx, 0, nil); err != nil {
+		return nil, errors.Wrap(err, "failed to run the account creation")
+	}
+	if err = bc.sf.Commit(ws2); err != nil {
+		return nil, errors.Wrap(err, "failed to commit the account creation")
+	}
+	return account, nil
+}
 
 // GetFactory2 returns the state factory
-//func (bc *blockchainHistory) GetFactory2() factory.Factory {
-//	return bc.sfHistory
-//}
-//func (bc *blockchainHistory) ExecuteContractReadHistory(caller address.Address, ex *action.Execution, height uint64) ([]byte, *action.Receipt, error) {
-//	log.L().Info("ExecuteContractReadHistory", zap.Uint64("height", height))
-//	header, err := bc.BlockHeaderByHeight(height)
-//	if err != nil {
-//		return nil, nil, errors.Wrap(err, "failed to get block in ExecuteContractRead")
-//	}
-//
-//	ws, err := bc.sfHistory.NewWorkingSet(true)
-//	if err != nil {
-//		return nil, nil, errors.Wrap(err, "failed to obtain working set from state factory")
-//	}
-//	producer, err := address.FromString(header.ProducerAddress())
-//	if err != nil {
-//		return nil, nil, err
-//	}
-//	gasLimit := bc.config.Genesis.BlockGasLimit
-//	ctx := protocol.WithRunActionsCtx(context.Background(), protocol.RunActionsCtx{
-//		BlockHeight:    header.Height(),
-//		BlockTimeStamp: header.Timestamp(),
-//		Producer:       producer,
-//		Caller:         caller,
-//		GasLimit:       gasLimit,
-//		GasPrice:       big.NewInt(0),
-//		IntrinsicGas:   0,
-//		History:        true,
-//	})
-//	return evm.ExecuteContractRead(
-//		ctx,
-//		ws,
-//		ex,
-//		bc,
-//		config.NewHeightUpgrade(bc.config),
-//	)
-//}
+func (bc *blockchainHistory) GetFactory2() factory.Factory {
+	return bc.sfHistory
+}
+func (bc *blockchainHistory) ExecuteContractReadHistory(caller address.Address, ex *action.Execution, height uint64) ([]byte, *action.Receipt, error) {
+	log.L().Info("ExecuteContractReadHistory", zap.Uint64("height", height))
+	header, err := bc.BlockHeaderByHeight(height)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to get block in ExecuteContractRead")
+	}
+
+	ws, err := bc.sfHistory.NewWorkingSet(true)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to obtain working set from state factory")
+	}
+	producer, err := address.FromString(header.ProducerAddress())
+	if err != nil {
+		return nil, nil, err
+	}
+	gasLimit := bc.config.Genesis.BlockGasLimit
+	ctx := protocol.WithRunActionsCtx(context.Background(), protocol.RunActionsCtx{
+		BlockHeight:    header.Height(),
+		BlockTimeStamp: header.Timestamp(),
+		Producer:       producer,
+		Caller:         caller,
+		GasLimit:       gasLimit,
+		GasPrice:       big.NewInt(0),
+		IntrinsicGas:   0,
+		History:        true,
+	})
+	return evm.ExecuteContractRead(
+		ctx,
+		ws,
+		ex,
+		bc,
+		config.NewHeightUpgrade(bc.config),
+	)
+}
 
 // StateByAddr returns the account of an address
-//func (bc *blockchainHistory) StateByAddr(address string) (*state.Account, error) {
-//	if len(address) > 41 {
-//		if bc.sfHistory != nil {
-//			s, err := bc.sfHistory.AccountState(address)
-//			if err != nil {
-//				log.L().Warn("Failed to get account.", zap.String("address", address), zap.Error(err))
-//				return nil, err
-//			}
-//			return s, nil
-//		}
-//		return nil, errors.New("state factory is nil")
-//	}
-//	return nil, db.ErrNotExist
-//}
+func (bc *blockchainHistory) StateByAddr(address string) (*state.Account, error) {
+	if len(address) > 41 {
+		if bc.sfHistory != nil {
+			s, err := bc.sfHistory.AccountState(address)
+			if err != nil {
+				log.L().Warn("Failed to get account.", zap.String("address", address), zap.Error(err))
+				return nil, err
+			}
+			return s, nil
+		}
+		return nil, errors.New("state factory is nil")
+	}
+	return nil, db.ErrNotExist
+}
 
 // Start starts the blockchain
 func (bc *blockchainHistory) Start(ctx context.Context) (err error) {
@@ -182,9 +229,6 @@ func (bc *blockchainHistory) CommitBlock(blk *block.Block) error {
 	timer := bc.timerFactory.NewTimer("CommitBlock")
 	defer timer.End()
 
-	if err := bc.blockchain.commitBlock(blk); err != nil {
-		return err
-	}
 	return bc.commitBlock(blk)
 }
 
@@ -265,56 +309,77 @@ func (bc *blockchainHistory) startExistingBlockchain() error {
 			return err
 		}
 	}
-	stateHeight, err = bc.sfHistory.Height()
-	if err != nil {
-		return errors.Wrap(err, "failed to get factory's height")
-	}
+	//stateHeight, err = bc.sfHistory.Height()
+	//if err != nil {
+	//	return errors.Wrap(err, "failed to get factory's height")
+	//}
+	//bc.loadingNativeStakingContract()
+	//log.L().Info("Restarting blockchain.",
+	//	zap.Uint64("chainHeight",
+	//		bc.tipHeight),
+	//	zap.Uint64("factoryHeight", stateHeight))
 	return nil
 }
 
 func (bc *blockchainHistory) commitBlock(blk *block.Block) error {
+	if err := bc.blockchain.commitBlock(blk); err != nil {
+		return err
+	}
 	// run actions with history retention
 	ws, err := bc.sfHistory.NewWorkingSet(true)
 	if err != nil {
 		return errors.Wrap(err, "Failed to obtain working set from state factory")
 	}
+	log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions() size", uint64(len(blk.RunnableActions().Actions()))))
 	if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
 		log.L().Error("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
 	}
-	log.L().Info("runActions.", zap.Int("len ws", ws.GetCachedBatch().Size()))
+	log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
 	if err = bc.sfHistory.Commit(ws); err != nil {
 		log.L().Error("Error when committing states with history.", zap.Error(err))
+	}
+
+	// regularly check and purge history
+	if blk.Height()%factory.CheckHistoryDeleteInterval == 0 {
+		//if err := bc.deleteHistory(); err != nil {
+		//	return err
+		//}
 	}
 	return nil
 }
 
 // RefreshStateDB deletes the existing state DB and creates a new one with state changes from genesis block
-//func (bc *blockchainHistory) refreshStateDB() error {
-//	if err := bc.blockchain.refreshStateDB(); err != nil {
-//		return err
-//	}
-//	// Delete existing state DB and reinitialize it
-//	if fileutil.FileExists(bc.config.Chain.HistoryDBPath) && os.Remove(bc.config.Chain.HistoryDBPath) != nil {
-//		return errors.New("failed to delete existing state DB")
-//	}
-//	var err error
-//	if bc.config.Chain.EnableTrielessStateDB {
-//		bc.sfHistory, err = factory.NewStateDB(bc.config, factory.DefaultHistoryDBOption())
-//	} else {
-//		bc.sfHistory, err = factory.NewFactory(bc.config, factory.DefaultHistoryTrieOption())
-//	}
-//	if err != nil {
-//		return errors.Wrap(err, "failed to reinitialize state DB")
-//	}
-//
-//	if err := bc.sfHistory.Start(context.Background()); err != nil {
-//		return errors.Wrap(err, "failed to start state factory")
-//	}
-//	if err := bc.startEmptyBlockchain(); err != nil {
-//		return err
-//	}
-//	if err := bc.sfHistory.Stop(context.Background()); err != nil {
-//		return errors.Wrap(err, "failed to stop state factory")
-//	}
-//	return nil
-//}
+func (bc *blockchainHistory) refreshStateDB() error {
+	if err := bc.blockchain.refreshStateDB(); err != nil {
+		return err
+	}
+	// Delete existing state DB and reinitialize it
+	//if fileutil.FileExists(bc.config.Chain.TrieDBPath) && os.Remove(bc.config.Chain.TrieDBPath) != nil {
+	//	return errors.New("failed to delete existing state DB")
+	//}
+	if fileutil.FileExists(bc.config.Chain.HistoryDBPath) && os.Remove(bc.config.Chain.HistoryDBPath) != nil {
+		return errors.New("failed to delete existing state DB 2")
+	}
+	// this need to be checked again
+	//if err := DefaultStateFactoryOption()(bc, bc.config); err != nil {
+	//	return errors.Wrap(err, "failed to reinitialize state DB")
+	//}
+
+	//for _, p := range bc.registry.All() {
+	//	bc.sf.AddActionHandlers(p)
+	//}
+
+	//if err := bc.sf.Start(context.Background()); err != nil {
+	//	return errors.Wrap(err, "failed to start state factory")
+	//}
+	if err := bc.sfHistory.Start(context.Background()); err != nil {
+		return errors.Wrap(err, "failed to start state factory")
+	}
+	if err := bc.startEmptyBlockchain(); err != nil {
+		return err
+	}
+	if err := bc.sfHistory.Stop(context.Background()); err != nil {
+		return errors.Wrap(err, "failed to stop state factory")
+	}
+	return nil
+}

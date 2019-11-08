@@ -115,7 +115,7 @@ func SaveHistoryOption(height uint64) Option {
 		switch t := tr.(type) {
 		case *branchRootTrie:
 			t.saveNode = true
-			t.height = height
+			t.height = height//the height of current block,not config 
 		default:
 			return errors.New("invalid trie type")
 		}

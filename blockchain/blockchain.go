@@ -192,6 +192,19 @@ func DefaultStateFactoryOption() Option {
 	}
 }
 
+//func DefaultStateFactoryOption2() Option {
+//	return func(bc *blockchainHistory, cfg config.Config) (err error) {
+//		if cfg.Chain.EnableTrielessStateDB {
+//			bc.sfHistory, err = factory.NewStateDB(cfg, factory.DefaultStateDBOption())
+//		} else {
+//			bc.sfHistory, err = factory.NewFactory(cfg, factory.DefaultTrieOption())
+//		}
+//		if err != nil {
+//			return errors.Wrapf(err, "Failed to create state factory")
+//		}
+//		return nil
+//	}
+//}
 // PrecreatedStateFactoryOption sets blockchain's state.Factory to sf
 func PrecreatedStateFactoryOption(sf factory.Factory) Option {
 	return func(bc *blockchain, conf config.Config) error {
