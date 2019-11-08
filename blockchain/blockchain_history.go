@@ -384,66 +384,11 @@ func (bc *blockchainHistory) startEmptyBlockchain() error {
 }
 
 func (bc *blockchainHistory) startExistingBlockchain() error {
-	if bc.sf == nil {
-		return errors.New("statefactory cannot be nil")
-	}
-
-	stateHeight, err := bc.sf.Height()
-	if err != nil {
-		return err
-	}
-	if stateHeight > bc.tipHeight {
-		return errors.New("factory is higher than blockchain")
-	}
-
-	for i := stateHeight + 1; i <= bc.tipHeight; i++ {
-		blk, err := bc.getBlockByHeight(i)
-		if err != nil {
-			return err
-		}
-
-		ws, err := bc.sf.NewWorkingSet(false)
-		if err != nil {
-			return errors.Wrap(err, "failed to obtain working set from state factory")
-		}
-		ws2, err := bc.sfHistory.NewWorkingSet(true)
-		if err != nil {
-			return errors.Wrap(err, "Failed to obtain working set from state factory")
-		}
-		//receipts, err := bc.runActions(blk.RunnableActions(), ws)
-		//if err != nil {
-		//	return err
-		//}
-		_, err = bc.runActions(blk.RunnableActions(), ws2)
-		if err != nil {
-			return err
-		}
-
-		if err := bc.sf.Commit(ws); err != nil {
-			return err
-		}
-		if err := bc.sfHistory.Commit(ws2); err != nil {
-			return err
-		}
-	}
-	stateHeight, err = bc.sf.Height()
-	if err != nil {
-		return errors.Wrap(err, "failed to get factory's height")
-	}
-	bc.loadingNativeStakingContract()
-	log.L().Info("Restarting blockchain.",
-		zap.Uint64("chainHeight",
-			bc.tipHeight),
-		zap.Uint64("factoryHeight", stateHeight))
-
-	//if err := bc.blockchain.startExistingBlockchain(); err != nil {
-	//	return err
-	//}
-	//if bc.sfHistory == nil {
+	//if bc.sf == nil {
 	//	return errors.New("statefactory cannot be nil")
 	//}
 	//
-	//stateHeight, err := bc.sfHistory.Height()
+	//stateHeight, err := bc.sf.Height()
 	//if err != nil {
 	//	return err
 	//}
@@ -457,18 +402,73 @@ func (bc *blockchainHistory) startExistingBlockchain() error {
 	//		return err
 	//	}
 	//
-	//	ws, err := bc.sfHistory.NewWorkingSet(true)
+	//	ws, err := bc.sf.NewWorkingSet(false)
 	//	if err != nil {
 	//		return errors.Wrap(err, "failed to obtain working set from state factory")
 	//	}
-	//	if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
+	//	ws2, err := bc.sfHistory.NewWorkingSet(true)
+	//	if err != nil {
+	//		return errors.Wrap(err, "Failed to obtain working set from state factory")
+	//	}
+	//	//receipts, err := bc.runActions(blk.RunnableActions(), ws)
+	//	//if err != nil {
+	//	//	return err
+	//	//}
+	//	_, err = bc.runActions(blk.RunnableActions(), ws2)
+	//	if err != nil {
 	//		return err
 	//	}
 	//
-	//	if err := bc.sfHistory.Commit(ws); err != nil {
+	//	if err := bc.sf.Commit(ws); err != nil {
+	//		return err
+	//	}
+	//	if err := bc.sfHistory.Commit(ws2); err != nil {
 	//		return err
 	//	}
 	//}
+	//stateHeight, err = bc.sf.Height()
+	//if err != nil {
+	//	return errors.Wrap(err, "failed to get factory's height")
+	//}
+	//bc.loadingNativeStakingContract()
+	//log.L().Info("Restarting blockchain.",
+	//	zap.Uint64("chainHeight",
+	//		bc.tipHeight),
+	//	zap.Uint64("factoryHeight", stateHeight))
+
+	if err := bc.blockchain.startExistingBlockchain(); err != nil {
+		return err
+	}
+	if bc.sfHistory == nil {
+		return errors.New("statefactory cannot be nil")
+	}
+
+	stateHeight, err := bc.sfHistory.Height()
+	if err != nil {
+		return err
+	}
+	if stateHeight > bc.tipHeight {
+		return errors.New("factory is higher than blockchain")
+	}
+
+	for i := stateHeight + 1; i <= bc.tipHeight; i++ {
+		blk, err := bc.getBlockByHeight(i)
+		if err != nil {
+			return err
+		}
+
+		ws, err := bc.sfHistory.NewWorkingSet(true)
+		if err != nil {
+			return errors.Wrap(err, "failed to obtain working set from state factory")
+		}
+		if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
+			return err
+		}
+
+		if err := bc.sfHistory.Commit(ws); err != nil {
+			return err
+		}
+	}
 	//stateHeight, err = bc.sfHistory.Height()
 	//if err != nil {
 	//	return errors.Wrap(err, "failed to get factory's height")
