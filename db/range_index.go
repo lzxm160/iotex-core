@@ -20,8 +20,9 @@ import (
 
 var (
 	// CurrIndex is special key such that bytes.Compare(MaxUint64, CurrIndex) = -1
-	MaxKey        = []byte{255, 255, 255, 255, 255, 255, 255, 255, 0}
-	InitValue     = []byte("InitValue")
+	MaxKey = []byte{255, 255, 255, 255, 255, 255, 255, 255, 0}
+	//InitValue     =
+	NotExist      = []byte("InitValue")
 	NotExistValue = []byte("NotExistValue")
 )
 
