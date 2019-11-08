@@ -330,43 +330,13 @@ func (bc *blockchainHistory) CommitBlock(blk *block.Block) error {
 //=====================================
 
 func (bc *blockchainHistory) startEmptyBlockchain() error {
-	var ws factory.WorkingSet
-	var ws2 factory.WorkingSet
-	var err error
-	if ws, err = bc.sf.NewWorkingSet(false); err != nil {
-		return errors.Wrap(err, "failed to obtain working set from state factory")
-	}
-	if ws2, err = bc.sfHistory.NewWorkingSet(true); err != nil {
-		return errors.Wrap(err, "failed to obtain working set from state factory")
-	}
-	if !bc.config.Chain.EmptyGenesis {
-		// Initialize the states before any actions happen on the blockchain
-		if err := bc.createGenesisStates(ws); err != nil {
-			return err
-		}
-		_ = ws.UpdateBlockLevelInfo(0)
-
-		if err := bc.createGenesisStates(ws2); err != nil {
-			return err
-		}
-		_ = ws2.UpdateBlockLevelInfo(0)
-	}
-	// add Genesis states
-	if err := bc.sf.Commit(ws); err != nil {
-		return errors.Wrap(err, "failed to commit Genesis states")
-	}
-	if bc.sfHistory != nil {
-		if err := bc.sfHistory.Commit(ws2); err != nil {
-			return errors.Wrap(err, "failed to commit Genesis states")
-		}
-	}
-
-	//if err := bc.blockchain.startEmptyBlockchain(); err != nil {
-	//	return err
-	//}
 	//var ws factory.WorkingSet
+	//var ws2 factory.WorkingSet
 	//var err error
-	//if ws, err = bc.sfHistory.NewWorkingSet(true); err != nil {
+	//if ws, err = bc.sf.NewWorkingSet(false); err != nil {
+	//	return errors.Wrap(err, "failed to obtain working set from state factory")
+	//}
+	//if ws2, err = bc.sfHistory.NewWorkingSet(true); err != nil {
 	//	return errors.Wrap(err, "failed to obtain working set from state factory")
 	//}
 	//if !bc.config.Chain.EmptyGenesis {
@@ -375,11 +345,41 @@ func (bc *blockchainHistory) startEmptyBlockchain() error {
 	//		return err
 	//	}
 	//	_ = ws.UpdateBlockLevelInfo(0)
+	//
+	//	if err := bc.createGenesisStates(ws2); err != nil {
+	//		return err
+	//	}
+	//	_ = ws2.UpdateBlockLevelInfo(0)
 	//}
 	//// add Genesis states
-	//if err := bc.sfHistory.Commit(ws); err != nil {
+	//if err := bc.sf.Commit(ws); err != nil {
 	//	return errors.Wrap(err, "failed to commit Genesis states")
 	//}
+	//if bc.sfHistory != nil {
+	//	if err := bc.sfHistory.Commit(ws2); err != nil {
+	//		return errors.Wrap(err, "failed to commit Genesis states")
+	//	}
+	//}
+
+	if err := bc.blockchain.startEmptyBlockchain(); err != nil {
+		return err
+	}
+	var ws factory.WorkingSet
+	var err error
+	if ws, err = bc.sfHistory.NewWorkingSet(true); err != nil {
+		return errors.Wrap(err, "failed to obtain working set from state factory")
+	}
+	if !bc.config.Chain.EmptyGenesis {
+		// Initialize the states before any actions happen on the blockchain
+		if err := bc.createGenesisStates(ws); err != nil {
+			return err
+		}
+		_ = ws.UpdateBlockLevelInfo(0)
+	}
+	// add Genesis states
+	if err := bc.sfHistory.Commit(ws); err != nil {
+		return errors.Wrap(err, "failed to commit Genesis states")
+	}
 	return nil
 }
 
