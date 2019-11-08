@@ -281,7 +281,7 @@ func (stx *stateTX) deleteHistoryForTrie(hei uint64) error {
 		if err != nil {
 			continue
 		}
-		log.L().Info("deleteHeight", zap.Int("len(allKeys)", len(allKeys)))
+		log.L().Info("deleteHeight", zap.Int("len(allKeys)", len(allKeys)), zap.Uint64("delete Height", i))
 		for _, key := range allKeys {
 			triedbCache.Delete(string(evm.PruneKVNameSpace), key, "failed to delete key %x", key)
 			triedbCache.Delete(evm.ContractKVNameSpace, key[len(heightBytes):], "failed to delete key %x", key[len(heightBytes):])
