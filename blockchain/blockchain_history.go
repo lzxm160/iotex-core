@@ -104,7 +104,8 @@ func (bc *blockchainHistory) CreateState(addr string, init *big.Int) (*state.Acc
 	if err != nil {
 		return nil, err
 	}
-	ws2, err := bc.sfHistory.NewWorkingSet(true)
+	//ws2, err := bc.sfHistory.NewWorkingSet(true)
+	ws2, err := bc.sf.NewWorkingSet(true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create clean working set")
 	}
