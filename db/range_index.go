@@ -162,7 +162,7 @@ func (r *rangeIndex) Get(key uint64) ([]byte, error) {
 		if bytes.Compare(v, NotExistValue) == 0 {
 			return errors.New("key already deleted")
 		}
-		if bytes.Compare(v, InitValue) == 0 {
+		if bytes.Compare(v, NotExist) == 0 {
 			return errors.New("key not exist")
 		}
 		value = make([]byte, len(v))
