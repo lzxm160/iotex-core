@@ -20,7 +20,7 @@ import (
 
 var (
 	// CurrIndex is special key such that bytes.Compare(MaxUint64, CurrIndex) = -1
-	CurrIndex     = []byte{255, 255, 255, 255, 255, 255, 255, 255, 0}
+	MaxKey        = []byte{255, 255, 255, 255, 255, 255, 255, 255, 0}
 	InitValue     = []byte("InitValue")
 	NotExistValue = []byte("NotExistValue")
 )
@@ -82,7 +82,7 @@ func NewRangeIndex(db *bolt.DB, retry uint8, name []byte) (RangeIndex, error) {
 			return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", bucket)
 		}
 		// check whether init value exist or not
-		curr = b.Get(CurrIndex)
+		curr = b.Get(MaxKey)
 		return nil
 	})
 	if err != nil {
@@ -111,7 +111,7 @@ func (r *rangeIndex) Insert(key uint64, value []byte) error {
 				return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", r.bucket)
 			}
 			// read current value
-			curr := bucket.Get(CurrIndex)
+			curr := bucket.Get(MaxKey)
 			if curr == nil {
 				return errors.Wrap(ErrIO, "cannot read current value")
 			}
@@ -127,7 +127,7 @@ func (r *rangeIndex) Insert(key uint64, value []byte) error {
 			//	log.L().Info("keySub1 already exists", zap.Uint64("height", key-1))
 			//}
 			// write new value
-			return bucket.Put(CurrIndex, value)
+			return bucket.Put(MaxKey, value)
 		}); err == nil {
 			break
 		}
