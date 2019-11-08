@@ -267,7 +267,7 @@ func (stx *stateTX) deleteHistory() error {
 func (stx *stateTX) deleteHistoryForTrie(hei uint64) error {
 	deleteStartHeight := hei
 	var deleteEndHeight uint64
-	if deleteStartHeight < CheckHistoryDeleteInterval {
+	if deleteStartHeight <= CheckHistoryDeleteInterval {
 		deleteEndHeight = 1
 	} else {
 		deleteEndHeight = deleteStartHeight - CheckHistoryDeleteInterval
