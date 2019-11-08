@@ -11,7 +11,6 @@ import (
 	"math/big"
 	"os"
 	"strconv"
-	"sync/atomic"
 
 	"github.com/facebookgo/clock"
 	"github.com/iotexproject/go-pkgs/hash"
@@ -483,89 +482,89 @@ func (bc *blockchainHistory) startExistingBlockchain() error {
 
 func (bc *blockchainHistory) commitBlock(blk *block.Block) error {
 	// early exit if block already exists
-	blkHash, err := bc.dao.GetBlockHash(blk.Height())
-	if err == nil && blkHash != hash.ZeroHash256 {
-		log.L().Debug("Block already exists.", zap.Uint64("height", blk.Height()))
-		return nil
-	}
-	// early exit if it's a db io error
-	if err != nil && errors.Cause(err) != db.ErrNotExist && errors.Cause(err) != db.ErrBucketNotExist {
-		return err
-	}
-	// write block into DB
-	putTimer := bc.timerFactory.NewTimer("putBlock")
-	if err = bc.dao.PutBlock(blk); err == nil {
-		err = bc.dao.Commit()
-	}
-	putTimer.End()
-	if err != nil {
-		return err
-	}
-
-	// update tip hash and height
-	atomic.StoreUint64(&bc.tipHeight, blk.Height())
-	bc.tipHash = blk.HashBlock()
-
-	// commit state/contract changes
-	sfTimer := bc.timerFactory.NewTimer("sf.Commit")
-	err = bc.sf.Commit(blk.WorkingSet)
-	sfTimer.End()
-	// detach working set so it can be freed by GC
-	blk.WorkingSet = nil
-	if err != nil {
-		log.L().Panic("Error when committing states.", zap.Error(err))
-	}
-	blk.HeaderLogger(log.L()).Info("Committed a block.", log.Hex("tipHash", bc.tipHash[:]))
-
-	// emit block to all block subscribers
-	bc.emitToSubscribers(blk)
-
-	if bc.sfHistory != nil {
-		// run actions with history retention
-		ws, err := bc.sfHistory.NewWorkingSet(true)
-		if err != nil {
-			return errors.Wrap(err, "Failed to obtain working set from state factory")
-		}
-		log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions() size", uint64(len(blk.RunnableActions().Actions()))))
-		if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
-			log.L().Error("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
-		}
-		log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
-		if err = bc.sfHistory.Commit(ws); err != nil {
-			log.L().Error("Error when committing states with history.", zap.Error(err))
-		}
-
-		// regularly check and purge history
-		if blk.Height()%factory.CheckHistoryDeleteInterval == 0 {
-			//if err := bc.deleteHistory(); err != nil {
-			//	return err
-			//}
-		}
-	}
-	return nil
-	//if err := bc.blockchain.commitBlock(blk); err != nil {
+	//blkHash, err := bc.dao.GetBlockHash(blk.Height())
+	//if err == nil && blkHash != hash.ZeroHash256 {
+	//	log.L().Debug("Block already exists.", zap.Uint64("height", blk.Height()))
+	//	return nil
+	//}
+	//// early exit if it's a db io error
+	//if err != nil && errors.Cause(err) != db.ErrNotExist && errors.Cause(err) != db.ErrBucketNotExist {
 	//	return err
 	//}
-	//// run actions with history retention
-	//ws, err := bc.sfHistory.NewWorkingSet(true)
+	//// write block into DB
+	//putTimer := bc.timerFactory.NewTimer("putBlock")
+	//if err = bc.dao.PutBlock(blk); err == nil {
+	//	err = bc.dao.Commit()
+	//}
+	//putTimer.End()
 	//if err != nil {
-	//	return errors.Wrap(err, "Failed to obtain working set from state factory")
-	//}
-	//log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions() size", uint64(len(blk.RunnableActions().Actions()))))
-	//if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
-	//	log.L().Error("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
-	//}
-	//log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
-	//if err = bc.sfHistory.Commit(ws); err != nil {
-	//	log.L().Error("Error when committing states with history.", zap.Error(err))
+	//	return err
 	//}
 	//
-	//// regularly check and purge history
-	//if blk.Height()%factory.CheckHistoryDeleteInterval == 0 {
-	//	//if err := bc.deleteHistory(); err != nil {
-	//	//	return err
-	//	//}
+	//// update tip hash and height
+	//atomic.StoreUint64(&bc.tipHeight, blk.Height())
+	//bc.tipHash = blk.HashBlock()
+	//
+	//// commit state/contract changes
+	//sfTimer := bc.timerFactory.NewTimer("sf.Commit")
+	//err = bc.sf.Commit(blk.WorkingSet)
+	//sfTimer.End()
+	//// detach working set so it can be freed by GC
+	//blk.WorkingSet = nil
+	//if err != nil {
+	//	log.L().Panic("Error when committing states.", zap.Error(err))
 	//}
+	//blk.HeaderLogger(log.L()).Info("Committed a block.", log.Hex("tipHash", bc.tipHash[:]))
+	//
+	//// emit block to all block subscribers
+	//bc.emitToSubscribers(blk)
+	//
+	//if bc.sfHistory != nil {
+	//	// run actions with history retention
+	//	ws, err := bc.sfHistory.NewWorkingSet(true)
+	//	if err != nil {
+	//		return errors.Wrap(err, "Failed to obtain working set from state factory")
+	//	}
+	//	log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions() size", uint64(len(blk.RunnableActions().Actions()))))
+	//	if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
+	//		log.L().Error("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
+	//	}
+	//	log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
+	//	if err = bc.sfHistory.Commit(ws); err != nil {
+	//		log.L().Error("Error when committing states with history.", zap.Error(err))
+	//	}
+	//
+	//	// regularly check and purge history
+	//	if blk.Height()%factory.CheckHistoryDeleteInterval == 0 {
+	//		//if err := bc.deleteHistory(); err != nil {
+	//		//	return err
+	//		//}
+	//	}
+	//}
+	//return nil
+	if err := bc.blockchain.commitBlock(blk); err != nil {
+		return err
+	}
+	// run actions with history retention
+	ws, err := bc.sfHistory.NewWorkingSet(true)
+	if err != nil {
+		return errors.Wrap(err, "Failed to obtain working set from state factory")
+	}
+	log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("blk.RunnableActions() size", uint64(len(blk.RunnableActions().Actions()))))
+	if _, err := bc.runActions(blk.RunnableActions(), ws); err != nil {
+		log.L().Error("Failed to update state.", zap.Uint64("tipHeight", bc.tipHeight), zap.Error(err))
+	}
+	log.L().Info("bc.sf2.NewWorkingSet.", zap.Uint64("tipHeight", bc.tipHeight), zap.Uint64("ws.GetCachedBatch().Size()", uint64(ws.GetCachedBatch().Size())))
+	if err = bc.sfHistory.Commit(ws); err != nil {
+		log.L().Error("Error when committing states with history.", zap.Error(err))
+	}
+
+	// regularly check and purge history
+	if blk.Height()%factory.CheckHistoryDeleteInterval == 0 {
+		//if err := bc.deleteHistory(); err != nil {
+		//	return err
+		//}
+	}
 	//return nil
 }
 
