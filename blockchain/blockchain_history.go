@@ -128,7 +128,7 @@ func (bc *blockchainHistory) CreateState(addr string, init *big.Int) (*state.Acc
 	if _, err = ws2.RunActions(ctx, 0, nil); err != nil {
 		return nil, errors.Wrap(err, "failed to run the account creation")
 	}
-	if err = bc.sf.Commit(ws2); err != nil {
+	if err = bc.sfHistory.Commit(ws2); err != nil {
 		return nil, errors.Wrap(err, "failed to commit the account creation")
 	}
 	return account, nil
