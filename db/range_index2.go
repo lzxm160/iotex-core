@@ -199,20 +199,20 @@ func (r *rangeIndexForHistory) Purge(key uint64) error {
 
 			currentK, currentV, err := r.get(key)
 			fmt.Println("current:", byteutil.BytesToUint64BigEndian(currentK), ":", string(currentV), ":", err)
-			if !bytes.Equal(currentK, MaxKey) {
-				nextK, nextV, err := r.get(byteutil.BytesToUint64BigEndian(currentK) + 1)
-				fmt.Println("next:", byteutil.BytesToUint64BigEndian(nextK), ":", string(nextV), ":", err)
-			}
+			//if !bytes.Equal(currentK, MaxKey) {
+			nextK, nextV, err := r.get(byteutil.BytesToUint64BigEndian(currentK) + 1)
+			fmt.Println("next:", byteutil.BytesToUint64BigEndian(nextK), ":", string(nextV), ":", err)
+			//}
 
 			//maxvalue := bucket.Get(MaxKey)
 			cur := bucket.Cursor()
 
-			ak := byteutil.Uint64ToBytesBigEndian(key - 1)
-			k, _ := cur.Seek(ak)
-			if !bytes.Equal(k, ak) {
-				// return nil if the key does not exist
-				return nil
-			}
+			//ak := byteutil.Uint64ToBytesBigEndian(key - 1)
+			k, _ := cur.Seek(currentK)
+			//if !bytes.Equal(k, ak) {
+			//	// return nil if the key does not exist
+			//	return nil
+			//}
 			// delete all keys before this key
 			for ; k != nil; k, _ = cur.Prev() {
 				bucket.Delete(k)
@@ -228,7 +228,7 @@ func (r *rangeIndexForHistory) Purge(key uint64) error {
 			//	return r.Insert(byteutil.BytesToUint64BigEndian(nextK), nextV)
 			//}
 
-			return nil
+			return bucket.Put(nextK, nextV)
 		}); err == nil {
 			break
 		}
