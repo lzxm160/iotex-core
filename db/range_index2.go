@@ -8,7 +8,6 @@ package db
 
 import (
 	"bytes"
-	"fmt"
 
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 	"github.com/pkg/errors"
@@ -134,6 +133,21 @@ func (r *rangeIndexForHistory) Get(key uint64) ([]byte, error) {
 	}
 	return value, nil
 }
+func (r *rangeIndexForHistory) get(key uint64) (retKey []byte, value []byte, err error) {
+	err = r.db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(r.bucket)
+		if bucket == nil {
+			return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", r.bucket)
+		}
+		// seek to start
+		cur := bucket.Cursor()
+		k, v := cur.Seek(byteutil.Uint64ToBytesBigEndian(key))
+		retKey = append(retKey, k...)
+		value = append(value, v...)
+		return nil
+	})
+	return
+}
 
 // Delete deletes an existing key
 func (r *rangeIndexForHistory) Delete(key uint64) error {
@@ -181,10 +195,11 @@ func (r *rangeIndexForHistory) Purge(key uint64) error {
 			if bucket == nil {
 				return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", r.bucket)
 			}
+
+			//r.get(key+1)
+			maxvalue := bucket.Get(MaxKey)
 			cur := bucket.Cursor()
-			nextk := byteutil.Uint64ToBytesBigEndian(key + 1)
-			nextK, nextV := cur.Seek(nextk)
-			fmt.Println(byteutil.BytesToUint64BigEndian(nextK), ":", string(nextV))
+			//fmt.Println(byteutil.BytesToUint64BigEndian(nextK), ":", string(nextV))
 			ak := byteutil.Uint64ToBytesBigEndian(key - 1)
 			k, _ := cur.Seek(ak)
 			if !bytes.Equal(k, ak) {
@@ -201,11 +216,12 @@ func (r *rangeIndexForHistory) Purge(key uint64) error {
 			if err != nil {
 				return err
 			}
-			if !bytes.Equal(nextV, NotExist) {
-				fmt.Println("insert", byteutil.BytesToUint64BigEndian(nextK))
-				return r.Insert(byteutil.BytesToUint64BigEndian(nextK), nextV)
-			}
-			return err
+			//if !bytes.Equal(nextV, NotExist) {
+			//	fmt.Println("insert", byteutil.BytesToUint64BigEndian(nextK))
+			//	return r.Insert(byteutil.BytesToUint64BigEndian(nextK), nextV)
+			//}
+
+			return bucket.Put(MaxKey, maxvalue)
 		}); err == nil {
 			break
 		}
