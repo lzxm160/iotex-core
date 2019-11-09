@@ -45,14 +45,14 @@ func TestRangeIndex2(t *testing.T) {
 	}()
 
 	testNS := []byte("test")
-	index, err := kv.CreateRangeIndexNX(testNS, []byte{})
+	index, err := kv.CreateRangeIndexNXForHistory(testNS)
 	require.NoError(err)
 
 	err = index.Insert(7, []byte("7"))
 	require.NoError(err)
 	// Case I: key before 7
 	for i := uint64(1); i < 6; i++ {
-		index, err = kv.CreateRangeIndexNX(testNS, []byte{})
+		index, err = kv.CreateRangeIndexNXForHistory(testNS)
 		require.NoError(err)
 		v, err := index.Get(i)
 		require.NoError(err)
@@ -60,44 +60,44 @@ func TestRangeIndex2(t *testing.T) {
 	}
 	// Case II: key is 7 and greater than 7
 	for i := uint64(7); i < 10; i++ {
-		index, err = kv.CreateRangeIndexNX(testNS, []byte{})
+		index, err = kv.CreateRangeIndexNXForHistory(testNS)
 		require.NoError(err)
 		v, err := index.Get(i)
 		require.NoError(err)
 		require.Equal([]byte("7"), v)
 	}
 	// Case III: duplicate key
-	index, err = kv.CreateRangeIndexNX(testNS, []byte{})
+	index, err = kv.CreateRangeIndexNXForHistory(testNS)
 	require.NoError(err)
 	err = index.Insert(7, []byte("7777"))
 	require.NoError(err)
 	for i := uint64(7); i < 10; i++ {
-		index, err = kv.CreateRangeIndexNX(testNS, []byte{})
+		index, err = kv.CreateRangeIndexNXForHistory(testNS)
 		v, err := index.Get(i)
 		require.NoError(err)
 		require.Equal([]byte("7777"), v)
 	}
 	// Case IV: delete key less than 7
-	index, err = kv.CreateRangeIndexNX(testNS, []byte{})
+	index, err = kv.CreateRangeIndexNXForHistory(testNS)
 	require.NoError(err)
 	err = index.Insert(66, []byte("66"))
 	require.NoError(err)
 	for i := uint64(1); i < 7; i++ {
-		index, err = kv.CreateRangeIndexNX(testNS, []byte{})
+		index, err = kv.CreateRangeIndexNXForHistory(testNS)
 		err = index.Delete(i)
 		require.NoError(err)
 	}
-	index, err = kv.CreateRangeIndexNX(testNS, []byte{})
+	index, err = kv.CreateRangeIndexNXForHistory(testNS)
 	require.NoError(err)
 	v, err := index.Get(7)
 	require.NoError(err)
 	require.Equal([]byte("7777"), v)
 	// Case V: delete key 7
-	index, err = kv.CreateRangeIndexNX(testNS, []byte{})
+	index, err = kv.CreateRangeIndexNXForHistory(testNS)
 	err = index.Purge(10)
 	require.NoError(err)
 	for i := uint64(1); i < 66; i++ {
-		index, err = kv.CreateRangeIndexNX(testNS, []byte{})
+		index, err = kv.CreateRangeIndexNXForHistory(testNS)
 		require.NoError(err)
 		v, err := index.Get(i)
 		fmt.Println(i, ":", string(v), ":", err)
@@ -106,30 +106,30 @@ func TestRangeIndex2(t *testing.T) {
 		//require.Equal(v, NotExist)
 	}
 	for i := uint64(66); i < 70; i++ {
-		index, err = kv.CreateRangeIndexNX(testNS, []byte{})
+		index, err = kv.CreateRangeIndexNXForHistory(testNS)
 		require.NoError(err)
 		v, err = index.Get(i)
 		require.Equal([]byte("66"), v)
 	}
 	// Case VI: delete key before 80,all keys deleted
-	index, err = kv.CreateRangeIndexNX(testNS, []byte{})
+	index, err = kv.CreateRangeIndexNXForHistory(testNS)
 	err = index.Insert(70, []byte("70"))
 	require.NoError(err)
-	index, err = kv.CreateRangeIndexNX(testNS, []byte{})
+	index, err = kv.CreateRangeIndexNXForHistory(testNS)
 	err = index.Insert(80, []byte("80"))
 	require.NoError(err)
-	index, err = kv.CreateRangeIndexNX(testNS, []byte{})
+	index, err = kv.CreateRangeIndexNXForHistory(testNS)
 	err = index.Delete(79)
 	require.NoError(err)
 	for i := uint64(1); i < 80; i++ {
-		index, err = kv.CreateRangeIndexNX(testNS, []byte{})
+		index, err = kv.CreateRangeIndexNXForHistory(testNS)
 		require.NoError(err)
 		v, err := index.Get(i)
 		require.NoError(err)
 		require.Equal(v, NotExist)
 	}
 	for i := uint64(80); i < 90; i++ {
-		index, err = kv.CreateRangeIndexNX(testNS, []byte{})
+		index, err = kv.CreateRangeIndexNXForHistory(testNS)
 		require.NoError(err)
 		v, err = index.Get(i)
 		require.NoError(err)
