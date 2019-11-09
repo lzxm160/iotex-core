@@ -134,6 +134,21 @@ func (r *rangeIndex) Get(key uint64) ([]byte, error) {
 	}
 	return value, nil
 }
+func (r *rangeIndexForHistory) get(key uint64) (retKey []byte, value []byte, err error) {
+	err = r.db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(r.bucket)
+		if bucket == nil {
+			return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", r.bucket)
+		}
+		// seek to start
+		cur := bucket.Cursor()
+		k, v := cur.Seek(byteutil.Uint64ToBytesBigEndian(key))
+		retKey = append(retKey, k...)
+		value = append(value, v...)
+		return nil
+	})
+	return
+}
 
 // Delete deletes an existing key
 func (r *rangeIndex) Delete(key uint64) error {
@@ -179,20 +194,19 @@ func (r *rangeIndex) Purge(key uint64) error {
 			if bucket == nil {
 				return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", r.bucket)
 			}
+			currentK, _, err := r.get(key)
+			nextK, nextV, err := r.get(byteutil.BytesToUint64BigEndian(currentK) + 1)
+
 			cur := bucket.Cursor()
-			ak := byteutil.Uint64ToBytesBigEndian(key - 1)
-			k, _ := cur.Seek(ak)
-			if !bytes.Equal(k, ak) {
-				// return nil if the key does not exist
-				return nil
-			}
+			k, _ := cur.Seek(currentK)
 			// delete all keys before this key
 			for ; k != nil; k, _ = cur.Prev() {
-				bucket.Delete(k)
+				err = bucket.Put(k, NotExist)
 			}
-			// write not exist value to next key
-			k, _ = cur.Seek(byteutil.Uint64ToBytesBigEndian(key))
-			return bucket.Put(k, NotExist)
+			if err != nil {
+				return err
+			}
+			return bucket.Put(nextK, nextV)
 		}); err == nil {
 			break
 		}
