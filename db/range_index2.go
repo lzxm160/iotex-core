@@ -169,6 +169,7 @@ func (r *rangeIndexForHistory) Delete(key uint64) error {
 
 // Purge deletes an existing key and all keys before it
 func (r *rangeIndexForHistory) Purge(key uint64) error {
+	fmt.Println("xxxxxxxxxxxxxxxxxxxxxxxxxxxpurge")
 	// cannot delete key 0, which holds key-1's value
 	if key == 0 {
 		return errors.Wrap(ErrInvalid, "cannot delete key 0")
