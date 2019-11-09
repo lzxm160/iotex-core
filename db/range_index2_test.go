@@ -120,7 +120,7 @@ func TestRangeIndex2(t *testing.T) {
 	err = index.Insert(80, []byte("80"))
 	require.NoError(err)
 	index, err = kv.CreateRangeIndexNXForHistory(testNS)
-	err = index.Delete(79)
+	err = index.Purge(79)
 	require.NoError(err)
 	for i := uint64(1); i < 80; i++ {
 		index, err = kv.CreateRangeIndexNXForHistory(testNS)
