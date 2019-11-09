@@ -8,6 +8,7 @@ package db
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 	"github.com/pkg/errors"
@@ -200,6 +201,7 @@ func (r *rangeIndexForHistory) Purge(key uint64) error {
 				return err
 			}
 			if !bytes.Equal(nextV, NotExist) {
+				fmt.Println("insert", byteutil.BytesToUint64BigEndian(nextK))
 				return r.Insert(byteutil.BytesToUint64BigEndian(nextK), nextV)
 			}
 			return err
