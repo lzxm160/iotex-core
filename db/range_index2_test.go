@@ -8,7 +8,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -93,18 +92,15 @@ func TestRangeIndex2(t *testing.T) {
 	require.Equal([]byte("7777"), v)
 	// Case V: delete key 7
 	index, err = kv.CreateRangeIndexNXForHistory(testNS)
-	fmt.Println("before purge 10")
 	err = index.Purge(10)
-	fmt.Println("after purge 10")
 	require.NoError(err)
 	for i := uint64(1); i < 66; i++ {
 		index, err = kv.CreateRangeIndexNXForHistory(testNS)
 		require.NoError(err)
 		v, err := index.Get(i)
-		fmt.Println(i, ":", string(v), ":", err)
-		//require.Error(err)
-		//require.NoError(err)
-		//require.Equal(v, NotExist)
+		require.Error(err)
+		require.NoError(err)
+		require.Equal(v, NotExist)
 	}
 	for i := uint64(66); i < 70; i++ {
 		index, err = kv.CreateRangeIndexNXForHistory(testNS)
@@ -119,6 +115,8 @@ func TestRangeIndex2(t *testing.T) {
 	index, err = kv.CreateRangeIndexNXForHistory(testNS)
 	err = index.Insert(80, []byte("80"))
 	require.NoError(err)
+	err = index.Insert(91, []byte("91"))
+	require.NoError(err)
 	index, err = kv.CreateRangeIndexNXForHistory(testNS)
 	err = index.Purge(79)
 	require.NoError(err)
@@ -129,11 +127,18 @@ func TestRangeIndex2(t *testing.T) {
 		require.NoError(err)
 		require.Equal(v, NotExist)
 	}
-	for i := uint64(80); i < 90; i++ {
+	for i := uint64(80); i < 91; i++ {
 		index, err = kv.CreateRangeIndexNXForHistory(testNS)
 		require.NoError(err)
 		v, err = index.Get(i)
 		require.NoError(err)
 		require.Equal([]byte("80"), v)
+	}
+	for i := uint64(91); i < 100; i++ {
+		index, err = kv.CreateRangeIndexNXForHistory(testNS)
+		require.NoError(err)
+		v, err = index.Get(i)
+		require.NoError(err)
+		require.Equal([]byte("91"), v)
 	}
 }
