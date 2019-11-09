@@ -10,6 +10,9 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/iotexproject/iotex-core/pkg/log"
+	"go.uber.org/zap"
+
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 
@@ -188,7 +191,7 @@ func (r *rangeIndexForHistory) Purge(key uint64) error {
 			//	return nil
 			//}
 			// delete all keys before this key
-			fmt.Println("seek:", k)
+			log.L().Info("seek:", zap.Uint64("key", byteutil.BytesToUint64BigEndian(k)))
 			for ; k != nil; k, _ = cur.Prev() {
 				fmt.Println("delete k:", k)
 				bucket.Delete(k)
