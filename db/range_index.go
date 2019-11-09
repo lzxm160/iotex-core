@@ -8,6 +8,7 @@ package db
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
@@ -168,6 +169,7 @@ func (r *rangeIndex) Delete(key uint64) error {
 
 // Purge deletes an existing key and all keys before it
 func (r *rangeIndex) Purge(key uint64) error {
+	fmt.Println("hereeeeeeeeeeeeeeeee")
 	// cannot delete key 0, which holds initial value
 	if key == 0 {
 		return errors.Wrap(ErrInvalid, "cannot delete key 0")
