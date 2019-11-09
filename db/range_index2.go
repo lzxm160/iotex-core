@@ -9,12 +9,9 @@ package db
 import (
 	"bytes"
 
-	"github.com/iotexproject/iotex-core/pkg/log"
+	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
-	"go.uber.org/zap"
-
-	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 )
 
 var (
@@ -171,33 +168,46 @@ func (r *rangeIndexForHistory) Delete(key uint64) error {
 // Purge deletes an existing key and all keys before it
 func (r *rangeIndexForHistory) Purge(key uint64) error {
 	defer r.Close()
-	// cannot delete key 0, which holds key-1's value
+	// cannot delete key 0, which holds initial value
 	if key == 0 {
 		return errors.Wrap(ErrInvalid, "cannot delete key 0")
 	}
-	err := r.db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(r.bucket)
-		if bucket == nil {
-			return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", r.bucket)
-		}
-		// seek to start
-		cur := bucket.Cursor()
-		// find the key and set to special value
-		for k, v := cur.Seek(byteutil.Uint64ToBytesBigEndian(key)); k != nil && bytes.Compare(v, NotExist) != 0; k, v = cur.Prev() {
-			if k == nil {
-				break
+	var err error
+	for i := uint8(0); i < r.numRetries; i++ {
+		if err = r.db.Update(func(tx *bolt.Tx) error {
+
+			bucket := tx.Bucket(r.bucket)
+			if bucket == nil {
+				return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", r.bucket)
 			}
-			log.L().Info("rangeIndex Delete/////////", zap.Uint64("height", byteutil.BytesToUint64BigEndian(k)))
-			if err := bucket.Put(k, NotExist); err != nil {
+			cur := bucket.Cursor()
+			nextk := byteutil.Uint64ToBytesBigEndian(key + 1)
+			nextK, nextV := cur.Seek(nextk)
+			ak := byteutil.Uint64ToBytesBigEndian(key - 1)
+			k, _ := cur.Seek(ak)
+			if !bytes.Equal(k, ak) {
+				// return nil if the key does not exist
+				return nil
+			}
+			// delete all keys before this key
+			for ; k != nil; k, _ = cur.Prev() {
+				bucket.Delete(k)
+			}
+			// write not exist value to next key
+			k, _ = cur.Seek(byteutil.Uint64ToBytesBigEndian(key))
+			err = bucket.Put(k, NotExist)
+			if err != nil {
 				return err
 			}
+			if !bytes.Equal(nextV, NotExist) {
+				return r.Insert(byteutil.BytesToUint64BigEndian(nextK), nextV)
+			}
+			return err
+		}); err == nil {
+			break
 		}
-		return nil
-	})
-	if err != nil {
-		return err
 	}
-	return nil
+	return err
 }
 
 // Close makes the index not usable
