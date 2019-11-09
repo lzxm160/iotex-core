@@ -8,7 +8,6 @@ package db
 
 import (
 	"bytes"
-	"fmt"
 
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
