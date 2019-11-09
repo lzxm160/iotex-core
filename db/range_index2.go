@@ -199,8 +199,11 @@ func (r *rangeIndexForHistory) Purge(key uint64) error {
 
 			currentK, currentV, err := r.get(key)
 			fmt.Println("current:", byteutil.BytesToUint64BigEndian(currentK), ":", string(currentV), ":", err)
-			nextK, nextV, err := r.get(currentK + 1)
-			fmt.Println("next:", byteutil.BytesToUint64BigEndian(nextK), ":", string(nextV), ":", err)
+			if !bytes.Equal(currentK, MaxKey) {
+				nextK, nextV, err := r.get(byteutil.BytesToUint64BigEndian(currentK) + 1)
+				fmt.Println("next:", byteutil.BytesToUint64BigEndian(nextK), ":", string(nextV), ":", err)
+			}
+
 			//maxvalue := bucket.Get(MaxKey)
 			cur := bucket.Cursor()
 
