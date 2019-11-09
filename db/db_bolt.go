@@ -281,10 +281,10 @@ func (b *boltDB) CreateRangeIndexNXForHistory(name []byte) (RangeIndex, error) {
 			return errors.Wrapf(err, "failed to create bucket %x", name)
 		}
 		// check whether init value exist or not
-		v := bucket.Get(CurrIndex)
+		v := bucket.Get(MaxKey)
 		if v == nil {
 			// write the initial value
-			return bucket.Put(CurrIndex, InitValue)
+			return bucket.Put(MaxKey, NotExist)
 		}
 		return nil
 	}); err != nil {
