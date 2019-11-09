@@ -10,8 +10,6 @@ import (
 	"bytes"
 	"fmt"
 
-	"log"
-
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 
@@ -190,7 +188,7 @@ func (r *rangeIndexForHistory) Purge(key uint64) error {
 			//	return nil
 			//}
 			// delete all keys before this key
-			log.Println("seek:", byteutil.BytesToUint64BigEndian(k))
+			fmt.Println("seek:", byteutil.BytesToUint64BigEndian(k))
 			for ; k != nil; k, _ = cur.Prev() {
 				fmt.Println("delete k:", k)
 				bucket.Delete(k)
