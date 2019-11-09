@@ -10,7 +10,7 @@ import (
 	"context"
 	"encoding/binary"
 
-	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
+	
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -23,6 +23,7 @@ import (
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
+	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/state"
 )
 
@@ -78,6 +79,7 @@ func (stx *stateTX) Version() uint64 { return stx.ver }
 // Height returns the Height of the block being worked on
 func (stx *stateTX) Height() uint64 { return stx.blkHeight }
 
+// History returns saveHistory
 func (stx *stateTX) History() bool { return stx.saveHistory }
 
 // RunActions runs actions in the block and track pending changes in working set

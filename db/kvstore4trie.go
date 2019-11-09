@@ -12,7 +12,6 @@ import (
 
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"go.uber.org/zap"
-
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 
