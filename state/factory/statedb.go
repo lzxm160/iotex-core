@@ -278,7 +278,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 		return db.ErrNotExist
 	}
 	ns := append([]byte(AccountKVNameSpace), addr[:]...)
-	ri, err := sdb.dao.CreateRangeIndexNXForHistory(ns)
+	ri, err := sdb.dao.CreateRangeIndexNX(ns, db.NotExist)
 	if err != nil {
 		return err
 	}
