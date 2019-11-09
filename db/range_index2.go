@@ -228,7 +228,7 @@ func (r *rangeIndexForHistory) Purge(key uint64) error {
 			//	return r.Insert(byteutil.BytesToUint64BigEndian(nextK), nextV)
 			//}
 
-			return bucket.Put(MaxKey, maxvalue)
+			return nil
 		}); err == nil {
 			break
 		}
