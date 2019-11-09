@@ -74,7 +74,7 @@ func NewRangeIndexForHistory(db *bolt.DB, retry uint8, name []byte) (RangeIndex,
 	bucket := make([]byte, len(name))
 	copy(bucket, name)
 
-	return &rangeIndex{
+	return &rangeIndexForHistory{
 		db:         db,
 		numRetries: retry,
 		bucket:     bucket,
