@@ -8,6 +8,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -182,6 +183,13 @@ func TestRangeIndex2(t *testing.T) {
 	testNS := []byte("test")
 	index, err := kv.CreateRangeIndexNX(testNS, NotExist)
 	require.NoError(err)
+	// special case: insert 1
+	err = index.Insert(1, []byte("1"))
+	require.NoError(err)
+	v, err := index.Get(5)
+	fmt.Println("5:", v)
+	require.NoError(err)
+	require.Equal([]byte("1"), v)
 
 	err = index.Insert(7, []byte("7"))
 	require.NoError(err)
