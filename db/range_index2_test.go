@@ -98,7 +98,6 @@ func TestRangeIndex2(t *testing.T) {
 		index, err = kv.CreateRangeIndexNXForHistory(testNS)
 		require.NoError(err)
 		v, err := index.Get(i)
-		require.Error(err)
 		require.NoError(err)
 		require.Equal(v, NotExist)
 	}
