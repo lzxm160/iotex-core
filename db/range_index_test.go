@@ -232,7 +232,7 @@ func TestRangeIndex2(t *testing.T) {
 	}
 	index, err = kv.CreateRangeIndexNX(testNS, NotExist)
 	require.NoError(err)
-	v, err := index.Get(7)
+	v, err = index.Get(7)
 	require.NoError(err)
 	require.Equal([]byte("7777"), v)
 	// Case V: delete key 7
