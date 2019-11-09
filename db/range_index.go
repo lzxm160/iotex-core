@@ -134,7 +134,7 @@ func (r *rangeIndex) Get(key uint64) ([]byte, error) {
 	}
 	return value, nil
 }
-func (r *rangeIndexForHistory) get(key uint64) (retKey []byte, value []byte, err error) {
+func (r *rangeIndex) get(key uint64) (retKey []byte, value []byte, err error) {
 	err = r.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(r.bucket)
 		if bucket == nil {
