@@ -8,6 +8,7 @@ package db
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 	"github.com/pkg/errors"
@@ -196,10 +197,11 @@ func (r *rangeIndexForHistory) Purge(key uint64) error {
 				return errors.Wrapf(ErrBucketNotExist, "bucket = %x doesn't exist", r.bucket)
 			}
 
-			//r.get(key+1)
+			nextK, nextV, err := r.get(key)
+			fmt.Println(byteutil.BytesToUint64BigEndian(nextK), ":", string(nextV), ":", err)
 			maxvalue := bucket.Get(MaxKey)
 			cur := bucket.Cursor()
-			//fmt.Println(byteutil.BytesToUint64BigEndian(nextK), ":", string(nextV))
+
 			ak := byteutil.Uint64ToBytesBigEndian(key - 1)
 			k, _ := cur.Seek(ak)
 			if !bytes.Equal(k, ak) {
