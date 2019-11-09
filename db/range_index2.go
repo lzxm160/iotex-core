@@ -8,6 +8,7 @@ package db
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
@@ -182,12 +183,13 @@ func (r *rangeIndexForHistory) Purge(key uint64) error {
 			cur := bucket.Cursor()
 			ak := byteutil.Uint64ToBytesBigEndian(key - 1)
 			k, _ := cur.Seek(ak)
-			if !bytes.Equal(k, ak) {
-				// return nil if the key does not exist
-				return nil
-			}
+			//if !bytes.Equal(k, ak) {
+			//	// return nil if the key does not exist
+			//	return nil
+			//}
 			// delete all keys before this key
 			for ; k != nil; k, _ = cur.Prev() {
+				fmt.Println("delete k:", k)
 				bucket.Delete(k)
 			}
 			// write not exist value to next key
