@@ -8,10 +8,11 @@ package db
 
 import (
 	"bytes"
-	"fmt"
 
+	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
+	"go.uber.org/zap"
 
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 )
@@ -182,12 +183,12 @@ func (r *rangeIndexForHistory) Purge(key uint64) error {
 		// seek to start
 		cur := bucket.Cursor()
 		// find the key and set to special value
-		for k, v := cur.Seek(byteutil.Uint64ToBytesBigEndian(key)); k != nil && bytes.Compare(v, NotExistValue) != 0; k, v = cur.Prev() {
+		for k, v := cur.Seek(byteutil.Uint64ToBytesBigEndian(key)); k != nil && bytes.Compare(v, NotExist) != 0; k, v = cur.Prev() {
 			if k == nil {
 				break
 			}
 			log.L().Info("rangeIndex Delete/////////", zap.Uint64("height", byteutil.BytesToUint64BigEndian(k)))
-			if err := bucket.Put(k, NotExistValue); err != nil {
+			if err := bucket.Put(k, NotExist); err != nil {
 				return err
 			}
 		}
