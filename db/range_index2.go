@@ -215,7 +215,7 @@ func (r *rangeIndexForHistory) Purge(key uint64) error {
 			//}
 			// delete all keys before this key
 			for ; k != nil; k, _ = cur.Prev() {
-				bucket.Delete(k)
+				bucket.Put(k, NotExist)
 			}
 			// write not exist value to next key
 			k, _ = cur.Seek(byteutil.Uint64ToBytesBigEndian(key))
