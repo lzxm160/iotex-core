@@ -13,10 +13,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/testutil"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRangeIndex2(t *testing.T) {
