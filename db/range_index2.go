@@ -188,6 +188,7 @@ func (r *rangeIndexForHistory) Purge(key uint64) error {
 			//	return nil
 			//}
 			// delete all keys before this key
+			fmt.Println("seek:", k)
 			for ; k != nil; k, _ = cur.Prev() {
 				fmt.Println("delete k:", k)
 				bucket.Delete(k)
