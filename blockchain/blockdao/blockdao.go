@@ -182,54 +182,48 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 	return dao.correct()
 }
 func (dao *blockDAO) correct() (err error) {
-	dao.rewrite()
 	// have any error will rewrite block
-	tipHash, err := dao.getTipHash()
-	if err != nil {
-		return dao.rewrite()
-	}
 	tipHeight, err := dao.getTipHeight()
 	if err != nil {
-		return dao.rewrite()
+		return dao.rewrite(tipHeight)
 	}
+	if tipHeight == 0 {
+		return nil
+	}
+	tipHash, err := dao.getTipHash()
+	if err != nil {
+		return dao.rewrite(tipHeight)
+	}
+
 	tipHashFromkv, err := dao.getBlockHash(tipHeight)
 	if err != nil {
-		return dao.rewrite()
+		return dao.rewrite(tipHeight)
 	}
 	// check height->block hash
 	if !bytes.Equal(tipHash[:], tipHashFromkv[:]) {
-		return dao.rewrite()
+		return dao.rewrite(tipHeight)
 	}
 	height, err := dao.getBlockHeight(tipHash)
 	if err != nil {
-		return dao.rewrite()
+		return dao.rewrite(tipHeight)
 	}
 	// check block hash->height
 	if height != tipHeight {
-		return dao.rewrite()
+		return dao.rewrite(tipHeight)
 	}
 	// check block in chainxxx.db
 	blk, err := dao.getBlock(tipHash)
 	if err != nil {
-		return dao.rewrite()
+		return dao.rewrite(tipHeight)
 	}
 	hash := blk.HashBlock()
 	if !bytes.Equal(tipHash[:], hash[:]) {
-		return dao.rewrite()
+		return dao.rewrite(tipHeight)
 	}
 	return nil
 }
-func (dao *blockDAO) rewrite() (err error) {
-	// rewrite chain.db according chainxxx.db
-	tipHeight, err := dao.getTipHeight()
-	if err != nil {
-		return
-	}
-	fmt.Println("tipheight", tipHeight)
-	if tipHeight == 0 {
-		return nil
-	}
-	// checkout 10 blocks
+func (dao *blockDAO) rewrite(tipHeight uint64) (err error) {
+	// rewrite chain.db according chainxxx.db,only check 10 blocks before tipHeight
 	var endHeight uint64
 	if tipHeight <= 10 {
 		endHeight = 1
