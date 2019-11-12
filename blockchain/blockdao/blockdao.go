@@ -182,6 +182,7 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 	return dao.correct()
 }
 func (dao *blockDAO) correct() (err error) {
+	dao.rewrite()
 	// have any error will rewrite block
 	tipHash, err := dao.getTipHash()
 	if err != nil {
