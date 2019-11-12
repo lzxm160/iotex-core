@@ -225,6 +225,7 @@ func (dao *blockDAO) rewrite() (err error) {
 	if err != nil {
 		return
 	}
+	fmt.Println("tipheight", tipHeight)
 	// checkout 10 blocks
 	var endHeight uint64
 	if tipHeight <= 10 {
