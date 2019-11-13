@@ -63,6 +63,7 @@ func DefaultStateDBOption() StateDBOption {
 		}
 		cfg.DB.DbPath = dbPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
 		sdb.dao = db.NewBoltDB(cfg.DB)
+		sdb.saveHistory = cfg.Chain.EnableHistoryStateDB
 		return nil
 	}
 }
