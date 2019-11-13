@@ -280,20 +280,65 @@ func (sdb *stateDB) state(addr hash.Hash160, s interface{}) error {
 	return nil
 }
 
-func (sdb *stateDB) accountState(encodedAddr string) (*state.Account, error) {
+func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{}) error {
+	if !sdb.saveHistory {
+		return db.ErrNotExist
+	}
+	ns := append([]byte(AccountKVNameSpace), addr[:]...)
+	ri, err := sdb.dao.CreateRangeIndexNX(ns, db.NotExist)
+	if err != nil {
+		return err
+	}
+	accountValue, err := ri.Get(height)
+	if err != nil {
+		log.L().Info("stateHeight get hegith/////////1", zap.Uint64("height", height), zap.String("path:", sdb.cfg.DbPath))
+		return err
+	}
+	log.L().Info("stateHeight get hegith/////////2", zap.Uint64("height", height), zap.String("acccount:", hex.EncodeToString(accountValue)))
+
+	return state.Deserialize(s, accountValue)
+}
+
+func (sdb *stateDB) accountState(encodedAddrs string) (account *state.Account, err error) {
 	// TODO: state db shouldn't serve this function
-	addr, err := address.FromString(encodedAddr)
+	height := uint64(0)
+	if len(encodedAddrs) > 41 {
+		height, err = strconv.ParseUint(encodedAddrs[41:], 10, 64)
+		if err != nil {
+			return
+		}
+		encodedAddrs = encodedAddrs[:41]
+	}
+
+	addr, err := address.FromString(encodedAddrs)
 	if err != nil {
 		return nil, err
 	}
+
 	pkHash := hash.BytesToHash160(addr.Bytes())
-	var account state.Account
-	if err := sdb.state(pkHash, &account); err != nil {
-		if errors.Cause(err) == state.ErrStateNotExist {
-			account = state.EmptyAccount()
-			return &account, nil
+	acc := state.EmptyAccount()
+	account = &acc
+	if height != 0 {
+		log.L().Info("////////////////", zap.Uint64("height", height), zap.String("address", encodedAddrs))
+		err = sdb.stateHeight(pkHash, height, account)
+		if err != nil {
+			log.L().Info("////////////////stateHeight ", zap.Error(err))
+			//if history is not exist then turn to sdb.state to get latest account
+		} else {
+			log.L().Info("////////////////accountState ", zap.Uint64("height", height), zap.String("balance", account.Balance.Text(10)))
 		}
-		return nil, errors.Wrapf(err, "error when loading state of %x", pkHash)
+
+	} else {
+		err = sdb.state(pkHash, account)
 	}
-	return &account, nil
+	if err != nil {
+		if errors.Cause(err) == state.ErrStateNotExist {
+			acc = state.EmptyAccount()
+			account = &acc
+			return
+		}
+		err = errors.Wrapf(err, "error when loading state of %x", pkHash)
+		return
+	}
+	return
 }
