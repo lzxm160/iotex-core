@@ -282,6 +282,7 @@ func (sdb *stateDB) state(addr hash.Hash160, s interface{}) error {
 }
 
 func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{}) error {
+	log.L().Info("stateHeight start", zap.Bool("sdb.saveHistory", sdb.saveHistory))
 	if !sdb.saveHistory {
 		return db.ErrNotExist
 	}
