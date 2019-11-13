@@ -307,8 +307,6 @@ func (stateDB *StateDBAdapterRead) getNewContract(addr hash.Hash160) (Contract, 
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create storage trie for new contract %x", addr)
 	}
-	// add to contract cache
-	stateDB.cachedContract[addr] = contract
 	return contract, nil
 }
 
