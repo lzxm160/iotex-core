@@ -12,7 +12,7 @@ import (
 	"math"
 	"math/big"
 
-	"github.com/iotexproject/iotex-core/blockchain"
+	"github.com/iotexproject/iotex-core/state/factory"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -251,7 +251,7 @@ func ExecuteContract(
 }
 
 func ExecuteContractRead(
-	bc blockchain.Blockchain,
+	sf factory.Factory,
 	ctx context.Context,
 	sm protocol.StateManager,
 	execution *action.Execution,
@@ -261,9 +261,8 @@ func ExecuteContractRead(
 	log.L().Info("enter ExecuteContract2")
 	raCtx := protocol.MustGetRunActionsCtx(ctx)
 	var stateDB *StateDBAdapterRead
-	if raCtx.History {
-		stateDB = NewStateDBAdapterRead(bc, getBlockHash, sm, hu, raCtx.BlockHeight, execution.Hash(), SaveHistoryOption())
-	}
+	stateDB = NewStateDBAdapterRead(sf, getBlockHash, sm, hu, raCtx.BlockHeight, execution.Hash(), SaveHistoryOption())
+
 	ps, err := NewParamsRead(raCtx, execution, stateDB, hu)
 	if err != nil {
 		return nil, nil, err

@@ -660,7 +660,7 @@ func (bc *blockchain) ExecuteContractReadHistory(caller address.Address, ex *act
 		IntrinsicGas:   0,
 	})
 	return evm.ExecuteContractRead(
-		bc,
+		bc.sf,
 		ctx,
 		ws,
 		ex,

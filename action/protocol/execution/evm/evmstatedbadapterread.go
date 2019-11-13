@@ -11,8 +11,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/iotexproject/iotex-core/blockchain"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/iotexproject/go-pkgs/hash"
@@ -22,7 +20,7 @@ import (
 
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/pkg/log"
@@ -33,7 +31,7 @@ import (
 type (
 	// StateDBAdapter represents the state db adapter for evm to access iotx blockchain
 	StateDBAdapterRead struct {
-		cm               blockchain.Blockchain
+		sf               factory.Factory
 		getBlockHash     GetBlockHash
 		sm               protocol.StateManager
 		logs             []*action.Log
@@ -56,7 +54,7 @@ type (
 
 // NewStateDBAdapter creates a new state db with iotex blockchain
 func NewStateDBAdapterRead(
-	cm blockchain.Blockchain,
+	sf factory.Factory,
 	getBlockHash GetBlockHash,
 	sm protocol.StateManager,
 	hu config.HeightUpgrade,
@@ -65,7 +63,7 @@ func NewStateDBAdapterRead(
 	opts ...StateDBOption,
 ) *StateDBAdapterRead {
 	s := &StateDBAdapterRead{
-		cm:            cm,
+		sf:            sf,
 		getBlockHash:  getBlockHash,
 		sm:            sm,
 		logs:          []*action.Log{},
@@ -203,7 +201,7 @@ func (stateDB *StateDBAdapterRead) AccountState(encodedAddr string) (*state.Acco
 	hei := fmt.Sprintf("%d", stateDB.blockHeight)
 	//return stateDB.sm..StateByAddr(encodedAddr + hei)
 	//return accountutil.LoadAccount(stateDB.sm, addrHash)
-	return stateDB.cm.Factory().AccountState(encodedAddr + hei)
+	return stateDB.sf.AccountState(encodedAddr + hei)
 }
 
 //======================================
