@@ -8,6 +8,7 @@ package factory
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -291,7 +292,7 @@ func (sdb *stateDB) stateHeight(addr hash.Hash160, height uint64, s interface{})
 	}
 	accountValue, err := ri.Get(height)
 	if err != nil {
-		log.L().Info("stateHeight get hegith/////////1", zap.Uint64("height", height), zap.String("path:", sdb.cfg.DbPath))
+		log.L().Info("stateHeight get hegith/////////1", zap.Uint64("height", height))
 		return err
 	}
 	log.L().Info("stateHeight get hegith/////////2", zap.Uint64("height", height), zap.String("acccount:", hex.EncodeToString(accountValue)))
