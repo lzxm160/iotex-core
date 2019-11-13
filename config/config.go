@@ -100,7 +100,7 @@ var (
 		Chain: Chain{
 			ChainDBPath:     "./chain.db",
 			TrieDBPath:      "./trie.db",
-			HistoryDBPath:   "./trie-history.db",
+			HistoryDBPath:   "./trie.db",
 			IndexDBPath:     "./index.db",
 			ID:              1,
 			Address:         "",
