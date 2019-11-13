@@ -98,9 +98,9 @@ var (
 			EnableRateLimit: true,
 		},
 		Chain: Chain{
-			ChainDBPath:     "./chain.db",
-			TrieDBPath:      "./trie.db",
-			HistoryDBPath:   "./trie.db",
+			ChainDBPath: "./chain.db",
+			TrieDBPath:  "./trie.db",
+			//HistoryDBPath:   "./trie.db",
 			IndexDBPath:     "./index.db",
 			ID:              1,
 			Address:         "",
@@ -217,9 +217,9 @@ type (
 
 	// Chain is the config struct for blockchain package
 	Chain struct {
-		ChainDBPath     string           `yaml:"chainDBPath"`
-		TrieDBPath      string           `yaml:"trieDBPath"`
-		HistoryDBPath   string           `yaml:"historyDBPath"`
+		ChainDBPath string `yaml:"chainDBPath"`
+		TrieDBPath  string `yaml:"trieDBPath"`
+		//HistoryDBPath   string           `yaml:"historyDBPath"`
 		IndexDBPath     string           `yaml:"indexDBPath"`
 		ID              uint32           `yaml:"id"`
 		Address         string           `yaml:"address"`

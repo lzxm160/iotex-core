@@ -105,23 +105,24 @@ func DefaultTrieOption() Option {
 		}
 		cfg.DB.DbPath = dbPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
 		sf.dao = db.NewBoltDB(cfg.DB)
+		sf.saveHistory = cfg.Chain.EnableHistoryStateDB
 		return nil
 	}
 }
 
 // DefaultHistoryTrieOption creates trie from config for history state factory
-func DefaultHistoryTrieOption() Option {
-	return func(sf *factory, cfg config.Config) (err error) {
-		dbPath := cfg.Chain.HistoryDBPath
-		if len(dbPath) == 0 {
-			return errors.New("Invalid empty trie db path")
-		}
-		cfg.DB.DbPath = dbPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
-		sf.dao = db.NewBoltDB(cfg.DB)
-		sf.saveHistory = true
-		return nil
-	}
-}
+//func DefaultHistoryTrieOption() Option {
+//	return func(sf *factory, cfg config.Config) (err error) {
+//		dbPath := cfg.Chain.HistoryDBPath
+//		if len(dbPath) == 0 {
+//			return errors.New("Invalid empty trie db path")
+//		}
+//		cfg.DB.DbPath = dbPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
+//		sf.dao = db.NewBoltDB(cfg.DB)
+//		sf.saveHistory = true
+//		return nil
+//	}
+//}
 
 // InMemTrieOption creates in memory trie for state factory
 func InMemTrieOption() Option {

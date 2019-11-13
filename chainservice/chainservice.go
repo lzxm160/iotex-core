@@ -94,9 +94,10 @@ func New(
 	}
 
 	var chainOpts []blockchain.Option
-	if cfg.Chain.EnableHistoryStateDB {
-		chainOpts = append(chainOpts, blockchain.HistoryStateFactoryOption())
-	} else if ops.isTesting {
+	//if cfg.Chain.EnableHistoryStateDB {
+	//	chainOpts = append(chainOpts, blockchain.HistoryStateFactoryOption())
+	//} else
+	if ops.isTesting {
 		chainOpts = []blockchain.Option{
 			blockchain.InMemStateFactoryOption(),
 		}
