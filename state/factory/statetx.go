@@ -154,8 +154,7 @@ func (stx *stateTX) Commit() error {
 	var cb db.KVStoreBatch
 	if stx.saveHistory {
 		// exclude trie deletion
-		//cb = stx.cb.ExcludeEntries(ContractKVNameSpace, db.Delete)
-		cb = stx.cb
+		cb = stx.cb.ExcludeEntries(ContractKVNameSpace, db.Delete)
 	} else {
 		cb = stx.cb
 	}
