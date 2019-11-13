@@ -54,7 +54,8 @@ func (stx *stateTX) Digest() hash.Hash256 {
 	var cb db.KVStoreBatch
 	if stx.saveHistory {
 		// exclude trie pruning entries before calculating digest
-		cb = stx.cb.ExcludeEntries(PruneKVNameSpace, db.Put)
+		//cb = stx.cb.ExcludeEntries(PruneKVNameSpace, db.Put)
+		cb = stx.cb
 	} else {
 		cb = stx.cb
 	}

@@ -168,7 +168,7 @@ func (b *baseKVStoreBatch) Digest() hash.Hash256 {
 	}
 	return hash.Hash256b(bytes)
 }
-
+	
 // ExcludeEntries returns copy of batch with certain entries excluded
 func (b *baseKVStoreBatch) ExcludeEntries(ns string, writeType int32) KVStoreBatch {
 	b.mutex.Lock()

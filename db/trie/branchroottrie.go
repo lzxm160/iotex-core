@@ -147,7 +147,6 @@ func (tr *branchRootTrie) deleteNodeFromDB(tn Node) error {
 		if err := tr.kvStore.Purge(tag, h); err != nil {
 			return err
 		}
-		return nil
 	}
 	return tr.kvStore.Delete(h)
 }
