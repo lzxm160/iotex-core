@@ -11,6 +11,8 @@ import (
 	"context"
 	"sync"
 
+	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/iotex-core/db/trie/triepb"
 	"github.com/pkg/errors"
@@ -142,10 +144,10 @@ func (tr *branchRootTrie) deleteNodeFromDB(tn Node) error {
 	h := tr.nodeHash(tn)
 	if tr.saveNode {
 		// mark the height-hash to be purged in later pruning
-		//tag := byteutil.Uint64ToBytesBigEndian(tr.height)
-		//if err := tr.kvStore.Purge(tag, h); err != nil {
-		//	return err
-		//}
+		tag := byteutil.Uint64ToBytesBigEndian(tr.height)
+		if err := tr.kvStore.Purge(tag, h); err != nil {
+			return err
+		}
 	}
 	return tr.kvStore.Delete(h)
 }
