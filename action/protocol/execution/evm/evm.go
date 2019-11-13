@@ -8,8 +8,11 @@ package evm
 
 import (
 	"context"
+	"encoding/hex"
 	"math"
 	"math/big"
+
+	"github.com/iotexproject/iotex-core/blockchain"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -108,6 +111,47 @@ func NewParams(
 	}, nil
 }
 
+// NewParamsRead creates a new context for use in the EVM.
+func NewParamsRead(
+	raCtx protocol.RunActionsCtx,
+	execution *action.Execution,
+	stateDB *StateDBAdapterRead,
+	hu config.HeightUpgrade,
+) (*Params, error) {
+	executorAddr := common.BytesToAddress(raCtx.Caller.Bytes())
+	var contractAddrPointer *common.Address
+	if execution.Contract() != action.EmptyAddress {
+		contract, err := address.FromString(execution.Contract())
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to convert encoded contract address to address")
+		}
+		contractAddr := common.BytesToAddress(contract.Bytes())
+		contractAddrPointer = &contractAddr
+	}
+
+	context := vm.Context{
+		CanTransfer: CanTransfer,
+		Transfer:    MakeTransfer,
+		GetHash:     GetHashFnRead(stateDB),
+		Origin:      executorAddr,
+		Coinbase:    common.BytesToAddress(raCtx.Producer.Bytes()),
+		BlockNumber: new(big.Int).SetUint64(raCtx.BlockHeight),
+		Time:        new(big.Int).SetInt64(raCtx.BlockTimeStamp.Unix()),
+		Difficulty:  new(big.Int).SetUint64(uint64(50)),
+		GasPrice:    execution.GasPrice(),
+	}
+
+	return &Params{
+		context,
+		execution.Nonce(),
+		raCtx.Caller.String(),
+		execution.Amount(),
+		contractAddrPointer,
+		0,
+		execution.Data(),
+	}, nil
+}
+
 // GetHashFn returns a GetHashFunc which retrieves hashes by number
 func GetHashFn(stateDB *StateDBAdapter) func(n uint64) common.Hash {
 	return func(n uint64) common.Hash {
@@ -120,6 +164,17 @@ func GetHashFn(stateDB *StateDBAdapter) func(n uint64) common.Hash {
 	}
 }
 
+// GetHashFnRead returns a GetHashFunc which retrieves hashes by number
+func GetHashFnRead(stateDB *StateDBAdapterRead) func(n uint64) common.Hash {
+	return func(n uint64) common.Hash {
+		hash, err := stateDB.getBlockHash(stateDB.blockHeight - n)
+		if err != nil {
+			return common.BytesToHash(hash[:])
+		}
+
+		return common.Hash{}
+	}
+}
 func securityDeposit(ps *Params, stateDB vm.StateDB, gasLimit uint64) error {
 	executorNonce := stateDB.GetNonce(ps.context.Origin)
 	if executorNonce > ps.nonce {
@@ -195,6 +250,40 @@ func ExecuteContract(
 	return retval, receipt, nil
 }
 
+func ExecuteContractRead(
+	bc blockchain.Blockchain,
+	ctx context.Context,
+	sm protocol.StateManager,
+	execution *action.Execution,
+	getBlockHash GetBlockHash,
+	hu config.HeightUpgrade,
+) ([]byte, *action.Receipt, error) {
+	log.L().Info("enter ExecuteContract2")
+	raCtx := protocol.MustGetRunActionsCtx(ctx)
+	var stateDB *StateDBAdapterRead
+	if raCtx.History {
+		stateDB = NewStateDBAdapterRead(bc, getBlockHash, sm, hu, raCtx.BlockHeight, execution.Hash(), SaveHistoryOption())
+	}
+	ps, err := NewParamsRead(raCtx, execution, stateDB, hu)
+	if err != nil {
+		return nil, nil, err
+	}
+	retval, _, remainingGas, contractAddress, statusCode, err := executeInEVMRead(ps, stateDB, raCtx.GasLimit, raCtx.BlockHeight)
+	if err != nil {
+		return nil, nil, err
+	}
+	receipt := &action.Receipt{
+		GasConsumed:     ps.gas - remainingGas,
+		BlockHeight:     raCtx.BlockHeight,
+		ActionHash:      execution.Hash(),
+		ContractAddress: contractAddress,
+	}
+
+	receipt.Status = statusCode
+
+	return retval, receipt, nil
+}
+
 func getChainConfig(beringHeight uint64) *params.ChainConfig {
 	var chainConfig params.ChainConfig
 	// chainConfig.ChainID
@@ -262,6 +351,38 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, gasLimit uint64, b
 	if evmErr != nil {
 		return ret, evmParams.gas, remainingGas, contractRawAddress, evmErrToErrStatusCode(evmErr, isBering), nil
 	}
+	return ret, evmParams.gas, remainingGas, contractRawAddress, uint64(iotextypes.ReceiptStatus_Success), nil
+}
+func executeInEVMRead(evmParams *Params, stateDB *StateDBAdapterRead, gasLimit uint64, blockHeight uint64) ([]byte, uint64, uint64, string, uint64, error) {
+	log.L().Info("enter executeInEVM2")
+	remainingGas := evmParams.gas
+
+	var config vm.Config
+	chainConfig := getChainConfig(stateDB.hu.BeringBlockHeight())
+	evm := vm.NewEVM(evmParams.context, stateDB, chainConfig, config)
+	intriGas, err := intrinsicGas(evmParams.data)
+	if err != nil {
+		log.L().Info("intrinsicGas", zap.Error(err))
+		return nil, evmParams.gas, remainingGas, action.EmptyAddress, uint64(iotextypes.ReceiptStatus_Failure), err
+	}
+	remainingGas -= intriGas
+	contractRawAddress := action.EmptyAddress
+	executor := vm.AccountRef(evmParams.context.Origin)
+	var ret []byte
+	var evmErr error
+	if evmParams.contract == nil {
+		log.L().Info("evmParams.contract", zap.Error(err))
+		return nil, 0, 0, "", 0, errors.New("contract is not exist")
+	} else {
+		log.L().Info("evm.Call")
+		// process contract
+		ret, remainingGas, evmErr = evm.Call(executor, *evmParams.contract, evmParams.data, remainingGas, evmParams.amount)
+	}
+	if evmErr != nil {
+		log.L().Info("evm.Call", zap.Error(err))
+		return nil, 0, 0, "", 0, errors.New("evm.Call error")
+	}
+	log.L().Info("executeInEVM2", zap.String("ret", hex.EncodeToString(ret)))
 	return ret, evmParams.gas, remainingGas, contractRawAddress, uint64(iotextypes.ReceiptStatus_Success), nil
 }
 

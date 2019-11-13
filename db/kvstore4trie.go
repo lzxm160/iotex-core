@@ -8,7 +8,10 @@ package db
 
 import (
 	"context"
+	"encoding/hex"
 
+	"github.com/iotexproject/iotex-core/pkg/log"
+	"go.uber.org/zap"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -94,9 +97,11 @@ func (s *KVStoreForTrie) Purge(tag, key []byte) error {
 	// tag will be used as a criterion to determine if the key should be deleted
 	// it is simply prepended in front of the key and stored into the Prune namespace
 	// it is up to the caller to define the exact format of tag and how to use it
-	k := make([]byte, len(tag)+len(key))
-	copy(k, tag)
+	k := make([]byte, 0)
+	k = append(k, tag...)
 	k = append(k, key...)
+
+	log.L().Info("Purge(tag, key []byte) error {", zap.String("k", hex.EncodeToString(k)))
 	s.cb.Put(s.prune, k, []byte{}, "failed to put tag-key %x", k)
 	return nil
 }

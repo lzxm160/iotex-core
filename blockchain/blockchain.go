@@ -123,7 +123,7 @@ type Blockchain interface {
 	// SimulateExecution simulates a running of smart contract operation, this is done off the network since it does not
 	// cause any state change
 	SimulateExecution(caller address.Address, ex *action.Execution) ([]byte, *action.Receipt, error)
-
+	ExecuteContractReadHistory(caller address.Address, ex *action.Execution, height uint64) ([]byte, *action.Receipt, error)
 	// AddSubscriber make you listen to every single produced block
 	AddSubscriber(BlockCreationSubscriber) error
 
@@ -627,6 +627,40 @@ func (bc *blockchain) SimulateExecution(caller address.Address, ex *action.Execu
 		IntrinsicGas:   0,
 	})
 	return evm.ExecuteContract(
+		ctx,
+		ws,
+		ex,
+		bc.dao.GetBlockHash,
+		config.NewHeightUpgrade(bc.config),
+	)
+}
+func (bc *blockchain) ExecuteContractReadHistory(caller address.Address, ex *action.Execution, hei uint64) ([]byte, *action.Receipt, error) {
+	// use latest block as carrier to run the offline execution
+	// the block itself is not used
+	header, err := bc.BlockHeaderByHeight(hei)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to get block in SimulateExecution")
+	}
+	ws, err := bc.sf.NewWorkingSet()
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to obtain working set from state factory")
+	}
+	producer, err := address.FromString(header.ProducerAddress())
+	if err != nil {
+		return nil, nil, err
+	}
+	gasLimit := bc.config.Genesis.BlockGasLimit
+	ctx := protocol.WithRunActionsCtx(context.Background(), protocol.RunActionsCtx{
+		BlockHeight:    header.Height(),
+		BlockTimeStamp: header.Timestamp(),
+		Producer:       producer,
+		Caller:         caller,
+		GasLimit:       gasLimit,
+		GasPrice:       big.NewInt(0),
+		IntrinsicGas:   0,
+	})
+	return evm.ExecuteContractRead(
+		bc,
 		ctx,
 		ws,
 		ex,

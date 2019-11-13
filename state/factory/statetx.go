@@ -221,37 +221,3 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	}
 	return ri.Insert(version, ss)
 }
-
-/*
-// delete history asynchronous,this will find all account that with version
-func (stx *stateTX) deleteHistory() error {
-	currentHeight := stx.ver + 1
-	if currentHeight <= stx.cfg.HistoryStateRetention {
-		return nil
-	}
-	deleteStartHeight := currentHeight - stx.cfg.HistoryStateRetention
-	go func() {
-		stx.deleting <- struct{}{}
-		// find all keys that with version
-		allKeys, err := stx.dao.GetBucketByPrefix([]byte(AccountKVNameSpace))
-		if err != nil {
-			log.L().Info("get prefix", zap.Error(err))
-			return
-		}
-		//chaindbCache := db.NewCachedBatch()
-		for _, key := range allKeys {
-			ri, err := stx.dao.CreateRangeIndexNX(key, db.NotExist)
-			if err != nil {
-				continue
-			}
-			err = ri.Purge(deleteStartHeight)
-			if err != nil {
-				continue
-			}
-		}
-		<-stx.deleting
-	}()
-	return nil
-}
-
-*/
