@@ -68,18 +68,18 @@ func DefaultStateDBOption() StateDBOption {
 }
 
 // DefaultHistoryDBOption creates default history state db from config
-func DefaultHistoryDBOption() StateDBOption {
-	return func(sdb *stateDB, cfg config.Config) error {
-		dbPath := cfg.Chain.HistoryDBPath
-		if len(dbPath) == 0 {
-			return errors.New("Invalid empty trie db path")
-		}
-		cfg.DB.DbPath = dbPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
-		sdb.dao = db.NewBoltDB(cfg.DB)
-		sdb.saveHistory = true
-		return nil
-	}
-}
+//func DefaultHistoryDBOption() StateDBOption {
+//	return func(sdb *stateDB, cfg config.Config) error {
+//		dbPath := cfg.Chain.HistoryDBPath
+//		if len(dbPath) == 0 {
+//			return errors.New("Invalid empty trie db path")
+//		}
+//		cfg.DB.DbPath = dbPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
+//		sdb.dao = db.NewBoltDB(cfg.DB)
+//		sdb.saveHistory = true
+//		return nil
+//	}
+//}
 
 // InMemStateDBOption creates in memory state db
 func InMemStateDBOption() StateDBOption {
