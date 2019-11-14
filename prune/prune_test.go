@@ -19,6 +19,6 @@ func TestNewPrune(t *testing.T) {
 	require := require.New(t)
 	p := NewPrune(config.Default, nil)
 	require.NoError(p.Start(context.Background()))
-	time.Sleep(20 * time.Second)
+	time.Sleep(50 * time.Second)
 	require.NoError(p.Stop(context.Background()))
 }
