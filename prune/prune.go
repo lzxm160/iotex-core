@@ -145,6 +145,7 @@ func (p *Prune) deleteHistoryForTrie(hei uint64, dao db.KVStore) error {
 		}
 		log.L().Info("deleteHeight", zap.Int("len(allKeys)", len(allKeys)), zap.Uint64("delete Height", i))
 		for _, key := range allKeys {
+			log.L().Info("////////////////delete trie History", zap.String("trie", hex.EncodeToString(key)))
 			triedbCache.Delete(factory.PruneKVNameSpace, key, "failed to delete key %x", key)
 			triedbCache.Delete(factory.ContractKVNameSpace, key[len(heightBytes):], "failed to delete key %x", key[len(heightBytes):])
 		}
