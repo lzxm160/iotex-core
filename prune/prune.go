@@ -70,7 +70,7 @@ func (p *Prune) Stop(ctx context.Context) error {
 }
 
 func (p *Prune) start() error {
-	d := time.Duration(900) * time.Second
+	d := time.Duration(1200) * time.Second
 	t := time.NewTicker(d)
 	defer t.Stop()
 	for {
