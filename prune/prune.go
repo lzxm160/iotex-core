@@ -111,7 +111,7 @@ func (p *Prune) prune() (err error) {
 	}
 	//chaindbCache := db.NewCachedBatch()
 	for _, key := range allKeys {
-		log.L().Info("////////////////delete account History", zap.String("account", hex.EncodeToString(key)))
+		log.L().Info("////////////////delete account History", zap.String("account", hex.EncodeToString(key)), zap.String("prefix", string(key[:len(factory.AccountKVNameSpace)])))
 		ri, err := ws.GetDB().CreateRangeIndexNX(key, db.NotExist)
 		if err != nil {
 			continue
