@@ -9,6 +9,7 @@ package prune
 import (
 	"context"
 	"encoding/binary"
+	"encoding/hex"
 	"time"
 
 	"github.com/pkg/errors"
@@ -69,7 +70,7 @@ func (p *Prune) Stop(ctx context.Context) error {
 }
 
 func (p *Prune) start() error {
-	d := time.Duration(1800) * time.Second
+	d := time.Duration(900) * time.Second
 	t := time.NewTicker(d)
 	defer t.Stop()
 	for {
@@ -110,6 +111,7 @@ func (p *Prune) prune() (err error) {
 	}
 	//chaindbCache := db.NewCachedBatch()
 	for _, key := range allKeys {
+		log.L().Info("////////////////delete account History", zap.String("account", hex.EncodeToString(key)))
 		ri, err := ws.GetDB().CreateRangeIndexNX(key, db.NotExist)
 		if err != nil {
 			continue
