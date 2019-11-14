@@ -10,6 +10,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/iotexproject/iotex-core/state/factory"
+
+	"github.com/iotexproject/iotex-core/blockchain"
+
+	"github.com/iotexproject/iotex-core/db"
+
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -35,12 +41,14 @@ type Prune struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	cfg    config.Config
+	bc     blockchain.Blockchain
 }
 
 // NewPrune creates a new server
-func NewPrune(cfg config.Config) Pruner {
+func NewPrune(cfg config.Config, bc blockchain.Blockchain) Pruner {
 	return &Prune{
 		cfg: cfg,
+		bc:  bc,
 	}
 }
 
@@ -69,13 +77,92 @@ func (p *Prune) start() error {
 	for {
 		select {
 		case <-t.C:
-			log.L().Info("start run :")
+			log.L().Info("Prune run ")
+			err := p.prune()
+			if err != nil {
+				log.L().Error("Prune run error", zap.Error(err))
+			}
+			time.Sleep(time.Second * 15)
 		case <-p.ctx.Done():
-			log.L().Info("exit :")
+			log.L().Info("Prune exit")
 			return nil
 		}
-
 	}
-
+}
+func (p *Prune) prune() error {
 	return nil
 }
+
+// delete history asynchronous,this will find all account that with version
+func (p *Prune) deleteHistory() (err error) {
+	log.L().Info("deleteHistory start")
+	if p.bc == nil {
+		return ErrInternalServer
+	}
+	currentHeight := p.bc.TipHeight()
+	if currentHeight <= p.cfg.DB.HistoryStateRetention {
+		return
+	}
+	deleteStartHeight := currentHeight - p.cfg.DB.HistoryStateRetention
+	dao := p.bc.Factory()
+	log.L().Info("////////////////deleteHistory", zap.Uint64("currentHeight", currentHeight), zap.Uint64("deleteStartHeight", deleteStartHeight))
+	// find all keys that with version
+	ws, err := dao.NewWorkingSet()
+	if err != nil {
+		return
+	}
+	allKeys, err := ws.GetDB().GetBucketByPrefix([]byte(factory.AccountKVNameSpace))
+	if err != nil {
+		log.L().Info("get prefix", zap.Error(err))
+		return
+	}
+	//chaindbCache := db.NewCachedBatch()
+	for _, key := range allKeys {
+		ri, err := ws.GetDB().CreateRangeIndexNX(key, db.NotExist)
+		if err != nil {
+			continue
+		}
+		err = ri.Purge(deleteStartHeight)
+		if err != nil {
+			continue
+		}
+	}
+	//	err = stx.deleteHistoryForTrie(deleteStartHeight)
+	//	if err != nil {
+	//		log.L().Error("deleteHistoryForTrie", zap.Error(err))
+	//	}
+	//	<-stx.deleting
+	//}()
+	return nil
+}
+
+// deleteHistoryForTrie delete account/state history asynchronous
+//func (p *Prune) deleteHistoryForTrie(hei uint64) error {
+//	deleteStartHeight := hei
+//	var deleteEndHeight uint64
+//	if deleteStartHeight <= CheckHistoryDeleteInterval {
+//		deleteEndHeight = 1
+//	} else {
+//		deleteEndHeight = deleteStartHeight - CheckHistoryDeleteInterval
+//	}
+//	log.L().Info("deleteHeight", zap.Uint64("deleteStartHeight", deleteStartHeight), zap.Uint64("endHeight", deleteEndHeight), zap.Uint64("height", hei), zap.Uint64("historystateheight", stx.cfg.HistoryStateRetention))
+//	triedbCache := db.NewCachedBatch()
+//	for i := deleteStartHeight; i >= deleteEndHeight; i-- {
+//		heightBytes := make([]byte, 8)
+//		binary.BigEndian.PutUint64(heightBytes, i)
+//		allKeys, err := stx.dao.GetKeyByPrefix([]byte(evm.PruneKVNameSpace), heightBytes)
+//		if err != nil {
+//			continue
+//		}
+//		log.L().Info("deleteHeight", zap.Int("len(allKeys)", len(allKeys)), zap.Uint64("delete Height", i))
+//		for _, key := range allKeys {
+//			triedbCache.Delete(string(evm.PruneKVNameSpace), key, "failed to delete key %x", key)
+//			triedbCache.Delete(evm.ContractKVNameSpace, key[len(heightBytes):], "failed to delete key %x", key[len(heightBytes):])
+//		}
+//	}
+//	// delete trie node
+//	if err := stx.dao.Commit(triedbCache); err != nil {
+//		return errors.Wrap(err, "failed to commit delete trie node")
+//	}
+//	return nil
+//}
