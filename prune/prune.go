@@ -30,7 +30,7 @@ type (
 	}
 )
 
-// Prune provides api for user to query blockchain data
+// Prune provides service to do prune
 type Prune struct {
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -44,19 +44,19 @@ func NewPrune(cfg config.Config) Pruner {
 	}
 }
 
-// Start starts the API server
+// Start starts the Prune server
 func (p *Prune) Start(ctx context.Context) error {
 	log.L().Info("Prune server is running.")
 	p.ctx, p.cancel = context.WithCancel(ctx)
-	go func() {
-		if err := p.start(); err != nil {
-			log.L().Fatal("Node failed to serve.", zap.Error(err))
-		}
-	}()
+	//go func() {
+	if err := p.start(); err != nil {
+		log.L().Fatal("Node failed to serve.", zap.Error(err))
+	}
+	//}()
 	return nil
 }
 
-// Stop stops the API server
+// Stop stops the Prune server
 func (p *Prune) Stop(ctx context.Context) error {
 	p.cancel()
 	return nil
