@@ -103,7 +103,9 @@ func (b *boltDB) GetBucketByPrefix(namespace []byte) ([][]byte, error) {
 	err := b.db.View(func(tx *bolt.Tx) error {
 		if err := tx.ForEach(func(name []byte, b *bolt.Bucket) error {
 			if bytes.HasPrefix(name, namespace) && !bytes.Equal(name, namespace) {
-				allKey = append(allKey, name)
+				temp := make([]byte, len(name))
+				copy(temp, name)
+				allKey = append(allKey, temp)
 			}
 			return nil
 		}); err != nil {
