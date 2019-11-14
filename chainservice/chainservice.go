@@ -37,6 +37,7 @@ import (
 	"github.com/iotexproject/iotex-core/dispatcher"
 	"github.com/iotexproject/iotex-core/p2p"
 	"github.com/iotexproject/iotex-core/pkg/log"
+	"github.com/iotexproject/iotex-core/prune"
 	"github.com/iotexproject/iotex-election/committee"
 )
 
@@ -52,6 +53,7 @@ type ChainService struct {
 	api          *api.Server
 	indexBuilder *blockdao.IndexBuilder
 	registry     *protocol.Registry
+	pruner       prune.Pruner
 }
 
 type optionParams struct {
@@ -245,6 +247,7 @@ func New(
 				actPool,
 			)
 	}
+	pruner := prune.NewPrune(cfg, chain)
 
 	cs := &ChainService{
 		actpool:           actPool,
@@ -256,6 +259,7 @@ func New(
 		indexBuilder:      indexBuilder,
 		api:               apiSvr,
 		registry:          &registry,
+		pruner:            pruner,
 	}
 	// Install protocols
 	if err := cs.registerDefaultProtocols(cfg); err != nil {
@@ -291,7 +295,11 @@ func (cs *ChainService) Start(ctx context.Context) error {
 			return errors.Wrap(err, "err when starting API server")
 		}
 	}
-
+	if cs.pruner != nil {
+		if err := cs.pruner.Start(ctx); err != nil {
+			return errors.Wrap(err, "err when starting pruner server")
+		}
+	}
 	return nil
 }
 

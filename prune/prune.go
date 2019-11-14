@@ -4,23 +4,21 @@
 // permitted by law, all liability for your use of the code is disclaimed. This source code is governed by Apache
 // License 2.0 that can be found in the LICENSE file.
 
-package api
+package prune
 
 import (
 	"context"
+	"encoding/binary"
 	"time"
-
-	"github.com/iotexproject/iotex-core/state/factory"
-
-	"github.com/iotexproject/iotex-core/blockchain"
-
-	"github.com/iotexproject/iotex-core/db"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
+	"github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/config"
+	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/pkg/log"
+	"github.com/iotexproject/iotex-core/state/factory"
 )
 
 var (
@@ -71,7 +69,7 @@ func (p *Prune) Stop(ctx context.Context) error {
 }
 
 func (p *Prune) start() error {
-	d := time.Duration(10) * time.Second
+	d := time.Duration(1800) * time.Second
 	t := time.NewTicker(d)
 	defer t.Stop()
 	for {
@@ -82,19 +80,13 @@ func (p *Prune) start() error {
 			if err != nil {
 				log.L().Error("Prune run error", zap.Error(err))
 			}
-			time.Sleep(time.Second * 15)
 		case <-p.ctx.Done():
 			log.L().Info("Prune exit")
 			return nil
 		}
 	}
 }
-func (p *Prune) prune() error {
-	return nil
-}
-
-// delete history asynchronous,this will find all account that with version
-func (p *Prune) deleteHistory() (err error) {
+func (p *Prune) prune() (err error) {
 	log.L().Info("deleteHistory start")
 	if p.bc == nil {
 		return ErrInternalServer
@@ -127,42 +119,37 @@ func (p *Prune) deleteHistory() (err error) {
 			continue
 		}
 	}
-	//	err = stx.deleteHistoryForTrie(deleteStartHeight)
-	//	if err != nil {
-	//		log.L().Error("deleteHistoryForTrie", zap.Error(err))
-	//	}
-	//	<-stx.deleting
-	//}()
-	return nil
+
+	return p.deleteHistoryForTrie(deleteStartHeight, ws.GetDB())
 }
 
 // deleteHistoryForTrie delete account/state history asynchronous
-//func (p *Prune) deleteHistoryForTrie(hei uint64) error {
-//	deleteStartHeight := hei
-//	var deleteEndHeight uint64
-//	if deleteStartHeight <= CheckHistoryDeleteInterval {
-//		deleteEndHeight = 1
-//	} else {
-//		deleteEndHeight = deleteStartHeight - CheckHistoryDeleteInterval
-//	}
-//	log.L().Info("deleteHeight", zap.Uint64("deleteStartHeight", deleteStartHeight), zap.Uint64("endHeight", deleteEndHeight), zap.Uint64("height", hei), zap.Uint64("historystateheight", stx.cfg.HistoryStateRetention))
-//	triedbCache := db.NewCachedBatch()
-//	for i := deleteStartHeight; i >= deleteEndHeight; i-- {
-//		heightBytes := make([]byte, 8)
-//		binary.BigEndian.PutUint64(heightBytes, i)
-//		allKeys, err := stx.dao.GetKeyByPrefix([]byte(evm.PruneKVNameSpace), heightBytes)
-//		if err != nil {
-//			continue
-//		}
-//		log.L().Info("deleteHeight", zap.Int("len(allKeys)", len(allKeys)), zap.Uint64("delete Height", i))
-//		for _, key := range allKeys {
-//			triedbCache.Delete(string(evm.PruneKVNameSpace), key, "failed to delete key %x", key)
-//			triedbCache.Delete(evm.ContractKVNameSpace, key[len(heightBytes):], "failed to delete key %x", key[len(heightBytes):])
-//		}
-//	}
-//	// delete trie node
-//	if err := stx.dao.Commit(triedbCache); err != nil {
-//		return errors.Wrap(err, "failed to commit delete trie node")
-//	}
-//	return nil
-//}
+func (p *Prune) deleteHistoryForTrie(hei uint64, dao db.KVStore) error {
+	deleteStartHeight := hei
+	var deleteEndHeight uint64
+	if deleteStartHeight <= p.cfg.DB.HistoryStateRetention {
+		deleteEndHeight = 1
+	} else {
+		deleteEndHeight = deleteStartHeight - p.cfg.DB.HistoryStateRetention
+	}
+	log.L().Info("deleteHeight", zap.Uint64("deleteStartHeight", deleteStartHeight), zap.Uint64("endHeight", deleteEndHeight), zap.Uint64("height", hei), zap.Uint64("historystateheight", p.cfg.DB.HistoryStateRetention))
+	triedbCache := db.NewCachedBatch()
+	for i := deleteStartHeight; i >= deleteEndHeight; i-- {
+		heightBytes := make([]byte, 8)
+		binary.BigEndian.PutUint64(heightBytes, i)
+		allKeys, err := dao.GetKeyByPrefix([]byte(factory.PruneKVNameSpace), heightBytes)
+		if err != nil {
+			continue
+		}
+		log.L().Info("deleteHeight", zap.Int("len(allKeys)", len(allKeys)), zap.Uint64("delete Height", i))
+		for _, key := range allKeys {
+			triedbCache.Delete(factory.PruneKVNameSpace, key, "failed to delete key %x", key)
+			triedbCache.Delete(factory.ContractKVNameSpace, key[len(heightBytes):], "failed to delete key %x", key[len(heightBytes):])
+		}
+	}
+	// delete trie node
+	if err := dao.Commit(triedbCache); err != nil {
+		return errors.Wrap(err, "failed to commit delete trie node")
+	}
+	return nil
+}

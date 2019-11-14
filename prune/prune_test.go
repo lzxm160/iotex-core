@@ -4,7 +4,7 @@
 // permitted by law, all liability for your use of the code is disclaimed. This source code is governed by Apache
 // License 2.0 that can be found in the LICENSE file.
 
-package api
+package prune
 
 import (
 	"context"
@@ -19,6 +19,6 @@ func TestNewPrune(t *testing.T) {
 	require := require.New(t)
 	p := NewPrune(config.Default, nil)
 	require.NoError(p.Start(context.Background()))
-	time.Sleep(50 * time.Second)
+	time.Sleep(15 * time.Second)
 	require.NoError(p.Stop(context.Background()))
 }
