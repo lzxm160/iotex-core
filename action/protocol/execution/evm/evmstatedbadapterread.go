@@ -20,7 +20,6 @@ import (
 
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
-	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/pkg/log"
@@ -31,24 +30,17 @@ import (
 type (
 	// StateDBAdapter represents the state db adapter for evm to access iotx blockchain
 	StateDBAdapterRead struct {
-		sf               factory.Factory
-		getBlockHash     GetBlockHash
-		sm               protocol.StateManager
-		logs             []*action.Log
-		err              error
-		blockHeight      uint64
-		executionHash    hash.Hash256
-		refund           uint64
-		cachedContract   contractMap
-		contractSnapshot map[int]contractMap   // snapshots of contracts
-		suicided         deleteAccount         // account/contract calling Suicide
-		suicideSnapshot  map[int]deleteAccount // snapshots of suicide accounts
-		preimages        preimageMap
-		preimageSnapshot map[int]preimageMap
-		dao              db.KVStore
-		cb               db.CachedBatch
-		hu               config.HeightUpgrade
-		saveHistory      bool
+		sf            factory.Factory
+		getBlockHash  GetBlockHash
+		sm            protocol.StateManager
+		logs          []*action.Log
+		err           error
+		blockHeight   uint64
+		executionHash hash.Hash256
+		dao           db.KVStore
+		cb            db.CachedBatch
+		hu            config.HeightUpgrade
+		saveHistory   bool
 	}
 )
 
@@ -73,6 +65,7 @@ func NewStateDBAdapterRead(
 		dao:           sm.GetDB(),
 		cb:            sm.GetCachedBatch(),
 		hu:            hu,
+		saveHistory:   true,
 	}
 	return s
 }
@@ -261,10 +254,16 @@ func (stateDB *StateDBAdapterRead) GetCommittedState(evmAddr common.Address, k c
 
 // GetState gets state
 func (stateDB *StateDBAdapterRead) GetState(evmAddr common.Address, k common.Hash) common.Hash {
-	addr := hash.BytesToHash160(evmAddr[:])
-	contract, err := stateDB.getContract(addr)
+	log.L().Info("StateDBAdapterRead Called GetState.")
+	codeHash := common.Hash{}
+	addr, err := address.FromBytes(evmAddr[:])
 	if err != nil {
-		log.L().Error("Failed to get contract.", zap.Error(err), log.Hex("addrHash", addr[:]))
+		log.L().Error("Failed to get contract.", zap.Error(err), zap.String("addrHash", addr.String()))
+		return codeHash
+	}
+	contract, err := stateDB.getContract(addr.String())
+	if err != nil {
+		log.L().Error("Failed to get contract.", zap.Error(err), zap.String("addr", addr.String()))
 		stateDB.logError(err)
 		return common.Hash{}
 	}
@@ -289,21 +288,22 @@ func (stateDB *StateDBAdapterRead) CommitContracts() error {
 }
 
 // getContract returns the contract of addr
-func (stateDB *StateDBAdapterRead) getContract(addr hash.Hash160) (Contract, error) {
+func (stateDB *StateDBAdapterRead) getContract(addr string) (Contract, error) {
 	return stateDB.getNewContract(addr)
 }
 
-func (stateDB *StateDBAdapterRead) getNewContract(addr hash.Hash160) (Contract, error) {
-	account, err := accountutil.LoadAccount(stateDB.sm, addr)
+func (stateDB *StateDBAdapterRead) getNewContract(addr string) (Contract, error) {
+	log.L().Info("StateDBAdapterRead Called getNewContract.")
+	account, err := stateDB.AccountState(addr)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load account state for address %x", addr)
+		return nil, errors.Wrapf(err, "failed to load account state for address %s", addr)
 	}
-	var contract Contract
-	if stateDB.saveHistory {
-		contract, err = newContract(addr, account, stateDB.dao, stateDB.cb, HistoryRetentionOption(stateDB.blockHeight))
-	} else {
-		contract, err = newContract(addr, account, stateDB.dao, stateDB.cb)
+	a, err := address.FromString(addr)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to load account state for address %s", addr)
 	}
+	contract, err := newContract(hash.Hash160b(a.Bytes()), account, stateDB.dao, stateDB.cb, HistoryRetentionOption(stateDB.blockHeight))
+
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create storage trie for new contract %x", addr)
 	}
