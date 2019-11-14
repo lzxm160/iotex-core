@@ -18,10 +18,10 @@ import (
 func TestNewPrune(t *testing.T) {
 	require := require.New(t)
 	p := NewPrune(config.Default)
-	go func() {
-		require.NoError(p.Start(context.Background()))
-	}()
+	//go func() {
+	require.NoError(p.Start(context.Background()))
+	//}()
 
-	time.Sleep(20)
+	time.Sleep(20 * time.Second)
 	require.NoError(p.Stop(context.Background()))
 }

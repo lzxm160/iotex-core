@@ -48,11 +48,11 @@ func NewPrune(cfg config.Config) Pruner {
 func (p *Prune) Start(ctx context.Context) error {
 	log.L().Info("Prune server is running.")
 	p.ctx, p.cancel = context.WithCancel(ctx)
-	//go func() {
-	if err := p.start(); err != nil {
-		log.L().Fatal("Node failed to serve.", zap.Error(err))
-	}
-	//}()
+	go func() {
+		if err := p.start(); err != nil {
+			log.L().Fatal("Node failed to serve.", zap.Error(err))
+		}
+	}()
 	return nil
 }
 
