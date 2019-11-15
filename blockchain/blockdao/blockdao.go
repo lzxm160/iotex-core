@@ -668,7 +668,7 @@ func (dao *blockDAO) putBlockForBlockdb(blk *block.Block) error {
 			receipts.Receipts = append(receipts.Receipts, r.ConvertToReceiptPb())
 		}
 		if receiptsBytes, err := proto.Marshal(&receipts); err == nil {
-			batchForBlock.Put(receiptsNS, byteutil.Uint64ToBytes(blkHeight), receiptsBytes, "failed to put receipts")
+			batchForBlock.Put(receiptsNS, byteutil.Uint64ToBytesBigEndian(blkHeight), receiptsBytes, "failed to put receipts")
 		} else {
 			log.L().Error("failed to serialize receipits for block", zap.Uint64("height", blkHeight))
 		}
@@ -691,7 +691,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 		return errors.Errorf("block %d already exist", blkHeight)
 	}
 	hash := blk.HashBlock()
-	heightValue := byteutil.Uint64ToBytes(blkHeight)
+	heightValue := byteutil.Uint64ToBytesBigEndian(blkHeight)
 	heightKey := append(heightPrefix, heightValue...)
 	batch := db.NewBatch()
 	hashKey := append(hashPrefix, hash[:]...)
@@ -702,6 +702,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to get top height")
 	}
+	log.L().Info("put block", zap.Uint64("blkHeight", blkHeight), zap.Uint64("tip height", byteutil.BytesToUint64BigEndian(tipHeight)))
 	if blkHeight > byteutil.BytesToUint64BigEndian(tipHeight) {
 		batch.Put(blockNS, topHeightKey, heightValue, "failed to put top height")
 		batch.Put(blockNS, topHashKey, hash[:], "failed to put top hash")
