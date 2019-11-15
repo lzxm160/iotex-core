@@ -686,10 +686,6 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 		return err
 	}
 	blkHeight := blk.Height()
-	h, err := dao.getBlockHash(blkHeight)
-	if h != hash.ZeroHash256 && err == nil {
-		return errors.Errorf("block %d already exist", blkHeight)
-	}
 	hash := blk.HashBlock()
 	heightValue := byteutil.Uint64ToBytes(blkHeight)
 	heightKey := append(heightPrefix, heightValue...)
