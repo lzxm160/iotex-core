@@ -31,19 +31,6 @@ import (
 	"github.com/iotexproject/iotex-core/state"
 )
 
-const (
-	// AccountKVNameSpace is the bucket name for account trie
-	AccountKVNameSpace = "Account"
-
-	// CandidateKVNameSpace is the bucket name for candidate data storage
-	CandidateKVNameSpace = "Candidate"
-
-	// CurrentHeightKey indicates the key of current factory height in underlying DB
-	CurrentHeightKey = "currentHeight"
-	// AccountTrieRootKey indicates the key of accountTrie root hash in underlying DB
-	AccountTrieRootKey = "accountTrieRoot"
-)
-
 type (
 	// Factory defines an interface for managing states
 	Factory interface {
@@ -72,6 +59,7 @@ type (
 		mutex              sync.RWMutex
 		cfg                config.Config
 		currentChainHeight uint64
+		saveHistory        bool
 		accountTrie        trie.Trie                // global state trie
 		dao                db.KVStore               // the underlying DB for account/contract storage
 		actionHandlers     []protocol.ActionHandler // the handlers to handle actions
@@ -102,6 +90,7 @@ func DefaultTrieOption() Option {
 		}
 		cfg.DB.DbPath = dbPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
 		sf.dao = db.NewBoltDB(cfg.DB)
+		sf.saveHistory = cfg.Chain.EnableHistoryStateDB
 		return nil
 	}
 }
@@ -127,13 +116,13 @@ func NewFactory(cfg config.Config, opts ...Option) (Factory, error) {
 			return nil, err
 		}
 	}
-	dbForTrie, err := db.NewKVStoreForTrie(AccountKVNameSpace, sf.dao)
+	dbForTrie, err := db.NewKVStoreForTrie(state.AccountKVNameSpace, state.PruneKVNameSpace, sf.dao)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create db for trie")
 	}
 	if sf.accountTrie, err = trie.NewTrie(
 		trie.KVStoreOption(dbForTrie),
-		trie.RootKeyOption(AccountTrieRootKey),
+		trie.RootKeyOption(state.AccountTrieRootKey),
 	); err != nil {
 		return nil, errors.Wrap(err, "failed to generate accountTrie from config")
 	}
@@ -159,12 +148,12 @@ func (sf *factory) Start(ctx context.Context) error {
 		return err
 	}
 	// check factory height
-	_, err := sf.dao.Get(AccountKVNameSpace, []byte(CurrentHeightKey))
+	_, err := sf.dao.Get(state.AccountKVNameSpace, []byte(state.CurrentHeightKey))
 	switch errors.Cause(err) {
 	case nil:
 		break
 	case db.ErrNotExist:
-		if err = sf.dao.Put(AccountKVNameSpace, []byte(CurrentHeightKey), byteutil.Uint64ToBytes(0)); err != nil {
+		if err = sf.dao.Put(state.AccountKVNameSpace, []byte(state.CurrentHeightKey), byteutil.Uint64ToBytes(0)); err != nil {
 			return errors.Wrap(err, "failed to init factory's height")
 		}
 		// init the state factory
@@ -283,7 +272,7 @@ func (sf *factory) RootHashByHeight(blockHeight uint64) (hash.Hash256, error) {
 	sf.mutex.RLock()
 	defer sf.mutex.RUnlock()
 
-	data, err := sf.dao.Get(AccountKVNameSpace, []byte(fmt.Sprintf("%s-%d", AccountTrieRootKey, blockHeight)))
+	data, err := sf.dao.Get(state.AccountKVNameSpace, []byte(fmt.Sprintf("%s-%d", state.AccountTrieRootKey, blockHeight)))
 	if err != nil {
 		return hash.ZeroHash256, err
 	}
@@ -296,7 +285,7 @@ func (sf *factory) RootHashByHeight(blockHeight uint64) (hash.Hash256, error) {
 func (sf *factory) Height() (uint64, error) {
 	sf.mutex.RLock()
 	defer sf.mutex.RUnlock()
-	height, err := sf.dao.Get(AccountKVNameSpace, []byte(CurrentHeightKey))
+	height, err := sf.dao.Get(state.AccountKVNameSpace, []byte(state.CurrentHeightKey))
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get factory's height from underlying DB")
 	}
@@ -306,7 +295,7 @@ func (sf *factory) Height() (uint64, error) {
 func (sf *factory) NewWorkingSet() (WorkingSet, error) {
 	sf.mutex.RLock()
 	defer sf.mutex.RUnlock()
-	return NewWorkingSet(sf.currentChainHeight, sf.dao, sf.rootHash(), sf.actionHandlers)
+	return newWorkingSet(sf.currentChainHeight, sf.dao, sf.rootHash(), sf.actionHandlers, sf.saveHistory)
 }
 
 // Commit persists all changes in RunActions() into the DB
@@ -427,7 +416,7 @@ func (sf *factory) initialize(ctx context.Context) error {
 		// not RunActionsCtx or no valid registry
 		return nil
 	}
-	ws, err := NewWorkingSet(sf.currentChainHeight, sf.dao, sf.rootHash(), sf.actionHandlers)
+	ws, err := newWorkingSet(sf.currentChainHeight, sf.dao, sf.rootHash(), sf.actionHandlers, sf.saveHistory)
 	if err != nil {
 		return errors.Wrap(err, "failed to obtain working set from state factory")
 	}

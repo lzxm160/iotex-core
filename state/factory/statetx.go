@@ -27,6 +27,7 @@ type stateTX struct {
 	cb             db.CachedBatch // cached batch for pending writes
 	dao            db.KVStore     // the underlying DB for account/contract storage
 	actionHandlers []protocol.ActionHandler
+	saveHistory    bool
 }
 
 // newStateTX creates a new state tx
@@ -34,12 +35,14 @@ func newStateTX(
 	version uint64,
 	kv db.KVStore,
 	actionHandlers []protocol.ActionHandler,
+	saveHistory bool,
 ) *stateTX {
 	return &stateTX{
 		ver:            version,
 		cb:             db.NewCachedBatch(),
 		dao:            kv,
 		actionHandlers: actionHandlers,
+		saveHistory:    saveHistory,
 	}
 }
 
@@ -47,13 +50,25 @@ func newStateTX(
 func (stx *stateTX) RootHash() hash.Hash256 { return hash.ZeroHash256 }
 
 // Digest returns the delta state digest
-func (stx *stateTX) Digest() hash.Hash256 { return stx.GetCachedBatch().Digest() }
+func (stx *stateTX) Digest() hash.Hash256 {
+	var cb db.KVStoreBatch
+	if stx.saveHistory {
+		// exclude trie pruning entries before calculating digest
+		cb = stx.cb.ExcludeEntries(state.PruneKVNameSpace, db.Put)
+	} else {
+		cb = stx.cb
+	}
+	return cb.Digest()
+}
 
 // Version returns the Version of this working set
 func (stx *stateTX) Version() uint64 { return stx.ver }
 
 // Height returns the Height of the block being worked on
 func (stx *stateTX) Height() uint64 { return stx.blkHeight }
+
+// History returns if the DB retains history
+func (stx *stateTX) History() bool { return stx.saveHistory }
 
 // RunActions runs actions in the block and track pending changes in working set
 func (stx *stateTX) RunActions(
@@ -124,7 +139,7 @@ func (stx *stateTX) UpdateBlockLevelInfo(blockHeight uint64) hash.Hash256 {
 	stx.blkHeight = blockHeight
 	// Persist current chain Height
 	h := byteutil.Uint64ToBytes(blockHeight)
-	stx.cb.Put(AccountKVNameSpace, []byte(CurrentHeightKey), h, "failed to store accountTrie's current Height")
+	stx.cb.Put(state.AccountKVNameSpace, []byte(state.CurrentHeightKey), h, "failed to store accountTrie's current Height")
 	return hash.ZeroHash256
 }
 
@@ -136,7 +151,14 @@ func (stx *stateTX) Revert(snapshot int) error { return stx.cb.Revert(snapshot) 
 func (stx *stateTX) Commit() error {
 	// Commit all changes in a batch
 	dbBatchSizelMtc.WithLabelValues().Set(float64(stx.cb.Size()))
-	if err := stx.dao.Commit(stx.cb); err != nil {
+	var cb db.KVStoreBatch
+	if stx.saveHistory {
+		// exclude trie deletion
+		cb = stx.cb.ExcludeEntries(state.ContractKVNameSpace, db.Delete)
+	} else {
+		cb = stx.cb
+	}
+	if err := stx.dao.Commit(cb); err != nil {
 		return errors.Wrap(err, "failed to Commit all changes to underlying DB in a batch")
 	}
 	return nil
@@ -155,9 +177,9 @@ func (stx *stateTX) GetCachedBatch() db.CachedBatch {
 // State pulls a state from DB
 func (stx *stateTX) State(hash hash.Hash160, s interface{}) error {
 	stateDBMtc.WithLabelValues("get").Inc()
-	mstate, err := stx.cb.Get(AccountKVNameSpace, hash[:])
+	mstate, err := stx.cb.Get(state.AccountKVNameSpace, hash[:])
 	if errors.Cause(err) == db.ErrNotExist {
-		if mstate, err = stx.dao.Get(AccountKVNameSpace, hash[:]); errors.Cause(err) == db.ErrNotExist {
+		if mstate, err = stx.dao.Get(state.AccountKVNameSpace, hash[:]); errors.Cause(err) == db.ErrNotExist {
 			return errors.Wrapf(state.ErrStateNotExist, "k = %x doesn't exist", hash)
 		}
 	}
@@ -177,12 +199,25 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to convert account %v to bytes", s)
 	}
-	stx.cb.Put(AccountKVNameSpace, pkHash[:], ss, "error when putting k = %x", pkHash)
+	stx.cb.Put(state.AccountKVNameSpace, pkHash[:], ss, "error when putting k = %x", pkHash)
+	if stx.saveHistory {
+		return stx.putIndex(pkHash, ss)
+	}
 	return nil
 }
 
 // DelState deletes a state from DB
 func (stx *stateTX) DelState(pkHash hash.Hash160) error {
-	stx.cb.Delete(AccountKVNameSpace, pkHash[:], "error when deleting k = %x", pkHash)
+	stx.cb.Delete(state.AccountKVNameSpace, pkHash[:], "error when deleting k = %x", pkHash)
 	return nil
+}
+
+func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
+	version := stx.ver + 1
+	ns := append([]byte(state.AccountKVNameSpace), pkHash[:]...)
+	ri, err := stx.dao.CreateRangeIndexNX(ns, db.NotExist)
+	if err != nil {
+		return err
+	}
+	return ri.Insert(version, ss)
 }

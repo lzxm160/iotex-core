@@ -10,6 +10,21 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	// AccountKVNameSpace is the bucket name for account trie
+	AccountKVNameSpace = "Account"
+	// CodeKVNameSpace is the bucket name for code
+	CodeKVNameSpace = "Code"
+	// ContractKVNameSpace is the bucket name for contract data storage
+	ContractKVNameSpace = "Contract"
+	// PruneKVNameSpace is the bucket name for entries to be pruned
+	PruneKVNameSpace = "cp"
+	// CurrentHeightKey indicates the key of current factory height in underlying DB
+	CurrentHeightKey = "currentHeight"
+	// AccountTrieRootKey indicates the key of accountTrie root hash in underlying DB
+	AccountTrieRootKey = "accountTrieRoot"
+)
+
 var (
 	// ErrStateSerialization is the error that the state marshaling is failed
 	ErrStateSerialization = errors.New("failed to marshal state")

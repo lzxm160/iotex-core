@@ -32,6 +32,7 @@ import (
 type stateDB struct {
 	mutex              sync.RWMutex
 	currentChainHeight uint64
+	saveHistory        bool
 	cfg                config.Config
 	dao                db.KVStore               // the underlying DB for account/contract storage
 	actionHandlers     []protocol.ActionHandler // the handlers to handle actions
@@ -61,6 +62,7 @@ func DefaultStateDBOption() StateDBOption {
 		}
 		cfg.DB.DbPath = dbPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
 		sdb.dao = db.NewBoltDB(cfg.DB)
+		sdb.saveHistory = cfg.Chain.EnableHistoryStateDB
 		return nil
 	}
 }
@@ -106,12 +108,12 @@ func (sdb *stateDB) Start(ctx context.Context) error {
 		return err
 	}
 	// check factory height
-	_, err := sdb.dao.Get(AccountKVNameSpace, []byte(CurrentHeightKey))
+	_, err := sdb.dao.Get(state.AccountKVNameSpace, []byte(state.CurrentHeightKey))
 	switch errors.Cause(err) {
 	case nil:
 		break
 	case db.ErrNotExist:
-		if err = sdb.dao.Put(AccountKVNameSpace, []byte(CurrentHeightKey), byteutil.Uint64ToBytes(0)); err != nil {
+		if err = sdb.dao.Put(state.AccountKVNameSpace, []byte(state.CurrentHeightKey), byteutil.Uint64ToBytes(0)); err != nil {
 			return errors.Wrap(err, "failed to init statedb's height")
 		}
 		// init the state factory
@@ -190,7 +192,7 @@ func (sdb *stateDB) RootHashByHeight(blockHeight uint64) (hash.Hash256, error) {
 func (sdb *stateDB) Height() (uint64, error) {
 	sdb.mutex.RLock()
 	defer sdb.mutex.RUnlock()
-	height, err := sdb.dao.Get(AccountKVNameSpace, []byte(CurrentHeightKey))
+	height, err := sdb.dao.Get(state.AccountKVNameSpace, []byte(state.CurrentHeightKey))
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get factory's height from underlying DB")
 	}
@@ -200,7 +202,7 @@ func (sdb *stateDB) Height() (uint64, error) {
 func (sdb *stateDB) NewWorkingSet() (WorkingSet, error) {
 	sdb.mutex.RLock()
 	defer sdb.mutex.RUnlock()
-	return newStateTX(sdb.currentChainHeight, sdb.dao, sdb.actionHandlers), nil
+	return newStateTX(sdb.currentChainHeight, sdb.dao, sdb.actionHandlers, sdb.saveHistory), nil
 }
 
 // Commit persists all changes in RunActions() into the DB
@@ -253,7 +255,7 @@ func (sdb *stateDB) State(addr hash.Hash160, state interface{}) error {
 //======================================
 
 func (sdb *stateDB) state(addr hash.Hash160, s interface{}) error {
-	data, err := sdb.dao.Get(AccountKVNameSpace, addr[:])
+	data, err := sdb.dao.Get(state.AccountKVNameSpace, addr[:])
 	if err != nil {
 		if errors.Cause(err) == db.ErrNotExist {
 			return errors.Wrapf(state.ErrStateNotExist, "state of %x doesn't exist", addr)
@@ -313,7 +315,7 @@ func (sdb *stateDB) initialize(ctx context.Context) error {
 		// not RunActionsCtx or no valid registry
 		return nil
 	}
-	ws := newStateTX(sdb.currentChainHeight, sdb.dao, sdb.actionHandlers)
+	ws := newStateTX(sdb.currentChainHeight, sdb.dao, sdb.actionHandlers, sdb.saveHistory)
 	if err := createGenesisStates(ctx, sdb.cfg, ws); err != nil {
 		return err
 	}

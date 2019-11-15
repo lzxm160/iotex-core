@@ -426,12 +426,12 @@ func testLoadStoreHeight(sf Factory, t *testing.T) {
 	ws, err := sf.NewWorkingSet()
 	require.NoError(err)
 	dao := ws.GetDB()
-	require.NoError(dao.Put(AccountKVNameSpace, []byte(CurrentHeightKey), byteutil.Uint64ToBytes(0)))
+	require.NoError(dao.Put(state.AccountKVNameSpace, []byte(state.CurrentHeightKey), byteutil.Uint64ToBytes(0)))
 	height, err := sf.Height()
 	require.NoError(err)
 	require.Equal(uint64(0), height)
 
-	require.NoError(dao.Put(AccountKVNameSpace, []byte(CurrentHeightKey), byteutil.Uint64ToBytes(10)))
+	require.NoError(dao.Put(state.AccountKVNameSpace, []byte(state.CurrentHeightKey), byteutil.Uint64ToBytes(10)))
 	height, err = sf.Height()
 	require.NoError(err)
 	require.Equal(uint64(10), height)
@@ -618,7 +618,11 @@ func TestCachedBatch(t *testing.T) {
 }
 
 func TestSTXCachedBatch(t *testing.T) {
-	ws := newStateTX(0, db.NewMemKVStore(), []protocol.ActionHandler{account.NewProtocol(config.NewHeightUpgrade(config.Default.Genesis))})
+	ws := newStateTX(
+		0,
+		db.NewMemKVStore(),
+		[]protocol.ActionHandler{account.NewProtocol(config.NewHeightUpgrade(config.Default.Genesis))},
+		false)
 	testCachedBatch(ws, t, true)
 }
 
@@ -668,7 +672,11 @@ func TestGetDB(t *testing.T) {
 }
 
 func TestSTXGetDB(t *testing.T) {
-	ws := newStateTX(0, db.NewMemKVStore(), []protocol.ActionHandler{account.NewProtocol(config.NewHeightUpgrade(config.Default.Genesis))})
+	ws := newStateTX(
+		0,
+		db.NewMemKVStore(),
+		[]protocol.ActionHandler{account.NewProtocol(config.NewHeightUpgrade(config.Default.Genesis))},
+		false)
 	testGetDB(ws, t)
 }
 
@@ -699,7 +707,7 @@ func TestDeleteAndPutSameKey(t *testing.T) {
 		testDeleteAndPutSameKey(t, ws)
 	})
 	t.Run("stateTx", func(t *testing.T) {
-		ws := newStateTX(0, db.NewMemKVStore(), nil)
+		ws := newStateTX(0, db.NewMemKVStore(), nil, false)
 		testDeleteAndPutSameKey(t, ws)
 	})
 }
