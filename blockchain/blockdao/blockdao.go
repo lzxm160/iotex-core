@@ -199,7 +199,7 @@ func (dao *blockDAO) adjust() error {
 	if err != nil {
 		return err
 	}
-	topHeightOfBlockDB := byteutil.BytesToUint64BigEndian(value)
+	topHeightOfBlockDB := enc.MachineEndian.Uint64(value)
 	log.L().Info("topheight", zap.Uint64("chaindb top height", topHeight), zap.Uint64("top height of block db", topHeightOfBlockDB))
 	if topHeight == topHeightOfBlockDB {
 		return nil
@@ -211,7 +211,7 @@ func (dao *blockDAO) adjust() error {
 func (dao *blockDAO) rebuild(from, to uint64, store db.KVStore) (err error) {
 	batch := db.NewBatch()
 	for i := from; i <= to; i++ {
-		heightValue := byteutil.Uint64ToBytesBigEndian(i)
+		heightValue := byteutil.Uint64ToBytes(i)
 		heightKey := append(heightPrefix, heightValue...)
 		hash, err := store.Get(blockHashHeightMappingNS, heightKey)
 		if err != nil {
@@ -568,7 +568,7 @@ func (dao *blockDAO) getTipHeight() (uint64, error) {
 	if len(value) == 0 {
 		return 0, errors.Wrap(db.ErrNotExist, "blockchain height missing")
 	}
-	return byteutil.BytesToUint64BigEndian(value), nil
+	return enc.MachineEndian.Uint64(value), nil
 }
 
 // getTipHash returns the blockchain tip hash
@@ -607,7 +607,7 @@ func (dao *blockDAO) getReceipts(blkHeight uint64) ([]*action.Receipt, error) {
 
 func (dao *blockDAO) putBlockForBlockdb(blk *block.Block) error {
 	blkHeight := blk.Height()
-	heightValue := byteutil.Uint64ToBytesBigEndian(blkHeight)
+	heightValue := byteutil.Uint64ToBytes(blkHeight)
 	h, err := dao.getBlockHash(blkHeight)
 	if h != hash.ZeroHash256 && err == nil {
 		return errors.Errorf("block %d already exist", blkHeight)
@@ -668,13 +668,13 @@ func (dao *blockDAO) putBlockForBlockdb(blk *block.Block) error {
 			receipts.Receipts = append(receipts.Receipts, r.ConvertToReceiptPb())
 		}
 		if receiptsBytes, err := proto.Marshal(&receipts); err == nil {
-			batchForBlock.Put(receiptsNS, byteutil.Uint64ToBytesBigEndian(blkHeight), receiptsBytes, "failed to put receipts")
+			batchForBlock.Put(receiptsNS, byteutil.Uint64ToBytes(blkHeight), receiptsBytes, "failed to put receipts")
 		} else {
 			log.L().Error("failed to serialize receipits for block", zap.Uint64("height", blkHeight))
 		}
 	}
 	tipHeight, _ := kv.Get(blockNS, topHeightKey)
-	if blkHeight > byteutil.BytesToUint64BigEndian(tipHeight) {
+	if blkHeight > enc.MachineEndian.Uint64(tipHeight) {
 		batchForBlock.Put(blockNS, topHeightKey, heightValue, "failed to put top height")
 	}
 	return kv.Commit(batchForBlock)
@@ -691,7 +691,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 		return errors.Errorf("block %d already exist", blkHeight)
 	}
 	hash := blk.HashBlock()
-	heightValue := byteutil.Uint64ToBytesBigEndian(blkHeight)
+	heightValue := byteutil.Uint64ToBytes(blkHeight)
 	heightKey := append(heightPrefix, heightValue...)
 	batch := db.NewBatch()
 	hashKey := append(hashPrefix, hash[:]...)
@@ -702,8 +702,8 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to get top height")
 	}
-	log.L().Info("put block", zap.Uint64("blkHeight", blkHeight), zap.Uint64("tip height", byteutil.BytesToUint64BigEndian(tipHeight)))
-	if blkHeight > byteutil.BytesToUint64BigEndian(tipHeight) {
+	log.L().Info("put block", zap.Uint64("blkHeight", blkHeight), zap.Uint64("tip height", enc.MachineEndian.Uint64(tipHeight)))
+	if blkHeight > enc.MachineEndian.Uint64(tipHeight) {
 		batch.Put(blockNS, topHeightKey, heightValue, "failed to put top height")
 		batch.Put(blockNS, topHashKey, hash[:], "failed to put top hash")
 	}
