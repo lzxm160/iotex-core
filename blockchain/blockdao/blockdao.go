@@ -673,8 +673,14 @@ func (dao *blockDAO) putBlockForBlockdb(blk *block.Block) error {
 			log.L().Error("failed to serialize receipits for block", zap.Uint64("height", blkHeight))
 		}
 	}
-	tipHeight, _ := kv.Get(blockNS, topHeightKey)
-	if blkHeight > enc.MachineEndian.Uint64(tipHeight) {
+	var tipHeight uint64
+	tipHeightValue, err := kv.Get(blockNS, topHeightKey)
+	if err != nil {
+		tipHeight = 0
+	} else {
+		tipHeight = enc.MachineEndian.Uint64(tipHeightValue)
+	}
+	if blkHeight > tipHeight {
 		batchForBlock.Put(blockNS, topHeightKey, heightValue, "failed to put top height")
 		batchForBlock.Put(blockNS, topHashKey, hash[:], "failed to put top hash")
 	}
