@@ -9,8 +9,8 @@ package db
 import (
 	"sync"
 
-	"github.com/pkg/errors"
 	"github.com/iotexproject/go-pkgs/hash"
+	"github.com/pkg/errors"
 )
 
 type (

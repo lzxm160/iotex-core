@@ -125,7 +125,9 @@ func (b *boltDB) GetKeyByPrefix(namespace, prefix []byte) ([][]byte, error) {
 		}
 		c := buck.Cursor()
 		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
-			allKey = append(allKey, k)
+			temp := make([]byte, len(k))
+			copy(temp, k)
+			allKey = append(allKey, temp)
 		}
 		return nil
 	})

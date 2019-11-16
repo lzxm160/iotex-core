@@ -61,8 +61,20 @@ type (
 		dao              db.KVStore
 		cb               db.CachedBatch
 		hu               config.HeightUpgrade
+		saveHistory      bool
 	}
 )
+
+// StateDBOption set StateDBAdapter construction param
+type StateDBOption func(*StateDBAdapter) error
+
+// SaveHistoryOption creates StateDBAdapter with history
+func SaveHistoryOption() StateDBOption {
+	return func(s *StateDBAdapter) error {
+		s.saveHistory = true
+		return nil
+	}
+}
 
 // NewStateDBAdapter creates a new state db with iotex blockchain
 func NewStateDBAdapter(
@@ -71,8 +83,9 @@ func NewStateDBAdapter(
 	hu config.HeightUpgrade,
 	blockHeight uint64,
 	executionHash hash.Hash256,
+	opts ...StateDBOption,
 ) *StateDBAdapter {
-	return &StateDBAdapter{
+	s := &StateDBAdapter{
 		getBlockHash:     getBlockHash,
 		sm:               sm,
 		logs:             []*action.Log{},
@@ -89,6 +102,12 @@ func NewStateDBAdapter(
 		cb:               sm.GetCachedBatch(),
 		hu:               hu,
 	}
+	for _, opt := range opts {
+		if err := opt(s); err != nil {
+			log.L().Panic("failed to execute stateDB creation option")
+		}
+	}
+	return s
 }
 
 func (stateDB *StateDBAdapter) logError(err error) {
@@ -525,7 +544,7 @@ func (stateDB *StateDBAdapter) GetCode(evmAddr common.Address) []byte {
 		log.L().Error("Failed to load account state for address.", log.Hex("addrHash", addr[:]))
 		return nil
 	}
-	code, err := stateDB.dao.Get(CodeKVNameSpace, account.CodeHash[:])
+	code, err := stateDB.dao.Get(state.CodeKVNameSpace, account.CodeHash[:])
 	if err != nil {
 		// TODO: Suppress the as it's too much now
 		//log.L().Error("Failed to get code from trie.", zap.Error(err))
@@ -694,7 +713,12 @@ func (stateDB *StateDBAdapter) getNewContract(addr hash.Hash160) (Contract, erro
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load account state for address %x", addr)
 	}
-	contract, err := newContract(addr, account, stateDB.dao, stateDB.cb)
+	var contract Contract
+	if stateDB.saveHistory {
+		contract, err = newContract(addr, account, stateDB.dao, stateDB.cb, HistoryRetentionOption(stateDB.blockHeight))
+	} else {
+		contract, err = newContract(addr, account, stateDB.dao, stateDB.cb)
+	}
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create storage trie for new contract %x", addr)
 	}

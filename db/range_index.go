@@ -97,12 +97,17 @@ func (r *rangeIndex) Insert(key uint64, value []byte) error {
 			k, v := cur.Seek(ak)
 			if !bytes.Equal(k, ak) {
 				// insert new key
-				bucket.Put(ak, v)
+				if err := bucket.Put(ak, v); err != nil {
+					return err
+				}
 			} else {
 				// update an existing key
 				k, _ = cur.Next()
 			}
-			return bucket.Put(k, value)
+			if k != nil {
+				return bucket.Put(k, value)
+			}
+			return nil
 		}); err == nil {
 			break
 		}
@@ -154,10 +159,15 @@ func (r *rangeIndex) Delete(key uint64) error {
 				// return nil if the key does not exist
 				return nil
 			}
-			bucket.Delete(ak)
+			if err := bucket.Delete(ak); err != nil {
+				return err
+			}
 			// write the corresponding value to next key
-			k, _ = cur.Seek(byteutil.Uint64ToBytesBigEndian(key))
-			return bucket.Put(k, v)
+			k, _ = cur.Next()
+			if k != nil {
+				return bucket.Put(k, v)
+			}
+			return nil
 		}); err == nil {
 			break
 		}
@@ -182,10 +192,15 @@ func (r *rangeIndex) Purge(key uint64) error {
 			nk, _ := cur.Seek(byteutil.Uint64ToBytesBigEndian(key))
 			// delete all keys before this key
 			for k, _ := cur.Prev(); k != nil; k, _ = cur.Prev() {
-				bucket.Delete(k)
+				if err := bucket.Delete(k); err != nil {
+					return err
+				}
 			}
 			// write not exist value to next key
-			return bucket.Put(nk, NotExist)
+			if nk != nil {
+				return bucket.Put(nk, NotExist)
+			}
+			return nil
 		}); err == nil {
 			break
 		}
