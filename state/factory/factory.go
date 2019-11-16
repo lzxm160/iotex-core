@@ -295,7 +295,7 @@ func (sf *factory) Height() (uint64, error) {
 func (sf *factory) NewWorkingSet() (WorkingSet, error) {
 	sf.mutex.RLock()
 	defer sf.mutex.RUnlock()
-	return newWorkingSet(sf.currentChainHeight, sf.dao, sf.rootHash(), sf.actionHandlers, sf.saveHistory)
+	return NewWorkingSet(sf.currentChainHeight, sf.dao, sf.rootHash(), sf.actionHandlers, sf.saveHistory)
 }
 
 // Commit persists all changes in RunActions() into the DB
@@ -416,7 +416,7 @@ func (sf *factory) initialize(ctx context.Context) error {
 		// not RunActionsCtx or no valid registry
 		return nil
 	}
-	ws, err := newWorkingSet(sf.currentChainHeight, sf.dao, sf.rootHash(), sf.actionHandlers, sf.saveHistory)
+	ws, err := NewWorkingSet(sf.currentChainHeight, sf.dao, sf.rootHash(), sf.actionHandlers, sf.saveHistory)
 	if err != nil {
 		return errors.Wrap(err, "failed to obtain working set from state factory")
 	}
