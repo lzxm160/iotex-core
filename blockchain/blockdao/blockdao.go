@@ -687,7 +687,7 @@ func (dao *blockDAO) putBlockForBlockdb(blk *block.Block) error {
 		tipHeight = enc.MachineEndian.Uint64(tipHeightValue)
 	}
 	if blkHeight > tipHeight {
-		batchForBlock.Put(blockNS, topHeightKey, heightValue, "failed to put top height")
+		batchForBlock.Put(blockNS, tipHeightKey, heightValue, "failed to put top height")
 		batchForBlock.Put(blockNS, topHashKey, hash[:], "failed to put top hash")
 	}
 	return kv.Commit(batchForBlock)
