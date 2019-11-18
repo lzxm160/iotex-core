@@ -869,10 +869,10 @@ func (dao *blockDAO) getBlockValue(blockNS string, h hash.Hash256) ([]byte, erro
 	}
 	value, err := whichDB.Get(blockNS, h[:])
 	if errors.Cause(err) == db.ErrNotExist {
-		idx := index - 1
-		if idx < 0 {
-			idx = 0
+		if index < 1 {
+			return nil, err
 		}
+		idx := index - 1
 		db, _, err := dao.getDBFromIndex(idx)
 		if err != nil {
 			return nil, err
