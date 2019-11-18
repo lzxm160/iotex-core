@@ -207,7 +207,7 @@ func (dao *blockDAO) adjust() error {
 	} else if tipHeight > topHeightOfBlockDB {
 		return ErrMissingBlock
 	}
-	return dao.revert(topHeight+1, topHeightOfBlockDB, topDB)
+	return dao.revert(tipHeight+1, topHeightOfBlockDB, topDB)
 }
 
 func (dao *blockDAO) revert(from, to uint64, store db.KVStore) (err error) {
