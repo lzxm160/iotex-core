@@ -785,7 +785,7 @@ func (dao *blockDAO) getDBFromHash(h hash.Hash256) (db.KVStore, uint64, error) {
 }
 
 func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint64, err error) {
-	if dao.cfg.SplitDBSizeMB == 0 || blkHeight < dao.cfg.SplitDBHeight {
+	if dao.cfg.SplitDBSizeMB == 0 || blkHeight <= dao.cfg.SplitDBHeight {
 		return dao.kvstore, 0, nil
 	}
 	topIndex := dao.topIndex.Load().(uint64)
