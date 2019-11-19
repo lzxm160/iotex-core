@@ -225,6 +225,7 @@ func runExecution(
 	if err != nil {
 		return nil, nil, err
 	}
+	fmt.Println("where")
 	if ecfg.ReadOnly { // read
 		addr, err := address.FromBytes(ecfg.PrivateKey().PublicKey().Hash())
 		if err != nil {
@@ -232,6 +233,7 @@ func runExecution(
 		}
 		return bc.SimulateExecution(addr, exec)
 	}
+	fmt.Println("where2")
 	builder := &action.EnvelopeBuilder{}
 	elp := builder.SetAction(exec).
 		SetNonce(exec.Nonce()).
@@ -242,6 +244,7 @@ func runExecution(
 	if err != nil {
 		return nil, nil, err
 	}
+	fmt.Println("where3")
 	actionMap := make(map[string][]action.SealedEnvelope)
 	actionMap[ecfg.Executor().String()] = []action.SealedEnvelope{selp}
 	blk, err := bc.MintNewBlock(
@@ -251,6 +254,7 @@ func runExecution(
 	if err != nil {
 		return nil, nil, err
 	}
+	fmt.Println("where4")
 	t := time.Now()
 	if err := bc.ValidateBlock(blk); err != nil {
 		return nil, nil, err
