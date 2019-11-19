@@ -612,12 +612,9 @@ func (dao *blockDAO) putBlockForBlockdb(blk *block.Block) error {
 	if h != hash.ZeroHash256 && err == nil {
 		return errors.Errorf("block %d already exist", blkHeight)
 	}
-	kv, index, err := dao.getTopDB(blkHeight)
+	kv, _, err := dao.getTopDB(blkHeight)
 	if err != nil {
 		return err
-	}
-	if index == 0 {
-		kv = dao.kvstore
 	}
 	batchForBlock := db.NewBatch()
 	_, err = kv.Get(blockNS, startHeightKey)
