@@ -190,6 +190,9 @@ func (dao *blockDAO) adjust() error {
 	if err != nil {
 		return err
 	}
+	if tipHeight == 0 {
+		return nil
+	}
 	topDB, _, err := dao.getTopDB(tipHeight)
 	if err != nil {
 		return err
