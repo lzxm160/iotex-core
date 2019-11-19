@@ -707,6 +707,9 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 	//	return dao.kvstore, 0, nil
 	//}
 	//if dao.cfg.SplitDBSizeMB == 0 using chain-00000000.db
+	if dao.cfg.SplitDBSizeMB == 0 {
+		return dao.openDB(0)
+	}
 	topIndex := dao.topIndex.Load().(uint64)
 	file, dir := getFileNameAndDir(dao.cfg.DbPath)
 	if err != nil {
