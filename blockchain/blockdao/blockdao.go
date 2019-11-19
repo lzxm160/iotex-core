@@ -707,9 +707,6 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 	//	return dao.kvstore, 0, nil
 	//}
 	//if dao.cfg.SplitDBSizeMB == 0 using chain-00000000.db
-	if dao.cfg.SplitDBSizeMB == 0 {
-		return dao.openDB(0)
-	}
 	topIndex := dao.topIndex.Load().(uint64)
 	file, dir := getFileNameAndDir(dao.cfg.DbPath)
 	if err != nil {
@@ -730,11 +727,11 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 		return
 	}
 	// file exists,but need create new db
-	if uint64(dat.Size()) > dao.cfg.SplitDBSize() {
+	if dao.cfg.SplitDBSizeMB != 0 && uint64(dat.Size()) > dao.cfg.SplitDBSize() {
 		kvstore, index, err = dao.openDB(topIndex + 1)
 		dao.topIndex.Store(index)
 		// index the height --> file index mapping
-		err = dao.IndexFile(blkHeight, byteutil.Uint64ToBytesBigEndian(topIndex))
+		err = dao.IndexFile(blkHeight, byteutil.Uint64ToBytesBigEndian(index))
 		return
 	}
 	// db exist,need load from kvstores
