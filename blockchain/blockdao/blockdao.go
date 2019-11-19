@@ -119,7 +119,7 @@ type (
 		kvstore       db.KVStore
 		indexer       BlockIndexer
 		htf           db.RangeIndex
-		kvstores      sync.Map //store like map[index]db.KVStore,index from 1...N
+		kvstores      sync.Map //store like map[index]db.KVStore,index from 0 1...N
 		topIndex      atomic.Value
 		timerFactory  *prometheustimer.TimerFactory
 		lifecycle     lifecycle.Lifecycle
@@ -200,9 +200,6 @@ func (dao *blockDAO) initStores() error {
 		if uint64(n) > maxN {
 			maxN = uint64(n)
 		}
-	}
-	if maxN == 0 {
-		maxN = 1
 	}
 	dao.topIndex.Store(maxN)
 	return nil
@@ -706,9 +703,10 @@ func (dao *blockDAO) getDBFromHash(h hash.Hash256) (db.KVStore, uint64, error) {
 }
 
 func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint64, err error) {
-	if dao.cfg.SplitDBSizeMB == 0 || blkHeight <= dao.cfg.SplitDBHeight {
-		return dao.kvstore, 0, nil
-	}
+	//if dao.cfg.SplitDBSizeMB == 0 || blkHeight <= dao.cfg.SplitDBHeight {
+	//	return dao.kvstore, 0, nil
+	//}
+	//if dao.cfg.SplitDBSizeMB == 0 using chain-00000000.db
 	topIndex := dao.topIndex.Load().(uint64)
 	file, dir := getFileNameAndDir(dao.cfg.DbPath)
 	if err != nil {
@@ -751,12 +749,12 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 }
 
 func (dao *blockDAO) getDBFromHeight(blkHeight uint64) (kvstore db.KVStore, index uint64, err error) {
-	if dao.cfg.SplitDBSizeMB == 0 {
-		return dao.kvstore, 0, nil
-	}
-	if blkHeight <= dao.cfg.SplitDBHeight {
-		return dao.kvstore, 0, nil
-	}
+	//if dao.cfg.SplitDBSizeMB == 0 {
+	//	return dao.kvstore, 0, nil
+	//}
+	//if blkHeight <= dao.cfg.SplitDBHeight {
+	//	return dao.kvstore, 0, nil
+	//}
 	// get file index
 	value, err := dao.GetFileIndex(blkHeight)
 	if err != nil {
@@ -766,9 +764,9 @@ func (dao *blockDAO) getDBFromHeight(blkHeight uint64) (kvstore db.KVStore, inde
 }
 
 func (dao *blockDAO) getDBFromIndex(idx uint64) (kvstore db.KVStore, index uint64, err error) {
-	if idx == 0 {
-		return dao.kvstore, 0, nil
-	}
+	//if idx == 0 {
+	//	return dao.kvstore, 0, nil
+	//}
 	kv, ok := dao.kvstores.Load(idx)
 	if ok {
 		kvstore, ok = kv.(db.KVStore)
@@ -808,9 +806,9 @@ func (dao *blockDAO) getBlockValue(blockNS string, h hash.Hash256) ([]byte, erro
 
 // openDB open file if exists, or create new file
 func (dao *blockDAO) openDB(idx uint64) (kvstore db.KVStore, index uint64, err error) {
-	if idx == 0 {
-		return dao.kvstore, 0, nil
-	}
+	//if idx == 0 {
+	//	return dao.kvstore, 0, nil
+	//}
 	dao.mutex.Lock()
 	defer dao.mutex.Unlock()
 	cfg := dao.cfg
