@@ -342,6 +342,7 @@ func (sct *SmartContractTest) deployContracts(
 			contract.ContractAddressToAppend = contractAddresses[contract.ContractIndexToAppend]
 		}
 		_, receipt, err := runExecution(bc, dao, &contract, action.EmptyAddress)
+		log.L().Error("err", zap.Error(err))
 		r.NoError(err)
 		r.NotNil(receipt)
 		if sct.InitGenesis.IsBering {
