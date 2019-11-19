@@ -210,10 +210,12 @@ func runExecution(
 	contractAddr string,
 ) ([]byte, *action.Receipt, error) {
 	log.S().Info(ecfg.Comment)
+	fmt.Println("where0")
 	nonce, err := bc.Factory().Nonce(ecfg.Executor().String())
 	if err != nil {
 		return nil, nil, err
 	}
+	fmt.Println("where1")
 	exec, err := action.NewExecution(
 		contractAddr,
 		nonce+1,
