@@ -121,9 +121,7 @@ func prepareBlockchain(
 	a, err := accountutil.LoadOrCreateAccount(ws, executor, balance)
 	r.NoError(err)
 	fmt.Println("a.Balance:", a.Balance)
-	balanceBeforeTransfer, err := bc.Factory().Balance(executor)
-	r.NoError(err)
-	fmt.Println("balanceBeforeTransfer:", balanceBeforeTransfer)
+
 	ctx = protocol.WithRunActionsCtx(ctx,
 		protocol.RunActionsCtx{
 			Producer: identityset.Address(27),
@@ -133,6 +131,9 @@ func prepareBlockchain(
 	_, err = ws.RunActions(ctx, 0, nil)
 	r.NoError(err)
 	r.NoError(sf.Commit(ws))
+	balanceBeforeTransfer, err := bc.Factory().Balance(executor)
+	r.NoError(err)
+	fmt.Println("balanceBeforeTransfer:", balanceBeforeTransfer)
 	return bc
 }
 
