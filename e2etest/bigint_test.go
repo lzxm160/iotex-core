@@ -8,11 +8,15 @@ package e2etest
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"io/ioutil"
 	"math/big"
 	"os"
 	"testing"
+
+	"github.com/iotexproject/iotex-core/blockchain/genesis"
+	"github.com/iotexproject/iotex-core/config"
 
 	"github.com/iotexproject/iotex-core/action/protocol/poll"
 
@@ -45,7 +49,13 @@ const (
 func TestTransfer_Negative(t *testing.T) {
 	r := require.New(t)
 	ctx := context.Background()
-	bc := prepareBlockchain(ctx, executor, r)
+	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+
+	cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(27),
+		4689, 14014, uint64(24))
+	bc := prepareBlockchain(cfg, executor, r)
 	r.NotNil(bc)
 	defer r.NoError(bc.Stop(ctx))
 	sf := bc.Factory()
@@ -65,7 +75,13 @@ func TestTransfer_Negative(t *testing.T) {
 func TestAction_Negative(t *testing.T) {
 	r := require.New(t)
 	ctx := context.Background()
-	bc := prepareBlockchain(ctx, executor, r)
+	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+
+	cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(27),
+		4689, 14014, uint64(24))
+	bc := prepareBlockchain(cfg, executor, r)
 	defer r.NoError(bc.Stop(ctx))
 	balanceBeforeTransfer, err := bc.Factory().Balance(executor)
 	r.NoError(err)
@@ -81,23 +97,72 @@ func TestAction_Negative(t *testing.T) {
 	r.Equal(-1, balance.Cmp(balanceBeforeTransfer))
 }
 
-func prepareBlockchain(
-	ctx context.Context, executor string, r *require.Assertions) blockchain.Blockchain {
-	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
-	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
-	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
-
-	cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(27),
-		4689, 14014, uint64(24))
-	registry := protocol.Registry{}
-	acc := account.NewProtocol()
-	r.NoError(registry.Register(account.ProtocolID, acc))
-	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-	r.NoError(registry.Register(rolldpos.ProtocolID, rp))
+//func prepareBlockchain(
+//	ctx context.Context, executor string, r *require.Assertions) blockchain.Blockchain {
+//	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+//	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+//	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+//
+//	cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(27),
+//		4689, 14014, uint64(24))
+//	registry := protocol.Registry{}
+//	acc := account.NewProtocol()
+//	r.NoError(registry.Register(account.ProtocolID, acc))
+//	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+//	r.NoError(registry.Register(rolldpos.ProtocolID, rp))
+//	dbConfig := cfg.DB
+//	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
+//	r.NoError(err)
+//	r.NotNil(sf)
+//	// create indexer
+//	dbConfig.DbPath = cfg.Chain.IndexDBPath
+//	indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg.Genesis.Hash())
+//	r.NoError(err)
+//	// create BlockDAO
+//	dbConfig.DbPath = cfg.Chain.ChainDBPath
+//	dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg.Chain.CompressBlock, dbConfig)
+//	r.NotNil(dao)
+//	bc := blockchain.NewBlockchain(
+//		cfg,
+//		dao,
+//		blockchain.PrecreatedStateFactoryOption(sf),
+//		blockchain.RegistryOption(&registry),
+//	)
+//	r.NotNil(bc)
+//	reward := rewarding.NewProtocol(bc, rp)
+//	r.NoError(registry.Register(rewarding.ProtocolID, reward))
+//	p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
+//	r.NoError(registry.Register(poll.ProtocolID, p))
+//	evm := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
+//	r.NoError(registry.Register(execution.ProtocolID, evm))
+//	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
+//	bc.Validator().AddActionValidators(acc, evm, reward, p)
+//
+//	sf.AddActionHandlers(acc, evm, reward, p)
+//	r.NoError(bc.Start(ctx))
+//	r.NoError(addProducerToFactory(bc.Factory()))
+//	//ws, err := bc.Factory().NewWorkingSet()
+//	//r.NoError(err)
+//	//balance, ok := new(big.Int).SetString("1000000000000000000000000000", 10)
+//	//r.True(ok)
+//	//_, err = accountutil.LoadOrCreateAccount(ws, executor, balance)
+//	//r.NoError(err)
+//	//ctx = protocol.WithRunActionsCtx(ctx,
+//	//	protocol.RunActionsCtx{
+//	//		Producer: identityset.Address(27),
+//	//		GasLimit: uint64(10000000),
+//	//		Genesis:  cfg.Genesis,
+//	//	})
+//	//_, err = ws.RunActions(ctx, 0, nil)
+//	//r.NoError(err)
+//	//r.NoError(sf.Commit(ws))
+//	return bc
+//}
+func prepareBlockchain(cfg config.Config, executor string, r *require.Assertions) blockchain.Blockchain {
 	dbConfig := cfg.DB
+	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
 	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
 	r.NoError(err)
-	r.NotNil(sf)
 	// create indexer
 	dbConfig.DbPath = cfg.Chain.IndexDBPath
 	indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg.Genesis.Hash())
@@ -106,6 +171,8 @@ func prepareBlockchain(
 	dbConfig.DbPath = cfg.Chain.ChainDBPath
 	dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg.Chain.CompressBlock, dbConfig)
 	r.NotNil(dao)
+	// create chain
+	registry := protocol.Registry{}
 	bc := blockchain.NewBlockchain(
 		cfg,
 		dao,
@@ -113,36 +180,35 @@ func prepareBlockchain(
 		blockchain.RegistryOption(&registry),
 	)
 	r.NotNil(bc)
-	reward := rewarding.NewProtocol(bc, rp)
-	r.NoError(registry.Register(rewarding.ProtocolID, reward))
-	p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
-	r.NoError(registry.Register(poll.ProtocolID, p))
-	evm := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
-	r.NoError(registry.Register(execution.ProtocolID, evm))
-	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
-	bc.Validator().AddActionValidators(acc, evm, reward, p)
+	defer func() {
+		delete(cfg.Plugins, config.GatewayPlugin)
+	}()
 
-	sf.AddActionHandlers(acc, evm, reward, p)
-	r.NoError(bc.Start(ctx))
+	acc := account.NewProtocol()
+	evm := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
+	p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
+	rolldposProtocol := rolldpos.NewProtocol(
+		genesis.Default.NumCandidateDelegates,
+		genesis.Default.NumDelegates,
+		genesis.Default.NumSubEpochs,
+		rolldpos.EnableDardanellesSubEpoch(cfg.Genesis.DardanellesBlockHeight, cfg.Genesis.DardanellesNumSubEpochs),
+	)
+	rp := rewarding.NewProtocol(bc, rolldposProtocol)
+
+	r.NoError(registry.Register(rolldpos.ProtocolID, rolldposProtocol))
+	r.NoError(registry.Register(account.ProtocolID, acc))
+	r.NoError(registry.Register(execution.ProtocolID, evm))
+	r.NoError(registry.Register(rewarding.ProtocolID, rp))
+	r.NoError(registry.Register(poll.ProtocolID, p))
+	sf.AddActionHandlers(acc, evm, rp)
+	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
+	bc.Validator().AddActionValidators(acc, evm, rp)
+	r.NoError(bc.Start(context.Background()))
+
+	// Create state for producer
 	r.NoError(addProducerToFactory(bc.Factory()))
-	//ws, err := bc.Factory().NewWorkingSet()
-	//r.NoError(err)
-	//balance, ok := new(big.Int).SetString("1000000000000000000000000000", 10)
-	//r.True(ok)
-	//_, err = accountutil.LoadOrCreateAccount(ws, executor, balance)
-	//r.NoError(err)
-	//ctx = protocol.WithRunActionsCtx(ctx,
-	//	protocol.RunActionsCtx{
-	//		Producer: identityset.Address(27),
-	//		GasLimit: uint64(10000000),
-	//		Genesis:  cfg.Genesis,
-	//	})
-	//_, err = ws.RunActions(ctx, 0, nil)
-	//r.NoError(err)
-	//r.NoError(sf.Commit(ws))
 	return bc
 }
-
 func prepareTransfer(bc blockchain.Blockchain, r *require.Assertions) (*block.Block, error) {
 	exec, err := action.NewTransfer(1, big.NewInt(-10000), recipient, nil, uint64(1000000), big.NewInt(9000000000000))
 	r.NoError(err)
