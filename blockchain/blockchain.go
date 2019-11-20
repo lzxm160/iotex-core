@@ -8,6 +8,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"os"
 	"strconv"
@@ -312,6 +313,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 		BlockTimeStamp: time.Unix(bc.config.Genesis.Timestamp, 0),
 		Registry:       bc.registry,
 	})
+	fmt.Println(bc.config)
 	if err := bc.lifecycle.OnStart(ctx); err != nil {
 		return err
 	}
