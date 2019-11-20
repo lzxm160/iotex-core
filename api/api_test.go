@@ -58,7 +58,7 @@ const lld = "lifeLongDelegates"
 
 var (
 	testTransfer, _ = testutil.SignedTransfer(identityset.Address(28).String(),
-		identityset.PrivateKey(28)iotex-core #, 3, big.NewInt(10), []byte{}, testutil.TestGasLimit,
+		identityset.PrivateKey(28), 3, big.NewInt(10), []byte{}, testutil.TestGasLimit,
 		big.NewInt(testutil.TestGasPriceInt64))
 
 	testTransferHash = testTransfer.Hash()
