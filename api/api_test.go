@@ -1858,7 +1858,7 @@ func newConfig() config.Config {
 	cfg.Chain.IndexDBPath = testIndexPath
 	cfg.Consensus.RollDPoS.ConsensusDBPath = testConsensusFile.Name()
 	cfg.Chain.EnableAsyncIndexWrite = false
-	cfg.Genesis.EnableGravityChainVoting = false
+	cfg.Genesis.EnableGravityChainVoting = true
 	cfg.ActPool.MinGasPriceStr = "0"
 	cfg.API.RangeQueryLimit = 100
 
