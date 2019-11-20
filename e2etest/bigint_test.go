@@ -8,6 +8,7 @@ package e2etest
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -119,9 +120,9 @@ func prepareBlockchain(
 	r.NoError(err)
 	balance, ok := new(big.Int).SetString("1000000000000000000000000000", 10)
 	r.True(ok)
-	_, err = accountutil.LoadOrCreateAccount(ws, executor, balance)
+	a, err := accountutil.LoadOrCreateAccount(ws, executor, balance)
 	r.NoError(err)
-
+	fmt.Println(a.Balance)
 	ctx = protocol.WithRunActionsCtx(ctx,
 		protocol.RunActionsCtx{
 			Producer: identityset.Address(27),
