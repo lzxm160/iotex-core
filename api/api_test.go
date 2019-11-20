@@ -1778,7 +1778,7 @@ func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, bl
 	}
 	// create BlockDAO
 	dbConfig.DbPath = cfg.Chain.ChainDBPath
-	dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg.Chain.CompressBlock, cfg.DB)
+	dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg.Chain.CompressBlock, dbConfig)
 	if dao == nil {
 		return nil, nil, nil, nil, errors.New("failed to create blockdao")
 	}
