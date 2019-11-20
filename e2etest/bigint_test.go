@@ -8,18 +8,14 @@ package e2etest
 
 import (
 	"context"
-	"errors"
 	"io/ioutil"
 	"math/big"
 	"os"
 	"testing"
 
-	"github.com/iotexproject/iotex-address/address"
-
-	"github.com/iotexproject/iotex-core/blockchain/genesis"
-	"github.com/iotexproject/iotex-core/config"
-
-	"github.com/iotexproject/iotex-core/action/protocol/poll"
+	"github.com/iotexproject/iotex-core/blockchain/blockdao"
+	"github.com/iotexproject/iotex-core/blockindex"
+	"github.com/iotexproject/iotex-core/state/factory"
 
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/stretchr/testify/require"
@@ -27,16 +23,15 @@ import (
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	"github.com/iotexproject/iotex-core/action/protocol/account/util"
+	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/blockchain/block"
-	"github.com/iotexproject/iotex-core/blockchain/blockdao"
-	"github.com/iotexproject/iotex-core/blockindex"
+	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
-	"github.com/iotexproject/iotex-core/state/factory"
+	"github.com/iotexproject/iotex-core/test/identityset"
 	"github.com/iotexproject/iotex-core/testutil"
 )
 
@@ -49,20 +44,9 @@ const (
 func TestTransfer_Negative(t *testing.T) {
 	r := require.New(t)
 	ctx := context.Background()
-	//testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
-	//testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
-	//testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
-
-	//cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(27),
-	//	//	4689, 14014, uint64(24))
-	//	//cfg.Chain.CompressBlock = false
-	cfg := newConfig2()
-	bc := prepareBlockchain(cfg, r)
-	r.NotNil(bc)
+	bc := prepareBlockchain(ctx, executor, r)
 	defer r.NoError(bc.Stop(ctx))
-	sf := bc.Factory()
-	r.NotNil(sf)
-	balanceBeforeTransfer, err := sf.Balance(executor)
+	balanceBeforeTransfer, err := bc.Factory().Balance(executor)
 	r.NoError(err)
 	blk, err := prepareTransfer(bc, r)
 	r.NoError(err)
@@ -77,15 +61,7 @@ func TestTransfer_Negative(t *testing.T) {
 func TestAction_Negative(t *testing.T) {
 	r := require.New(t)
 	ctx := context.Background()
-	//testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
-	//testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
-	//testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
-	//
-	//cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(27),
-	//	4689, 14014, uint64(24))
-	//cfg.Chain.CompressBlock = false
-	cfg := newConfig2()
-	bc := prepareBlockchain(cfg, r)
+	bc := prepareBlockchain(ctx, executor, r)
 	defer r.NoError(bc.Stop(ctx))
 	balanceBeforeTransfer, err := bc.Factory().Balance(executor)
 	r.NoError(err)
@@ -101,73 +77,19 @@ func TestAction_Negative(t *testing.T) {
 	r.Equal(-1, balance.Cmp(balanceBeforeTransfer))
 }
 
-//func prepareBlockchain(
-//	ctx context.Context, executor string, r *require.Assertions) blockchain.Blockchain {
-//	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
-//	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
-//	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
-//
-//	cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(27),
-//		4689, 14014, uint64(24))
-//	registry := protocol.Registry{}
-//	acc := account.NewProtocol()
-//	r.NoError(registry.Register(account.ProtocolID, acc))
-//	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-//	r.NoError(registry.Register(rolldpos.ProtocolID, rp))
-//	dbConfig := cfg.DB
-//	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
-//	r.NoError(err)
-//	r.NotNil(sf)
-//	// create indexer
-//	dbConfig.DbPath = cfg.Chain.IndexDBPath
-//	indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg.Genesis.Hash())
-//	r.NoError(err)
-//	// create BlockDAO
-//	dbConfig.DbPath = cfg.Chain.ChainDBPath
-//	dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg.Chain.CompressBlock, dbConfig)
-//	r.NotNil(dao)
-//	bc := blockchain.NewBlockchain(
-//		cfg,
-//		dao,
-//		blockchain.PrecreatedStateFactoryOption(sf),
-//		blockchain.RegistryOption(&registry),
-//	)
-//	r.NotNil(bc)
-//	reward := rewarding.NewProtocol(bc, rp)
-//	r.NoError(registry.Register(rewarding.ProtocolID, reward))
-//	p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
-//	r.NoError(registry.Register(poll.ProtocolID, p))
-//	evm := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
-//	r.NoError(registry.Register(execution.ProtocolID, evm))
-//	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
-//	bc.Validator().AddActionValidators(acc, evm, reward, p)
-//
-//	sf.AddActionHandlers(acc, evm, reward, p)
-//	r.NoError(bc.Start(ctx))
-//	r.NoError(addProducerToFactory(bc.Factory()))
-//	//ws, err := bc.Factory().NewWorkingSet()
-//	//r.NoError(err)
-//	//balance, ok := new(big.Int).SetString("1000000000000000000000000000", 10)
-//	//r.True(ok)
-//	//_, err = accountutil.LoadOrCreateAccount(ws, executor, balance)
-//	//r.NoError(err)
-//	//ctx = protocol.WithRunActionsCtx(ctx,
-//	//	protocol.RunActionsCtx{
-//	//		Producer: identityset.Address(27),
-//	//		GasLimit: uint64(10000000),
-//	//		Genesis:  cfg.Genesis,
-//	//	})
-//	//_, err = ws.RunActions(ctx, 0, nil)
-//	//r.NoError(err)
-//	//r.NoError(sf.Commit(ws))
-//	return bc
-//}
-func prepareBlockchain(cfg config.Config, r *require.Assertions) blockchain.Blockchain {
+func prepareBlockchain(
+	ctx context.Context, executor string, r *require.Assertions) blockchain.Blockchain {
+	cfg := newConfig2()
+	registry := protocol.Registry{}
+	acc := account.NewProtocol()
+	r.NoError(registry.Register(account.ProtocolID, acc))
+	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+	r.NoError(registry.Register(rolldpos.ProtocolID, rp))
+
 	dbConfig := cfg.DB
 	cfg.Chain.ProducerPrivKey = executorPriKey
 	sf, err := factory.NewStateDB(cfg, factory.DefaultStateDBOption())
 	r.NoError(err)
-	//r.NoError(sf.Start(context.Background()))
 	// create indexer
 	dbConfig.DbPath = cfg.Chain.IndexDBPath
 	indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg.Genesis.Hash())
@@ -176,8 +98,7 @@ func prepareBlockchain(cfg config.Config, r *require.Assertions) blockchain.Bloc
 	dbConfig.DbPath = cfg.Chain.ChainDBPath
 	dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg.Chain.CompressBlock, dbConfig)
 	r.NotNil(dao)
-	// create chain
-	registry := protocol.Registry{}
+
 	bc := blockchain.NewBlockchain(
 		cfg,
 		dao,
@@ -185,35 +106,32 @@ func prepareBlockchain(cfg config.Config, r *require.Assertions) blockchain.Bloc
 		blockchain.RegistryOption(&registry),
 	)
 	r.NotNil(bc)
-	defer func() {
-		delete(cfg.Plugins, config.GatewayPlugin)
-	}()
+	reward := rewarding.NewProtocol(bc, rp)
+	r.NoError(registry.Register(rewarding.ProtocolID, reward))
 
-	acc := account.NewProtocol()
-	evm := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
-	p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
-	rolldposProtocol := rolldpos.NewProtocol(
-		genesis.Default.NumCandidateDelegates,
-		genesis.Default.NumDelegates,
-		genesis.Default.NumSubEpochs,
-		rolldpos.EnableDardanellesSubEpoch(cfg.Genesis.DardanellesBlockHeight, cfg.Genesis.DardanellesNumSubEpochs),
-	)
-	rp := rewarding.NewProtocol(bc, rolldposProtocol)
-
-	r.NoError(registry.Register(rolldpos.ProtocolID, rolldposProtocol))
-	r.NoError(registry.Register(account.ProtocolID, acc))
-	r.NoError(registry.Register(execution.ProtocolID, evm))
-	r.NoError(registry.Register(rewarding.ProtocolID, rp))
-	r.NoError(registry.Register(poll.ProtocolID, p))
-	sf.AddActionHandlers(acc, evm, rp)
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
-	bc.Validator().AddActionValidators(acc, evm, rp)
-	r.NoError(bc.Start(context.Background()))
+	bc.Validator().AddActionValidators(account.NewProtocol(), execution.NewProtocol(bc.BlockDAO().GetBlockHash), reward)
+	sf.AddActionHandlers(execution.NewProtocol(bc.BlockDAO().GetBlockHash), reward)
+	r.NoError(bc.Start(ctx))
+	ws, err := sf.NewWorkingSet()
+	r.NoError(err)
+	balance, ok := new(big.Int).SetString("1000000000000000000000000000", 10)
+	r.True(ok)
+	_, err = accountutil.LoadOrCreateAccount(ws, executor, balance)
+	r.NoError(err)
 
-	// Create state for producer
-	r.NoError(addProducerToFactory(bc.Factory()))
+	ctx = protocol.WithRunActionsCtx(ctx,
+		protocol.RunActionsCtx{
+			Producer: identityset.Address(27),
+			GasLimit: uint64(10000000),
+			Genesis:  cfg.Genesis,
+		})
+	_, err = ws.RunActions(ctx, 0, nil)
+	r.NoError(err)
+	r.NoError(sf.Commit(ws))
 	return bc
 }
+
 func prepareTransfer(bc blockchain.Blockchain, r *require.Assertions) (*block.Block, error) {
 	exec, err := action.NewTransfer(1, big.NewInt(-10000), recipient, nil, uint64(1000000), big.NewInt(9000000000000))
 	r.NoError(err)
@@ -253,37 +171,6 @@ func prepare(bc blockchain.Blockchain, elp action.Envelope, r *require.Assertion
 	return blk, nil
 }
 
-func addProducerToFactory(sf factory.Factory) error {
-	ws, err := sf.NewWorkingSet()
-	if err != nil {
-		return err
-	}
-	balance, ok := new(big.Int).SetString("1000000000000000000000000000", 10)
-	if !ok {
-		return errors.New("convert error")
-	}
-	if _, err = accountutil.LoadOrCreateAccount(
-		ws,
-		executor,
-		balance,
-	); err != nil {
-		return err
-	}
-	addr, err := address.FromString(executor)
-	if err != nil {
-		return err
-	}
-	gasLimit := testutil.TestGasLimit
-	ctx := protocol.WithRunActionsCtx(context.Background(),
-		protocol.RunActionsCtx{
-			Producer: addr,
-			GasLimit: gasLimit,
-		})
-	if _, err = ws.RunActions(ctx, 0, nil); err != nil {
-		return err
-	}
-	return sf.Commit(ws)
-}
 func newConfig2() config.Config {
 	cfg := config.Default
 
