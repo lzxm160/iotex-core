@@ -8,6 +8,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"os"
 	"strconv"
@@ -306,7 +307,7 @@ func (bc *blockchain) ChainAddress() string {
 func (bc *blockchain) Start(ctx context.Context) error {
 	bc.mu.Lock()
 	defer bc.mu.Unlock()
-
+	fmt.Println("bc start lock")
 	// pass registry to be used by state factory's initialization
 	ctx = protocol.WithRunActionsCtx(ctx, protocol.RunActionsCtx{
 		BlockTimeStamp: time.Unix(bc.config.Genesis.Timestamp, 0),
