@@ -977,6 +977,7 @@ func TestServer_GetChainMeta(t *testing.T) {
 	for _, test := range getChainMetaTests {
 		fmt.Println("start again")
 		cfg := newConfig()
+		fmt.Println("start again2")
 		if test.pollProtocolType == lld {
 			pol = poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
 		} else if test.pollProtocolType == "governanceChainCommittee" {
