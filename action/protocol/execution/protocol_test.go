@@ -280,7 +280,15 @@ func (sct *SmartContractTest) prepareBlockchain(
 	//cfg.Chain.TrieDBPath = tempPath + "/trie.db"
 	//cfg.Chain.IndexDBPath = tempPath + "/index.db"
 	//cfg.Consensus.RollDPoS.ConsensusDBPath = tempPath + "/consensus.db"
-
+	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+	testTriePath := testTrieFile.Name()
+	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	testDBPath := testDBFile.Name()
+	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+	testIndexPath := testIndexFile.Name()
+	cfg.Chain.TrieDBPath = testTriePath
+	cfg.Chain.ChainDBPath = testDBPath
+	cfg.Chain.IndexDBPath = testIndexPath
 	defer func() {
 		delete(cfg.Plugins, config.GatewayPlugin)
 	}()
