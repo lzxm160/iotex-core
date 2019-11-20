@@ -13,6 +13,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/iotexproject/iotex-core/action/protocol/poll"
+
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/stretchr/testify/require"
 
@@ -111,6 +113,8 @@ func prepareBlockchain(
 	r.NotNil(bc)
 	reward := rewarding.NewProtocol(bc, rp)
 	r.NoError(registry.Register(rewarding.ProtocolID, reward))
+	p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
+	r.NoError(registry.Register(poll.ProtocolID, p))
 
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
 	bc.Validator().AddActionValidators(account.NewProtocol(), execution.NewProtocol(bc.BlockDAO().GetBlockHash), reward)
