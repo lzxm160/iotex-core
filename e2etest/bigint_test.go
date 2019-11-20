@@ -8,7 +8,6 @@ package e2etest
 
 import (
 	"context"
-	"encoding/hex"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -87,7 +86,7 @@ func prepareBlockchain(
 	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
 	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
 
-	cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(0),
+	cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(27),
 		4689, 14014, uint64(24))
 	registry := protocol.Registry{}
 	acc := account.NewProtocol()
@@ -95,7 +94,6 @@ func prepareBlockchain(
 	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
 	r.NoError(registry.Register(rolldpos.ProtocolID, rp))
 	dbConfig := cfg.DB
-	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
 	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
 	r.NoError(err)
 	r.NotNil(sf)
@@ -140,7 +138,6 @@ func prepareBlockchain(
 	_, err = ws.RunActions(ctx, 0, nil)
 	r.NoError(err)
 	r.NoError(sf.Commit(ws))
-
 	return bc
 }
 
