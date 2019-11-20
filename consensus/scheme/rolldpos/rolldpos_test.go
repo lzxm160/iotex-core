@@ -702,7 +702,6 @@ func TestRollDPoSConsensus(t *testing.T) {
 }
 func newConfig(numNodes int) config.Config {
 	cfg := config.Default
-	cfg.Consensus.RollDPoS.ConsensusDBPath = ""
 	cfg.Consensus.RollDPoS.Delay = 300 * time.Millisecond
 	cfg.Consensus.RollDPoS.FSM.AcceptBlockTTL = 800 * time.Millisecond
 	cfg.Consensus.RollDPoS.FSM.AcceptProposalEndorsementTTL = 400 * time.Millisecond
@@ -714,14 +713,14 @@ func newConfig(numNodes int) config.Config {
 	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
 	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
 	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
-
+	testConsensusFile, _ := ioutil.TempFile(os.TempDir(), "consensus")
 	cfg.Chain.TrieDBPath = testTrieFile.Name()
 	cfg.Chain.ChainDBPath = testDBFile.Name()
 	cfg.Chain.IndexDBPath = testIndexFile.Name()
-
+	cfg.Consensus.RollDPoS.ConsensusDBPath = testConsensusFile.Name()
 	cfg.Genesis.BlockInterval = 2 * time.Second
 	cfg.Genesis.Blockchain.NumDelegates = uint64(numNodes)
 	cfg.Genesis.Blockchain.NumSubEpochs = 1
-	cfg.Genesis.EnableGravityChainVoting = false
+	cfg.Genesis.EnableGravityChainVoting = true
 	return cfg
 }
