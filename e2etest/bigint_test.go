@@ -8,6 +8,7 @@ package e2etest
 
 import (
 	"context"
+	"encoding/hex"
 	"math/big"
 	"testing"
 
@@ -17,13 +18,16 @@ import (
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/blockchain/block"
-	"github.com/iotexproject/iotex-core/config"
+	"github.com/iotexproject/iotex-core/blockchain/blockdao"
+	"github.com/iotexproject/iotex-core/blockindex"
+	"github.com/iotexproject/iotex-core/db"
+	"github.com/iotexproject/iotex-core/state/factory"
 	"github.com/iotexproject/iotex-core/test/identityset"
 	"github.com/iotexproject/iotex-core/testutil"
 )
@@ -72,17 +76,27 @@ func TestAction_Negative(t *testing.T) {
 
 func prepareBlockchain(
 	ctx context.Context, executor string, r *require.Assertions) blockchain.Blockchain {
-	cfg := config.Default
-	cfg.Chain.EnableAsyncIndexWrite = false
-	cfg.Genesis.EnableGravityChainVoting = false
+	cfg := newConfig()
 	registry := protocol.Registry{}
 	acc := account.NewProtocol()
 	r.NoError(registry.Register(account.ProtocolID, acc))
 	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
 	r.NoError(registry.Register(rolldpos.ProtocolID, rp))
+	dbConfig := cfg.DB
+	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
+	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
+	r.NoError(err)
+	// create indexer
+	dbConfig.DbPath = cfg.Chain.IndexDBPath
+	indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg.Genesis.Hash())
+	r.NoError(err)
+	// create BlockDAO
+	dbConfig.DbPath = cfg.Chain.ChainDBPath
+	dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg.Chain.CompressBlock, dbConfig)
+	r.NotNil(err)
 	bc := blockchain.NewBlockchain(
 		cfg,
-		nil,
+		dao,
 		blockchain.InMemDaoOption(),
 		blockchain.InMemStateFactoryOption(),
 		blockchain.RegistryOption(&registry),
@@ -93,7 +107,6 @@ func prepareBlockchain(
 
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
 	bc.Validator().AddActionValidators(account.NewProtocol(), execution.NewProtocol(bc.BlockDAO().GetBlockHash), reward)
-	sf := bc.Factory()
 	r.NotNil(sf)
 	sf.AddActionHandlers(execution.NewProtocol(bc.BlockDAO().GetBlockHash), reward)
 	r.NoError(bc.Start(ctx))
