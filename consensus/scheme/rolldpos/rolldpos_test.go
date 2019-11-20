@@ -402,6 +402,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 			cfg[i].Chain.ProducerPrivKey = hex.EncodeToString(chainAddrs[i].priKey.Bytes())
 			sf, err := factory.NewFactory(cfg[i], factory.DefaultTrieOption())
 			require.NoError(t, err)
+			fmt.Println("405")
 			require.NoError(t, sf.Start(ctx))
 			for j := 0; j < numNodes; j++ {
 				ws, err := sf.NewWorkingSet()
@@ -729,6 +730,11 @@ func newConfig(numNodes int) (ret []config.Config) {
 		cfg.Genesis.Blockchain.NumDelegates = uint64(numNodes)
 		cfg.Genesis.Blockchain.NumSubEpochs = 1
 		cfg.Genesis.EnableGravityChainVoting = true
+		cfg.Plugins[config.GatewayPlugin] = true
+		cfg.Chain.EnableAsyncIndexWrite = false
+		cfg.ActPool.MinGasPriceStr = "0"
+		cfg.API.RangeQueryLimit = 100
+
 		ret = append(ret, cfg)
 	}
 
