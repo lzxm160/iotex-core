@@ -279,7 +279,7 @@ func (sct *SmartContractTest) prepareBlockchain(
 	r *require.Assertions,
 ) (blockchain.Blockchain, blockdao.BlockDAO) {
 	cfg := config.Default
-	randomDir := rand.Int31n(1000)
+	randomDir := rand.Int31n(100000)
 	tempPath := os.TempDir() + fmt.Sprintf("/%d", randomDir)
 	err := os.Chdir(tempPath)
 	if err != nil {
