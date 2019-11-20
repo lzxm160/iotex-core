@@ -55,7 +55,8 @@ func TestTransfer_Negative(t *testing.T) {
 
 	cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(27),
 		4689, 14014, uint64(24))
-	bc := prepareBlockchain(cfg, executor, r)
+	cfg.Chain.CompressBlock = false
+	bc := prepareBlockchain(cfg, r)
 	r.NotNil(bc)
 	defer r.NoError(bc.Stop(ctx))
 	sf := bc.Factory()
@@ -81,7 +82,8 @@ func TestAction_Negative(t *testing.T) {
 
 	cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(27),
 		4689, 14014, uint64(24))
-	bc := prepareBlockchain(cfg, executor, r)
+	cfg.Chain.CompressBlock = false
+	bc := prepareBlockchain(cfg, r)
 	defer r.NoError(bc.Stop(ctx))
 	balanceBeforeTransfer, err := bc.Factory().Balance(executor)
 	r.NoError(err)
@@ -158,7 +160,7 @@ func TestAction_Negative(t *testing.T) {
 //	//r.NoError(sf.Commit(ws))
 //	return bc
 //}
-func prepareBlockchain(cfg config.Config, executor string, r *require.Assertions) blockchain.Blockchain {
+func prepareBlockchain(cfg config.Config, r *require.Assertions) blockchain.Blockchain {
 	dbConfig := cfg.DB
 	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
 	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
