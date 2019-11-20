@@ -287,6 +287,14 @@ func (sct *SmartContractTest) prepareBlockchain(
 	cfg.Chain.TrieDBPath = tempPath + "/trie.db"
 	cfg.Chain.IndexDBPath = tempPath + "/index.db"
 	cfg.Consensus.RollDPoS.ConsensusDBPath = tempPath + "/consensus.db"
+	_, err = os.Create(cfg.Chain.ChainDBPath)
+	r.NoError(err)
+	_, err = os.Create(cfg.Chain.TrieDBPath)
+	r.NoError(err)
+	_, err = os.Create(cfg.Chain.IndexDBPath)
+	r.NoError(err)
+	_, err = os.Create(cfg.Consensus.RollDPoS.ConsensusDBPath)
+	r.NoError(err)
 
 	defer func() {
 		delete(cfg.Plugins, config.GatewayPlugin)
@@ -477,7 +485,14 @@ func TestProtocol_Handle(t *testing.T) {
 		cfg.Chain.TrieDBPath = tempPath + "/trie.db"
 		cfg.Chain.IndexDBPath = tempPath + "/index.db"
 		cfg.Consensus.RollDPoS.ConsensusDBPath = tempPath + "/consensus.db"
-
+		_, err = os.Create(cfg.Chain.ChainDBPath)
+		require.NoError(err)
+		_, err = os.Create(cfg.Chain.TrieDBPath)
+		require.NoError(err)
+		_, err = os.Create(cfg.Chain.IndexDBPath)
+		require.NoError(err)
+		_, err = os.Create(cfg.Consensus.RollDPoS.ConsensusDBPath)
+		require.NoError(err)
 		cfg.Plugins[config.GatewayPlugin] = true
 		cfg.Chain.EnableAsyncIndexWrite = false
 		cfg.Genesis.EnableGravityChainVoting = false
