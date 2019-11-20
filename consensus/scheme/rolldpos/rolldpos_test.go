@@ -17,6 +17,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-core/action/protocol/execution"
+
 	"github.com/facebookgo/clock"
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/proto"
@@ -434,8 +436,12 @@ func TestRollDPoSConsensus(t *testing.T) {
 				blockchain.PrecreatedStateFactoryOption(sf),
 				blockchain.RegistryOption(&registry),
 			)
+			evm := execution.NewProtocol(chain.BlockDAO().GetBlockHash)
+			sf.AddActionHandlers(acc, evm)
+
 			chain.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(chain.Factory().Nonce))
-			chain.Validator().AddActionValidators(account.NewProtocol())
+			chain.Validator().AddActionValidators(acc, evm)
+
 			chains = append(chains, chain)
 
 			actPool, err := actpool.NewActPool(chain, cfg[i].ActPool, actpool.EnableExperimentalActions())
