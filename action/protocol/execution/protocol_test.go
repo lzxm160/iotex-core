@@ -481,18 +481,10 @@ func TestProtocol_Handle(t *testing.T) {
 		tempPath := os.TempDir() + fmt.Sprintf("/%d", randomDir)
 		err := os.Mkdir(tempPath, 0777)
 		require.NoError(err)
-		testDBFile, err := ioutil.TempFile(tempPath, "chain.db")
-		require.NoError(err)
-		cfg.Chain.ChainDBPath = testDBFile.Name()
-		testDBFile, err = ioutil.TempFile(tempPath, "trie.db")
-		require.NoError(err)
-		cfg.Chain.TrieDBPath = testDBFile.Name()
-		testDBFile, err = ioutil.TempFile(tempPath, "index.db")
-		require.NoError(err)
-		cfg.Chain.IndexDBPath = testDBFile.Name()
-		testDBFile, err = ioutil.TempFile(tempPath, "consensus.db")
-		require.NoError(err)
-		cfg.Consensus.RollDPoS.ConsensusDBPath = testDBFile.Name()
+		cfg.Chain.ChainDBPath = tempPath + "/chain.db"
+		cfg.Chain.TrieDBPath = tempPath + "/trie.db"
+		cfg.Chain.IndexDBPath = tempPath + "/index.db"
+		cfg.Consensus.RollDPoS.ConsensusDBPath = tempPath + "/consensus.db"
 
 		cfg.Plugins[config.GatewayPlugin] = true
 		cfg.Chain.EnableAsyncIndexWrite = false
