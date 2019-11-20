@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/big"
-	"math/rand"
 	"os"
 	"strings"
 	"testing"
@@ -273,14 +272,14 @@ func (sct *SmartContractTest) prepareBlockchain(
 	r *require.Assertions,
 ) (blockchain.Blockchain, blockdao.BlockDAO) {
 	cfg := config.Default
-	randomDir := rand.Int31n(1000000)
-	tempPath := os.TempDir() + fmt.Sprintf("/%d", randomDir)
-	err := os.Mkdir(tempPath, 0777)
-	r.NoError(err)
-	cfg.Chain.ChainDBPath = tempPath + "/chain.db"
-	cfg.Chain.TrieDBPath = tempPath + "/trie.db"
-	cfg.Chain.IndexDBPath = tempPath + "/index.db"
-	cfg.Consensus.RollDPoS.ConsensusDBPath = tempPath + "/consensus.db"
+	//randomDir := rand.Int31n(1000000)
+	//tempPath := os.TempDir() + fmt.Sprintf("/%d", randomDir)
+	//err := os.Mkdir(tempPath, 0777)
+	//r.NoError(err)
+	//cfg.Chain.ChainDBPath = tempPath + "/chain.db"
+	//cfg.Chain.TrieDBPath = tempPath + "/trie.db"
+	//cfg.Chain.IndexDBPath = tempPath + "/index.db"
+	//cfg.Consensus.RollDPoS.ConsensusDBPath = tempPath + "/consensus.db"
 
 	defer func() {
 		delete(cfg.Plugins, config.GatewayPlugin)
@@ -464,16 +463,25 @@ func TestProtocol_Handle(t *testing.T) {
 			delete(cfg.Plugins, config.GatewayPlugin)
 		}()
 
-		randomDir := rand.Int31n(1000000)
-		tempPath := os.TempDir() + fmt.Sprintf("/%d", randomDir)
-		err := os.Mkdir(tempPath, 0777)
-		require.NoError(err)
-		cfg.Chain.ChainDBPath = tempPath + "/chain.db"
-		cfg.Chain.TrieDBPath = tempPath + "/trie.db"
-		cfg.Chain.IndexDBPath = tempPath + "/index.db"
-		cfg.Consensus.RollDPoS.ConsensusDBPath = tempPath + "/consensus.db"
+		//randomDir := rand.Int31n(1000000)
+		//tempPath := os.TempDir() + fmt.Sprintf("/%d", randomDir)
+		//err := os.Mkdir(tempPath, 0777)
+		//require.NoError(err)
+		//cfg.Chain.ChainDBPath = tempPath + "/chain.db"
+		//cfg.Chain.TrieDBPath = tempPath + "/trie.db"
+		//cfg.Chain.IndexDBPath = tempPath + "/index.db"
+		//cfg.Consensus.RollDPoS.ConsensusDBPath = tempPath + "/consensus.db"
+		testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+		testTriePath := testTrieFile.Name()
+		testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+		testDBPath := testDBFile.Name()
+		testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+		testIndexPath := testIndexFile.Name()
 
 		cfg.Plugins[config.GatewayPlugin] = true
+		cfg.Chain.TrieDBPath = testTriePath
+		cfg.Chain.ChainDBPath = testDBPath
+		cfg.Chain.IndexDBPath = testIndexPath
 		cfg.Chain.EnableAsyncIndexWrite = false
 		cfg.Genesis.EnableGravityChainVoting = false
 		registry := protocol.Registry{}
