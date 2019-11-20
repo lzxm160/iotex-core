@@ -125,13 +125,12 @@ func prepareBlockchain(
 
 	sf.AddActionHandlers(acc, evm, reward)
 	r.NoError(bc.Start(ctx))
-	ws, err := sf.NewWorkingSet()
+	ws, err := bc.Factory().NewWorkingSet()
 	r.NoError(err)
 	balance, ok := new(big.Int).SetString("1000000000000000000000000000", 10)
 	r.True(ok)
 	_, err = accountutil.LoadOrCreateAccount(ws, executor, balance)
 	r.NoError(err)
-	r.NoError(sf.Start(ctx))
 	ctx = protocol.WithRunActionsCtx(ctx,
 		protocol.RunActionsCtx{
 			Producer: identityset.Address(27),
