@@ -975,9 +975,7 @@ func TestServer_GetChainMeta(t *testing.T) {
 
 	var pol poll.Protocol
 	for _, test := range getChainMetaTests {
-		fmt.Println("start again")
 		cfg := newConfig()
-		fmt.Println("start again2")
 		if test.pollProtocolType == lld {
 			pol = poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
 		} else if test.pollProtocolType == "governanceChainCommittee" {
@@ -995,11 +993,10 @@ func TestServer_GetChainMeta(t *testing.T) {
 			)
 			committee.EXPECT().HeightByTime(gomock.Any()).Return(test.epoch.GravityChainStartHeight, nil)
 		}
-		fmt.Println("start again3")
+
 		cfg.API.TpsWindow = test.tpsWindow
 		svr, err := createServer(cfg, false)
 		require.NoError(err)
-		fmt.Println("start again4")
 		if pol != nil {
 			require.NoError(svr.registry.ForceRegister(poll.ProtocolID, pol))
 		}
@@ -1008,19 +1005,15 @@ func TestServer_GetChainMeta(t *testing.T) {
 			mbc.EXPECT().TipHeight().Return(uint64(0)).Times(1)
 			svr.bc = mbc
 		}
-		fmt.Println("start again5")
 		res, err := svr.GetChainMeta(context.Background(), &iotexapi.GetChainMetaRequest{})
 		require.NoError(err)
-
 		chainMetaPb := res.ChainMeta
-		fmt.Println("1this ok")
 		require.Equal(test.height, chainMetaPb.Height)
 		require.Equal(test.numActions, chainMetaPb.NumActions)
 		require.Equal(test.tps, chainMetaPb.Tps)
 		require.Equal(test.epoch.Num, chainMetaPb.Epoch.Num)
 		require.Equal(test.epoch.Height, chainMetaPb.Epoch.Height)
 		require.Equal(test.epoch.GravityChainStartHeight, chainMetaPb.Epoch.GravityChainStartHeight)
-		fmt.Println("2this ok")
 	}
 }
 
@@ -1823,9 +1816,9 @@ func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, bl
 	if err := registry.Register(poll.ProtocolID, p); err != nil {
 		return nil, nil, nil, nil, err
 	}
-	sf.AddActionHandlers(acc, evm, r, p)
+	sf.AddActionHandlers(acc, evm, r)
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
-	bc.Validator().AddActionValidators(acc, evm, r, p)
+	bc.Validator().AddActionValidators(acc, evm, r)
 
 	return bc, dao, indexer, &registry, nil
 }
@@ -1851,12 +1844,11 @@ func newConfig() config.Config {
 	testDBPath := testDBFile.Name()
 	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
 	testIndexPath := testIndexFile.Name()
-	testConsensusFile, _ := ioutil.TempFile(os.TempDir(), "consensus")
+
 	cfg.Plugins[config.GatewayPlugin] = true
 	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.ChainDBPath = testDBPath
 	cfg.Chain.IndexDBPath = testIndexPath
-	cfg.Consensus.RollDPoS.ConsensusDBPath = testConsensusFile.Name()
 	cfg.Chain.EnableAsyncIndexWrite = false
 	cfg.Genesis.EnableGravityChainVoting = true
 	cfg.ActPool.MinGasPriceStr = "0"
@@ -1870,24 +1862,24 @@ func createServer(cfg config.Config, needActPool bool) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("1")
+
 	ctx := context.Background()
 
 	// Start blockchain
 	if err := bc.Start(ctx); err != nil {
 		return nil, err
 	}
-	fmt.Println("2")
+
 	// Create state for producer
 	if err := addProducerToFactory(bc.Factory()); err != nil {
 		return nil, err
 	}
-	fmt.Println("3")
+
 	// Add testing blocks
 	if err := addTestingBlocks(bc); err != nil {
 		return nil, err
 	}
-	fmt.Println("4")
+
 	var ap actpool.ActPool
 	if needActPool {
 		ap, err = setupActPool(bc, cfg.ActPool)

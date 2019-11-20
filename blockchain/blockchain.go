@@ -8,7 +8,6 @@ package blockchain
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"os"
 	"strconv"
@@ -307,32 +306,27 @@ func (bc *blockchain) ChainAddress() string {
 func (bc *blockchain) Start(ctx context.Context) error {
 	bc.mu.Lock()
 	defer bc.mu.Unlock()
-	fmt.Println("bc start lock")
+
 	// pass registry to be used by state factory's initialization
 	ctx = protocol.WithRunActionsCtx(ctx, protocol.RunActionsCtx{
 		BlockTimeStamp: time.Unix(bc.config.Genesis.Timestamp, 0),
 		Registry:       bc.registry,
 	})
-	fmt.Println("bc what happend here")
 	if err := bc.lifecycle.OnStart(ctx); err != nil {
 		return err
 	}
-	fmt.Println("bc OnStart")
 	// get blockchain tip height
 	var err error
 	if bc.tipHeight, err = bc.dao.GetTipHeight(); err != nil {
 		return err
 	}
-	fmt.Println("bc GetTipHeight")
 	if bc.tipHeight == 0 {
 		return nil
 	}
-
 	// get blockchain tip hash
 	if bc.tipHash, err = bc.dao.GetTipHash(); err != nil {
 		return err
 	}
-
 	return bc.startExistingBlockchain()
 }
 
