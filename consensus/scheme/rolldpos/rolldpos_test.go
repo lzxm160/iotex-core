@@ -407,7 +407,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 			sf, err := factory.NewFactory(cfg[i], factory.DefaultTrieOption())
 			require.NoError(t, err)
 			//fmt.Println("cfg.db:", cfg[i].Chain)
-			//require.NoError(t, sf.Start(ctx))
+			require.NoError(t, sf.Start(ctx))
 			for j := 0; j < numNodes; j++ {
 				ws, err := sf.NewWorkingSet()
 				require.NoError(t, err)
@@ -424,6 +424,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 				require.NoError(t, err)
 				require.NoError(t, sf.Commit(ws))
 			}
+			require.NoError(t, sf.Stop(ctx))
 			registry := protocol.Registry{}
 			acc := account.NewProtocol()
 			require.NoError(t, registry.Register(account.ProtocolID, acc))
