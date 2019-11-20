@@ -103,7 +103,7 @@ func prepareBlockchain(
 	// create BlockDAO
 	dbConfig.DbPath = cfg.Chain.ChainDBPath
 	dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg.Chain.CompressBlock, dbConfig)
-	r.NotNil(err)
+	r.NotNil(dao)
 	bc := blockchain.NewBlockchain(
 		cfg,
 		dao,
