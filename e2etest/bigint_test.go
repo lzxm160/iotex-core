@@ -9,7 +9,9 @@ package e2etest
 import (
 	"context"
 	"encoding/hex"
+	"io/ioutil"
 	"math/big"
+	"os"
 	"testing"
 
 	"github.com/iotexproject/go-pkgs/crypto"
@@ -76,7 +78,15 @@ func TestAction_Negative(t *testing.T) {
 
 func prepareBlockchain(
 	ctx context.Context, executor string, r *require.Assertions) blockchain.Blockchain {
-	cfg := newConfig()
+	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+	testTriePath := testTrieFile.Name()
+	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	testDBPath := testDBFile.Name()
+	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+	testIndexPath := testIndexFile.Name()
+
+	cfg := newConfig(testDBPath, testTriePath, testIndexPath, identityset.PrivateKey(0),
+		4689, 14014, uint64(24))
 	registry := protocol.Registry{}
 	acc := account.NewProtocol()
 	r.NoError(registry.Register(account.ProtocolID, acc))
