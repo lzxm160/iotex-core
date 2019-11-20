@@ -1757,10 +1757,10 @@ func addActsToActPool(ap actpool.ActPool) error {
 
 func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, blockindex.Indexer, *protocol.Registry, error) {
 	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
-	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
-	if err != nil {
-		return nil, nil, nil, nil, err
-	}
+	//sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
+	//if err != nil {
+	//	return nil, nil, nil, nil, err
+	//}
 	// create indexer
 	cfg.DB.DbPath = cfg.Chain.IndexDBPath
 	indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
