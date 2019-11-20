@@ -313,6 +313,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 		BlockTimeStamp: time.Unix(bc.config.Genesis.Timestamp, 0),
 		Registry:       bc.registry,
 	})
+	fmt.Println("bc what happend here")
 	if err := bc.lifecycle.OnStart(ctx); err != nil {
 		return err
 	}
