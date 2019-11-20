@@ -107,8 +107,7 @@ func prepareBlockchain(
 	bc := blockchain.NewBlockchain(
 		cfg,
 		dao,
-		blockchain.InMemDaoOption(),
-		blockchain.InMemStateFactoryOption(),
+		blockchain.PrecreatedStateFactoryOption(sf),
 		blockchain.RegistryOption(&registry),
 	)
 	r.NotNil(bc)
