@@ -121,9 +121,9 @@ func prepareBlockchain(
 	evm := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
 	r.NoError(registry.Register(execution.ProtocolID, evm))
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
-	bc.Validator().AddActionValidators(acc, evm, reward)
+	bc.Validator().AddActionValidators(acc, evm, reward, p)
 
-	sf.AddActionHandlers(acc, evm, reward)
+	sf.AddActionHandlers(acc, evm, reward, p)
 	r.NoError(bc.Start(ctx))
 	ws, err := bc.Factory().NewWorkingSet()
 	r.NoError(err)
