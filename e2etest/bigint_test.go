@@ -114,7 +114,7 @@ func prepareBlockchain(
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
 	bc.Validator().AddActionValidators(account.NewProtocol(), execution.NewProtocol(bc.BlockDAO().GetBlockHash), reward)
 	sf.AddActionHandlers(execution.NewProtocol(bc.BlockDAO().GetBlockHash), reward)
-	r.NoError(bc.Start(ctx))
+	r.NoError(bc.Start(context.Background()))
 	ws, err := sf.NewWorkingSet()
 	r.NoError(err)
 	balance, ok := new(big.Int).SetString("1000000000000000000000000000", 10)
@@ -131,7 +131,7 @@ func prepareBlockchain(
 	_, err = ws.RunActions(ctx, 0, nil)
 	r.NoError(err)
 	r.NoError(sf.Commit(ws))
-	r.NoError(bc.Stop(ctx))
+	r.NoError(bc.Stop(context.Background()))
 	return bc
 }
 
