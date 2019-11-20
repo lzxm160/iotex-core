@@ -165,7 +165,7 @@ func TestAction_Negative(t *testing.T) {
 func prepareBlockchain(cfg config.Config, r *require.Assertions) blockchain.Blockchain {
 	dbConfig := cfg.DB
 	cfg.Chain.ProducerPrivKey = executorPriKey
-	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
+	sf, err := factory.NewStateDB(cfg, factory.DefaultStateDBOption())
 	r.NoError(err)
 	// create indexer
 	dbConfig.DbPath = cfg.Chain.IndexDBPath
