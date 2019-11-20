@@ -1765,10 +1765,10 @@ func addActsToActPool(ap actpool.ActPool) error {
 
 func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, blockindex.Indexer, *protocol.Registry, error) {
 	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
-	//sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
-	//if err != nil {
-	//	return nil, nil, nil, nil, err
-	//}
+	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
 	// create indexer
 	dbConfig := cfg.DB
 	dbConfig.DbPath = cfg.Chain.IndexDBPath
@@ -1787,7 +1787,7 @@ func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, bl
 	bc := blockchain.NewBlockchain(
 		cfg,
 		dao,
-		blockchain.DefaultStateFactoryOption(),
+		blockchain.PrecreatedStateFactoryOption(sf),
 		blockchain.RegistryOption(&registry),
 	)
 	if bc == nil {
@@ -1858,7 +1858,7 @@ func newConfig() config.Config {
 	cfg.Chain.IndexDBPath = testIndexPath
 	cfg.Consensus.RollDPoS.ConsensusDBPath = testConsensusFile.Name()
 	cfg.Chain.EnableAsyncIndexWrite = false
-	cfg.Genesis.EnableGravityChainVoting = true
+	cfg.Genesis.EnableGravityChainVoting = false
 	cfg.ActPool.MinGasPriceStr = "0"
 	cfg.API.RangeQueryLimit = 100
 
