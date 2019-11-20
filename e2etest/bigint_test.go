@@ -8,15 +8,10 @@ package e2etest
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"math/big"
 	"os"
 	"testing"
-
-	"github.com/iotexproject/iotex-core/blockchain/blockdao"
-	"github.com/iotexproject/iotex-core/blockindex"
-	"github.com/iotexproject/iotex-core/state/factory"
 
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/stretchr/testify/require"
@@ -24,14 +19,16 @@ import (
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/blockchain/block"
-	"github.com/iotexproject/iotex-core/config"
+	"github.com/iotexproject/iotex-core/blockchain/blockdao"
+	"github.com/iotexproject/iotex-core/blockindex"
 	"github.com/iotexproject/iotex-core/db"
+	"github.com/iotexproject/iotex-core/state/factory"
 	"github.com/iotexproject/iotex-core/test/identityset"
 	"github.com/iotexproject/iotex-core/testutil"
 )
@@ -45,8 +42,9 @@ const (
 func TestTransfer_Negative(t *testing.T) {
 	r := require.New(t)
 	ctx := context.Background()
+
 	bc := prepareBlockchain(ctx, executor, r)
-	defer r.NoError(bc.Stop(ctx))
+	defer bc.Stop(ctx)
 	balanceBeforeTransfer, err := bc.Factory().Balance(executor)
 	r.NoError(err)
 	blk, err := prepareTransfer(bc, r)
@@ -80,7 +78,12 @@ func TestAction_Negative(t *testing.T) {
 
 func prepareBlockchain(
 	ctx context.Context, executor string, r *require.Assertions) blockchain.Blockchain {
-	cfg := newConfig2()
+	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+
+	cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(27),
+		4689, 14014, uint64(24))
 	registry := protocol.Registry{}
 	acc := account.NewProtocol()
 	r.NoError(registry.Register(account.ProtocolID, acc))
@@ -88,7 +91,6 @@ func prepareBlockchain(
 	r.NoError(registry.Register(rolldpos.ProtocolID, rp))
 
 	dbConfig := cfg.DB
-	cfg.Chain.ProducerPrivKey = executorPriKey
 	sf, err := factory.NewStateDB(cfg, factory.DefaultStateDBOption())
 	r.NoError(err)
 	// create indexer
@@ -113,14 +115,13 @@ func prepareBlockchain(
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
 	bc.Validator().AddActionValidators(account.NewProtocol(), execution.NewProtocol(bc.BlockDAO().GetBlockHash), reward)
 	sf.AddActionHandlers(execution.NewProtocol(bc.BlockDAO().GetBlockHash), reward)
-	r.NoError(bc.Start(context.Background()))
+	r.NoError(bc.Start(ctx))
 	ws, err := sf.NewWorkingSet()
 	r.NoError(err)
 	balance, ok := new(big.Int).SetString("1000000000000000000000000000", 10)
 	r.True(ok)
-	a, err := accountutil.LoadOrCreateAccount(ws, executor, balance)
+	_, err = accountutil.LoadOrCreateAccount(ws, executor, balance)
 	r.NoError(err)
-	fmt.Println("a.Balance:", a.Balance)
 
 	ctx = protocol.WithRunActionsCtx(ctx,
 		protocol.RunActionsCtx{
@@ -131,9 +132,6 @@ func prepareBlockchain(
 	_, err = ws.RunActions(ctx, 0, nil)
 	r.NoError(err)
 	r.NoError(sf.Commit(ws))
-	balanceBeforeTransfer, err := bc.Factory().Balance(executor)
-	r.NoError(err)
-	fmt.Println("balanceBeforeTransfer:", balanceBeforeTransfer)
 	return bc
 }
 
@@ -174,26 +172,4 @@ func prepare(bc blockchain.Blockchain, elp action.Envelope, r *require.Assertion
 	)
 	r.NoError(err)
 	return blk, nil
-}
-
-func newConfig2() config.Config {
-	cfg := config.Default
-
-	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
-	testTriePath := testTrieFile.Name()
-	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
-	testDBPath := testDBFile.Name()
-	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
-	testIndexPath := testIndexFile.Name()
-
-	cfg.Plugins[config.GatewayPlugin] = true
-	cfg.Chain.TrieDBPath = testTriePath
-	cfg.Chain.ChainDBPath = testDBPath
-	cfg.Chain.IndexDBPath = testIndexPath
-	cfg.Chain.EnableAsyncIndexWrite = false
-	cfg.Genesis.EnableGravityChainVoting = true
-	cfg.ActPool.MinGasPriceStr = "0"
-	cfg.API.RangeQueryLimit = 100
-
-	return cfg
 }
