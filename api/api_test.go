@@ -999,6 +999,7 @@ func TestServer_GetChainMeta(t *testing.T) {
 		cfg.API.TpsWindow = test.tpsWindow
 		svr, err := createServer(cfg, false)
 		require.NoError(err)
+		fmt.Println("start again3")
 		if pol != nil {
 			require.NoError(svr.registry.ForceRegister(poll.ProtocolID, pol))
 		}
