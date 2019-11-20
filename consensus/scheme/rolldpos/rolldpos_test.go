@@ -397,8 +397,8 @@ func TestRollDPoSConsensus(t *testing.T) {
 		cs := make([]*RollDPoS, 0, numNodes)
 		for i := 0; i < numNodes; i++ {
 			ctx := context.Background()
-			cfg.Chain.ProducerPrivKey = hex.EncodeToString(chainAddrs[i].priKey.Bytes())
-			sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
+			cfg[i].Chain.ProducerPrivKey = hex.EncodeToString(chainAddrs[i].priKey.Bytes())
+			sf, err := factory.NewFactory(cfg[i], factory.DefaultTrieOption())
 			require.NoError(t, err)
 			require.NoError(t, sf.Start(ctx))
 			for j := 0; j < numNodes; j++ {
@@ -411,7 +411,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 					protocol.RunActionsCtx{
 						Producer: identityset.Address(27),
 						GasLimit: gasLimit,
-						Genesis:  cfg.Genesis,
+						Genesis:  cfg[i].Genesis,
 					})
 				_, err = ws.RunActions(wsctx, 0, nil)
 				require.NoError(t, err)
@@ -420,16 +420,16 @@ func TestRollDPoSConsensus(t *testing.T) {
 			registry := protocol.Registry{}
 			acc := account.NewProtocol()
 			require.NoError(t, registry.Register(account.ProtocolID, acc))
-			rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+			rp := rolldpos.NewProtocol(cfg[i].Genesis.NumCandidateDelegates, cfg[i].Genesis.NumDelegates, cfg[i].Genesis.NumSubEpochs)
 			require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
-			dbConfig := cfg.DB
-			dbConfig.DbPath = cfg.Chain.IndexDBPath
-			indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg.Genesis.Hash())
+			dbConfig := cfg[i].DB
+			dbConfig.DbPath = cfg[i].Chain.IndexDBPath
+			indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg[i].Genesis.Hash())
 			require.NoError(t, err)
-			dbConfig.DbPath = cfg.Chain.ChainDBPath
-			dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg.Chain.CompressBlock, dbConfig)
+			dbConfig.DbPath = cfg[i].Chain.ChainDBPath
+			dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg[i].Chain.CompressBlock, dbConfig)
 			chain := blockchain.NewBlockchain(
-				cfg,
+				cfg[i],
 				dao,
 				blockchain.PrecreatedStateFactoryOption(sf),
 				blockchain.RegistryOption(&registry),
@@ -438,7 +438,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 			chain.Validator().AddActionValidators(account.NewProtocol())
 			chains = append(chains, chain)
 
-			actPool, err := actpool.NewActPool(chain, cfg.ActPool, actpool.EnableExperimentalActions())
+			actPool, err := actpool.NewActPool(chain, cfg[i].ActPool, actpool.EnableExperimentalActions())
 			require.NoError(t, err)
 
 			p2p := &directOverlay{
@@ -450,7 +450,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 			consensus, err := NewRollDPoSBuilder().
 				SetAddr(chainAddrs[i].encodedAddr).
 				SetPriKey(chainAddrs[i].priKey).
-				SetConfig(cfg).
+				SetConfig(cfg[i]).
 				SetChainManager(chain).
 				SetActPool(actPool).
 				SetBroadcast(p2p.Broadcast).
@@ -700,27 +700,31 @@ func TestRollDPoSConsensus(t *testing.T) {
 		}
 	})
 }
-func newConfig(numNodes int) config.Config {
-	cfg := config.Default
-	cfg.Consensus.RollDPoS.Delay = 300 * time.Millisecond
-	cfg.Consensus.RollDPoS.FSM.AcceptBlockTTL = 800 * time.Millisecond
-	cfg.Consensus.RollDPoS.FSM.AcceptProposalEndorsementTTL = 400 * time.Millisecond
-	cfg.Consensus.RollDPoS.FSM.AcceptLockEndorsementTTL = 400 * time.Millisecond
-	cfg.Consensus.RollDPoS.FSM.CommitTTL = 400 * time.Millisecond
-	cfg.Consensus.RollDPoS.FSM.UnmatchedEventTTL = time.Second
-	cfg.Consensus.RollDPoS.FSM.UnmatchedEventInterval = 10 * time.Millisecond
-	cfg.Consensus.RollDPoS.ToleratedOvertime = 200 * time.Millisecond
-	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
-	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
-	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
-	testConsensusFile, _ := ioutil.TempFile(os.TempDir(), "consensus")
-	cfg.Chain.TrieDBPath = testTrieFile.Name()
-	cfg.Chain.ChainDBPath = testDBFile.Name()
-	cfg.Chain.IndexDBPath = testIndexFile.Name()
-	cfg.Consensus.RollDPoS.ConsensusDBPath = testConsensusFile.Name()
-	cfg.Genesis.BlockInterval = 2 * time.Second
-	cfg.Genesis.Blockchain.NumDelegates = uint64(numNodes)
-	cfg.Genesis.Blockchain.NumSubEpochs = 1
-	cfg.Genesis.EnableGravityChainVoting = true
-	return cfg
+func newConfig(numNodes int) (ret []config.Config) {
+	for i := numNodes; i < numNodes; i++ {
+		cfg := config.Default
+		cfg.Consensus.RollDPoS.Delay = 300 * time.Millisecond
+		cfg.Consensus.RollDPoS.FSM.AcceptBlockTTL = 800 * time.Millisecond
+		cfg.Consensus.RollDPoS.FSM.AcceptProposalEndorsementTTL = 400 * time.Millisecond
+		cfg.Consensus.RollDPoS.FSM.AcceptLockEndorsementTTL = 400 * time.Millisecond
+		cfg.Consensus.RollDPoS.FSM.CommitTTL = 400 * time.Millisecond
+		cfg.Consensus.RollDPoS.FSM.UnmatchedEventTTL = time.Second
+		cfg.Consensus.RollDPoS.FSM.UnmatchedEventInterval = 10 * time.Millisecond
+		cfg.Consensus.RollDPoS.ToleratedOvertime = 200 * time.Millisecond
+		testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+		testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+		testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+		testConsensusFile, _ := ioutil.TempFile(os.TempDir(), "consensus")
+		cfg.Chain.TrieDBPath = testTrieFile.Name()
+		cfg.Chain.ChainDBPath = testDBFile.Name()
+		cfg.Chain.IndexDBPath = testIndexFile.Name()
+		cfg.Consensus.RollDPoS.ConsensusDBPath = testConsensusFile.Name()
+		cfg.Genesis.BlockInterval = 2 * time.Second
+		cfg.Genesis.Blockchain.NumDelegates = uint64(numNodes)
+		cfg.Genesis.Blockchain.NumSubEpochs = 1
+		cfg.Genesis.EnableGravityChainVoting = true
+		ret = append(ret, cfg)
+	}
+
+	return
 }
