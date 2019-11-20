@@ -131,7 +131,7 @@ func prepareBlockchain(
 	r.True(ok)
 	_, err = accountutil.LoadOrCreateAccount(ws, executor, balance)
 	r.NoError(err)
-
+	r.NoError(sf.Start(ctx))
 	ctx = protocol.WithRunActionsCtx(ctx,
 		protocol.RunActionsCtx{
 			Producer: identityset.Address(27),
@@ -141,7 +141,7 @@ func prepareBlockchain(
 	_, err = ws.RunActions(ctx, 0, nil)
 	r.NoError(err)
 	r.NoError(sf.Commit(ws))
-	r.NoError(sf.Start(ctx))
+
 	return bc
 }
 
