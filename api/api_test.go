@@ -1778,7 +1778,7 @@ func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, bl
 	bc := blockchain.NewBlockchain(
 		cfg,
 		dao,
-		blockchain.PrecreatedStateFactoryOption(sf),
+		blockchain.DefaultStateFactoryOption(),
 		blockchain.RegistryOption(&registry),
 	)
 	if bc == nil {
