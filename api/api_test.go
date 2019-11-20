@@ -1762,14 +1762,15 @@ func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, bl
 	//	return nil, nil, nil, nil, err
 	//}
 	// create indexer
-	cfg.DB.DbPath = cfg.Chain.IndexDBPath
-	indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
+	dbConfig := cfg.DB
+	dbConfig.DbPath = cfg.Chain.IndexDBPath
+	indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg.Genesis.Hash())
 	if err != nil {
 		return nil, nil, nil, nil, errors.New("failed to create indexer")
 	}
 	// create BlockDAO
-	cfg.DB.DbPath = cfg.Chain.ChainDBPath
-	dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
+	dbConfig.DbPath = cfg.Chain.ChainDBPath
+	dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg.Chain.CompressBlock, cfg.DB)
 	if dao == nil {
 		return nil, nil, nil, nil, errors.New("failed to create blockdao")
 	}
