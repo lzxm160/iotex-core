@@ -8,6 +8,8 @@ package db
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 
@@ -71,6 +73,7 @@ func (b *boltDB) Put(namespace string, key, value []byte) (err error) {
 
 // Get retrieves a record
 func (b *boltDB) Get(namespace string, key []byte) ([]byte, error) {
+	fmt.Println(b.config.DbPath)
 	var value []byte
 	err := b.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(namespace))
