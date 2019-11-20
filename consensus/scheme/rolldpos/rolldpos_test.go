@@ -17,6 +17,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-core/action/protocol/poll"
+	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
+	"github.com/iotexproject/iotex-core/blockchain/genesis"
+
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
 
 	"github.com/facebookgo/clock"
@@ -33,7 +37,7 @@ import (
 
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/actpool"
 	"github.com/iotexproject/iotex-core/blockchain"
@@ -422,6 +426,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 			}
 			registry := protocol.Registry{}
 			acc := account.NewProtocol()
+
 			require.NoError(t, registry.Register(account.ProtocolID, acc))
 			rp := rolldpos.NewProtocol(cfg[i].Genesis.NumCandidateDelegates, cfg[i].Genesis.NumDelegates, cfg[i].Genesis.NumSubEpochs)
 			require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
@@ -438,10 +443,21 @@ func TestRollDPoSConsensus(t *testing.T) {
 				blockchain.RegistryOption(&registry),
 			)
 			evm := execution.NewProtocol(chain.BlockDAO().GetBlockHash)
-			sf.AddActionHandlers(acc, evm)
+			p := poll.NewLifeLongDelegatesProtocol(cfg[i].Genesis.Delegates)
+			rolldposProtocol := rolldpos.NewProtocol(
+				genesis.Default.NumCandidateDelegates,
+				genesis.Default.NumDelegates,
+				genesis.Default.NumSubEpochs,
+				rolldpos.EnableDardanellesSubEpoch(cfg[i].Genesis.DardanellesBlockHeight, cfg[i].Genesis.DardanellesNumSubEpochs),
+			)
+			r := rewarding.NewProtocol(chain, rolldposProtocol)
+			require.NoError(t, registry.Register(rewarding.ProtocolID, r))
+			require.NoError(t, registry.Register(poll.ProtocolID, p))
+
+			sf.AddActionHandlers(acc, evm, r)
 
 			chain.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(chain.Factory().Nonce))
-			chain.Validator().AddActionValidators(acc, evm)
+			chain.Validator().AddActionValidators(acc, evm, r)
 
 			chains = append(chains, chain)
 
