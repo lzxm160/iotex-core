@@ -63,7 +63,7 @@ func TestAction_Negative(t *testing.T) {
 	r := require.New(t)
 	ctx := context.Background()
 	bc := prepareBlockchain(ctx, executor, r)
-	defer r.NoError(bc.Stop(ctx))
+	defer bc.Stop(ctx)
 	balanceBeforeTransfer, err := bc.Factory().Balance(executor)
 	r.NoError(err)
 	blk, err := prepareAction(bc, r)
