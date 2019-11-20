@@ -1408,9 +1408,9 @@ func TestServer_ReadRollDPoSMeta(t *testing.T) {
 
 func TestServer_ReadEpochCtx(t *testing.T) {
 	require := require.New(t)
-	cfg := newConfig()
 
 	for _, test := range readEpochCtxTests {
+		cfg := newConfig()
 		svr, err := createServer(cfg, false)
 		require.NoError(err)
 		res, err := svr.ReadState(context.Background(), &iotexapi.ReadStateRequest{
@@ -1425,12 +1425,12 @@ func TestServer_ReadEpochCtx(t *testing.T) {
 
 func TestServer_GetEpochMeta(t *testing.T) {
 	require := require.New(t)
-	cfg := newConfig()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	for _, test := range getEpochMetaTests {
+		cfg := newConfig()
 		svr, err := createServer(cfg, false)
 		require.NoError(err)
 		if test.pollProtocolType == lld {
