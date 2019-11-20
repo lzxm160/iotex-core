@@ -316,19 +316,22 @@ func (bc *blockchain) Start(ctx context.Context) error {
 	if err := bc.lifecycle.OnStart(ctx); err != nil {
 		return err
 	}
+	fmt.Println("bc OnStart")
 	// get blockchain tip height
 	var err error
 	if bc.tipHeight, err = bc.dao.GetTipHeight(); err != nil {
 		return err
 	}
+	fmt.Println("bc GetTipHeight")
 	if bc.tipHeight == 0 {
 		return nil
 	}
+
 	// get blockchain tip hash
 	if bc.tipHash, err = bc.dao.GetTipHash(); err != nil {
 		return err
 	}
-	fmt.Println("bc GetTipHash")
+
 	return bc.startExistingBlockchain()
 }
 
