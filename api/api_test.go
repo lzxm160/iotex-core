@@ -9,6 +9,7 @@ package api
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -1004,6 +1005,7 @@ func TestServer_GetChainMeta(t *testing.T) {
 			mbc.EXPECT().TipHeight().Return(uint64(0)).Times(1)
 			svr.bc = mbc
 		}
+		fmt.Println("this ok")
 		res, err := svr.GetChainMeta(context.Background(), &iotexapi.GetChainMetaRequest{})
 		require.NoError(err)
 		chainMetaPb := res.ChainMeta
