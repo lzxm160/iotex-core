@@ -141,6 +141,7 @@ func prepareBlockchain(
 	_, err = ws.RunActions(ctx, 0, nil)
 	r.NoError(err)
 	r.NoError(sf.Commit(ws))
+	r.NoError(sf.Start(ctx))
 	return bc
 }
 
