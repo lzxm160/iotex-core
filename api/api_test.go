@@ -1762,7 +1762,8 @@ func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, bl
 		return nil, nil, nil, nil, err
 	}
 	// create indexer
-	indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), cfg.Genesis.Hash())
+	cfg.DB.DbPath = cfg.Chain.IndexDBPath
+	indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
 	if err != nil {
 		return nil, nil, nil, nil, errors.New("failed to create indexer")
 	}
