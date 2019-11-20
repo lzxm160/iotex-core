@@ -46,6 +46,7 @@ func TestTransfer_Negative(t *testing.T) {
 	r := require.New(t)
 	ctx := context.Background()
 	bc := prepareBlockchain(ctx, executor, r)
+	r.NotNil(bc)
 	defer r.NoError(bc.Stop(ctx))
 	balanceBeforeTransfer, err := bc.Factory().Balance(executor)
 	r.NoError(err)
@@ -81,13 +82,10 @@ func TestAction_Negative(t *testing.T) {
 func prepareBlockchain(
 	ctx context.Context, executor string, r *require.Assertions) blockchain.Blockchain {
 	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
-	testTriePath := testTrieFile.Name()
 	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
-	testDBPath := testDBFile.Name()
 	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
-	testIndexPath := testIndexFile.Name()
 
-	cfg := newConfig(testDBPath, testTriePath, testIndexPath, identityset.PrivateKey(0),
+	cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(0),
 		4689, 14014, uint64(24))
 	registry := protocol.Registry{}
 	acc := account.NewProtocol()
