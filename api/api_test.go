@@ -1224,7 +1224,6 @@ func TestServer_AvailableBalance(t *testing.T) {
 
 func TestServer_ReadDelegatesByEpoch(t *testing.T) {
 	require := require.New(t)
-	cfg := newConfig()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -1245,6 +1244,7 @@ func TestServer_ReadDelegatesByEpoch(t *testing.T) {
 	mbc.EXPECT().CandidatesByHeight(gomock.Any()).Return(candidates, nil).Times(1)
 
 	for _, test := range readDelegatesByEpochTests {
+		cfg := newConfig()
 		var pol poll.Protocol
 		if test.protocolType == lld {
 			cfg.Genesis.Delegates = delegates
@@ -1280,7 +1280,6 @@ func TestServer_ReadDelegatesByEpoch(t *testing.T) {
 
 func TestServer_ReadBlockProducersByEpoch(t *testing.T) {
 	require := require.New(t)
-	cfg := newConfig()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -1301,6 +1300,7 @@ func TestServer_ReadBlockProducersByEpoch(t *testing.T) {
 	mbc.EXPECT().CandidatesByHeight(gomock.Any()).Return(candidates, nil).Times(2)
 
 	for _, test := range readBlockProducersByEpochTests {
+		cfg := newConfig()
 		var pol poll.Protocol
 		if test.protocolType == lld {
 			cfg.Genesis.Delegates = delegates
@@ -1336,7 +1336,6 @@ func TestServer_ReadBlockProducersByEpoch(t *testing.T) {
 
 func TestServer_ReadActiveBlockProducersByEpoch(t *testing.T) {
 	require := require.New(t)
-	cfg := newConfig()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -1357,6 +1356,7 @@ func TestServer_ReadActiveBlockProducersByEpoch(t *testing.T) {
 	mbc.EXPECT().CandidatesByHeight(gomock.Any()).Return(candidates, nil).Times(2)
 
 	for _, test := range readActiveBlockProducersByEpochTests {
+		cfg := newConfig()
 		var pol poll.Protocol
 		if test.protocolType == lld {
 			cfg.Genesis.Delegates = delegates
@@ -1392,9 +1392,9 @@ func TestServer_ReadActiveBlockProducersByEpoch(t *testing.T) {
 
 func TestServer_ReadRollDPoSMeta(t *testing.T) {
 	require := require.New(t)
-	cfg := newConfig()
 
 	for _, test := range readRollDPoSMetaTests {
+		cfg := newConfig()
 		svr, err := createServer(cfg, false)
 		require.NoError(err)
 		res, err := svr.ReadState(context.Background(), &iotexapi.ReadStateRequest{
