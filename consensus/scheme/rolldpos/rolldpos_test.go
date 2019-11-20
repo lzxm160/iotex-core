@@ -9,8 +9,10 @@ package rolldpos
 import (
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
 	"math/big"
 	"net"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -27,6 +29,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 
+	"github.com/iotexproject/iotex-core/blockchain/blockdao"
+	"github.com/iotexproject/iotex-core/blockindex"
+	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
 	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
@@ -365,6 +370,13 @@ func TestRollDPoSConsensus(t *testing.T) {
 		cfg.Consensus.RollDPoS.FSM.UnmatchedEventTTL = time.Second
 		cfg.Consensus.RollDPoS.FSM.UnmatchedEventInterval = 10 * time.Millisecond
 		cfg.Consensus.RollDPoS.ToleratedOvertime = 200 * time.Millisecond
+		testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+		testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+		testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+
+		cfg.Chain.TrieDBPath = testTrieFile.Name()
+		cfg.Chain.ChainDBPath = testDBFile.Name()
+		cfg.Chain.IndexDBPath = testIndexFile.Name()
 
 		cfg.Genesis.BlockInterval = 2 * time.Second
 		cfg.Genesis.Blockchain.NumDelegates = uint64(numNodes)
@@ -407,7 +419,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 		for i := 0; i < numNodes; i++ {
 			ctx := context.Background()
 			cfg.Chain.ProducerPrivKey = hex.EncodeToString(chainAddrs[i].priKey.Bytes())
-			sf, err := factory.NewFactory(cfg, factory.InMemTrieOption())
+			sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
 			require.NoError(t, err)
 			require.NoError(t, sf.Start(ctx))
 			for j := 0; j < numNodes; j++ {
@@ -431,10 +443,15 @@ func TestRollDPoSConsensus(t *testing.T) {
 			require.NoError(t, registry.Register(account.ProtocolID, acc))
 			rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
 			require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
+			dbConfig := cfg.DB
+			dbConfig.DbPath = cfg.Chain.IndexDBPath
+			indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg.Genesis.Hash())
+			require.NoError(t, err)
+			dbConfig.DbPath = cfg.Chain.ChainDBPath
+			dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg.Chain.CompressBlock, dbConfig)
 			chain := blockchain.NewBlockchain(
 				cfg,
-				nil,
-				blockchain.InMemDaoOption(),
+				dao,
 				blockchain.PrecreatedStateFactoryOption(sf),
 				blockchain.RegistryOption(&registry),
 			)
