@@ -1823,7 +1823,7 @@ func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, bl
 	if err := registry.Register(poll.ProtocolID, p); err != nil {
 		return nil, nil, nil, nil, err
 	}
-	bc.Factory().AddActionHandlers(acc, evm, r)
+	sf.AddActionHandlers(acc, evm, r)
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
 	bc.Validator().AddActionValidators(acc, evm, r)
 
