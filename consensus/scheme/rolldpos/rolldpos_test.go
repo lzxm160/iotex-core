@@ -426,10 +426,10 @@ func TestRollDPoSConsensus(t *testing.T) {
 			}
 			registry := protocol.Registry{}
 			acc := account.NewProtocol()
-
 			require.NoError(t, registry.Register(account.ProtocolID, acc))
 			rp := rolldpos.NewProtocol(cfg[i].Genesis.NumCandidateDelegates, cfg[i].Genesis.NumDelegates, cfg[i].Genesis.NumSubEpochs)
 			require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
+
 			dbConfig := cfg[i].DB
 			dbConfig.DbPath = cfg[i].Chain.IndexDBPath
 			indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg[i].Genesis.Hash())
@@ -443,6 +443,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 				blockchain.RegistryOption(&registry),
 			)
 			evm := execution.NewProtocol(chain.BlockDAO().GetBlockHash)
+			require.NoError(t, registry.Register(execution.ProtocolID, evm))
 			p := poll.NewLifeLongDelegatesProtocol(cfg[i].Genesis.Delegates)
 			rolldposProtocol := rolldpos.NewProtocol(
 				genesis.Default.NumCandidateDelegates,
