@@ -701,7 +701,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 	})
 }
 func newConfig(numNodes int) (ret []config.Config) {
-	for i := numNodes; i < numNodes; i++ {
+	for i := 0; i < numNodes; i++ {
 		cfg := config.Default
 		cfg.Consensus.RollDPoS.Delay = 300 * time.Millisecond
 		cfg.Consensus.RollDPoS.FSM.AcceptBlockTTL = 800 * time.Millisecond
