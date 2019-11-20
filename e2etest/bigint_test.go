@@ -8,12 +8,13 @@ package e2etest
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
 	"io/ioutil"
 	"math/big"
 	"os"
 	"testing"
+
+	"github.com/iotexproject/iotex-address/address"
 
 	"github.com/iotexproject/iotex-core/blockchain/genesis"
 	"github.com/iotexproject/iotex-core/config"
@@ -36,7 +37,6 @@ import (
 	"github.com/iotexproject/iotex-core/blockindex"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/state/factory"
-	"github.com/iotexproject/iotex-core/test/identityset"
 	"github.com/iotexproject/iotex-core/testutil"
 )
 
@@ -164,7 +164,7 @@ func TestAction_Negative(t *testing.T) {
 //}
 func prepareBlockchain(cfg config.Config, r *require.Assertions) blockchain.Blockchain {
 	dbConfig := cfg.DB
-	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
+	cfg.Chain.ProducerPrivKey = executorPriKey
 	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
 	r.NoError(err)
 	// create indexer
@@ -268,10 +268,14 @@ func addProducerToFactory(sf factory.Factory) error {
 	); err != nil {
 		return err
 	}
+	addr, err := address.FromString(executor)
+	if err != nil {
+		return err
+	}
 	gasLimit := testutil.TestGasLimit
 	ctx := protocol.WithRunActionsCtx(context.Background(),
 		protocol.RunActionsCtx{
-			Producer: identityset.Address(27),
+			Producer: addr,
 			GasLimit: gasLimit,
 		})
 	if _, err = ws.RunActions(ctx, 0, nil); err != nil {
