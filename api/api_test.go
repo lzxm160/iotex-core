@@ -995,11 +995,11 @@ func TestServer_GetChainMeta(t *testing.T) {
 			)
 			committee.EXPECT().HeightByTime(gomock.Any()).Return(test.epoch.GravityChainStartHeight, nil)
 		}
-
+		fmt.Println("start again3")
 		cfg.API.TpsWindow = test.tpsWindow
 		svr, err := createServer(cfg, false)
 		require.NoError(err)
-		fmt.Println("start again3")
+		fmt.Println("start again4")
 		if pol != nil {
 			require.NoError(svr.registry.ForceRegister(poll.ProtocolID, pol))
 		}
@@ -1008,10 +1008,10 @@ func TestServer_GetChainMeta(t *testing.T) {
 			mbc.EXPECT().TipHeight().Return(uint64(0)).Times(1)
 			svr.bc = mbc
 		}
-		fmt.Println("start again4")
+		fmt.Println("start again5")
 		res, err := svr.GetChainMeta(context.Background(), &iotexapi.GetChainMetaRequest{})
 		require.NoError(err)
-		fmt.Println("start again5")
+
 		chainMetaPb := res.ChainMeta
 		fmt.Println("1this ok")
 		require.Equal(test.height, chainMetaPb.Height)
