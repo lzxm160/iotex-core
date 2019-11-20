@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/big"
+	"math/rand"
 	"os"
 	"strings"
 	"testing"
@@ -278,7 +279,8 @@ func (sct *SmartContractTest) prepareBlockchain(
 	r *require.Assertions,
 ) (blockchain.Blockchain, blockdao.BlockDAO) {
 	cfg := config.Default
-	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	randomDir := rand.Int31n(1000)
+	testDBFile, _ := ioutil.TempFile(os.TempDir()+fmt.Sprintf("/%d/", randomDir), "db")
 	cfg.Chain.ChainDBPath = testDBFile.Name()
 
 	defer func() {
