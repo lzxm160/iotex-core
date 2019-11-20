@@ -278,6 +278,9 @@ func (sct *SmartContractTest) prepareBlockchain(
 	r *require.Assertions,
 ) (blockchain.Blockchain, blockdao.BlockDAO) {
 	cfg := config.Default
+	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	cfg.Chain.ChainDBPath = testDBFile.Name()
+
 	defer func() {
 		delete(cfg.Plugins, config.GatewayPlugin)
 	}()
