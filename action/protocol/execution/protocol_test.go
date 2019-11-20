@@ -279,22 +279,14 @@ func (sct *SmartContractTest) prepareBlockchain(
 	r *require.Assertions,
 ) (blockchain.Blockchain, blockdao.BlockDAO) {
 	cfg := config.Default
-	randomDir := rand.Int31n(100000)
+	randomDir := rand.Int31n(1000000)
 	tempPath := os.TempDir() + fmt.Sprintf("/%d", randomDir)
 	err := os.Mkdir(tempPath, 0777)
 	r.NoError(err)
-	testDBFile, err := ioutil.TempFile(tempPath, "chain.db")
-	r.NoError(err)
-	cfg.Chain.ChainDBPath = testDBFile.Name()
-	testDBFile, err = ioutil.TempFile(tempPath, "trie.db")
-	r.NoError(err)
-	cfg.Chain.TrieDBPath = testDBFile.Name()
-	testDBFile, err = ioutil.TempFile(tempPath, "index.db")
-	r.NoError(err)
-	cfg.Chain.IndexDBPath = testDBFile.Name()
-	testDBFile, err = ioutil.TempFile(tempPath, "consensus.db")
-	r.NoError(err)
-	cfg.Consensus.RollDPoS.ConsensusDBPath = testDBFile.Name()
+	cfg.Chain.ChainDBPath = tempPath + "/chain.db"
+	cfg.Chain.TrieDBPath = tempPath + "/trie.db"
+	cfg.Chain.IndexDBPath = tempPath + "/index.db"
+	cfg.Consensus.RollDPoS.ConsensusDBPath = tempPath + "/consensus.db"
 
 	defer func() {
 		delete(cfg.Plugins, config.GatewayPlugin)
