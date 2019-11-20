@@ -1851,12 +1851,12 @@ func newConfig() config.Config {
 	testDBPath := testDBFile.Name()
 	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
 	testIndexPath := testIndexFile.Name()
-	//testConsensusFile, _ := ioutil.TempFile(os.TempDir(), "consensus")
+	testConsensusFile, _ := ioutil.TempFile(os.TempDir(), "consensus")
 	cfg.Plugins[config.GatewayPlugin] = true
 	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.ChainDBPath = testDBPath
 	cfg.Chain.IndexDBPath = testIndexPath
-	//cfg.Consensus.RollDPoS.ConsensusDBPath = testConsensusFile.Name()
+	cfg.Consensus.RollDPoS.ConsensusDBPath = testConsensusFile.Name()
 	cfg.Chain.EnableAsyncIndexWrite = false
 	cfg.Genesis.EnableGravityChainVoting = false
 	cfg.ActPool.MinGasPriceStr = "0"
