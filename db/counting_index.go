@@ -7,10 +7,8 @@
 package db
 
 import (
-	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
-	"go.uber.org/zap"
 
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 )
@@ -63,7 +61,6 @@ type (
 
 // NewCountingIndex creates a new instance of countingIndex
 func NewCountingIndex(db *bolt.DB, retry uint8, name []byte, size uint64) (CountingIndex, error) {
-	log.L().Error("who is calling me ", zap.Error(errors.New("NewCountingIndex")))
 	if db == nil {
 		return nil, errors.Wrap(ErrInvalid, "db object is nil")
 	}
@@ -89,7 +86,6 @@ func (c *countingIndex) Size() uint64 {
 
 // Add inserts a value into the index
 func (c *countingIndex) Add(value []byte, batch bool) error {
-	log.L().Error("who is calling me ", zap.Error(errors.New("Add")))
 	if batch {
 		return c.addBatch(value)
 	}
@@ -132,7 +128,6 @@ func (c *countingIndex) addBatch(value []byte) error {
 
 // Get return value of key[slot]
 func (c *countingIndex) Get(slot uint64) ([]byte, error) {
-	log.L().Error("who is calling me ", zap.Error(errors.New("get")))
 	if slot >= c.size {
 		return nil, errors.Wrapf(ErrNotExist, "slot: %d", slot)
 	}
@@ -161,7 +156,6 @@ func (c *countingIndex) Get(slot uint64) ([]byte, error) {
 
 // Range return value of keys [start, start+count)
 func (c *countingIndex) Range(start, count uint64) ([][]byte, error) {
-	log.L().Error("who is calling me ", zap.Error(errors.New("rage")))
 	if start+count > c.size || count == 0 {
 		return nil, errors.Wrapf(ErrInvalid, "start: %d, count: %d", start, count)
 	}
