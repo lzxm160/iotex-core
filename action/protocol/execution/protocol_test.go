@@ -280,9 +280,11 @@ func (sct *SmartContractTest) prepareBlockchain(
 ) (blockchain.Blockchain, blockdao.BlockDAO) {
 	cfg := config.Default
 	randomDir := rand.Int31n(1000)
-	testDBFile, _ := ioutil.TempFile(os.TempDir()+fmt.Sprintf("/%d/", randomDir), "db")
+	tempPath := os.TempDir() + fmt.Sprintf("/%d/chain", randomDir)
+	fmt.Println("tempPath", tempPath)
+	testDBFile, _ := ioutil.TempFile(tempPath, "db")
 	cfg.Chain.ChainDBPath = testDBFile.Name()
-
+	fmt.Println("cfg.Chain.ChainDBPath", cfg.Chain.ChainDBPath)
 	defer func() {
 		delete(cfg.Plugins, config.GatewayPlugin)
 	}()
