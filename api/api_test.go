@@ -1764,13 +1764,13 @@ func addActsToActPool(ap actpool.ActPool) error {
 }
 
 func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, blockindex.Indexer, *protocol.Registry, error) {
+	dbConfig := cfg.DB
 	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
 	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 	// create indexer
-	dbConfig := cfg.DB
 	dbConfig.DbPath = cfg.Chain.IndexDBPath
 	indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg.Genesis.Hash())
 	if err != nil {
@@ -1823,9 +1823,9 @@ func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, bl
 	if err := registry.Register(poll.ProtocolID, p); err != nil {
 		return nil, nil, nil, nil, err
 	}
-	sf.AddActionHandlers(acc, evm, r)
+	sf.AddActionHandlers(acc, evm, r, p)
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
-	bc.Validator().AddActionValidators(acc, evm, r)
+	bc.Validator().AddActionValidators(acc, evm, r, p)
 
 	return bc, dao, indexer, &registry, nil
 }
