@@ -211,12 +211,10 @@ func runExecution(
 	contractAddr string,
 ) ([]byte, *action.Receipt, error) {
 	log.S().Info(ecfg.Comment)
-	fmt.Println("where0")
 	nonce, err := bc.Factory().Nonce(ecfg.Executor().String())
 	if err != nil {
 		return nil, nil, err
 	}
-	fmt.Println("where1")
 	exec, err := action.NewExecution(
 		contractAddr,
 		nonce+1,
@@ -228,7 +226,6 @@ func runExecution(
 	if err != nil {
 		return nil, nil, err
 	}
-	fmt.Println("where")
 	if ecfg.ReadOnly { // read
 		addr, err := address.FromBytes(ecfg.PrivateKey().PublicKey().Hash())
 		if err != nil {
@@ -236,7 +233,6 @@ func runExecution(
 		}
 		return bc.SimulateExecution(addr, exec)
 	}
-	fmt.Println("where2")
 	builder := &action.EnvelopeBuilder{}
 	elp := builder.SetAction(exec).
 		SetNonce(exec.Nonce()).
@@ -247,7 +243,6 @@ func runExecution(
 	if err != nil {
 		return nil, nil, err
 	}
-	fmt.Println("where3")
 	actionMap := make(map[string][]action.SealedEnvelope)
 	actionMap[ecfg.Executor().String()] = []action.SealedEnvelope{selp}
 	blk, err := bc.MintNewBlock(
@@ -257,7 +252,6 @@ func runExecution(
 	if err != nil {
 		return nil, nil, err
 	}
-	fmt.Println("where4")
 	t := time.Now()
 	if err := bc.ValidateBlock(blk); err != nil {
 		return nil, nil, err
@@ -287,14 +281,6 @@ func (sct *SmartContractTest) prepareBlockchain(
 	cfg.Chain.TrieDBPath = tempPath + "/trie.db"
 	cfg.Chain.IndexDBPath = tempPath + "/index.db"
 	cfg.Consensus.RollDPoS.ConsensusDBPath = tempPath + "/consensus.db"
-	_, err = os.Create(cfg.Chain.ChainDBPath)
-	r.NoError(err)
-	_, err = os.Create(cfg.Chain.TrieDBPath)
-	r.NoError(err)
-	_, err = os.Create(cfg.Chain.IndexDBPath)
-	r.NoError(err)
-	_, err = os.Create(cfg.Consensus.RollDPoS.ConsensusDBPath)
-	r.NoError(err)
 
 	defer func() {
 		delete(cfg.Plugins, config.GatewayPlugin)
@@ -362,7 +348,6 @@ func (sct *SmartContractTest) deployContracts(
 			contract.ContractAddressToAppend = contractAddresses[contract.ContractIndexToAppend]
 		}
 		_, receipt, err := runExecution(bc, dao, &contract, action.EmptyAddress)
-		log.L().Error("err", zap.Error(err))
 		r.NoError(err)
 		r.NotNil(receipt)
 		if sct.InitGenesis.IsBering {
@@ -487,14 +472,7 @@ func TestProtocol_Handle(t *testing.T) {
 		cfg.Chain.TrieDBPath = tempPath + "/trie.db"
 		cfg.Chain.IndexDBPath = tempPath + "/index.db"
 		cfg.Consensus.RollDPoS.ConsensusDBPath = tempPath + "/consensus.db"
-		_, err = os.Create(cfg.Chain.ChainDBPath)
-		require.NoError(err)
-		_, err = os.Create(cfg.Chain.TrieDBPath)
-		require.NoError(err)
-		_, err = os.Create(cfg.Chain.IndexDBPath)
-		require.NoError(err)
-		_, err = os.Create(cfg.Consensus.RollDPoS.ConsensusDBPath)
-		require.NoError(err)
+
 		cfg.Plugins[config.GatewayPlugin] = true
 		cfg.Chain.EnableAsyncIndexWrite = false
 		cfg.Genesis.EnableGravityChainVoting = false
