@@ -281,7 +281,7 @@ func (sct *SmartContractTest) prepareBlockchain(
 	cfg := config.Default
 	randomDir := rand.Int31n(100000)
 	tempPath := os.TempDir() + fmt.Sprintf("/%d", randomDir)
-	err := os.Chdir(tempPath)
+	err := os.Mkdir(tempPath, 0777)
 	if err != nil {
 		fmt.Println(err)
 		return nil, nil
