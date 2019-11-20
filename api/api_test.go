@@ -1870,24 +1870,24 @@ func createServer(cfg config.Config, needActPool bool) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("1")
 	ctx := context.Background()
 
 	// Start blockchain
 	if err := bc.Start(ctx); err != nil {
 		return nil, err
 	}
-
+	fmt.Println("2")
 	// Create state for producer
 	if err := addProducerToFactory(bc.Factory()); err != nil {
 		return nil, err
 	}
-
+	fmt.Println("3")
 	// Add testing blocks
 	if err := addTestingBlocks(bc); err != nil {
 		return nil, err
 	}
-
+	fmt.Println("4")
 	var ap actpool.ActPool
 	if needActPool {
 		ap, err = setupActPool(bc, cfg.ActPool)
