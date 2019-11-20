@@ -1778,7 +1778,7 @@ func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, bl
 	bc := blockchain.NewBlockchain(
 		cfg,
 		dao,
-		blockchain.PrecreatedStateFactoryOption(sf),
+		blockchain.DefaultStateFactoryOption(),
 		blockchain.RegistryOption(&registry),
 	)
 	if bc == nil {
@@ -1814,7 +1814,7 @@ func setupChain(cfg config.Config) (blockchain.Blockchain, blockdao.BlockDAO, bl
 	if err := registry.Register(poll.ProtocolID, p); err != nil {
 		return nil, nil, nil, nil, err
 	}
-	sf.AddActionHandlers(acc, evm, r)
+	bc.Factory().AddActionHandlers(acc, evm, r)
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
 	bc.Validator().AddActionValidators(acc, evm, r)
 
