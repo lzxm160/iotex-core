@@ -98,6 +98,7 @@ func prepareBlockchain(
 	cfg.Chain.ProducerPrivKey = hex.EncodeToString(identityset.PrivateKey(0).Bytes())
 	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
 	r.NoError(err)
+	r.NotNil(sf)
 	// create indexer
 	dbConfig.DbPath = cfg.Chain.IndexDBPath
 	indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg.Genesis.Hash())
@@ -117,10 +118,12 @@ func prepareBlockchain(
 	r.NoError(registry.Register(rewarding.ProtocolID, reward))
 	p := poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)
 	r.NoError(registry.Register(poll.ProtocolID, p))
+	evm := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
+	r.NoError(registry.Register(execution.ProtocolID, evm))
 	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
-	bc.Validator().AddActionValidators(account.NewProtocol(), execution.NewProtocol(bc.BlockDAO().GetBlockHash), reward)
-	r.NotNil(sf)
-	sf.AddActionHandlers(execution.NewProtocol(bc.BlockDAO().GetBlockHash), reward)
+	bc.Validator().AddActionValidators(acc, evm, reward)
+
+	sf.AddActionHandlers(acc, evm, reward)
 	r.NoError(bc.Start(ctx))
 	ws, err := sf.NewWorkingSet()
 	r.NoError(err)
