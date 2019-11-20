@@ -741,9 +741,11 @@ func newConfig(numNodes int) (ret []config.Config) {
 		testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
 		testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
 		testConsensusFile, _ := ioutil.TempFile(os.TempDir(), "consensus")
+		gravityChainDBFile, _ := ioutil.TempFile(os.TempDir(), "poll")
 		cfg.Chain.TrieDBPath = testTrieFile.Name()
 		cfg.Chain.ChainDBPath = testDBFile.Name()
 		cfg.Chain.IndexDBPath = testIndexFile.Name()
+		cfg.Chain.GravityChainDB.DbPath = gravityChainDBFile.Name()
 		cfg.Consensus.RollDPoS.ConsensusDBPath = testConsensusFile.Name()
 		cfg.Genesis.BlockInterval = 2 * time.Second
 		cfg.Genesis.Blockchain.NumDelegates = uint64(numNodes)
