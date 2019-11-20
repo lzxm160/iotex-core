@@ -407,7 +407,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 			sf, err := factory.NewFactory(cfg[i], factory.DefaultTrieOption())
 			require.NoError(t, err)
 			//fmt.Println("cfg.db:", cfg[i].Chain)
-			require.NoError(t, sf.Start(ctx))
+			//require.NoError(t, sf.Start(ctx))
 			for j := 0; j < numNodes; j++ {
 				ws, err := sf.NewWorkingSet()
 				require.NoError(t, err)
