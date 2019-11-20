@@ -45,6 +45,7 @@ func TestTransfer_Negative(t *testing.T) {
 	r := require.New(t)
 	ctx := context.Background()
 	bc := prepareBlockchain(ctx, executor, r)
+	r.NoError(bc.Start(ctx))
 	defer r.NoError(bc.Stop(ctx))
 	balanceBeforeTransfer, err := bc.Factory().Balance(executor)
 	r.NoError(err)
@@ -62,6 +63,7 @@ func TestAction_Negative(t *testing.T) {
 	r := require.New(t)
 	ctx := context.Background()
 	bc := prepareBlockchain(ctx, executor, r)
+	r.NoError(bc.Start(ctx))
 	defer r.NoError(bc.Stop(ctx))
 	balanceBeforeTransfer, err := bc.Factory().Balance(executor)
 	r.NoError(err)
@@ -129,6 +131,7 @@ func prepareBlockchain(
 	_, err = ws.RunActions(ctx, 0, nil)
 	r.NoError(err)
 	r.NoError(sf.Commit(ws))
+	r.NoError(bc.Stop(ctx))
 	return bc
 }
 
