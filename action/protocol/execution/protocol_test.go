@@ -283,14 +283,17 @@ func (sct *SmartContractTest) prepareBlockchain(
 	tempPath := os.TempDir() + fmt.Sprintf("/%d", randomDir)
 	err := os.Chdir(tempPath)
 	if err != nil {
+		fmt.Println(err)
 		return nil, nil
 	}
+	r.NoError(err)
 	fmt.Println("tempPath", tempPath)
 	testDBFile, err := ioutil.TempFile(tempPath, "chain.db")
 	if err != nil {
 		fmt.Println(err)
 		return nil, nil
 	}
+	r.NoError(err)
 	cfg.Chain.ChainDBPath = testDBFile.Name()
 	fmt.Println("cfg.Chain.ChainDBPath", cfg.Chain.ChainDBPath)
 	defer func() {
