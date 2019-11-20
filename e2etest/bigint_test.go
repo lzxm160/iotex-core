@@ -49,13 +49,14 @@ const (
 func TestTransfer_Negative(t *testing.T) {
 	r := require.New(t)
 	ctx := context.Background()
-	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
-	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
-	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+	//testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+	//testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	//testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
 
-	cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(27),
-		4689, 14014, uint64(24))
-	cfg.Chain.CompressBlock = false
+	//cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(27),
+	//	//	4689, 14014, uint64(24))
+	//	//cfg.Chain.CompressBlock = false
+	cfg := newConfig2()
 	bc := prepareBlockchain(cfg, r)
 	r.NotNil(bc)
 	defer r.NoError(bc.Stop(ctx))
@@ -76,13 +77,14 @@ func TestTransfer_Negative(t *testing.T) {
 func TestAction_Negative(t *testing.T) {
 	r := require.New(t)
 	ctx := context.Background()
-	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
-	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
-	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
-
-	cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(27),
-		4689, 14014, uint64(24))
-	cfg.Chain.CompressBlock = false
+	//testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+	//testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	//testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+	//
+	//cfg := newConfig(testDBFile.Name(), testTrieFile.Name(), testIndexFile.Name(), identityset.PrivateKey(27),
+	//	4689, 14014, uint64(24))
+	//cfg.Chain.CompressBlock = false
+	cfg := newConfig2()
 	bc := prepareBlockchain(cfg, r)
 	defer r.NoError(bc.Stop(ctx))
 	balanceBeforeTransfer, err := bc.Factory().Balance(executor)
@@ -276,4 +278,25 @@ func addProducerToFactory(sf factory.Factory) error {
 		return err
 	}
 	return sf.Commit(ws)
+}
+func newConfig2() config.Config {
+	cfg := config.Default
+
+	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+	testTriePath := testTrieFile.Name()
+	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	testDBPath := testDBFile.Name()
+	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+	testIndexPath := testIndexFile.Name()
+
+	cfg.Plugins[config.GatewayPlugin] = true
+	cfg.Chain.TrieDBPath = testTriePath
+	cfg.Chain.ChainDBPath = testDBPath
+	cfg.Chain.IndexDBPath = testIndexPath
+	cfg.Chain.EnableAsyncIndexWrite = false
+	cfg.Genesis.EnableGravityChainVoting = true
+	cfg.ActPool.MinGasPriceStr = "0"
+	cfg.API.RangeQueryLimit = 100
+
+	return cfg
 }
