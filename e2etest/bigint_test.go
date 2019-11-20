@@ -167,6 +167,7 @@ func prepareBlockchain(cfg config.Config, r *require.Assertions) blockchain.Bloc
 	cfg.Chain.ProducerPrivKey = executorPriKey
 	sf, err := factory.NewStateDB(cfg, factory.DefaultStateDBOption())
 	r.NoError(err)
+	r.NoError(sf.Start(context.Background()))
 	// create indexer
 	dbConfig.DbPath = cfg.Chain.IndexDBPath
 	indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg.Genesis.Hash())
