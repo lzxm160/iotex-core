@@ -46,7 +46,6 @@ func TestTransfer_Negative(t *testing.T) {
 	r := require.New(t)
 	ctx := context.Background()
 	bc := prepareBlockchain(ctx, executor, r)
-	r.NoError(bc.Start(ctx))
 	defer r.NoError(bc.Stop(ctx))
 	balanceBeforeTransfer, err := bc.Factory().Balance(executor)
 	r.NoError(err)
@@ -64,7 +63,6 @@ func TestAction_Negative(t *testing.T) {
 	r := require.New(t)
 	ctx := context.Background()
 	bc := prepareBlockchain(ctx, executor, r)
-	r.NoError(bc.Start(ctx))
 	defer r.NoError(bc.Stop(ctx))
 	balanceBeforeTransfer, err := bc.Factory().Balance(executor)
 	r.NoError(err)
@@ -122,7 +120,10 @@ func prepareBlockchain(
 	r.True(ok)
 	a, err := accountutil.LoadOrCreateAccount(ws, executor, balance)
 	r.NoError(err)
-	fmt.Println(a.Balance)
+	fmt.Println("a.Balance:", a.Balance)
+	balanceBeforeTransfer, err := bc.Factory().Balance(executor)
+	r.NoError(err)
+	fmt.Println("balanceBeforeTransfer:", balanceBeforeTransfer)
 	ctx = protocol.WithRunActionsCtx(ctx,
 		protocol.RunActionsCtx{
 			Producer: identityset.Address(27),
@@ -132,7 +133,6 @@ func prepareBlockchain(
 	_, err = ws.RunActions(ctx, 0, nil)
 	r.NoError(err)
 	r.NoError(sf.Commit(ws))
-	r.NoError(bc.Stop(context.Background()))
 	return bc
 }
 
