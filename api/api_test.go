@@ -1005,9 +1005,10 @@ func TestServer_GetChainMeta(t *testing.T) {
 			mbc.EXPECT().TipHeight().Return(uint64(0)).Times(1)
 			svr.bc = mbc
 		}
-		fmt.Println("this ok")
+
 		res, err := svr.GetChainMeta(context.Background(), &iotexapi.GetChainMetaRequest{})
 		require.NoError(err)
+		fmt.Println("this ok")
 		chainMetaPb := res.ChainMeta
 		require.Equal(test.height, chainMetaPb.Height)
 		require.Equal(test.numActions, chainMetaPb.NumActions)
