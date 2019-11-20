@@ -526,6 +526,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 
 		for i := 0; i < 24; i++ {
 			require.NoError(t, chains[i].Start(ctx))
+			fmt.Println("529:", i)
 			require.NoError(t, p2ps[i].Start(ctx))
 		}
 		wg := sync.WaitGroup{}
