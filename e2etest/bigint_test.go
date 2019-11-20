@@ -8,6 +8,7 @@ package e2etest
 
 import (
 	"context"
+	"errors"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -123,21 +124,22 @@ func prepareBlockchain(
 
 	sf.AddActionHandlers(acc, evm, reward, p)
 	r.NoError(bc.Start(ctx))
-	ws, err := bc.Factory().NewWorkingSet()
-	r.NoError(err)
-	balance, ok := new(big.Int).SetString("1000000000000000000000000000", 10)
-	r.True(ok)
-	_, err = accountutil.LoadOrCreateAccount(ws, executor, balance)
-	r.NoError(err)
-	ctx = protocol.WithRunActionsCtx(ctx,
-		protocol.RunActionsCtx{
-			Producer: identityset.Address(27),
-			GasLimit: uint64(10000000),
-			Genesis:  cfg.Genesis,
-		})
-	_, err = ws.RunActions(ctx, 0, nil)
-	r.NoError(err)
-	r.NoError(sf.Commit(ws))
+	r.NoError(addProducerToFactory(bc.Factory()))
+	//ws, err := bc.Factory().NewWorkingSet()
+	//r.NoError(err)
+	//balance, ok := new(big.Int).SetString("1000000000000000000000000000", 10)
+	//r.True(ok)
+	//_, err = accountutil.LoadOrCreateAccount(ws, executor, balance)
+	//r.NoError(err)
+	//ctx = protocol.WithRunActionsCtx(ctx,
+	//	protocol.RunActionsCtx{
+	//		Producer: identityset.Address(27),
+	//		GasLimit: uint64(10000000),
+	//		Genesis:  cfg.Genesis,
+	//	})
+	//_, err = ws.RunActions(ctx, 0, nil)
+	//r.NoError(err)
+	//r.NoError(sf.Commit(ws))
 	return bc
 }
 
@@ -178,4 +180,32 @@ func prepare(bc blockchain.Blockchain, elp action.Envelope, r *require.Assertion
 	)
 	r.NoError(err)
 	return blk, nil
+}
+
+func addProducerToFactory(sf factory.Factory) error {
+	ws, err := sf.NewWorkingSet()
+	if err != nil {
+		return err
+	}
+	balance, ok := new(big.Int).SetString("1000000000000000000000000000", 10)
+	if !ok {
+		return errors.New("convert error")
+	}
+	if _, err = accountutil.LoadOrCreateAccount(
+		ws,
+		executor,
+		balance,
+	); err != nil {
+		return err
+	}
+	gasLimit := testutil.TestGasLimit
+	ctx := protocol.WithRunActionsCtx(context.Background(),
+		protocol.RunActionsCtx{
+			Producer: identityset.Address(27),
+			GasLimit: gasLimit,
+		})
+	if _, err = ws.RunActions(ctx, 0, nil); err != nil {
+		return err
+	}
+	return sf.Commit(ws)
 }
