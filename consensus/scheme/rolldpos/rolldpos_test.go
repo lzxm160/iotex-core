@@ -525,6 +525,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 		cs, p2ps, chains := newConsensusComponents(24)
 
 		for i := 0; i < 24; i++ {
+			fmt.Println("528:", i)
 			require.NoError(t, chains[i].Start(ctx))
 			fmt.Println("529:", i)
 			require.NoError(t, p2ps[i].Start(ctx))
