@@ -782,6 +782,7 @@ func (dao *blockDAO) getDBFromHash(h hash.Hash256) (db.KVStore, uint64, error) {
 	if err != nil {
 		return nil, 0, err
 	}
+	fmt.Println("785")
 	return dao.getDBFromHeight(height)
 }
 
