@@ -305,9 +305,10 @@ func (bc *blockchain) ChainAddress() string {
 
 // Start starts the blockchain
 func (bc *blockchain) Start(ctx context.Context) error {
+	fmt.Println("blockchain Start")
 	bc.mu.Lock()
 	defer bc.mu.Unlock()
-
+	fmt.Println("310000000000")
 	// pass registry to be used by state factory's initialization
 	ctx = protocol.WithRunActionsCtx(ctx, protocol.RunActionsCtx{
 		BlockTimeStamp: time.Unix(bc.config.Genesis.Timestamp, 0),
@@ -316,6 +317,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 	if err := bc.lifecycle.OnStart(ctx); err != nil {
 		return err
 	}
+	fmt.Println("3100999999999999")
 	// get blockchain tip height
 	var err error
 	if bc.tipHeight, err = bc.dao.GetTipHeight(); err != nil {
@@ -328,7 +330,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 	if bc.tipHash, err = bc.dao.GetTipHash(); err != nil {
 		return err
 	}
-	fmt.Println("3333333")
+
 	return bc.startExistingBlockchain()
 }
 
