@@ -152,11 +152,11 @@ func TestIndexer(t *testing.T) {
 		}
 	}
 
-	t.Run("In-memory KV indexer", func(t *testing.T) {
-		indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), hash.ZeroHash256)
-		require.NoError(t, err)
-		testIndexer(db.NewMemKVStore(), indexer, t)
-	})
+	//t.Run("In-memory KV indexer", func(t *testing.T) {
+	//	indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), hash.ZeroHash256)
+	//	require.NoError(t, err)
+	//	testIndexer(db.NewMemKVStore(), indexer, t)
+	//})
 	path := "test-indexer"
 	testFile, _ := ioutil.TempFile(os.TempDir(), path)
 	testPath := testFile.Name()
