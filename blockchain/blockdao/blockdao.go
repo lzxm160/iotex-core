@@ -262,6 +262,11 @@ func (dao *blockDAO) Stop(ctx context.Context) error {
 		if !ok {
 			return false
 		}
+		index, ok := k.(uint64)
+		if !ok {
+			return false
+		}
+		fmt.Println("blockdao stop:", index)
 		if err := kv.Stop(ctx); err != nil {
 			return false
 		}

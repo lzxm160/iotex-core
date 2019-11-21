@@ -127,6 +127,7 @@ func (sdb *stateDB) Start(ctx context.Context) error {
 func (sdb *stateDB) Stop(ctx context.Context) error {
 	sdb.mutex.Lock()
 	defer sdb.mutex.Unlock()
+	fmt.Println("stateDB stop")
 	return sdb.dao.Stop(ctx)
 }
 
