@@ -7,6 +7,7 @@
 package e2etest
 
 import (
+	"fmt"
 	"io/ioutil"
 	"math/big"
 
@@ -210,6 +211,7 @@ func addTestingTsfBlocks(bc blockchain.Blockchain) error {
 }
 
 func copyDB(srcDB, dstDB string) error {
+	fmt.Println(srcDB, "->", dstDB)
 	input, err := ioutil.ReadFile(srcDB)
 	if err != nil {
 		return errors.Wrap(err, "failed to read source db file")
