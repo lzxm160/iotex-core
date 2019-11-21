@@ -830,6 +830,7 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 
 func (dao *blockDAO) getDBFromHeight(blkHeight uint64) (kvstore db.KVStore, index uint64, err error) {
 	// get file index
+	fmt.Println("832")
 	value, err := dao.GetFileIndex(blkHeight)
 	if err != nil {
 		return
