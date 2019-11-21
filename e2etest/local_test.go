@@ -209,7 +209,7 @@ func TestLocalCommit(t *testing.T) {
 	require.NoError(chain.Start(ctx))
 	require.EqualValues(5, chain.TipHeight())
 	defer func() {
-		require.NoError(chain.Stop(ctx))
+		chain.Stop(ctx)
 	}()
 
 	p2pCtx := p2p.WitContext(ctx, p2p.Context{ChainID: cfg.Chain.ID})
