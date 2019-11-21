@@ -46,11 +46,14 @@ func TestLocalCommit(t *testing.T) {
 	cfg, err := newTestConfig()
 	require.Nil(err)
 	testTrieFile, _ := ioutil.TempFile(os.TempDir(), triePath)
+	testTriePath := testTrieFile.Name()
 	testDBFile, _ := ioutil.TempFile(os.TempDir(), dBPath)
+	testDBPath := testDBFile.Name()
 	indexDBFile, _ := ioutil.TempFile(os.TempDir(), dBPath)
-	cfg.Chain.TrieDBPath = testTrieFile.Name()
-	cfg.Chain.ChainDBPath = testDBFile.Name()
-	cfg.Chain.IndexDBPath = indexDBFile.Name()
+	indexDBPath := indexDBFile.Name()
+	cfg.Chain.TrieDBPath = testTriePath
+	cfg.Chain.ChainDBPath = testDBPath
+	cfg.Chain.IndexDBPath = indexDBPath
 
 	// create server
 	ctx := context.Background()
@@ -67,12 +70,12 @@ func TestLocalCommit(t *testing.T) {
 	// create client
 	cfg, err = newTestConfig()
 	require.Nil(err)
-	testTrieFile, _ = ioutil.TempFile(os.TempDir(), triePath)
-	testDBFile, _ = ioutil.TempFile(os.TempDir(), dBPath)
-	indexDBFile, _ = ioutil.TempFile(os.TempDir(), dBPath)
-	cfg.Chain.TrieDBPath = testTrieFile.Name()
-	cfg.Chain.ChainDBPath = testDBFile.Name()
-	cfg.Chain.IndexDBPath = indexDBFile.Name()
+	testTrieFile0, _ := ioutil.TempFile(os.TempDir(), triePath)
+	testDBFile0, _ := ioutil.TempFile(os.TempDir(), dBPath)
+	indexDBFile0, _ := ioutil.TempFile(os.TempDir(), dBPath)
+	cfg.Chain.TrieDBPath = testTrieFile0.Name()
+	cfg.Chain.ChainDBPath = testDBFile0.Name()
+	cfg.Chain.IndexDBPath = indexDBFile0.Name()
 
 	cfg.Network.BootstrapNodes = []string{svr.P2PAgent().Self()[0].String()}
 	p := p2p.NewAgent(
