@@ -255,10 +255,12 @@ func TestBlockDAO(t *testing.T) {
 				// tests[0] is the whole address/action data at block height 3
 				continue
 			}
+			fmt.Println("258")
 			require.NoError(dao.DeleteTipBlock())
+			fmt.Println("xxxxxxxxxxxxxxxxxxxxx")
 			tipHeight, err := indexer.GetBlockchainHeight()
 			require.NoError(err)
-			fmt.Println("xxxxxxxxxxxxxxxxxxxxx")
+
 			require.EqualValues(uint64(3-i), tipHeight)
 			tipHeight, err = dao.GetTipHeight()
 			require.NoError(err)
