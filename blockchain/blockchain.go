@@ -334,7 +334,10 @@ func (bc *blockchain) Start(ctx context.Context) error {
 func (bc *blockchain) Stop(ctx context.Context) error {
 	bc.mu.Lock()
 	defer bc.mu.Unlock()
-
+	err := bc.dao.Stop(ctx)
+	if err != nil {
+		return err
+	}
 	return bc.lifecycle.OnStop(ctx)
 }
 

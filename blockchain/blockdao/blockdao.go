@@ -262,7 +262,7 @@ func (dao *blockDAO) Stop(ctx context.Context) error {
 		if !ok {
 			return false
 		}
-		if err := kv.Stop(context.Background()); err != nil {
+		if err := kv.Stop(ctx); err != nil {
 			return false
 		}
 		return true
