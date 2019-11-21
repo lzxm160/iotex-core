@@ -393,8 +393,8 @@ func (dao *blockDAO) IndexFile(height uint64, index []byte) error {
 
 // GetFileIndex return the db filename
 func (dao *blockDAO) GetFileIndex(height uint64) ([]byte, error) {
-	dao.mutex.RLock()
-	defer dao.mutex.RUnlock()
+	//dao.mutex.RLock()
+	//defer dao.mutex.RUnlock()
 
 	if dao.htf == nil {
 		htf, err := dao.kvstore.CreateRangeIndexNX(heightToFileBucket, make([]byte, 8))
