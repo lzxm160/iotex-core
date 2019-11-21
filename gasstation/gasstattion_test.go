@@ -40,6 +40,7 @@ func TestNewGasStation(t *testing.T) {
 	require := require.New(t)
 	require.NotNil(NewGasStation(nil, config.Default.API))
 }
+
 func TestSuggestGasPriceForUserAction(t *testing.T) {
 	ctx := context.Background()
 	cfg := newConfig()
@@ -180,8 +181,8 @@ func TestEstimateGasForAction(t *testing.T) {
 	// test for payload
 	act = getActionWithPayload()
 	require.NotNil(act)
-	require.NoError(bc.Start(context.Background()))
-	require.NotNil(bc)
+	//require.NoError(bc.Start(context.Background()))
+	//require.NotNil(bc)
 	ret, err = gs.EstimateGasForAction(act)
 	require.NoError(err)
 	// base intrinsic gas 10000,plus data size*ExecutionDataGas
