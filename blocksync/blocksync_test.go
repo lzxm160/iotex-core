@@ -28,7 +28,6 @@ import (
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/actpool"
 	"github.com/iotexproject/iotex-core/blockchain"
-	bc "github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/blockchain/block"
 	"github.com/iotexproject/iotex-core/blockchain/blockdao"
 	"github.com/iotexproject/iotex-core/blockindex"
@@ -181,18 +180,19 @@ func TestBlockSyncerProcessBlockTipHeight(t *testing.T) {
 	ctx := context.Background()
 	cfg, err := newTestConfig()
 	require.Nil(err)
-	registry := protocol.Registry{}
-	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-	require.NoError(registry.Register(rolldpos.ProtocolID, rp))
-	chain := bc.NewBlockchain(
-		cfg,
-		nil,
-		bc.InMemStateFactoryOption(),
-		bc.InMemDaoOption(),
-		bc.RegistryOption(&registry),
-	)
-	chain.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(chain.Factory().Nonce))
-	chain.Validator().AddActionValidators(account.NewProtocol())
+	//registry := protocol.Registry{}
+	//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+	//require.NoError(registry.Register(rolldpos.ProtocolID, rp))
+	//chain := bc.NewBlockchain(
+	//	cfg,
+	//	nil,
+	//	bc.InMemStateFactoryOption(),
+	//	bc.InMemDaoOption(),
+	//	bc.RegistryOption(&registry),
+	//)
+	//chain.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(chain.Factory().Nonce))
+	//chain.Validator().AddActionValidators(account.NewProtocol())
+	chain := newBlockchain(cfg, t)
 	require.NoError(chain.Start(ctx))
 	require.NotNil(chain)
 	ap, err := actpool.NewActPool(chain, cfg.ActPool, actpool.EnableExperimentalActions())
