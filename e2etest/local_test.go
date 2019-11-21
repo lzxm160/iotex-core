@@ -27,7 +27,6 @@ import (
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/blockchain/blockdao"
-	"github.com/iotexproject/iotex-core/blockindex"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/p2p"
@@ -178,13 +177,9 @@ func TestLocalCommit(t *testing.T) {
 	dbConfig := cfg.DB
 	sf, err := factory.NewStateDB(cfg, factory.DefaultStateDBOption())
 	require.NoError(err)
-	// create indexer
-	dbConfig.DbPath = cfg.Chain.IndexDBPath
-	indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg.Genesis.Hash())
-	require.NoError(err)
 	// create BlockDAO
 	dbConfig.DbPath = cfg.Chain.ChainDBPath
-	dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg.Chain.CompressBlock, dbConfig)
+	dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), nil, cfg.Chain.CompressBlock, dbConfig)
 	require.NotNil(dao)
 
 	registry := protocol.Registry{}
