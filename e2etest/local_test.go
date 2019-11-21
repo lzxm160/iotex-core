@@ -542,10 +542,11 @@ func TestStartExistingBlockchain(t *testing.T) {
 	require.Equal(uint64(5), bc.TipHeight())
 
 	// Delete state db and recover to tip
-	//testutil.CleanupPath(t, testTriePath)
+	testutil.CleanupPath(t, testTriePath)
 	require.NoError(svr.Stop(ctx))
 	//require.NoError(bc.Stop(ctx))
 	fmt.Println("555555555555555555")
+	ctx = context.Background()
 	require.NoError(bc.Start(ctx))
 	fmt.Println("xxssssssssssssssssssss")
 
