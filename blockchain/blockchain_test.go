@@ -544,7 +544,7 @@ func TestBlockchain_MintNewBlock_PopAccount(t *testing.T) {
 	addr1 := identityset.Address(28).String()
 	addr3 := identityset.Address(30).String()
 	priKey3 := identityset.PrivateKey(30)
-	require.NoError(t, addTestingTsfBlocks(bc, nil))
+	require.NoError(t, addTestingTsfBlocks(bc, bc.BlockDAO()))
 
 	// test third block
 	bytes := []byte{}
