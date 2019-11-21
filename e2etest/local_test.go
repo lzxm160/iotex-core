@@ -535,7 +535,7 @@ func TestStartExistingBlockchain(t *testing.T) {
 	require.NotNil(bc)
 
 	defer func() {
-		require.NoError(svr.Stop(ctx))
+		svr.Stop(ctx)
 	}()
 
 	require.NoError(addTestingTsfBlocks(bc))
@@ -544,6 +544,7 @@ func TestStartExistingBlockchain(t *testing.T) {
 	// Delete state db and recover to tip
 	testutil.CleanupPath(t, testTriePath)
 	require.NoError(svr.Stop(ctx))
+	fmt.Println("555555555555555555")
 	require.NoError(svr.ChainService(cfg.Chain.ID).Blockchain().Start(ctx))
 	fmt.Println("xxssssssssssssssssssss")
 
