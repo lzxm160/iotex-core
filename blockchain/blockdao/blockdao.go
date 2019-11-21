@@ -257,21 +257,6 @@ func (dao *blockDAO) initStores() error {
 }
 
 func (dao *blockDAO) Stop(ctx context.Context) error {
-	dao.kvstores.Range(func(k, v interface{}) bool {
-		kv, ok := v.(db.KVStore)
-		if !ok {
-			return false
-		}
-		index, ok := k.(uint64)
-		if !ok {
-			return false
-		}
-		fmt.Println("blockdao stop:", index)
-		if err := kv.Stop(ctx); err != nil {
-			return false
-		}
-		return true
-	})
 	return dao.lifecycle.OnStop(ctx)
 }
 
