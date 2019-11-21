@@ -326,14 +326,8 @@ func TestBlockDAO(t *testing.T) {
 		testDeleteDao(db.NewMemKVStore(), indexer, t)
 	})
 	t.Run("Bolt DB deletions", func(t *testing.T) {
-		testutil.CleanupPath(t, testPath)
-		testutil.CleanupPath(t, indexPath)
-		defer func() {
-			testutil.CleanupPath(t, testPath)
-			testutil.CleanupPath(t, indexPath)
-		}()
-		testFile, _ := ioutil.TempFile(os.TempDir(), "db")
-		indexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+		testFile, _ = ioutil.TempFile(os.TempDir(), "db")
+		indexFile, _ = ioutil.TempFile(os.TempDir(), "index")
 		cfg := config.Default.DB
 		cfg.DbPath = indexFile.Name()
 		indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg), hash.ZeroHash256)
