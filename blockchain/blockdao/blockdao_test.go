@@ -158,7 +158,10 @@ func TestBlockDAO(t *testing.T) {
 		require := require.New(t)
 
 		ctx := context.Background()
-		dao := NewBlockDAO(kvstore, indexer, false, config.Default.DB)
+		testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+		cfg := config.Default.DB
+		cfg.DbPath = testDBFile.Name()
+		dao := NewBlockDAO(kvstore, indexer, false, cfg)
 		require.NoError(dao.Start(ctx))
 		defer func() {
 			require.NoError(dao.Stop(ctx))
@@ -226,7 +229,10 @@ func TestBlockDAO(t *testing.T) {
 		require := require.New(t)
 
 		ctx := context.Background()
-		dao := NewBlockDAO(kvstore, indexer, false, config.Default.DB)
+		testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+		cfg := config.Default.DB
+		cfg.DbPath = testDBFile.Name()
+		dao := NewBlockDAO(kvstore, indexer, false, cfg)
 		require.NoError(dao.Start(ctx))
 		defer func() {
 			require.NoError(dao.Stop(ctx))
