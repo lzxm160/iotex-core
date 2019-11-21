@@ -9,8 +9,13 @@ package gasstation
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"math/big"
+	"os"
 	"testing"
+
+	"github.com/iotexproject/iotex-core/blockindex"
+	"github.com/iotexproject/iotex-core/state/factory"
 
 	"github.com/iotexproject/iotex-core/pkg/unit"
 
@@ -37,23 +42,8 @@ func TestNewGasStation(t *testing.T) {
 }
 func TestSuggestGasPriceForUserAction(t *testing.T) {
 	ctx := context.Background()
-	cfg := config.Default
-	cfg.Genesis.BlockGasLimit = uint64(100000)
-	cfg.Genesis.EnableGravityChainVoting = false
-	registry := protocol.Registry{}
-	acc := account.NewProtocol()
-	require.NoError(t, registry.Register(account.ProtocolID, acc))
-	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-	require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
-	blkState := blockchain.InMemStateFactoryOption()
-	blkMemDao := blockdao.NewBlockDAO(db.NewMemKVStore(), nil, cfg.Chain.CompressBlock, cfg.DB)
-	blkRegistryOption := blockchain.RegistryOption(&registry)
-	bc := blockchain.NewBlockchain(cfg, blkMemDao, blkState, blkRegistryOption)
-	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
-	exec := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
-	require.NoError(t, registry.Register(execution.ProtocolID, exec))
-	bc.Validator().AddActionValidators(acc, exec)
-	bc.Factory().AddActionHandlers(acc, exec)
+	cfg := newConfig()
+	bc := newBlockchain(cfg, t)
 	require.NoError(t, bc.Start(ctx))
 	defer func() {
 		require.NoError(t, bc.Stop(ctx))
@@ -111,23 +101,25 @@ func TestSuggestGasPriceForUserAction(t *testing.T) {
 
 func TestSuggestGasPriceForSystemAction(t *testing.T) {
 	ctx := context.Background()
-	cfg := config.Default
+	cfg := newConfig()
 	cfg.Genesis.BlockGasLimit = uint64(100000)
-	cfg.Genesis.EnableGravityChainVoting = false
-	registry := protocol.Registry{}
-	acc := account.NewProtocol()
-	require.NoError(t, registry.Register(account.ProtocolID, acc))
-	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-	require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
-	blkState := blockchain.InMemStateFactoryOption()
-	blkMemDao := blockdao.NewBlockDAO(db.NewMemKVStore(), nil, cfg.Chain.CompressBlock, cfg.DB)
-	blkRegistryOption := blockchain.RegistryOption(&registry)
-	bc := blockchain.NewBlockchain(cfg, blkMemDao, blkState, blkRegistryOption)
-	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
-	exec := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
-	require.NoError(t, registry.Register(execution.ProtocolID, exec))
-	bc.Validator().AddActionValidators(acc, exec)
-	bc.Factory().AddActionHandlers(acc, exec)
+	bc := newBlockchain(cfg, t)
+
+	//cfg.Genesis.EnableGravityChainVoting = false
+	//registry := protocol.Registry{}
+	//acc := account.NewProtocol()
+	//require.NoError(t, registry.Register(account.ProtocolID, acc))
+	//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+	//require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
+	//blkState := blockchain.InMemStateFactoryOption()
+	//blkMemDao := blockdao.NewBlockDAO(db.NewMemKVStore(), nil, cfg.Chain.CompressBlock, cfg.DB)
+	//blkRegistryOption := blockchain.RegistryOption(&registry)
+	//bc := blockchain.NewBlockchain(cfg, blkMemDao, blkState, blkRegistryOption)
+	//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
+	//exec := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
+	//require.NoError(t, registry.Register(execution.ProtocolID, exec))
+	//bc.Validator().AddActionValidators(acc, exec)
+	//bc.Factory().AddActionHandlers(acc, exec)
 	require.NoError(t, bc.Start(ctx))
 	defer func() {
 		require.NoError(t, bc.Stop(ctx))
@@ -170,9 +162,12 @@ func TestEstimateGasForAction(t *testing.T) {
 	require := require.New(t)
 	act := getAction()
 	require.NotNil(act)
-	cfg := config.Default
-	blkMemDao := blockdao.NewBlockDAO(db.NewMemKVStore(), nil, cfg.Chain.CompressBlock, cfg.DB)
-	bc := blockchain.NewBlockchain(cfg, blkMemDao, blockchain.InMemStateFactoryOption())
+	cfg := newConfig()
+	cfg.Genesis.BlockGasLimit = uint64(100000)
+	bc := newBlockchain(cfg, t)
+	//
+	//blkMemDao := blockdao.NewBlockDAO(db.NewMemKVStore(), nil, cfg.Chain.CompressBlock, cfg.DB)
+	//bc := blockchain.NewBlockchain(cfg, blkMemDao, blockchain.InMemStateFactoryOption())
 	require.NoError(bc.Start(context.Background()))
 	require.NotNil(bc)
 	gs := NewGasStation(bc, config.Default.API)
@@ -192,6 +187,7 @@ func TestEstimateGasForAction(t *testing.T) {
 	// base intrinsic gas 10000,plus data size*ExecutionDataGas
 	require.Equal(uint64(10000)+10*action.ExecutionDataGas, ret)
 }
+
 func getAction() (act *iotextypes.Action) {
 	pubKey1 := identityset.PrivateKey(28).PublicKey()
 	addr2 := identityset.Address(29).String()
@@ -208,6 +204,7 @@ func getAction() (act *iotextypes.Action) {
 	}
 	return
 }
+
 func getActionWithPayload() (act *iotextypes.Action) {
 	pubKey1 := identityset.PrivateKey(28).PublicKey()
 	addr2 := identityset.Address(29).String()
@@ -223,4 +220,58 @@ func getActionWithPayload() (act *iotextypes.Action) {
 		SenderPubKey: pubKey1.Bytes(),
 	}
 	return
+}
+
+func newConfig() config.Config {
+	cfg := config.Default
+
+	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+	testTriePath := testTrieFile.Name()
+	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	testDBPath := testDBFile.Name()
+	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+	testIndexPath := testIndexFile.Name()
+
+	cfg.Plugins[config.GatewayPlugin] = true
+	cfg.Chain.TrieDBPath = testTriePath
+	cfg.Chain.ChainDBPath = testDBPath
+	cfg.Chain.IndexDBPath = testIndexPath
+	cfg.Chain.EnableAsyncIndexWrite = false
+	cfg.Genesis.EnableGravityChainVoting = true
+	cfg.ActPool.MinGasPriceStr = "0"
+	cfg.API.RangeQueryLimit = 100
+
+	return cfg
+}
+
+func newBlockchain(cfg config.Config, t *testing.T) blockchain.Blockchain {
+	registry := protocol.Registry{}
+	acc := account.NewProtocol()
+	require.NoError(t, registry.Register(account.ProtocolID, acc))
+	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+	require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
+	dbConfig := cfg.DB
+	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
+	require.NoError(t, err)
+	// create indexer
+	dbConfig.DbPath = cfg.Chain.IndexDBPath
+	indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg.Genesis.Hash())
+	require.NoError(t, err)
+	// create BlockDAO
+	dbConfig.DbPath = cfg.Chain.ChainDBPath
+	dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg.Chain.CompressBlock, dbConfig)
+	require.NotNil(t, dao)
+	bc := blockchain.NewBlockchain(
+		cfg,
+		dao,
+		blockchain.PrecreatedStateFactoryOption(sf),
+		blockchain.RegistryOption(&registry),
+	)
+	require.NotNil(t, bc)
+	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
+	exec := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
+	require.NoError(t, registry.Register(execution.ProtocolID, exec))
+	bc.Validator().AddActionValidators(acc, exec)
+	bc.Factory().AddActionHandlers(acc, exec)
+	return bc
 }
