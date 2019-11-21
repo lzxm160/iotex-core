@@ -834,6 +834,7 @@ func (dao *blockDAO) getDBFromHeight(blkHeight uint64) (kvstore db.KVStore, inde
 	if err != nil {
 		return
 	}
+	fmt.Println("837")
 	return dao.getDBFromIndex(byteutil.BytesToUint64BigEndian(value))
 }
 
