@@ -482,16 +482,22 @@ func newTestConfig() (config.Config, error) {
 		return config.Config{}, err
 	}
 	testDBPath := testDBFile.Name()
-
+	testIndexFile, err := ioutil.TempFile(os.TempDir(), "index")
+	if err != nil {
+		return config.Config{}, err
+	}
+	testIndexPath := testIndexFile.Name()
 	cfg := config.Default
 	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.ChainDBPath = testDBPath
+	cfg.Chain.IndexDBPath = testIndexPath
 	cfg.BlockSync.Interval = 100 * time.Millisecond
 	cfg.Consensus.Scheme = config.NOOPScheme
 	cfg.Network.Host = "127.0.0.1"
 	cfg.Network.Port = 10000
 	cfg.Network.BootstrapNodes = []string{"127.0.0.1:10000", "127.0.0.1:4689"}
 	cfg.Genesis.EnableGravityChainVoting = false
+	cfg.Chain.EnableAsyncIndexWrite = false
 	return cfg, nil
 }
 
