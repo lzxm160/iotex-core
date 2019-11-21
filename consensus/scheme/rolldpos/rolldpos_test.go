@@ -727,6 +727,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 		}
 	})
 }
+
 func newConfig(numNodes int) (ret []config.Config) {
 	for i := 0; i < numNodes; i++ {
 		cfg := config.Default
