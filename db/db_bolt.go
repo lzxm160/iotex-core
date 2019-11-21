@@ -44,6 +44,7 @@ func (b *boltDB) Start(_ context.Context) error {
 // Stop closes the BoltDB
 func (b *boltDB) Stop(_ context.Context) error {
 	if b.db != nil {
+		fmt.Println("bolt db stop")
 		if err := b.db.Close(); err != nil {
 			return errors.Wrap(ErrIO, err.Error())
 		}
