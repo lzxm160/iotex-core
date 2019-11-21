@@ -588,8 +588,6 @@ func TestStartExistingBlockchain(t *testing.T) {
 
 func newTestConfig() (config.Config, error) {
 	cfg := config.Default
-	cfg.Chain.TrieDBPath = triePath
-	cfg.Chain.ChainDBPath = dBPath
 	cfg.ActPool.MinGasPriceStr = "0"
 	cfg.Consensus.Scheme = config.NOOPScheme
 	cfg.Network.Port = testutil.RandomPort()
