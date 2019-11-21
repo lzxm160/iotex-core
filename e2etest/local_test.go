@@ -595,6 +595,7 @@ func newTestConfig() (config.Config, error) {
 	cfg.Network.Port = testutil.RandomPort()
 	cfg.API.Port = testutil.RandomPort()
 	cfg.Genesis.EnableGravityChainVoting = false
+	cfg.Chain.EnableAsyncIndexWrite = false
 	sk, err := crypto.GenerateKey()
 
 	if err != nil {
