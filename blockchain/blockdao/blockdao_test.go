@@ -247,9 +247,10 @@ func TestBlockDAO(t *testing.T) {
 		height, err := indexer.GetBlockchainHeight()
 		require.NoError(err)
 		require.EqualValues(3, height)
-		fmt.Println("xxxxxxxxxxxxxxxxxxxxx")
+		fmt.Println("249")
 		// delete tip block one by one, verify address/action after each deletion
 		for i := range daoTests {
+			fmt.Println("xxxxxxxxxxxxxxxxxxxxx")
 			if i == 0 {
 				// tests[0] is the whole address/action data at block height 3
 				continue
