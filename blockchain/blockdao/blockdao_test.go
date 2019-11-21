@@ -236,7 +236,7 @@ func TestBlockDAO(t *testing.T) {
 		dao := NewBlockDAO(kvstore, indexer, false, cfg)
 		require.NoError(dao.Start(ctx))
 		defer func() {
-			require.NoError(dao.Stop(ctx))
+			dao.Stop(ctx)
 		}()
 
 		// put blocks
