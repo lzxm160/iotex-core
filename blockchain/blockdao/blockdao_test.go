@@ -332,10 +332,13 @@ func TestBlockDAO(t *testing.T) {
 			testutil.CleanupPath(t, testPath)
 			testutil.CleanupPath(t, indexPath)
 		}()
-		cfg.DbPath = indexPath
+		testFile, _ := ioutil.TempFile(os.TempDir(), "db")
+		indexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+		cfg := config.Default.DB
+		cfg.DbPath = indexFile.Name()
 		indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg), hash.ZeroHash256)
 		require.NoError(t, err)
-		cfg.DbPath = testPath
+		cfg.DbPath = testFile.Name()
 		testDeleteDao(db.NewBoltDB(cfg), indexer, t)
 	})
 }
