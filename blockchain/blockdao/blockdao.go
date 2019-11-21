@@ -361,6 +361,7 @@ func (dao *blockDAO) DeleteTipBlock() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to get tip block hash")
 	}
+	fmt.Println("363")
 	blk, err := dao.getBlock(hash)
 	if err != nil {
 		return errors.Wrap(err, "failed to get tip block")
