@@ -8,6 +8,7 @@ package e2etest
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -66,6 +67,7 @@ func TestLocalCommit(t *testing.T) {
 	svr, err := itx.NewServer(cfg)
 	require.Nil(err)
 	require.NoError(svr.Start(ctx))
+	fmt.Println("=================")
 	chainID := cfg.Chain.ID
 	bc := svr.ChainService(chainID).Blockchain()
 	require.NotNil(bc)
