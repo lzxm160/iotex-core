@@ -33,10 +33,12 @@ func NewBoltDB(cfg config.DB) KVStore {
 
 // Start opens the BoltDB (creates new file if not existing yet)
 func (b *boltDB) Start(_ context.Context) error {
+	fmt.Println("bolt start:", b.path)
 	db, err := bolt.Open(b.path, fileMode, nil)
 	if err != nil {
 		return errors.Wrap(ErrIO, err.Error())
 	}
+	fmt.Println("bolt start end:", b.path)
 	b.db = db
 	return nil
 }
