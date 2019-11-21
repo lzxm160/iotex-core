@@ -1012,10 +1012,10 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 	//cfg.Chain.IndexDBPath = testIndexPath2
 	//cfg.Chain.EnableAsyncIndexWrite = false
 	//cfg.Genesis.AleutianBlockHeight = 3
-	cfg = newConfig()
-	cfg.Genesis.AleutianBlockHeight = 3
+	cfg2 := newConfig()
+	cfg2.Genesis.AleutianBlockHeight = 3
 	t.Run("load blockchain from DB", func(t *testing.T) {
-		testValidateBlockchain(cfg, t)
+		testValidateBlockchain(cfg2, t)
 	})
 }
 
