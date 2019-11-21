@@ -543,7 +543,7 @@ func TestStartExistingBlockchain(t *testing.T) {
 
 	// Delete state db and recover to tip
 	testutil.CleanupPath(t, testTriePath)
-	require.NoError(svr.Stop(context.Background()))
+	require.NoError(svr.Stop(ctx))
 	//require.NoError(bc.Stop(ctx))
 	fmt.Println("555555555555555555")
 	time.Sleep(time.Second * 10)
