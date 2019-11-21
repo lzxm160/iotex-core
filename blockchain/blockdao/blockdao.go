@@ -356,6 +356,7 @@ func (dao *blockDAO) DeleteTipBlock() error {
 	dao.mutex.Lock()
 	defer dao.mutex.Unlock()
 	// Obtain tip block hash
+	fmt.Println("delete tip block")
 	hash, err := dao.getTipHash()
 	if err != nil {
 		return errors.Wrap(err, "failed to get tip block hash")
@@ -364,6 +365,7 @@ func (dao *blockDAO) DeleteTipBlock() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to get tip block")
 	}
+	fmt.Println("368")
 	// delete block index if there's indexer
 	if dao.indexer != nil {
 		if err := dao.indexer.DeleteTipBlock(blk); err != nil {
