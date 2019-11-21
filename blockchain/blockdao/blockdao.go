@@ -471,10 +471,12 @@ func (dao *blockDAO) header(h hash.Hash256) (*block.Header, error) {
 		}
 		cacheMtc.WithLabelValues("miss_header").Inc()
 	}
+	fmt.Println("474")
 	value, err := dao.getBlockValue(blockHeaderNS, h)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get block header %x", h)
 	}
+	fmt.Println("478")
 	if dao.compressBlock {
 		timer := dao.timerFactory.NewTimer("decompress_header")
 		value, err = compress.Decompress(value)
@@ -493,6 +495,7 @@ func (dao *blockDAO) header(h hash.Hash256) (*block.Header, error) {
 	if dao.headerCache != nil {
 		dao.headerCache.Add(h, header)
 	}
+	fmt.Println("498")
 	return header, nil
 }
 
