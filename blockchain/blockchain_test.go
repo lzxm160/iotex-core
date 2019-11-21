@@ -415,7 +415,8 @@ func addTestingTsfBlocks(bc Blockchain, dao blockdao.BlockDAO) error {
 func TestCreateBlockchain(t *testing.T) {
 	require := require.New(t)
 	ctx := context.Background()
-
+	//cfg := newConfig()
+	//bc := newBlockchain(cfg, t)
 	cfg := config.Default
 	// disable account-based testing
 	cfg.Chain.TrieDBPath = ""
@@ -450,20 +451,22 @@ func TestCreateBlockchain(t *testing.T) {
 
 func TestBlockchain_MintNewBlock(t *testing.T) {
 	ctx := context.Background()
-	cfg := config.Default
-	cfg.Genesis.BlockGasLimit = uint64(100000)
-	cfg.Genesis.EnableGravityChainVoting = false
-	registry := protocol.Registry{}
-	acc := account.NewProtocol()
-	require.NoError(t, registry.Register(account.ProtocolID, acc))
-	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-	require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
-	bc := NewBlockchain(cfg, nil, InMemStateFactoryOption(), InMemDaoOption(), RegistryOption(&registry))
-	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
-	exec := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
-	require.NoError(t, registry.Register(execution.ProtocolID, exec))
-	bc.Validator().AddActionValidators(acc, exec)
-	bc.Factory().AddActionHandlers(acc, exec)
+	//cfg := config.Default
+	//cfg.Genesis.BlockGasLimit = uint64(100000)
+	//cfg.Genesis.EnableGravityChainVoting = false
+	//registry := protocol.Registry{}
+	//acc := account.NewProtocol()
+	//require.NoError(t, registry.Register(account.ProtocolID, acc))
+	//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+	//require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
+	//bc := NewBlockchain(cfg, nil, InMemStateFactoryOption(), InMemDaoOption(), RegistryOption(&registry))
+	//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
+	//exec := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
+	//require.NoError(t, registry.Register(execution.ProtocolID, exec))
+	//bc.Validator().AddActionValidators(acc, exec)
+	//bc.Factory().AddActionHandlers(acc, exec)
+	cfg := newConfig()
+	bc := newBlockchain(cfg, t)
 	require.NoError(t, bc.Start(ctx))
 	defer func() {
 		require.NoError(t, bc.Stop(ctx))
@@ -726,24 +729,25 @@ func TestConstantinople(t *testing.T) {
 		}
 	}
 
-	cfg := config.Default
-	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
-	testTriePath := testTrieFile.Name()
-	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
-	testDBPath := testDBFile.Name()
-	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
-	testIndexPath := testIndexFile.Name()
-	defer func() {
-		testutil.CleanupPath(t, testTriePath)
-		testutil.CleanupPath(t, testDBPath)
-		testutil.CleanupPath(t, testIndexPath)
-		// clear the gateway
-		delete(cfg.Plugins, config.GatewayPlugin)
-	}()
-
-	cfg.Chain.TrieDBPath = testTriePath
-	cfg.Chain.ChainDBPath = testDBPath
-	cfg.Chain.IndexDBPath = testIndexPath
+	//cfg := config.Default
+	//testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+	//testTriePath := testTrieFile.Name()
+	//testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	//testDBPath := testDBFile.Name()
+	//testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+	//testIndexPath := testIndexFile.Name()
+	//defer func() {
+	//	testutil.CleanupPath(t, testTriePath)
+	//	testutil.CleanupPath(t, testDBPath)
+	//	testutil.CleanupPath(t, testIndexPath)
+	//	// clear the gateway
+	//	delete(cfg.Plugins, config.GatewayPlugin)
+	//}()
+	//
+	//cfg.Chain.TrieDBPath = testTriePath
+	//cfg.Chain.ChainDBPath = testDBPath
+	//cfg.Chain.IndexDBPath = testIndexPath
+	cfg := newConfig()
 	cfg.Chain.ProducerPrivKey = "a000000000000000000000000000000000000000000000000000000000000000"
 	cfg.Genesis.EnableGravityChainVoting = false
 	cfg.Plugins[config.GatewayPlugin] = true
