@@ -256,7 +256,19 @@ func (dao *blockDAO) initStores() error {
 	return nil
 }
 
-func (dao *blockDAO) Stop(ctx context.Context) error { return dao.lifecycle.OnStop(ctx) }
+func (dao *blockDAO) Stop(ctx context.Context) error {
+	dao.kvstores.Range(func(k, v interface{}) bool {
+		kv, ok := v.(db.KVStore)
+		if !ok {
+			return false
+		}
+		if err := kv.Stop(context.Background()); err != nil {
+			return false
+		}
+		return true
+	})
+	return dao.lifecycle.OnStop(ctx)
+}
 
 func (dao *blockDAO) Commit() error {
 	return nil
