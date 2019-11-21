@@ -546,7 +546,7 @@ func TestStartExistingBlockchain(t *testing.T) {
 	require.NoError(svr.Stop(context.Background()))
 	//require.NoError(bc.Stop(ctx))
 	fmt.Println("555555555555555555")
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 10)
 	ctx = context.Background()
 	require.NoError(bc.Start(ctx))
 	fmt.Println("xxssssssssssssssssssss")
