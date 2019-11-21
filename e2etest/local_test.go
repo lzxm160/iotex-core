@@ -39,12 +39,12 @@ import (
 )
 
 const (
-	dBPath     = "db.test"
-	dBPath2    = "db.test2"
-	triePath   = "trie.test"
-	triePath2  = "trie.test2"
-	indexPath  = "index.test"
-	indexPath2 = "index.test2"
+	dBPath     = "db"
+	dBPath2    = "db2"
+	triePath   = "trie"
+	triePath2  = "trie2"
+	indexPath  = "index"
+	indexPath2 = "index2"
 )
 
 func TestLocalCommit(t *testing.T) {
