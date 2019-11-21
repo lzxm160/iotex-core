@@ -8,7 +8,6 @@ package blockchain
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"os"
 	"strconv"
