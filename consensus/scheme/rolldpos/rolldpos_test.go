@@ -566,7 +566,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 				require.NoError(t, chains[i].Stop(ctx))
 			}
 		}()
-		assert.NoError(t, testutil.WaitUntil(200*time.Millisecond, 200*time.Second, func() (bool, error) {
+		assert.NoError(t, testutil.WaitUntil(200*time.Millisecond, 300*time.Second, func() (bool, error) {
 			for _, chain := range chains {
 				if chain.TipHeight() < 48 {
 					return false, nil
