@@ -226,13 +226,9 @@ func TestBlockDAO(t *testing.T) {
 		}
 	}
 
-	testDeleteDao := func(kvstore db.KVStore, indexer blockindex.Indexer, t *testing.T) {
+	testDeleteDao := func(kvstore db.KVStore, indexer blockindex.Indexer, cfg config.DB, t *testing.T) {
 		require := require.New(t)
-
 		ctx := context.Background()
-		testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
-		cfg := config.Default.DB
-		cfg.DbPath = testDBFile.Name()
 		dao := NewBlockDAO(kvstore, indexer, false, cfg)
 		require.NoError(dao.Start(ctx))
 		defer func() {
@@ -330,7 +326,7 @@ func TestBlockDAO(t *testing.T) {
 	t.Run("In-memory KV Store deletions", func(t *testing.T) {
 		indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), hash.ZeroHash256)
 		require.NoError(t, err)
-		testDeleteDao(db.NewMemKVStore(), indexer, t)
+		testDeleteDao(db.NewMemKVStore(), indexer, config.Default.DB, t)
 	})
 	t.Run("Bolt DB deletions", func(t *testing.T) {
 		testFile, _ = ioutil.TempFile(os.TempDir(), "db")
@@ -340,7 +336,7 @@ func TestBlockDAO(t *testing.T) {
 		indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg), hash.ZeroHash256)
 		require.NoError(t, err)
 		cfg.DbPath = testFile.Name()
-		testDeleteDao(db.NewBoltDB(cfg), indexer, t)
+		testDeleteDao(db.NewBoltDB(cfg), indexer, cfg, t)
 	})
 }
 
