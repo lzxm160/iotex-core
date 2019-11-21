@@ -326,7 +326,10 @@ func TestBlockDAO(t *testing.T) {
 	t.Run("In-memory KV Store deletions", func(t *testing.T) {
 		indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), hash.ZeroHash256)
 		require.NoError(t, err)
-		testDeleteDao(db.NewMemKVStore(), indexer, config.Default.DB, t)
+		testFile, _ = ioutil.TempFile(os.TempDir(), "db")
+		cfg := config.Default.DB
+		cfg.DbPath = indexFile.Name()
+		testDeleteDao(db.NewMemKVStore(), indexer, cfg, t)
 	})
 	t.Run("Bolt DB deletions", func(t *testing.T) {
 		testFile, _ = ioutil.TempFile(os.TempDir(), "db")
