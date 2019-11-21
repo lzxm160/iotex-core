@@ -8,6 +8,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"os"
 	"strconv"
@@ -327,6 +328,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 	if bc.tipHash, err = bc.dao.GetTipHash(); err != nil {
 		return err
 	}
+	fmt.Println("3333333")
 	return bc.startExistingBlockchain()
 }
 
