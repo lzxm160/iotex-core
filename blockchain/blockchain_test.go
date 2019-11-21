@@ -415,24 +415,24 @@ func addTestingTsfBlocks(bc Blockchain, dao blockdao.BlockDAO) error {
 func TestCreateBlockchain(t *testing.T) {
 	require := require.New(t)
 	ctx := context.Background()
-	//cfg := newConfig()
-	//bc := newBlockchain(cfg, t)
-	cfg := config.Default
-	// disable account-based testing
-	cfg.Chain.TrieDBPath = ""
-	cfg.Genesis.EnableGravityChainVoting = false
-	// create chain
-	registry := protocol.Registry{}
-	acc := account.NewProtocol()
-	require.NoError(registry.Register(account.ProtocolID, acc))
-	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-	require.NoError(registry.Register(rolldpos.ProtocolID, rp))
-	bc := NewBlockchain(cfg, nil, InMemStateFactoryOption(), InMemDaoOption(), RegistryOption(&registry))
-	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
-	exec := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
-	require.NoError(registry.Register(execution.ProtocolID, exec))
-	bc.Validator().AddActionValidators(acc, exec)
-	bc.Factory().AddActionHandlers(acc, exec)
+	cfg := newConfig()
+	bc := newBlockchain(cfg, t)
+	//cfg := config.Default
+	//// disable account-based testing
+	//cfg.Chain.TrieDBPath = ""
+	//cfg.Genesis.EnableGravityChainVoting = false
+	//// create chain
+	//registry := protocol.Registry{}
+	//acc := account.NewProtocol()
+	//require.NoError(registry.Register(account.ProtocolID, acc))
+	//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+	//require.NoError(registry.Register(rolldpos.ProtocolID, rp))
+	//bc := NewBlockchain(cfg, nil, InMemStateFactoryOption(), InMemDaoOption(), RegistryOption(&registry))
+	//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
+	//exec := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
+	//require.NoError(registry.Register(execution.ProtocolID, exec))
+	//bc.Validator().AddActionValidators(acc, exec)
+	//bc.Factory().AddActionHandlers(acc, exec)
 	require.NoError(bc.Start(ctx))
 	require.NotNil(bc)
 	height := bc.TipHeight()
@@ -1279,7 +1279,7 @@ func newConfig() config.Config {
 	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.ChainDBPath = testDBPath
 	cfg.Chain.IndexDBPath = testIndexPath
-	cfg.Chain.EnableAsyncIndexWrite = true
+	cfg.Chain.EnableAsyncIndexWrite = false
 	cfg.Genesis.EnableGravityChainVoting = true
 	cfg.ActPool.MinGasPriceStr = "0"
 	cfg.API.RangeQueryLimit = 100
