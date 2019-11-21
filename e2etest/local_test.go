@@ -235,8 +235,8 @@ func TestLocalCommit(t *testing.T) {
 		actionMap,
 		testutil.TimestampNow(),
 	)
-	require.Nil(err)
-	require.Nil(chain.CommitBlock(blk1))
+	require.NoError(err)
+	require.NoError(chain.CommitBlock(blk1))
 
 	// transfer 2
 	// F --> D
