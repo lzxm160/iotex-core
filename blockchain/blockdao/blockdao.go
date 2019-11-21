@@ -880,9 +880,9 @@ func (dao *blockDAO) openDB(idx uint64) (kvstore db.KVStore, index uint64, err e
 	cfg.DbPath = path.Dir(cfg.DbPath) + "/" + name
 	fmt.Println("(dao *blockDAO) openDB", cfg.DbPath)
 	kvstore = db.NewBoltDB(cfg)
-	kvstore.Stop(context.Background())
 	dao.kvstores.Store(idx, kvstore)
 	err = kvstore.Start(context.Background())
+	fmt.Println("start err", err)
 	if err != nil {
 		return
 	}
