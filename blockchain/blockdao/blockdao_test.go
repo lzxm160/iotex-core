@@ -2,6 +2,7 @@ package blockdao
 
 import (
 	"context"
+	"fmt"
 	"hash/fnv"
 	"io/ioutil"
 	"math/big"
@@ -246,7 +247,7 @@ func TestBlockDAO(t *testing.T) {
 		height, err := indexer.GetBlockchainHeight()
 		require.NoError(err)
 		require.EqualValues(3, height)
-
+		fmt.Println("xxxxxxxxxxxxxxxxxxxxx")
 		// delete tip block one by one, verify address/action after each deletion
 		for i := range daoTests {
 			if i == 0 {
