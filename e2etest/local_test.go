@@ -544,8 +544,10 @@ func TestStartExistingBlockchain(t *testing.T) {
 	// Delete state db and recover to tip
 	testutil.CleanupPath(t, testTriePath)
 	require.NoError(svr.Stop(ctx))
-	fmt.Println("xxssssssssssssssssssss")
+
 	require.NoError(svr.ChainService(cfg.Chain.ID).Blockchain().Start(ctx))
+	fmt.Println("xxssssssssssssssssssss")
+
 	// Refresh state DB
 	require.NoError(bc.RecoverChainAndState(0))
 	require.NoError(svr.ChainService(cfg.Chain.ID).Blockchain().Stop(ctx))
@@ -553,6 +555,7 @@ func TestStartExistingBlockchain(t *testing.T) {
 	require.NoError(err)
 	// Build states from height 1 to tip
 	require.NoError(svr.Start(ctx))
+	fmt.Println("xxxxxxxxxxxxxxxxxxxxx")
 	bc = svr.ChainService(chainID).Blockchain()
 	height, _ := bc.Factory().Height()
 	require.Equal(bc.TipHeight(), height)
