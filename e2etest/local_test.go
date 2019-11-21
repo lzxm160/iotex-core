@@ -174,6 +174,7 @@ func TestLocalCommit(t *testing.T) {
 	require.NoError(copyDB(testTriePath, testTriePath2))
 	require.NoError(copyDB(testDBPath, testDBPath2))
 	require.NoError(copyDB(indexDBPath, indexDBPath2))
+	require.NoError(copyDB(testDBPath+"-00000000.db", testDBPath2+"-00000000.db"))
 	dbConfig := cfg.DB
 	sf, err := factory.NewStateDB(cfg, factory.DefaultStateDBOption())
 	require.NoError(err)
