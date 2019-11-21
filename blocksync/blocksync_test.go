@@ -206,7 +206,7 @@ func TestBlockSyncerProcessBlockTipHeight(t *testing.T) {
 	require.Nil(err)
 
 	defer func() {
-		require.Nil(chain.Stop(ctx))
+		chain.Stop(ctx)
 		ctrl.Finish()
 	}()
 
