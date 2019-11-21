@@ -545,7 +545,7 @@ func TestStartExistingBlockchain(t *testing.T) {
 	testutil.CleanupPath(t, testTriePath)
 	require.NoError(svr.Stop(ctx))
 	fmt.Println("555555555555555555")
-	require.NoError(svr.ChainService(cfg.Chain.ID).Blockchain().Start(ctx))
+	require.NoError(bc.Start(ctx))
 	fmt.Println("xxssssssssssssssssssss")
 
 	// Refresh state DB
