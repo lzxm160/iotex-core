@@ -444,7 +444,7 @@ func TestCreateBlockchain(t *testing.T) {
 	}()
 
 	// add 4 sample blocks
-	require.NoError(addTestingTsfBlocks(bc, nil))
+	require.NoError(addTestingTsfBlocks(bc, bc.BlockDAO()))
 	height = bc.TipHeight()
 	require.Equal(5, int(height))
 }
