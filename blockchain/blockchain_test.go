@@ -947,6 +947,7 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 		testValidateBlockchain(cfg, t)
 	})
 
+	cfg2 := config.Default
 	testTrieFile, _ = ioutil.TempFile(os.TempDir(), "trie")
 	testTriePath2 := testTrieFile.Name()
 	testDBFile, _ = ioutil.TempFile(os.TempDir(), "db")
@@ -958,18 +959,18 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 		testutil.CleanupPath(t, testDBPath2)
 		testutil.CleanupPath(t, testIndexPath2)
 		// clear the gateway
-		delete(cfg.Plugins, config.GatewayPlugin)
+		delete(cfg2.Plugins, config.GatewayPlugin)
 	}()
 
-	cfg.Plugins[config.GatewayPlugin] = true
-	cfg.Chain.TrieDBPath = testTriePath2
-	cfg.Chain.ChainDBPath = testDBPath2
-	cfg.Chain.IndexDBPath = testIndexPath2
-	cfg.Chain.EnableAsyncIndexWrite = false
-	cfg.Genesis.AleutianBlockHeight = 3
+	cfg2.Plugins[config.GatewayPlugin] = true
+	cfg2.Chain.TrieDBPath = testTriePath2
+	cfg2.Chain.ChainDBPath = testDBPath2
+	cfg2.Chain.IndexDBPath = testIndexPath2
+	cfg2.Chain.EnableAsyncIndexWrite = false
+	cfg2.Genesis.AleutianBlockHeight = 3
 
 	t.Run("load blockchain from DB", func(t *testing.T) {
-		testValidateBlockchain(cfg, t)
+		testValidateBlockchain(cfg2, t)
 	})
 }
 
