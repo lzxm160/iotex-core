@@ -405,7 +405,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 			cfg[i].Chain.ProducerPrivKey = hex.EncodeToString(chainAddrs[i].priKey.Bytes())
 			sf, err := factory.NewFactory(cfg[i], factory.DefaultTrieOption())
 			require.NoError(t, err)
-			require.NoError(t, sf.Start(ctx))
+			//require.NoError(t, sf.Start(ctx))
 			for j := 0; j < numNodes; j++ {
 				ws, err := sf.NewWorkingSet(nil)
 				require.NoError(t, err)
