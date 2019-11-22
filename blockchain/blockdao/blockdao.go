@@ -752,12 +752,18 @@ func (dao *blockDAO) deleteTipBlock() error {
 	}
 	// delete receipt
 	batchForBlock.Delete(receiptsNS, byteutil.Uint64ToBytes(height), "failed to delete receipt")
+
+	heightKey := heightKey(height)
+	heightKeyDelete := append(heightPrefix, heightKey...)
+	batchForBlock.Delete(blockHashHeightMappingNS, heightKeyDelete, "failed to delete height -> hash mapping")
+	batchForBlock.Delete(blockNS, tipHeightKey, "failed to delete top height")
+	batchForBlock.Delete(blockNS, topHashKey, "failed to delete top hash")
+
 	// Delete hash -> height mapping
 	hashKey := hashKey(hash)
 	batch.Delete(blockHashHeightMappingNS, hashKey, "failed to delete hash -> height mapping")
 
 	// Delete height -> hash mapping
-	heightKey := heightKey(height)
 	batch.Delete(blockHashHeightMappingNS, heightKey, "failed to delete height -> hash mapping")
 
 	// Update tip height
