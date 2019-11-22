@@ -9,6 +9,7 @@ package blockindex
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"math/big"
 	"sync"
 
@@ -128,6 +129,7 @@ func (x *blockIndexer) PutBlock(blk *block.Block) error {
 
 	// the block to be indexed must be exactly current top + 1, otherwise counting index would not work correctly
 	height := blk.Height()
+	fmt.Println("(x *blockIndexer) PutBlock:", height)
 	if height != x.tbk.Size() {
 		return errors.Wrapf(db.ErrInvalid, "wrong block height %d, expecting %d", height, x.tbk.Size())
 	}
