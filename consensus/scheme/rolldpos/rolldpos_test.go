@@ -405,8 +405,12 @@ func TestRollDPoSConsensus(t *testing.T) {
 			cfg[i].Chain.ProducerPrivKey = hex.EncodeToString(chainAddrs[i].priKey.Bytes())
 			sf, err := factory.NewFactory(cfg[i], factory.DefaultTrieOption())
 			require.NoError(t, err)
+			// new sf for blockchain to start
+			sf2, err := factory.NewFactory(cfg[i], factory.DefaultTrieOption())
+			require.NoError(t, err)
 			require.NoError(t, sf.Start(ctx))
 			for j := 0; j < numNodes; j++ {
+
 				ws, err := sf.NewWorkingSet(nil)
 				require.NoError(t, err)
 				_, err = accountutil.LoadOrCreateAccount(ws, chainRawAddrs[j], big.NewInt(0))
@@ -421,7 +425,9 @@ func TestRollDPoSConsensus(t *testing.T) {
 				_, err = ws.RunActions(wsctx, 0, nil)
 				require.NoError(t, err)
 				require.NoError(t, sf.Commit(ws))
+
 			}
+			require.NoError(t, sf.Stop(ctx))
 			registry := protocol.Registry{}
 			acc := account.NewProtocol()
 			require.NoError(t, registry.Register(account.ProtocolID, acc))
@@ -434,13 +440,11 @@ func TestRollDPoSConsensus(t *testing.T) {
 			require.NoError(t, err)
 			dbConfig.DbPath = cfg[i].Chain.ChainDBPath
 			dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg[i].Chain.CompressBlock, dbConfig)
-			require.NoError(t, sf.Stop(ctx))
-			sf, err = factory.NewFactory(cfg[i], factory.DefaultTrieOption())
-			require.NoError(t, err)
+
 			chain := blockchain.NewBlockchain(
 				cfg[i],
 				dao,
-				blockchain.PrecreatedStateFactoryOption(sf),
+				blockchain.PrecreatedStateFactoryOption(sf2),
 				blockchain.RegistryOption(&registry),
 			)
 			evm := execution.NewProtocol(chain.BlockDAO().GetBlockHash)
