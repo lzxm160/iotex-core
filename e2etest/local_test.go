@@ -542,6 +542,7 @@ func TestStartExistingBlockchain(t *testing.T) {
 	require.NoError(err)
 	require.NoError(svr.ChainService(cfg.Chain.ID).Blockchain().Start(ctx))
 	// Refresh state DB
+	bc = svr.ChainService(cfg.Chain.ID).Blockchain()
 	require.NoError(bc.RecoverChainAndState(0))
 	require.NoError(svr.ChainService(cfg.Chain.ID).Blockchain().Stop(ctx))
 
