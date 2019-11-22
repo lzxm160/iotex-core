@@ -689,6 +689,7 @@ func (dao *blockDAO) putBlockForBlockdb(blk *block.Block) error {
 
 // putBlock puts a block
 func (dao *blockDAO) putBlock(blk *block.Block) error {
+	fmt.Println("putBlock before")
 	if err := dao.putBlockForBlockdb(blk); err != nil {
 		return err
 	}
