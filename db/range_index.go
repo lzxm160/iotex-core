@@ -8,6 +8,7 @@ package db
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
@@ -82,6 +83,7 @@ func NewRangeIndex(db *bolt.DB, retry uint8, name []byte) (RangeIndex, error) {
 
 // Insert inserts a value into the index
 func (r *rangeIndex) Insert(key uint64, value []byte) error {
+	fmt.Println("(r *rangeIndex) Insert:", key)
 	// cannot insert key 0, which holds initial value
 	if key == 0 {
 		return errors.Wrap(ErrInvalid, "cannot insert key 0")

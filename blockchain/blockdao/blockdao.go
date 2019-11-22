@@ -378,6 +378,7 @@ func (dao *blockDAO) IndexFile(height uint64, index []byte) error {
 
 	if dao.htf == nil {
 		htf, err := dao.kvstore.CreateRangeIndexNX(heightToFileBucket, make([]byte, 8))
+		fmt.Println("IndexFile:", 381)
 		if err != nil {
 			return err
 		}
