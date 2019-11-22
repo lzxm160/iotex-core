@@ -304,7 +304,11 @@ func TestBlockDAO(t *testing.T) {
 	//}
 
 	t.Run("In-memory KV Store for blocks", func(t *testing.T) {
-		indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), hash.ZeroHash256)
+		// Indexer in memory is not finished
+		indexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+		cfg := config.Default.DB
+		cfg.DbPath = indexFile.Name()
+		indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg), hash.ZeroHash256)
 		require.NoError(t, err)
 		testBlockDao(db.NewMemKVStore(), indexer, t)
 	})
