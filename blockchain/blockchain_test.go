@@ -762,10 +762,13 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 		accountProtocol := account.NewProtocol()
 		registry = protocol.Registry{}
 		require.NoError(registry.Register(account.ProtocolID, accountProtocol))
+		newdao := blockdao.NewBlockDAO(db.NewBoltDB(dbcfg), indexer, cfg.Chain.CompressBlock, dbcfg)
+		newsf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
+		require.NoError(err)
 		bc = NewBlockchain(
 			cfg,
-			dao,
-			PrecreatedStateFactoryOption(sf),
+			newdao,
+			PrecreatedStateFactoryOption(newsf),
 			RegistryOption(&registry),
 		)
 		rolldposProtocol := rolldpos.NewProtocol(
