@@ -778,7 +778,9 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 		require.NoError(registry.Register(rewarding.ProtocolID, rewardingProtocol))
 		bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
 		bc.Validator().AddActionValidators(accountProtocol)
+		fmt.Println("78111111111111111111")
 		require.NoError(bc.Start(ctx))
+		fmt.Println("782222222222")
 		defer func() {
 			require.NoError(bc.Stop(ctx))
 		}()
