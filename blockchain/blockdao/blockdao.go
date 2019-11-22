@@ -796,12 +796,13 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 	fmt.Println("getTopDB longFileName:", longFileName)
 	dat, err := os.Stat(longFileName)
 	if err != nil && os.IsNotExist(err) {
-		// index the height --> file index mapping
-		if err = dao.IndexFile(blkHeight, byteutil.Uint64ToBytesBigEndian(topIndex)); err != nil {
-			return
-		}
 		// db file does not exist, create it
-		return dao.openDB(topIndex)
+		kvstore, index, err = dao.openDB(topIndex)
+		if err != nil {
+			return nil, 0, err
+		}
+		// index the height --> file index mapping
+		return nil, 0, dao.IndexFile(blkHeight, byteutil.Uint64ToBytesBigEndian(index))
 	}
 	// other errors except file does not exist
 	if err != nil {
