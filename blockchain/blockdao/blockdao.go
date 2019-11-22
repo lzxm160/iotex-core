@@ -756,8 +756,6 @@ func (dao *blockDAO) deleteTipBlock() error {
 	heightKey := heightKey(height)
 	heightKeyDelete := append(heightPrefix, heightKey...)
 	batchForBlock.Delete(blockHashHeightMappingNS, heightKeyDelete, "failed to delete height -> hash mapping")
-	batchForBlock.Delete(blockNS, tipHeightKey, "failed to delete top height")
-	batchForBlock.Delete(blockNS, topHashKey, "failed to delete top hash")
 
 	// Delete hash -> height mapping
 	hashKey := hashKey(hash)
@@ -768,14 +766,15 @@ func (dao *blockDAO) deleteTipBlock() error {
 
 	// Update tip height
 	batch.Put(blockNS, topHeightKey, byteutil.Uint64ToBytes(height-1), "failed to put top height")
-
+	batch.Put(blockNS, tipHeightKey, byteutil.Uint64ToBytes(height-1), "failed to put top height")
+	batchForBlock.Delete(blockNS, tipHeightKey, "failed to delete top height")
 	// Update tip hash
 	hash2, err := dao.getBlockHash(height - 1)
 	if err != nil {
 		return errors.Wrap(err, "failed to get tip block hash")
 	}
 	batch.Put(blockNS, topHashKey, hash2[:], "failed to put top hash")
-
+	batchForBlock.Put(blockNS, topHashKey, hash2[:], "failed to put top hash")
 	if err := dao.kvstore.Commit(batch); err != nil {
 		return err
 	}
