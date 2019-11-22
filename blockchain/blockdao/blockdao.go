@@ -378,11 +378,9 @@ func (dao *blockDAO) IndexFile(height uint64, index []byte) error {
 
 	if dao.htf == nil {
 		htf, err := dao.kvstore.CreateRangeIndexNX(heightToFileBucket, make([]byte, 8))
-		fmt.Println("IndexFile:", 381)
 		if err != nil {
 			return err
 		}
-		fmt.Println("IndexFile:", 384)
 		dao.htf = htf
 	}
 	return dao.htf.Insert(height, index)
@@ -692,11 +690,10 @@ func (dao *blockDAO) putBlockForBlockdb(blk *block.Block) error {
 
 // putBlock puts a block
 func (dao *blockDAO) putBlock(blk *block.Block) error {
-	fmt.Println("putBlock before")
 	if err := dao.putBlockForBlockdb(blk); err != nil {
 		return err
 	}
-	fmt.Println("putBlock 696")
+
 	blkHeight := blk.Height()
 	hash := blk.HashBlock()
 	heightValue := byteutil.Uint64ToBytes(blkHeight)
@@ -788,14 +785,12 @@ func (dao *blockDAO) getDBFromHash(h hash.Hash256) (db.KVStore, uint64, error) {
 }
 
 func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint64, err error) {
-	fmt.Println("getTopDB:", 789)
 	topIndex := dao.topIndex.Load().(uint64)
 	file, dir := getFileNameAndDir(dao.cfg.DbPath)
 	if err != nil {
 		return
 	}
 	longFileName := dir + "/" + file + fmt.Sprintf("-%08d", topIndex) + ".db"
-	fmt.Println("getTopDB longFileName:", longFileName)
 	dat, err := os.Stat(longFileName)
 	if err != nil && os.IsNotExist(err) {
 		// index the height --> file index mapping
@@ -883,7 +878,6 @@ func (dao *blockDAO) openDB(idx uint64) (kvstore db.KVStore, index uint64, err e
 	dao.mutex.Lock()
 	defer dao.mutex.Unlock()
 	cfg := dao.cfg
-	fmt.Println("openDB:", cfg)
 	model, _ := getFileNameAndDir(cfg.DbPath)
 	name := model + fmt.Sprintf("-%08d", idx) + ".db"
 
