@@ -7,12 +7,30 @@
 package rolldpos
 
 import (
+	"encoding/hex"
+	"fmt"
 	"io/ioutil"
+	"math/big"
 	"net"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
+
+	"github.com/Frankonly/iotex-core/action/protocol"
+	"github.com/Frankonly/iotex-core/action/protocol/account"
+	"github.com/Frankonly/iotex-core/action/protocol/execution"
+	"github.com/Frankonly/iotex-core/action/protocol/poll"
+	"github.com/Frankonly/iotex-core/action/protocol/rewarding"
+	"github.com/Frankonly/iotex-core/actpool"
+	"github.com/Frankonly/iotex-core/blockchain"
+	"github.com/Frankonly/iotex-core/blockchain/genesis"
+	"github.com/Frankonly/iotex-core/db"
+	"github.com/Frankonly/iotex-core/p2p/node"
+	"github.com/Frankonly/iotex-core/state/factory"
+	"github.com/Frankonly/iotex-core/testutil"
 	"github.com/facebookgo/clock"
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/proto"
@@ -27,6 +45,8 @@ import (
 
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/blockchain/block"
+	"github.com/iotexproject/iotex-core/blockchain/blockdao"
+	"github.com/iotexproject/iotex-core/blockindex"
 	"github.com/iotexproject/iotex-core/config"
 	cp "github.com/iotexproject/iotex-core/crypto"
 	"github.com/iotexproject/iotex-core/endorsement"
@@ -343,363 +363,363 @@ func (o *directOverlay) GetPeers() []net.Addr {
 	return addrs
 }
 
-//func TestRollDPoSConsensus(t *testing.T) {
-//	newConsensusComponents := func(numNodes int) ([]*RollDPoS, []*directOverlay, []blockchain.Blockchain) {
-//		cfg := newConfig(numNodes)
-//		chainAddrs := make([]*addrKeyPair, 0, numNodes)
-//		networkAddrs := make([]net.Addr, 0, numNodes)
-//		for i := 0; i < numNodes; i++ {
-//			sk := identityset.PrivateKey(i)
-//			addr := addrKeyPair{
-//				encodedAddr: identityset.Address(i).String(),
-//				priKey:      sk,
-//			}
-//			chainAddrs = append(chainAddrs, &addr)
-//			networkAddrs = append(networkAddrs, node.NewTCPNode(fmt.Sprintf("127.0.0.%d:4689", i+1)))
-//		}
-//
-//		chainRawAddrs := make([]string, 0, numNodes)
-//		addressMap := make(map[string]*addrKeyPair)
-//		for _, addr := range chainAddrs {
-//			chainRawAddrs = append(chainRawAddrs, addr.encodedAddr)
-//			addressMap[addr.encodedAddr] = addr
-//		}
-//		cp.SortCandidates(chainRawAddrs, 1, cp.CryptoSeed)
-//		for i, rawAddress := range chainRawAddrs {
-//			chainAddrs[i] = addressMap[rawAddress]
-//		}
-//
-//		candidatesByHeightFunc := func(_ uint64) ([]*state.Candidate, error) {
-//			candidates := make([]*state.Candidate, 0, numNodes)
-//			for _, addr := range chainAddrs {
-//				candidates = append(candidates, &state.Candidate{Address: addr.encodedAddr})
-//			}
-//			return candidates, nil
-//		}
-//
-//		chains := make([]blockchain.Blockchain, 0, numNodes)
-//		p2ps := make([]*directOverlay, 0, numNodes)
-//		cs := make([]*RollDPoS, 0, numNodes)
-//		for i := 0; i < numNodes; i++ {
-//			ctx := context.Background()
-//			cfg[i].Chain.ProducerPrivKey = hex.EncodeToString(chainAddrs[i].priKey.Bytes())
-//			sf, err := factory.NewFactory(cfg[i], factory.DefaultTrieOption())
-//			require.NoError(t, err)
-//			require.NoError(t, sf.Start(ctx))
-//			for j := 0; j < numNodes; j++ {
-//				ws, err := sf.NewWorkingSet(nil)
-//				require.NoError(t, err)
-//				_, err = accountutil.LoadOrCreateAccount(ws, chainRawAddrs[j], big.NewInt(0))
-//				require.NoError(t, err)
-//				gasLimit := testutil.TestGasLimit
-//				wsctx := protocol.WithRunActionsCtx(ctx,
-//					protocol.RunActionsCtx{
-//						Producer: identityset.Address(27),
-//						GasLimit: gasLimit,
-//						Genesis:  cfg[i].Genesis,
-//					})
-//				_, err = ws.RunActions(wsctx, 0, nil)
-//				require.NoError(t, err)
-//				require.NoError(t, sf.Commit(ws))
-//			}
-//			registry := protocol.Registry{}
-//			acc := account.NewProtocol()
-//			require.NoError(t, registry.Register(account.ProtocolID, acc))
-//			rp := rolldpos.NewProtocol(cfg[i].Genesis.NumCandidateDelegates, cfg[i].Genesis.NumDelegates, cfg[i].Genesis.NumSubEpochs)
-//			require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
-//
-//			dbConfig := cfg[i].DB
-//			dbConfig.DbPath = cfg[i].Chain.IndexDBPath
-//			indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg[i].Genesis.Hash())
-//			require.NoError(t, err)
-//			dbConfig.DbPath = cfg[i].Chain.ChainDBPath
-//			dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg[i].Chain.CompressBlock, dbConfig)
-//			chain := blockchain.NewBlockchain(
-//				cfg[i],
-//				dao,
-//				blockchain.PrecreatedStateFactoryOption(sf),
-//				blockchain.RegistryOption(&registry),
-//			)
-//			evm := execution.NewProtocol(chain.BlockDAO().GetBlockHash)
-//			require.NoError(t, registry.Register(execution.ProtocolID, evm))
-//			p := poll.NewLifeLongDelegatesProtocol(cfg[i].Genesis.Delegates)
-//			rolldposProtocol := rolldpos.NewProtocol(
-//				genesis.Default.NumCandidateDelegates,
-//				genesis.Default.NumDelegates,
-//				genesis.Default.NumSubEpochs,
-//				rolldpos.EnableDardanellesSubEpoch(cfg[i].Genesis.DardanellesBlockHeight, cfg[i].Genesis.DardanellesNumSubEpochs),
-//			)
-//			r := rewarding.NewProtocol(chain, rolldposProtocol)
-//			require.NoError(t, registry.Register(rewarding.ProtocolID, r))
-//			require.NoError(t, registry.Register(poll.ProtocolID, p))
-//
-//			chain.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(chain.Factory().Nonce))
-//			chain.Validator().AddActionValidators(acc, evm, r)
-//
-//			chains = append(chains, chain)
-//
-//			actPool, err := actpool.NewActPool(chain, cfg[i].ActPool, actpool.EnableExperimentalActions())
-//			require.NoError(t, err)
-//
-//			p2p := &directOverlay{
-//				addr:  networkAddrs[i],
-//				peers: make(map[net.Addr]*RollDPoS),
-//			}
-//			p2ps = append(p2ps, p2p)
-//
-//			consensus, err := NewRollDPoSBuilder().
-//				SetAddr(chainAddrs[i].encodedAddr).
-//				SetPriKey(chainAddrs[i].priKey).
-//				SetConfig(cfg[i]).
-//				SetChainManager(chain).
-//				SetActPool(actPool).
-//				SetBroadcast(p2p.Broadcast).
-//				SetCandidatesByHeightFunc(candidatesByHeightFunc).
-//				RegisterProtocol(rp).
-//				Build()
-//			require.NoError(t, err)
-//
-//			cs = append(cs, consensus)
-//		}
-//		for i := 0; i < numNodes; i++ {
-//			for j := 0; j < numNodes; j++ {
-//				if i != j {
-//					p2ps[i].peers[p2ps[j].addr] = cs[j]
-//				}
-//			}
-//		}
-//		return cs, p2ps, chains
-//	}
-//
-//	t.Run("1-block", func(t *testing.T) {
-//		// TODO: fix and enable the test
-//		t.Skip()
-//
-//		ctx := context.Background()
-//		cs, p2ps, chains := newConsensusComponents(24)
-//
-//		for i := 0; i < 24; i++ {
-//			require.NoError(t, chains[i].Start(ctx))
-//			require.NoError(t, p2ps[i].Start(ctx))
-//		}
-//		wg := sync.WaitGroup{}
-//		wg.Add(24)
-//		for i := 0; i < 24; i++ {
-//			go func(idx int) {
-//				defer wg.Done()
-//				err := cs[idx].Start(ctx)
-//				require.NoError(t, err)
-//			}(i)
-//		}
-//		wg.Wait()
-//
-//		defer func() {
-//			for i := 0; i < 24; i++ {
-//				require.NoError(t, cs[i].Stop(ctx))
-//				require.NoError(t, p2ps[i].Stop(ctx))
-//				require.NoError(t, chains[i].Stop(ctx))
-//			}
-//		}()
-//		assert.NoError(t, testutil.WaitUntil(200*time.Millisecond, 10*time.Second, func() (bool, error) {
-//			for _, chain := range chains {
-//				if chain.TipHeight() < 1 {
-//					return false, nil
-//				}
-//			}
-//			return true, nil
-//		}))
-//	})
-//
-//	t.Run("1-epoch", func(t *testing.T) {
-//		if testing.Short() {
-//			t.Skip("Skip the 1-epoch test in short mode.")
-//		}
-//		ctx := context.Background()
-//		cs, p2ps, chains := newConsensusComponents(24)
-//
-//		for i := 0; i < 24; i++ {
-//			require.NoError(t, chains[i].Start(ctx))
-//			require.NoError(t, p2ps[i].Start(ctx))
-//		}
-//		wg := sync.WaitGroup{}
-//		wg.Add(24)
-//		for i := 0; i < 24; i++ {
-//			go func(idx int) {
-//				defer wg.Done()
-//				err := cs[idx].Start(ctx)
-//				require.NoError(t, err)
-//			}(i)
-//		}
-//		wg.Wait()
-//
-//		defer func() {
-//			for i := 0; i < 24; i++ {
-//				require.NoError(t, cs[i].Stop(ctx))
-//				require.NoError(t, p2ps[i].Stop(ctx))
-//				require.NoError(t, chains[i].Stop(ctx))
-//			}
-//		}()
-//		assert.NoError(t, testutil.WaitUntil(200*time.Millisecond, 100*time.Second, func() (bool, error) {
-//			for _, chain := range chains {
-//				if chain.TipHeight() < 48 {
-//					return false, nil
-//				}
-//			}
-//			return true, nil
-//		}))
-//	})
-//
-//	t.Run("network-partition-time-rotation", func(t *testing.T) {
-//		// TODO: fix and enable the test
-//		t.Skip()
-//
-//		ctx := context.Background()
-//		cs, p2ps, chains := newConsensusComponents(24)
-//		// 1 should be the block 1's proposer
-//		for i, p2p := range p2ps {
-//			if i == 1 {
-//				p2p.peers = make(map[net.Addr]*RollDPoS)
-//			} else {
-//				delete(p2p.peers, p2ps[1].addr)
-//			}
-//		}
-//
-//		for i := 0; i < 24; i++ {
-//			require.NoError(t, chains[i].Start(ctx))
-//			require.NoError(t, p2ps[i].Start(ctx))
-//		}
-//		wg := sync.WaitGroup{}
-//		wg.Add(24)
-//		for i := 0; i < 24; i++ {
-//			go func(idx int) {
-//				defer wg.Done()
-//				cs[idx].ctx.roundCalc.timeBasedRotation = true
-//				err := cs[idx].Start(ctx)
-//				require.NoError(t, err)
-//			}(i)
-//		}
-//		wg.Wait()
-//
-//		defer func() {
-//			for i := 0; i < 24; i++ {
-//				require.NoError(t, cs[i].Stop(ctx))
-//				require.NoError(t, p2ps[i].Stop(ctx))
-//				require.NoError(t, chains[i].Stop(ctx))
-//			}
-//		}()
-//
-//		assert.NoError(t, testutil.WaitUntil(200*time.Millisecond, 60*time.Second, func() (bool, error) {
-//			for i, chain := range chains {
-//				if i == 1 {
-//					continue
-//				}
-//				if chain.TipHeight() < 4 {
-//					return false, nil
-//				}
-//			}
-//			return true, nil
-//		}))
-//	})
-//
-//	t.Run("proposer-network-partition-blocking", func(t *testing.T) {
-//		ctx := context.Background()
-//		cs, p2ps, chains := newConsensusComponents(24)
-//		// 1 should be the block 1's proposer
-//		for i, p2p := range p2ps {
-//			if i == 1 {
-//				p2p.peers = make(map[net.Addr]*RollDPoS)
-//			} else {
-//				delete(p2p.peers, p2ps[1].addr)
-//			}
-//		}
-//
-//		for i := 0; i < 24; i++ {
-//			require.NoError(t, chains[i].Start(ctx))
-//			require.NoError(t, p2ps[i].Start(ctx))
-//		}
-//		wg := sync.WaitGroup{}
-//		wg.Add(24)
-//		for i := 0; i < 24; i++ {
-//			go func(idx int) {
-//				defer wg.Done()
-//				err := cs[idx].Start(ctx)
-//				require.NoError(t, err)
-//			}(i)
-//		}
-//		wg.Wait()
-//
-//		defer func() {
-//			for i := 0; i < 24; i++ {
-//				require.NoError(t, cs[i].Stop(ctx))
-//				require.NoError(t, p2ps[i].Stop(ctx))
-//				require.NoError(t, chains[i].Stop(ctx))
-//			}
-//		}()
-//		time.Sleep(5 * time.Second)
-//		for _, chain := range chains {
-//			header, err := chain.BlockHeaderByHeight(1)
-//			assert.Nil(t, header)
-//			assert.Error(t, err)
-//		}
-//	})
-//
-//	t.Run("non-proposer-network-partition-blocking", func(t *testing.T) {
-//		ctx := context.Background()
-//		cs, p2ps, chains := newConsensusComponents(24)
-//		// 1 should be the block 1's proposer
-//		for i, p2p := range p2ps {
-//			if i == 0 {
-//				p2p.peers = make(map[net.Addr]*RollDPoS)
-//			} else {
-//				delete(p2p.peers, p2ps[0].addr)
-//			}
-//		}
-//
-//		for i := 0; i < 24; i++ {
-//			require.NoError(t, chains[i].Start(ctx))
-//			require.NoError(t, p2ps[i].Start(ctx))
-//		}
-//		wg := sync.WaitGroup{}
-//		wg.Add(24)
-//		for i := 0; i < 24; i++ {
-//			go func(idx int) {
-//				defer wg.Done()
-//				err := cs[idx].Start(ctx)
-//				require.NoError(t, err)
-//			}(i)
-//		}
-//		wg.Wait()
-//
-//		defer func() {
-//			for i := 0; i < 24; i++ {
-//				require.NoError(t, cs[i].Stop(ctx))
-//				require.NoError(t, p2ps[i].Stop(ctx))
-//				require.NoError(t, chains[i].Stop(ctx))
-//			}
-//		}()
-//		assert.NoError(t, testutil.WaitUntil(200*time.Millisecond, 60*time.Second, func() (bool, error) {
-//			for i, chain := range chains {
-//				if i == 0 {
-//					continue
-//				}
-//				if chain.TipHeight() < 2 {
-//					return false, nil
-//				}
-//			}
-//			return true, nil
-//		}))
-//		for i, chain := range chains {
-//			header, err := chain.BlockHeaderByHeight(1)
-//			if i == 0 {
-//				assert.Nil(t, header)
-//				assert.Error(t, err)
-//			} else {
-//				assert.NotNil(t, header)
-//				assert.NoError(t, err)
-//			}
-//		}
-//	})
-//}
+func TestRollDPoSConsensus(t *testing.T) {
+	newConsensusComponents := func(numNodes int) ([]*RollDPoS, []*directOverlay, []blockchain.Blockchain) {
+		cfg := newConfig(numNodes)
+		chainAddrs := make([]*addrKeyPair, 0, numNodes)
+		networkAddrs := make([]net.Addr, 0, numNodes)
+		for i := 0; i < numNodes; i++ {
+			sk := identityset.PrivateKey(i)
+			addr := addrKeyPair{
+				encodedAddr: identityset.Address(i).String(),
+				priKey:      sk,
+			}
+			chainAddrs = append(chainAddrs, &addr)
+			networkAddrs = append(networkAddrs, node.NewTCPNode(fmt.Sprintf("127.0.0.%d:4689", i+1)))
+		}
+
+		chainRawAddrs := make([]string, 0, numNodes)
+		addressMap := make(map[string]*addrKeyPair)
+		for _, addr := range chainAddrs {
+			chainRawAddrs = append(chainRawAddrs, addr.encodedAddr)
+			addressMap[addr.encodedAddr] = addr
+		}
+		cp.SortCandidates(chainRawAddrs, 1, cp.CryptoSeed)
+		for i, rawAddress := range chainRawAddrs {
+			chainAddrs[i] = addressMap[rawAddress]
+		}
+
+		candidatesByHeightFunc := func(_ uint64) ([]*state.Candidate, error) {
+			candidates := make([]*state.Candidate, 0, numNodes)
+			for _, addr := range chainAddrs {
+				candidates = append(candidates, &state.Candidate{Address: addr.encodedAddr})
+			}
+			return candidates, nil
+		}
+
+		chains := make([]blockchain.Blockchain, 0, numNodes)
+		p2ps := make([]*directOverlay, 0, numNodes)
+		cs := make([]*RollDPoS, 0, numNodes)
+		for i := 0; i < numNodes; i++ {
+			ctx := context.Background()
+			cfg[i].Chain.ProducerPrivKey = hex.EncodeToString(chainAddrs[i].priKey.Bytes())
+			sf, err := factory.NewFactory(cfg[i], factory.DefaultTrieOption())
+			require.NoError(t, err)
+			require.NoError(t, sf.Start(ctx))
+			for j := 0; j < numNodes; j++ {
+				ws, err := sf.NewWorkingSet(nil)
+				require.NoError(t, err)
+				_, err = accountutil.LoadOrCreateAccount(ws, chainRawAddrs[j], big.NewInt(0))
+				require.NoError(t, err)
+				gasLimit := testutil.TestGasLimit
+				wsctx := protocol.WithRunActionsCtx(ctx,
+					protocol.RunActionsCtx{
+						Producer: identityset.Address(27),
+						GasLimit: gasLimit,
+						Genesis:  cfg[i].Genesis,
+					})
+				_, err = ws.RunActions(wsctx, 0, nil)
+				require.NoError(t, err)
+				require.NoError(t, sf.Commit(ws))
+			}
+			registry := protocol.Registry{}
+			acc := account.NewProtocol()
+			require.NoError(t, registry.Register(account.ProtocolID, acc))
+			rp := rolldpos.NewProtocol(cfg[i].Genesis.NumCandidateDelegates, cfg[i].Genesis.NumDelegates, cfg[i].Genesis.NumSubEpochs)
+			require.NoError(t, registry.Register(rolldpos.ProtocolID, rp))
+
+			dbConfig := cfg[i].DB
+			dbConfig.DbPath = cfg[i].Chain.IndexDBPath
+			indexer, err := blockindex.NewIndexer(db.NewBoltDB(dbConfig), cfg[i].Genesis.Hash())
+			require.NoError(t, err)
+			dbConfig.DbPath = cfg[i].Chain.ChainDBPath
+			dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg[i].Chain.CompressBlock, dbConfig)
+			chain := blockchain.NewBlockchain(
+				cfg[i],
+				dao,
+				blockchain.PrecreatedStateFactoryOption(sf),
+				blockchain.RegistryOption(&registry),
+			)
+			evm := execution.NewProtocol(chain.BlockDAO().GetBlockHash)
+			require.NoError(t, registry.Register(execution.ProtocolID, evm))
+			p := poll.NewLifeLongDelegatesProtocol(cfg[i].Genesis.Delegates)
+			rolldposProtocol := rolldpos.NewProtocol(
+				genesis.Default.NumCandidateDelegates,
+				genesis.Default.NumDelegates,
+				genesis.Default.NumSubEpochs,
+				rolldpos.EnableDardanellesSubEpoch(cfg[i].Genesis.DardanellesBlockHeight, cfg[i].Genesis.DardanellesNumSubEpochs),
+			)
+			r := rewarding.NewProtocol(chain, rolldposProtocol)
+			require.NoError(t, registry.Register(rewarding.ProtocolID, r))
+			require.NoError(t, registry.Register(poll.ProtocolID, p))
+
+			chain.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(chain.Factory().Nonce))
+			chain.Validator().AddActionValidators(acc, evm, r)
+
+			chains = append(chains, chain)
+
+			actPool, err := actpool.NewActPool(chain, cfg[i].ActPool, actpool.EnableExperimentalActions())
+			require.NoError(t, err)
+
+			p2p := &directOverlay{
+				addr:  networkAddrs[i],
+				peers: make(map[net.Addr]*RollDPoS),
+			}
+			p2ps = append(p2ps, p2p)
+
+			consensus, err := NewRollDPoSBuilder().
+				SetAddr(chainAddrs[i].encodedAddr).
+				SetPriKey(chainAddrs[i].priKey).
+				SetConfig(cfg[i]).
+				SetChainManager(chain).
+				SetActPool(actPool).
+				SetBroadcast(p2p.Broadcast).
+				SetCandidatesByHeightFunc(candidatesByHeightFunc).
+				RegisterProtocol(rp).
+				Build()
+			require.NoError(t, err)
+
+			cs = append(cs, consensus)
+		}
+		for i := 0; i < numNodes; i++ {
+			for j := 0; j < numNodes; j++ {
+				if i != j {
+					p2ps[i].peers[p2ps[j].addr] = cs[j]
+				}
+			}
+		}
+		return cs, p2ps, chains
+	}
+
+	t.Run("1-block", func(t *testing.T) {
+		// TODO: fix and enable the test
+		t.Skip()
+
+		ctx := context.Background()
+		cs, p2ps, chains := newConsensusComponents(24)
+
+		for i := 0; i < 24; i++ {
+			require.NoError(t, chains[i].Start(ctx))
+			require.NoError(t, p2ps[i].Start(ctx))
+		}
+		wg := sync.WaitGroup{}
+		wg.Add(24)
+		for i := 0; i < 24; i++ {
+			go func(idx int) {
+				defer wg.Done()
+				err := cs[idx].Start(ctx)
+				require.NoError(t, err)
+			}(i)
+		}
+		wg.Wait()
+
+		defer func() {
+			for i := 0; i < 24; i++ {
+				require.NoError(t, cs[i].Stop(ctx))
+				require.NoError(t, p2ps[i].Stop(ctx))
+				require.NoError(t, chains[i].Stop(ctx))
+			}
+		}()
+		assert.NoError(t, testutil.WaitUntil(200*time.Millisecond, 10*time.Second, func() (bool, error) {
+			for _, chain := range chains {
+				if chain.TipHeight() < 1 {
+					return false, nil
+				}
+			}
+			return true, nil
+		}))
+	})
+
+	t.Run("1-epoch", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("Skip the 1-epoch test in short mode.")
+		}
+		ctx := context.Background()
+		cs, p2ps, chains := newConsensusComponents(24)
+
+		for i := 0; i < 24; i++ {
+			require.NoError(t, chains[i].Start(ctx))
+			require.NoError(t, p2ps[i].Start(ctx))
+		}
+		wg := sync.WaitGroup{}
+		wg.Add(24)
+		for i := 0; i < 24; i++ {
+			go func(idx int) {
+				defer wg.Done()
+				err := cs[idx].Start(ctx)
+				require.NoError(t, err)
+			}(i)
+		}
+		wg.Wait()
+
+		defer func() {
+			for i := 0; i < 24; i++ {
+				require.NoError(t, cs[i].Stop(ctx))
+				require.NoError(t, p2ps[i].Stop(ctx))
+				require.NoError(t, chains[i].Stop(ctx))
+			}
+		}()
+		assert.NoError(t, testutil.WaitUntil(200*time.Millisecond, 100*time.Second, func() (bool, error) {
+			for _, chain := range chains {
+				if chain.TipHeight() < 48 {
+					return false, nil
+				}
+			}
+			return true, nil
+		}))
+	})
+
+	t.Run("network-partition-time-rotation", func(t *testing.T) {
+		// TODO: fix and enable the test
+		t.Skip()
+
+		ctx := context.Background()
+		cs, p2ps, chains := newConsensusComponents(24)
+		// 1 should be the block 1's proposer
+		for i, p2p := range p2ps {
+			if i == 1 {
+				p2p.peers = make(map[net.Addr]*RollDPoS)
+			} else {
+				delete(p2p.peers, p2ps[1].addr)
+			}
+		}
+
+		for i := 0; i < 24; i++ {
+			require.NoError(t, chains[i].Start(ctx))
+			require.NoError(t, p2ps[i].Start(ctx))
+		}
+		wg := sync.WaitGroup{}
+		wg.Add(24)
+		for i := 0; i < 24; i++ {
+			go func(idx int) {
+				defer wg.Done()
+				cs[idx].ctx.roundCalc.timeBasedRotation = true
+				err := cs[idx].Start(ctx)
+				require.NoError(t, err)
+			}(i)
+		}
+		wg.Wait()
+
+		defer func() {
+			for i := 0; i < 24; i++ {
+				require.NoError(t, cs[i].Stop(ctx))
+				require.NoError(t, p2ps[i].Stop(ctx))
+				require.NoError(t, chains[i].Stop(ctx))
+			}
+		}()
+
+		assert.NoError(t, testutil.WaitUntil(200*time.Millisecond, 60*time.Second, func() (bool, error) {
+			for i, chain := range chains {
+				if i == 1 {
+					continue
+				}
+				if chain.TipHeight() < 4 {
+					return false, nil
+				}
+			}
+			return true, nil
+		}))
+	})
+
+	t.Run("proposer-network-partition-blocking", func(t *testing.T) {
+		ctx := context.Background()
+		cs, p2ps, chains := newConsensusComponents(24)
+		// 1 should be the block 1's proposer
+		for i, p2p := range p2ps {
+			if i == 1 {
+				p2p.peers = make(map[net.Addr]*RollDPoS)
+			} else {
+				delete(p2p.peers, p2ps[1].addr)
+			}
+		}
+
+		for i := 0; i < 24; i++ {
+			require.NoError(t, chains[i].Start(ctx))
+			require.NoError(t, p2ps[i].Start(ctx))
+		}
+		wg := sync.WaitGroup{}
+		wg.Add(24)
+		for i := 0; i < 24; i++ {
+			go func(idx int) {
+				defer wg.Done()
+				err := cs[idx].Start(ctx)
+				require.NoError(t, err)
+			}(i)
+		}
+		wg.Wait()
+
+		defer func() {
+			for i := 0; i < 24; i++ {
+				require.NoError(t, cs[i].Stop(ctx))
+				require.NoError(t, p2ps[i].Stop(ctx))
+				require.NoError(t, chains[i].Stop(ctx))
+			}
+		}()
+		time.Sleep(5 * time.Second)
+		for _, chain := range chains {
+			header, err := chain.BlockHeaderByHeight(1)
+			assert.Nil(t, header)
+			assert.Error(t, err)
+		}
+	})
+
+	t.Run("non-proposer-network-partition-blocking", func(t *testing.T) {
+		ctx := context.Background()
+		cs, p2ps, chains := newConsensusComponents(24)
+		// 1 should be the block 1's proposer
+		for i, p2p := range p2ps {
+			if i == 0 {
+				p2p.peers = make(map[net.Addr]*RollDPoS)
+			} else {
+				delete(p2p.peers, p2ps[0].addr)
+			}
+		}
+
+		for i := 0; i < 24; i++ {
+			require.NoError(t, chains[i].Start(ctx))
+			require.NoError(t, p2ps[i].Start(ctx))
+		}
+		wg := sync.WaitGroup{}
+		wg.Add(24)
+		for i := 0; i < 24; i++ {
+			go func(idx int) {
+				defer wg.Done()
+				err := cs[idx].Start(ctx)
+				require.NoError(t, err)
+			}(i)
+		}
+		wg.Wait()
+
+		defer func() {
+			for i := 0; i < 24; i++ {
+				require.NoError(t, cs[i].Stop(ctx))
+				require.NoError(t, p2ps[i].Stop(ctx))
+				require.NoError(t, chains[i].Stop(ctx))
+			}
+		}()
+		assert.NoError(t, testutil.WaitUntil(200*time.Millisecond, 60*time.Second, func() (bool, error) {
+			for i, chain := range chains {
+				if i == 0 {
+					continue
+				}
+				if chain.TipHeight() < 2 {
+					return false, nil
+				}
+			}
+			return true, nil
+		}))
+		for i, chain := range chains {
+			header, err := chain.BlockHeaderByHeight(1)
+			if i == 0 {
+				assert.Nil(t, header)
+				assert.Error(t, err)
+			} else {
+				assert.NotNil(t, header)
+				assert.NoError(t, err)
+			}
+		}
+	})
+}
 
 func newConfig(numNodes int) (ret []config.Config) {
 	for i := 0; i < numNodes; i++ {

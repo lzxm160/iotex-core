@@ -1200,7 +1200,7 @@ func newConfig() config.Config {
 	cfg.Genesis.EnableGravityChainVoting = true
 	cfg.ActPool.MinGasPriceStr = "0"
 	cfg.API.RangeQueryLimit = 100
-
+	cfg.Genesis.AleutianBlockHeight = 3
 	return cfg
 }
 
