@@ -531,24 +531,22 @@ func TestStartExistingBlockchain(t *testing.T) {
 	bc := svr.ChainService(chainID).Blockchain()
 	require.NotNil(bc)
 
-	defer func() {
-		svr.Stop(ctx)
-	}()
-
 	require.NoError(addTestingTsfBlocks(bc))
 	require.Equal(uint64(5), bc.TipHeight())
 
 	// Delete state db and recover to tip
 	//testutil.CleanupPath(t, testTriePath)
 	require.NoError(svr.Stop(ctx))
+
+	ctx = context.Background()
 	svr, err = itx.NewServer(cfg)
 	require.NoError(err)
 	require.NoError(svr.ChainService(cfg.Chain.ID).Blockchain().Start(ctx))
 	// Refresh state DB
 	require.NoError(bc.RecoverChainAndState(0))
 	require.NoError(svr.ChainService(cfg.Chain.ID).Blockchain().Stop(ctx))
-	svr, err = itx.NewServer(cfg)
-	require.NoError(err)
+
+	ctx = context.Background()
 	// Build states from height 1 to tip
 	svr, err = itx.NewServer(cfg)
 	require.Nil(err)
@@ -561,6 +559,8 @@ func TestStartExistingBlockchain(t *testing.T) {
 	testutil.CleanupPath(t, testTriePath)
 	require.NoError(bc.RecoverChainAndState(3))
 	require.NoError(svr.Stop(ctx))
+
+	ctx = context.Background()
 	svr, err = itx.NewServer(cfg)
 	require.NoError(err)
 	// Build states from height 1 to 3
@@ -573,6 +573,8 @@ func TestStartExistingBlockchain(t *testing.T) {
 	// Recover to height 2 from an existing state DB with Height 3
 	require.NoError(bc.RecoverChainAndState(2))
 	require.NoError(svr.Stop(ctx))
+
+	ctx = context.Background()
 	svr, err = itx.NewServer(cfg)
 	require.NoError(err)
 	// Build states from height 1 to 2
@@ -581,6 +583,7 @@ func TestStartExistingBlockchain(t *testing.T) {
 	height, _ = bc.Factory().Height()
 	require.Equal(bc.TipHeight(), height)
 	require.Equal(uint64(2), height)
+	require.NoError(svr.Stop(ctx))
 }
 
 func newTestConfig() (config.Config, error) {
