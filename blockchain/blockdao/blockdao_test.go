@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"go.uber.org/zap"
 
@@ -229,127 +231,124 @@ func TestBlockDAO(t *testing.T) {
 		}
 	}
 
-	//testDeleteDao := func(kvstore db.KVStore, indexer blockindex.Indexer, cfg config.DB, t *testing.T) {
-	//	require := require.New(t)
-	//	ctx := context.Background()
-	//	dao := NewBlockDAO(kvstore, indexer, false, cfg)
-	//	require.NoError(dao.Start(ctx))
-	//	defer func() {
-	//		require.NoError(dao.Stop(ctx))
-	//	}()
-	//
-	//	// put blocks
-	//	for i := 0; i < 3; i++ {
-	//		require.NoError(dao.PutBlock(blks[i]))
-	//	}
-	//	require.NoError(dao.Commit())
-	//	height, err := indexer.GetBlockchainHeight()
-	//	require.NoError(err)
-	//	require.EqualValues(3, height)
-	//
-	//	// delete tip block one by one, verify address/action after each deletion
-	//	for i := range daoTests {
-	//		if i == 0 {
-	//			// tests[0] is the whole address/action data at block height 3
-	//			continue
-	//		}
-	//		prevTipHeight, err := dao.GetTipHeight()
-	//		require.NoError(err)
-	//		prevTipHash, err := dao.GetBlockHash(prevTipHeight)
-	//		require.NoError(err)
-	//		require.NoError(dao.DeleteTipBlock())
-	//		tipHeight, err := indexer.GetBlockchainHeight()
-	//		require.NoError(err)
-	//		require.EqualValues(prevTipHeight-1, tipHeight)
-	//		tipHeight, err = dao.GetTipHeight()
-	//		require.NoError(err)
-	//		require.EqualValues(prevTipHeight-1, tipHeight)
-	//		h, err := indexer.GetBlockHash(tipHeight)
-	//		require.NoError(err)
-	//		h1, err := dao.GetTipHash()
-	//		require.NoError(err)
-	//		require.Equal(h, h1)
-	//		_, err = dao.GetBlockHash(prevTipHeight)
-	//		require.Error(err)
-	//		_, err = dao.GetBlockHeight(prevTipHash)
-	//		require.Error(err)
-	//		if i <= 2 {
-	//			require.Equal(blks[2-i].HashBlock(), h)
-	//		} else {
-	//			require.Equal(hash.ZeroHash256, h)
-	//		}
-	//		total, err := indexer.GetTotalActions()
-	//		require.NoError(err)
-	//		require.EqualValues(daoTests[i].total, total)
-	//		if total > 0 {
-	//			_, err = indexer.GetActionHashFromIndex(1, total)
-	//			require.Equal(db.ErrInvalid, errors.Cause(err))
-	//			actions, err := indexer.GetActionHashFromIndex(0, total)
-	//			require.NoError(err)
-	//			require.Equal(actions, daoTests[i].hashTotal)
-	//		}
-	//		for j := range daoTests[i].actions {
-	//			actionCount, err := indexer.GetActionCountByAddress(daoTests[i].actions[j].addr)
-	//			require.NoError(err)
-	//			require.EqualValues(len(daoTests[i].actions[j].hashes), actionCount)
-	//			if actionCount > 0 {
-	//				actions, err := indexer.GetActionsByAddress(daoTests[i].actions[j].addr, 0, actionCount)
-	//				require.NoError(err)
-	//				require.Equal(actions, daoTests[i].actions[j].hashes)
-	//			}
-	//		}
-	//	}
-	//	// cannot delete genesis block
-	//	require.Error(dao.DeleteTipBlock())
-	//}
+	testDeleteDao := func(kvstore db.KVStore, indexer blockindex.Indexer, cfg config.DB, t *testing.T) {
+		require := require.New(t)
+		ctx := context.Background()
+		dao := NewBlockDAO(kvstore, indexer, false, cfg)
+		require.NoError(dao.Start(ctx))
+		defer func() {
+			require.NoError(dao.Stop(ctx))
+		}()
+
+		// put blocks
+		for i := 0; i < 3; i++ {
+			require.NoError(dao.PutBlock(blks[i]))
+		}
+		require.NoError(dao.Commit())
+		height, err := indexer.GetBlockchainHeight()
+		require.NoError(err)
+		require.EqualValues(3, height)
+
+		// delete tip block one by one, verify address/action after each deletion
+		for i := range daoTests {
+			if i == 0 {
+				// tests[0] is the whole address/action data at block height 3
+				continue
+			}
+			prevTipHeight, err := dao.GetTipHeight()
+			require.NoError(err)
+			prevTipHash, err := dao.GetBlockHash(prevTipHeight)
+			require.NoError(err)
+			require.NoError(dao.DeleteTipBlock())
+			tipHeight, err := indexer.GetBlockchainHeight()
+			require.NoError(err)
+			require.EqualValues(prevTipHeight-1, tipHeight)
+			tipHeight, err = dao.GetTipHeight()
+			require.NoError(err)
+			require.EqualValues(prevTipHeight-1, tipHeight)
+			h, err := indexer.GetBlockHash(tipHeight)
+			require.NoError(err)
+			h1, err := dao.GetTipHash()
+			require.NoError(err)
+			require.Equal(h, h1)
+			_, err = dao.GetBlockHash(prevTipHeight)
+			require.Error(err)
+			_, err = dao.GetBlockHeight(prevTipHash)
+			require.Error(err)
+			if i <= 2 {
+				require.Equal(blks[2-i].HashBlock(), h)
+			} else {
+				require.Equal(hash.ZeroHash256, h)
+			}
+			total, err := indexer.GetTotalActions()
+			require.NoError(err)
+			require.EqualValues(daoTests[i].total, total)
+			if total > 0 {
+				_, err = indexer.GetActionHashFromIndex(1, total)
+				require.Equal(db.ErrInvalid, errors.Cause(err))
+				actions, err := indexer.GetActionHashFromIndex(0, total)
+				require.NoError(err)
+				require.Equal(actions, daoTests[i].hashTotal)
+			}
+			for j := range daoTests[i].actions {
+				actionCount, err := indexer.GetActionCountByAddress(daoTests[i].actions[j].addr)
+				require.NoError(err)
+				require.EqualValues(len(daoTests[i].actions[j].hashes), actionCount)
+				if actionCount > 0 {
+					actions, err := indexer.GetActionsByAddress(daoTests[i].actions[j].addr, 0, actionCount)
+					require.NoError(err)
+					require.Equal(actions, daoTests[i].actions[j].hashes)
+				}
+			}
+		}
+		// cannot delete genesis block
+		require.Error(dao.DeleteTipBlock())
+	}
 
 	t.Run("In-memory KV Store for blocks", func(t *testing.T) {
-		// Indexer in memory is not finished
-		indexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+		// CreateRangeIndexNX in memory is not finished
+		t.Skip()
+		indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), hash.ZeroHash256)
+		require.NoError(t, err)
+		testBlockDao(db.NewMemKVStore(), indexer, t)
+	})
+	path := "test-kv-store"
+	testFile, _ := ioutil.TempFile(os.TempDir(), path)
+	testPath := testFile.Name()
+	indexFile, _ := ioutil.TempFile(os.TempDir(), path)
+	indexPath := indexFile.Name()
+	cfg := config.Default.DB
+	t.Run("Bolt DB for blocks", func(t *testing.T) {
+		testutil.CleanupPath(t, testPath)
+		testutil.CleanupPath(t, indexPath)
+		defer func() {
+			testutil.CleanupPath(t, testPath)
+			testutil.CleanupPath(t, indexPath)
+		}()
+		cfg.DbPath = indexPath
+		indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg), hash.ZeroHash256)
+		require.NoError(t, err)
+		cfg.DbPath = testPath
+		testBlockDao(db.NewBoltDB(cfg), indexer, t)
+	})
+
+	t.Run("In-memory KV Store deletions", func(t *testing.T) {
+		//CreateRangeIndexNX in memory is not finished
+		t.Skip()
+		indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), hash.ZeroHash256)
+		require.NoError(t, err)
+		testDeleteDao(db.NewMemKVStore(), indexer, config.Default.DB, t)
+	})
+	t.Run("Bolt DB deletions", func(t *testing.T) {
+		testFile, _ = ioutil.TempFile(os.TempDir(), "db")
+		indexFile, _ = ioutil.TempFile(os.TempDir(), "index")
 		cfg := config.Default.DB
 		cfg.DbPath = indexFile.Name()
 		indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg), hash.ZeroHash256)
 		require.NoError(t, err)
-		testBlockDao(db.NewMemKVStore(), indexer, t)
+		cfg.DbPath = testFile.Name()
+		testDeleteDao(db.NewBoltDB(cfg), indexer, cfg, t)
 	})
-	//path := "test-kv-store"
-	//testFile, _ := ioutil.TempFile(os.TempDir(), path)
-	//testPath := testFile.Name()
-	//indexFile, _ := ioutil.TempFile(os.TempDir(), path)
-	//indexPath := indexFile.Name()
-	//cfg := config.Default.DB
-	//t.Run("Bolt DB for blocks", func(t *testing.T) {
-	//	testutil.CleanupPath(t, testPath)
-	//	testutil.CleanupPath(t, indexPath)
-	//	defer func() {
-	//		testutil.CleanupPath(t, testPath)
-	//		testutil.CleanupPath(t, indexPath)
-	//	}()
-	//	cfg.DbPath = indexPath
-	//	indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg), hash.ZeroHash256)
-	//	require.NoError(t, err)
-	//	cfg.DbPath = testPath
-	//	testBlockDao(db.NewBoltDB(cfg), indexer, t)
-	//})
-
-	//t.Run("In-memory KV Store deletions", func(t *testing.T) {
-	//	indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), hash.ZeroHash256)
-	//	require.NoError(t, err)
-	//	testFile, _ = ioutil.TempFile(os.TempDir(), "db")
-	//	cfg := config.Default.DB
-	//	cfg.DbPath = indexFile.Name()
-	//	testDeleteDao(db.NewMemKVStore(), indexer, cfg, t)
-	//})
-	//t.Run("Bolt DB deletions", func(t *testing.T) {
-	//	testFile, _ = ioutil.TempFile(os.TempDir(), "db")
-	//	indexFile, _ = ioutil.TempFile(os.TempDir(), "index")
-	//	cfg := config.Default.DB
-	//	cfg.DbPath = indexFile.Name()
-	//	indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg), hash.ZeroHash256)
-	//	require.NoError(t, err)
-	//	cfg.DbPath = testFile.Name()
-	//	testDeleteDao(db.NewBoltDB(cfg), indexer, cfg, t)
-	//})
 }
 
 func BenchmarkBlockCache(b *testing.B) {
