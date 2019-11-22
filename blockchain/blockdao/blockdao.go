@@ -382,6 +382,7 @@ func (dao *blockDAO) IndexFile(height uint64, index []byte) error {
 		if err != nil {
 			return err
 		}
+		fmt.Println("IndexFile:", 384)
 		dao.htf = htf
 	}
 	return dao.htf.Insert(height, index)

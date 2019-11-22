@@ -9,6 +9,7 @@ package db
 import (
 	"bytes"
 	"context"
+	"fmt"
 
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
@@ -262,6 +263,7 @@ func (b *boltDB) CreateCountingIndexNX(name []byte) (CountingIndex, error) {
 
 // CreateRangeIndexNX creates a new range index if it does not exist, otherwise return existing index
 func (b *boltDB) CreateRangeIndexNX(name, init []byte) (RangeIndex, error) {
+	fmt.Println("boltdb CreateRangeIndexNX")
 	if err := b.db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists(name)
 		if err != nil {
