@@ -725,13 +725,15 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 		var indexer blockindex.Indexer
 		if _, gateway := cfg.Plugins[config.GatewayPlugin]; gateway && !cfg.Chain.EnableAsyncIndexWrite {
 			// create indexer
-			cfg.DB.DbPath = cfg.Chain.IndexDBPath
-			indexer, err = blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
+			dbcfg := cfg.DB
+			dbcfg.DbPath = cfg.Chain.IndexDBPath
+			indexer, err = blockindex.NewIndexer(db.NewBoltDB(dbcfg), cfg.Genesis.Hash())
 			require.NoError(err)
 		}
 		// create BlockDAO
-		cfg.DB.DbPath = cfg.Chain.ChainDBPath
-		dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
+		dbcfg := cfg.DB
+		dbcfg.DbPath = cfg.Chain.ChainDBPath
+		dao := blockdao.NewBlockDAO(db.NewBoltDB(dbcfg), indexer, cfg.Chain.CompressBlock, dbcfg)
 		require.NotNil(dao)
 		bc := NewBlockchain(
 			cfg,
@@ -935,7 +937,7 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 	cfg.Chain.ChainDBPath = testDBPath
 	cfg.Chain.IndexDBPath = testIndexPath
 	cfg.Genesis.EnableGravityChainVoting = false
-
+	cfg.Chain.EnableAsyncIndexWrite = false
 	t.Run("load blockchain from DB w/o explorer", func(t *testing.T) {
 		testValidateBlockchain(cfg, t)
 	})
