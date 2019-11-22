@@ -8,6 +8,7 @@ package e2etest
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -554,7 +555,7 @@ func TestStartExistingBlockchain(t *testing.T) {
 	bc = svr.ChainService(chainID).Blockchain()
 	height, _ := bc.Factory().Height()
 	require.Equal(bc.TipHeight(), height)
-
+	fmt.Println("height:", height)
 	// Recover to height 3 from empty state DB
 	testutil.CleanupPath(t, testTriePath)
 	require.NoError(bc.RecoverChainAndState(3))
