@@ -10,6 +10,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-core/pkg/log"
+	"go.uber.org/zap"
+
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -193,7 +196,9 @@ func TestBlockDAO(t *testing.T) {
 		for i := 0; i < 3; i++ {
 			// test putBlock/Receipt
 			blks[i].Receipts = receipts[i]
-			require.NoError(dao.PutBlock(blks[i]))
+			err := dao.PutBlock(blks[i])
+			log.L().Error("call stack:", zap.Error(err))
+			require.NoError(err)
 			require.NoError(dao.Commit())
 			blks[i].Receipts = nil
 
