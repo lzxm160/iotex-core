@@ -766,8 +766,7 @@ func (dao *blockDAO) deleteTipBlock() error {
 
 	// Update tip height
 	batch.Put(blockNS, topHeightKey, byteutil.Uint64ToBytes(height-1), "failed to put top height")
-	batch.Put(blockNS, tipHeightKey, byteutil.Uint64ToBytes(height-1), "failed to put top height")
-	batchForBlock.Delete(blockNS, tipHeightKey, "failed to delete top height")
+	batchForBlock.Put(blockNS, tipHeightKey, byteutil.Uint64ToBytes(height-1), "failed to put top height")
 	// Update tip hash
 	hash2, err := dao.getBlockHash(height - 1)
 	if err != nil {
