@@ -612,6 +612,7 @@ func (dao *blockDAO) putBlockForBlockdb(blk *block.Block) error {
 	if h != hash.ZeroHash256 && err == nil {
 		return errors.Errorf("block %d already exist", blkHeight)
 	}
+	fmt.Println("putBlockForBlockdb:", 615)
 	kv, _, err := dao.getTopDB(blkHeight)
 	if err != nil {
 		return err
@@ -878,6 +879,7 @@ func (dao *blockDAO) openDB(idx uint64) (kvstore db.KVStore, index uint64, err e
 	dao.mutex.Lock()
 	defer dao.mutex.Unlock()
 	cfg := dao.cfg
+	fmt.Println("openDB:", cfg)
 	model, _ := getFileNameAndDir(cfg.DbPath)
 	name := model + fmt.Sprintf("-%08d", idx) + ".db"
 
