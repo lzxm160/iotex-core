@@ -531,7 +531,7 @@ func TestStartExistingBlockchain(t *testing.T) {
 	require.NotNil(bc)
 
 	defer func() {
-		require.NoError(svr.Stop(ctx))
+		svr.Stop(ctx)
 	}()
 
 	require.NoError(addTestingTsfBlocks(bc))
