@@ -279,7 +279,6 @@ func (dao *blockDAO) GetBlockByHeight(height uint64) (*block.Block, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("///////////////(dao *blockDAO) GetBlockByHeight:", height)
 	return dao.getBlock(hash)
 }
 
