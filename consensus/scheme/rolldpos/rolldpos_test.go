@@ -405,7 +405,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 			cfg[i].Chain.ProducerPrivKey = hex.EncodeToString(chainAddrs[i].priKey.Bytes())
 			sf, err := factory.NewFactory(cfg[i], factory.DefaultTrieOption())
 			require.NoError(t, err)
-			//require.NoError(t, sf.Start(ctx))
+			require.NoError(t, sf.Start(ctx))
 			for j := 0; j < numNodes; j++ {
 				ws, err := sf.NewWorkingSet(nil)
 				require.NoError(t, err)
@@ -434,6 +434,9 @@ func TestRollDPoSConsensus(t *testing.T) {
 			require.NoError(t, err)
 			dbConfig.DbPath = cfg[i].Chain.ChainDBPath
 			dao := blockdao.NewBlockDAO(db.NewBoltDB(dbConfig), indexer, cfg[i].Chain.CompressBlock, dbConfig)
+			require.NoError(t, sf.Stop(ctx))
+			sf, err = factory.NewFactory(cfg[i], factory.DefaultTrieOption())
+			require.NoError(t, err)
 			chain := blockchain.NewBlockchain(
 				cfg[i],
 				dao,
