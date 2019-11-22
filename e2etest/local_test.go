@@ -508,76 +508,78 @@ func TestLocalSync(t *testing.T) {
 	t.Log("4 blocks received correctly")
 }
 
-//func TestStartExistingBlockchain(t *testing.T) {
-//	require := require.New(t)
-//	ctx := context.Background()
-//	testDBFile, _ := ioutil.TempFile(os.TempDir(), dBPath)
-//	testDBPath := testDBFile.Name()
-//	testTrieFile, _ := ioutil.TempFile(os.TempDir(), triePath)
-//	testTriePath := testTrieFile.Name()
-//	testIndexFile, _ := ioutil.TempFile(os.TempDir(), dBPath)
-//	testIndexPath := testIndexFile.Name()
-//	// Disable block reward to make bookkeeping easier
-//	cfg, err := newTestConfig()
-//	require.NoError(err)
-//	cfg.Chain.TrieDBPath = testTriePath
-//	cfg.Chain.ChainDBPath = testDBPath
-//	cfg.Chain.IndexDBPath = testIndexPath
-//
-//	svr, err := itx.NewServer(cfg)
-//	require.Nil(err)
-//	require.NoError(svr.Start(ctx))
-//	chainID := cfg.Chain.ID
-//	bc := svr.ChainService(chainID).Blockchain()
-//	require.NotNil(bc)
-//
-//	defer func() {
-//		require.NoError(svr.Stop(ctx))
-//	}()
-//
-//	require.NoError(addTestingTsfBlocks(bc))
-//	require.Equal(uint64(5), bc.TipHeight())
-//
-//	// Delete state db and recover to tip
-//	testutil.CleanupPath(t, testTriePath)
-//	require.NoError(svr.Stop(ctx))
-//	require.NoError(svr.ChainService(cfg.Chain.ID).Blockchain().Start(ctx))
-//	// Refresh state DB
-//	require.NoError(bc.RecoverChainAndState(0))
-//	require.NoError(svr.ChainService(cfg.Chain.ID).Blockchain().Stop(ctx))
-//	svr, err = itx.NewServer(cfg)
-//	require.NoError(err)
-//	// Build states from height 1 to tip
-//	require.NoError(svr.Start(ctx))
-//	bc = svr.ChainService(chainID).Blockchain()
-//	height, _ := bc.Factory().Height()
-//	require.Equal(bc.TipHeight(), height)
-//
-//	// Recover to height 3 from empty state DB
-//	testutil.CleanupPath(t, testTriePath)
-//	require.NoError(bc.RecoverChainAndState(3))
-//	require.NoError(svr.Stop(ctx))
-//	svr, err = itx.NewServer(cfg)
-//	require.NoError(err)
-//	// Build states from height 1 to 3
-//	require.NoError(svr.Start(ctx))
-//	bc = svr.ChainService(chainID).Blockchain()
-//	height, _ = bc.Factory().Height()
-//	require.Equal(bc.TipHeight(), height)
-//	require.Equal(uint64(3), height)
-//
-//	// Recover to height 2 from an existing state DB with Height 3
-//	require.NoError(bc.RecoverChainAndState(2))
-//	require.NoError(svr.Stop(ctx))
-//	svr, err = itx.NewServer(cfg)
-//	require.NoError(err)
-//	// Build states from height 1 to 2
-//	require.NoError(svr.Start(ctx))
-//	bc = svr.ChainService(chainID).Blockchain()
-//	height, _ = bc.Factory().Height()
-//	require.Equal(bc.TipHeight(), height)
-//	require.Equal(uint64(2), height)
-//}
+func TestStartExistingBlockchain(t *testing.T) {
+	require := require.New(t)
+	ctx := context.Background()
+	testDBFile, _ := ioutil.TempFile(os.TempDir(), dBPath)
+	testDBPath := testDBFile.Name()
+	testTrieFile, _ := ioutil.TempFile(os.TempDir(), triePath)
+	testTriePath := testTrieFile.Name()
+	testIndexFile, _ := ioutil.TempFile(os.TempDir(), dBPath)
+	testIndexPath := testIndexFile.Name()
+	// Disable block reward to make bookkeeping easier
+	cfg, err := newTestConfig()
+	require.NoError(err)
+	cfg.Chain.TrieDBPath = testTriePath
+	cfg.Chain.ChainDBPath = testDBPath
+	cfg.Chain.IndexDBPath = testIndexPath
+
+	svr, err := itx.NewServer(cfg)
+	require.Nil(err)
+	require.NoError(svr.Start(ctx))
+	chainID := cfg.Chain.ID
+	bc := svr.ChainService(chainID).Blockchain()
+	require.NotNil(bc)
+
+	defer func() {
+		require.NoError(svr.Stop(ctx))
+	}()
+
+	require.NoError(addTestingTsfBlocks(bc))
+	require.Equal(uint64(5), bc.TipHeight())
+
+	// Delete state db and recover to tip
+	testutil.CleanupPath(t, testTriePath)
+	require.NoError(svr.Stop(ctx))
+	require.NoError(svr.ChainService(cfg.Chain.ID).Blockchain().Start(ctx))
+	// Refresh state DB
+	require.NoError(bc.RecoverChainAndState(0))
+	require.NoError(svr.ChainService(cfg.Chain.ID).Blockchain().Stop(ctx))
+	svr, err = itx.NewServer(cfg)
+	require.NoError(err)
+	// Build states from height 1 to tip
+	svr, err = itx.NewServer(cfg)
+	require.Nil(err)
+	require.NoError(svr.Start(ctx))
+	bc = svr.ChainService(chainID).Blockchain()
+	height, _ := bc.Factory().Height()
+	require.Equal(bc.TipHeight(), height)
+
+	// Recover to height 3 from empty state DB
+	testutil.CleanupPath(t, testTriePath)
+	require.NoError(bc.RecoverChainAndState(3))
+	require.NoError(svr.Stop(ctx))
+	svr, err = itx.NewServer(cfg)
+	require.NoError(err)
+	// Build states from height 1 to 3
+	require.NoError(svr.Start(ctx))
+	bc = svr.ChainService(chainID).Blockchain()
+	height, _ = bc.Factory().Height()
+	require.Equal(bc.TipHeight(), height)
+	require.Equal(uint64(3), height)
+
+	// Recover to height 2 from an existing state DB with Height 3
+	require.NoError(bc.RecoverChainAndState(2))
+	require.NoError(svr.Stop(ctx))
+	svr, err = itx.NewServer(cfg)
+	require.NoError(err)
+	// Build states from height 1 to 2
+	require.NoError(svr.Start(ctx))
+	bc = svr.ChainService(chainID).Blockchain()
+	height, _ = bc.Factory().Height()
+	require.Equal(bc.TipHeight(), height)
+	require.Equal(uint64(2), height)
+}
 
 func newTestConfig() (config.Config, error) {
 	cfg := config.Default
