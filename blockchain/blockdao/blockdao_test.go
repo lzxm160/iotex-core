@@ -299,11 +299,11 @@ func TestBlockDAO(t *testing.T) {
 		require.Error(dao.DeleteTipBlock())
 	}
 
-	//t.Run("In-memory KV Store for blocks", func(t *testing.T) {
-	//	indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), hash.ZeroHash256)
-	//	require.NoError(t, err)
-	//	testBlockDao(db.NewMemKVStore(), indexer, t)
-	//})
+	t.Run("In-memory KV Store for blocks", func(t *testing.T) {
+		indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), hash.ZeroHash256)
+		require.NoError(t, err)
+		testBlockDao(db.NewMemKVStore(), indexer, t)
+	})
 	path := "test-kv-store"
 	testFile, _ := ioutil.TempFile(os.TempDir(), path)
 	testPath := testFile.Name()
