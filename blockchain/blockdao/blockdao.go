@@ -693,6 +693,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	if err := dao.putBlockForBlockdb(blk); err != nil {
 		return err
 	}
+	fmt.Println("putBlock 696")
 	blkHeight := blk.Height()
 	hash := blk.HashBlock()
 	heightValue := byteutil.Uint64ToBytes(blkHeight)
