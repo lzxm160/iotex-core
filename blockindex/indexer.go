@@ -124,6 +124,7 @@ func (x *blockIndexer) Commit() error {
 
 // PutBlock index the block
 func (x *blockIndexer) PutBlock(blk *block.Block) error {
+	fmt.Println("here")
 	x.mutex.Lock()
 	defer x.mutex.Unlock()
 
