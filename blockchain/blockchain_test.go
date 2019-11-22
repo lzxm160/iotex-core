@@ -925,53 +925,13 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 		}
 	}
 
-	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
-	testTriePath := testTrieFile.Name()
-	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
-	testDBPath := testDBFile.Name()
-	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
-	testIndexPath := testIndexFile.Name()
-	defer func() {
-		testutil.CleanupPath(t, testTriePath)
-		testutil.CleanupPath(t, testDBPath)
-		testutil.CleanupPath(t, testIndexPath)
-	}()
-
-	cfg := config.Default
-	cfg.Plugins[config.GatewayPlugin] = true
-	cfg.Chain.TrieDBPath = testTriePath
-	cfg.Chain.ChainDBPath = testDBPath
-	cfg.Chain.IndexDBPath = testIndexPath
-	cfg.Genesis.EnableGravityChainVoting = false
-	cfg.Chain.EnableAsyncIndexWrite = false
+	cfg := newConfig()
 	t.Run("load blockchain from DB w/o explorer", func(t *testing.T) {
 		testValidateBlockchain(cfg, t)
 	})
-
-	cfg2 := config.Default
-	testTrieFile2, _ := ioutil.TempFile(os.TempDir(), "trie")
-	testTriePath2 := testTrieFile2.Name()
-	testDBFile2, _ := ioutil.TempFile(os.TempDir(), "db")
-	testDBPath2 := testDBFile2.Name()
-	testIndexFile2, _ := ioutil.TempFile(os.TempDir(), "index")
-	testIndexPath2 := testIndexFile2.Name()
-	defer func() {
-		testutil.CleanupPath(t, testTriePath2)
-		testutil.CleanupPath(t, testDBPath2)
-		testutil.CleanupPath(t, testIndexPath2)
-		// clear the gateway
-		delete(cfg2.Plugins, config.GatewayPlugin)
-	}()
-
-	cfg2.Plugins[config.GatewayPlugin] = true
-	cfg2.Chain.TrieDBPath = testTriePath2
-	cfg2.Chain.ChainDBPath = testDBPath2
-	cfg2.Chain.IndexDBPath = testIndexPath2
-	cfg2.Chain.EnableAsyncIndexWrite = false
-	cfg2.Genesis.AleutianBlockHeight = 3
-
+	cfg = newConfig()
 	t.Run("load blockchain from DB", func(t *testing.T) {
-		//testValidateBlockchain(cfg2, t)
+		testValidateBlockchain(cfg, t)
 	})
 }
 
