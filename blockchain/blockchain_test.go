@@ -785,7 +785,7 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 		require.NoError(bc.Start(ctx))
 		fmt.Println("782222222222")
 		defer func() {
-			require.NoError(bc.Stop(ctx))
+			bc.Stop(ctx)
 		}()
 
 		// verify block header hash
