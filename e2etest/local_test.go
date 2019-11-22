@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/iotexproject/go-pkgs/crypto"
 	peerstore "github.com/libp2p/go-libp2p-peerstore"
 	"github.com/stretchr/testify/require"
 
@@ -596,11 +595,10 @@ func newTestConfig() (config.Config, error) {
 	cfg.API.Port = testutil.RandomPort()
 	cfg.Genesis.EnableGravityChainVoting = false
 	cfg.Chain.EnableAsyncIndexWrite = false
-	sk, err := crypto.GenerateKey()
-
-	if err != nil {
-		return config.Config{}, err
-	}
-	cfg.Chain.ProducerPrivKey = sk.HexString()
+	//sk, err := crypto.GenerateKey()
+	//if err != nil {
+	//	return config.Config{}, err
+	//}
+	//cfg.Chain.ProducerPrivKey = sk.HexString()
 	return cfg, nil
 }
