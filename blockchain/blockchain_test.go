@@ -938,6 +938,7 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 	}()
 
 	cfg := config.Default
+	cfg.Plugins[config.GatewayPlugin] = true
 	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.ChainDBPath = testDBPath
 	cfg.Chain.IndexDBPath = testIndexPath
@@ -948,10 +949,10 @@ func TestLoadBlockchainfromDB(t *testing.T) {
 	})
 
 	cfg2 := config.Default
-	testTrieFile, _ = ioutil.TempFile(os.TempDir(), "trie")
-	testTriePath2 := testTrieFile.Name()
-	testDBFile, _ = ioutil.TempFile(os.TempDir(), "db")
-	testDBPath2 := testDBFile.Name()
+	testTrieFile2, _ := ioutil.TempFile(os.TempDir(), "trie")
+	testTriePath2 := testTrieFile2.Name()
+	testDBFile2, _ := ioutil.TempFile(os.TempDir(), "db")
+	testDBPath2 := testDBFile2.Name()
 	testIndexFile2, _ := ioutil.TempFile(os.TempDir(), "index")
 	testIndexPath2 := testIndexFile2.Name()
 	defer func() {
