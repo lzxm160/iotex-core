@@ -9,8 +9,10 @@ package rolldpos
 import (
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
 	"math/big"
 	"net"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -30,12 +32,19 @@ import (
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
 	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/execution"
+	"github.com/iotexproject/iotex-core/action/protocol/poll"
+	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/actpool"
 	"github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/blockchain/block"
+	"github.com/iotexproject/iotex-core/blockchain/blockdao"
+	"github.com/iotexproject/iotex-core/blockchain/genesis"
+	"github.com/iotexproject/iotex-core/blockindex"
 	"github.com/iotexproject/iotex-core/config"
 	cp "github.com/iotexproject/iotex-core/crypto"
+	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/endorsement"
 	"github.com/iotexproject/iotex-core/p2p/node"
 	"github.com/iotexproject/iotex-core/state"
@@ -449,7 +458,6 @@ func TestRollDPoSConsensus(t *testing.T) {
 			require.NoError(t, registry.Register(poll.ProtocolID, p))
 
 			chain.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(chain.Factory().Nonce))
-			chain.Validator().AddActionValidators(acc, evm, r)
 			chains = append(chains, chain)
 
 			actPool, err := actpool.NewActPool(chain, cfg[i].ActPool, actpool.EnableExperimentalActions())
