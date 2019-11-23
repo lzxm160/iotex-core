@@ -621,6 +621,7 @@ func (dao *blockDAO) deleteTipBlock() error {
 	if err != nil {
 		return err
 	}
+	// delete block data
 	htf, err := whichDB.CreateRangeIndexNX([]byte(blockDataNS), make([]byte, 8))
 	if err != nil {
 		return err
@@ -630,7 +631,7 @@ func (dao *blockDAO) deleteTipBlock() error {
 		return err
 	}
 
-	// delete receipt
+	// delete receipts data
 	htf, err = whichDB.CreateRangeIndexNX([]byte(receiptsNS), make([]byte, 8))
 	if err != nil {
 		return err
@@ -775,9 +776,6 @@ func (dao *blockDAO) getBlockValue(blockNS string, h hash.Hash256) ([]byte, erro
 			return nil, err
 		}
 		block, err = heightBlock.Get(height)
-	}
-	if err != nil {
-		return nil, err
 	}
 	return block, err
 }
