@@ -40,10 +40,9 @@ import (
 const (
 	blockNS                  = "blk"
 	blockHashHeightMappingNS = "h2h"
-	blockHeaderNS            = "bhr"
-	blockBodyNS              = "bbd"
-	blockFooterNS            = "bfr"
-	receiptsNS               = "rpt"
+	blockDataNS              = "bdn"
+	recptDataNS              = "rct"
+	hashDataNS               = "hsh"
 )
 
 // these NS belong to old DB before migrating to separate index
@@ -56,6 +55,16 @@ const (
 	blockActionReceiptMappingNS      = "a2r"
 	numActionsNS                     = "nac"
 	transferAmountNS                 = "tfa"
+)
+
+// these NS belong to old DB before migrating to storage optimization
+// they are left here only for record
+// do NOT use them in the future to avoid potential conflict
+const (
+	blockHeaderNS = "bhr"
+	blockBodyNS   = "bbd"
+	blockFooterNS = "bfr"
+	receiptsNS    = "rpt"
 )
 
 var (
@@ -119,6 +128,7 @@ type (
 		kvstore       db.KVStore
 		indexer       BlockIndexer
 		htf           db.RangeIndex
+		hashStore     db.CountingIndex
 		kvstores      sync.Map //store like map[index]db.KVStore,index from 1...N
 		topIndex      atomic.Value
 		timerFactory  *prometheustimer.TimerFactory
@@ -174,7 +184,13 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 			return errors.Wrap(err, "failed to write initial value for top height")
 		}
 	}
-	return dao.initStores()
+	if err = dao.initCountingIndex(); err != nil {
+		return err
+	}
+	if err = dao.initStores(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (dao *blockDAO) initStores() error {
@@ -201,10 +217,18 @@ func (dao *blockDAO) initStores() error {
 			maxN = uint64(n)
 		}
 	}
-	if maxN == 0 {
-		maxN = 1
-	}
 	dao.topIndex.Store(maxN)
+	return nil
+}
+
+func (dao *blockDAO) initCountingIndex() error {
+	var err error
+	if dao.hashStore, err = db.NewCountingIndexNX(dao.kvstore, []byte(hashDataNS)); err != nil {
+		return err
+	}
+	if dao.hashStore.Size() == 0 {
+		return dao.hashStore.Add(hash.ZeroHash256[:], false)
+	}
 	return nil
 }
 
@@ -227,11 +251,7 @@ func (dao *blockDAO) GetBlock(hash hash.Hash256) (*block.Block, error) {
 }
 
 func (dao *blockDAO) GetBlockByHeight(height uint64) (*block.Block, error) {
-	hash, err := dao.getBlockHash(height)
-	if err != nil {
-		return nil, err
-	}
-	return dao.getBlock(hash)
+	return dao.getBlockByHeight(height)
 }
 
 func (dao *blockDAO) GetTipHash() (hash.Hash256, error) {
@@ -368,20 +388,11 @@ func (dao *blockDAO) KVStore() db.KVStore {
 
 // getBlockHash returns the block hash by height
 func (dao *blockDAO) getBlockHash(height uint64) (hash.Hash256, error) {
-	h := hash.ZeroHash256
-	if height == 0 {
-		return h, nil
-	}
-	key := heightKey(height)
-	value, err := dao.kvstore.Get(blockHashHeightMappingNS, key)
+	h, err := dao.hashStore.Get(height)
 	if err != nil {
-		return h, errors.Wrap(err, "failed to get block hash")
+		return hash.ZeroHash256, errors.Wrap(err, "failed to get block hash")
 	}
-	if len(h) != len(value) {
-		return h, errors.Wrapf(err, "blockhash is broken with length = %d", len(value))
-	}
-	copy(h[:], value)
-	return h, nil
+	return hash.BytesToHash256(h), nil
 }
 
 // getBlockHeight returns the block height by hash
@@ -398,24 +409,60 @@ func (dao *blockDAO) getBlockHeight(hash hash.Hash256) (uint64, error) {
 }
 
 // getBlock returns a block
-func (dao *blockDAO) getBlock(hash hash.Hash256) (*block.Block, error) {
-	header, err := dao.header(hash)
+func (dao *blockDAO) getBlock(h hash.Hash256) (*block.Block, error) {
+	height, err := dao.getBlockHeight(h)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get block header %x", hash)
+		return nil, err
 	}
-	body, err := dao.body(hash)
+	return dao.getBlockByHeight(height)
+}
+
+// getBlockByHeight returns a block by height
+func (dao *blockDAO) getBlockByHeight(height uint64) (*block.Block, error) {
+	whichDB, index, err := dao.getDBFromHeight(height)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get block body %x", hash)
+		return nil, err
 	}
-	footer, err := dao.footer(hash)
+	blkStore, err := db.GetCountingIndex(whichDB, []byte(blockDataNS))
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get block footer %x", hash)
+		return nil, err
 	}
-	return &block.Block{
-		Header: *header,
-		Body:   *body,
-		Footer: *footer,
-	}, nil
+	value, err := blkStore.Get(height)
+	if errors.Cause(err) == db.ErrNotExist {
+		idx := index - 1
+		if index == 0 {
+			idx = 0
+		}
+		dbs, _, err := dao.getDBFromIndex(idx)
+		if err != nil {
+			return nil, err
+		}
+		if blkStore, err = db.GetCountingIndex(dbs, []byte(blockDataNS)); err != nil {
+			return nil, err
+		}
+		if value, err = blkStore.Get(height); err != nil {
+			return nil, errors.Wrapf(err, "failed to get block %d", height)
+		}
+	}
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get block %d", height)
+	}
+	if dao.compressBlock {
+		timer := dao.timerFactory.NewTimer("decompress_header")
+		value, err = compress.Decompress(value)
+		timer.End()
+		if err != nil {
+			return nil, errors.Wrapf(err, "error when decompressing a block %d", height)
+		}
+	}
+	if len(value) == 0 {
+		return nil, errors.Wrapf(db.ErrNotExist, "block %d is missing", height)
+	}
+	blk := &block.Block{}
+	if err := blk.Deserialize(value); err != nil {
+		return nil, errors.Wrapf(err, "failed to deserialize block %d", height)
+	}
+	return blk, nil
 }
 
 func (dao *blockDAO) header(h hash.Hash256) (*block.Header, error) {
@@ -427,29 +474,14 @@ func (dao *blockDAO) header(h hash.Hash256) (*block.Header, error) {
 		}
 		cacheMtc.WithLabelValues("miss_header").Inc()
 	}
-	value, err := dao.getBlockValue(blockHeaderNS, h)
+	blk, err := dao.getBlock(h)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get block header %x", h)
-	}
-	if dao.compressBlock {
-		timer := dao.timerFactory.NewTimer("decompress_header")
-		value, err = compress.Decompress(value)
-		timer.End()
-		if err != nil {
-			return nil, errors.Wrapf(err, "error when decompressing a block header %x", h)
-		}
-	}
-	if len(value) == 0 {
-		return nil, errors.Wrapf(db.ErrNotExist, "block header %x is missing", h)
-	}
-	header := &block.Header{}
-	if err := header.Deserialize(value); err != nil {
-		return nil, errors.Wrapf(err, "failed to deserialize block header %x", h)
+		return nil, err
 	}
 	if dao.headerCache != nil {
-		dao.headerCache.Add(h, header)
+		dao.headerCache.Add(h, &blk.Header)
 	}
-	return header, nil
+	return &blk.Header, nil
 }
 
 func (dao *blockDAO) body(h hash.Hash256) (*block.Body, error) {
@@ -461,29 +493,14 @@ func (dao *blockDAO) body(h hash.Hash256) (*block.Body, error) {
 		}
 		cacheMtc.WithLabelValues("miss_body").Inc()
 	}
-	value, err := dao.getBlockValue(blockBodyNS, h)
+	blk, err := dao.getBlock(h)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get block body %x", h)
-	}
-	if dao.compressBlock {
-		timer := dao.timerFactory.NewTimer("decompress_body")
-		value, err = compress.Decompress(value)
-		timer.End()
-		if err != nil {
-			return nil, errors.Wrapf(err, "error when decompressing a block body %x", h)
-		}
-	}
-	if len(value) == 0 {
-		return nil, errors.Wrapf(db.ErrNotExist, "block body %x is missing", h)
-	}
-	body := &block.Body{}
-	if err := body.Deserialize(value); err != nil {
-		return nil, errors.Wrapf(err, "failed to deserialize block body %x", h)
+		return nil, err
 	}
 	if dao.bodyCache != nil {
-		dao.bodyCache.Add(h, body)
+		dao.bodyCache.Add(h, &blk.Body)
 	}
-	return body, nil
+	return &blk.Body, nil
 }
 
 func (dao *blockDAO) footer(h hash.Hash256) (*block.Footer, error) {
@@ -495,29 +512,14 @@ func (dao *blockDAO) footer(h hash.Hash256) (*block.Footer, error) {
 		}
 		cacheMtc.WithLabelValues("miss_footer").Inc()
 	}
-	value, err := dao.getBlockValue(blockFooterNS, h)
+	blk, err := dao.getBlock(h)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get block footer %x", h)
-	}
-	if dao.compressBlock {
-		timer := dao.timerFactory.NewTimer("decompress_footer")
-		value, err = compress.Decompress(value)
-		timer.End()
-		if err != nil {
-			return nil, errors.Wrapf(err, "error when decompressing a block footer %x", h)
-		}
-	}
-	if len(value) == 0 {
-		return nil, errors.Wrapf(db.ErrNotExist, "block footer %x is missing", h)
-	}
-	footer := &block.Footer{}
-	if err := footer.Deserialize(value); err != nil {
-		return nil, errors.Wrapf(err, "failed to deserialize block footer %x", h)
+		return nil, err
 	}
 	if dao.footerCache != nil {
-		dao.footerCache.Add(h, footer)
+		dao.footerCache.Add(h, &blk.Footer)
 	}
-	return footer, nil
+	return &blk.Footer, nil
 }
 
 // getTipHeight returns the blockchain height
@@ -546,7 +548,11 @@ func (dao *blockDAO) getReceipts(blkHeight uint64) ([]*action.Receipt, error) {
 	if err != nil {
 		return nil, err
 	}
-	value, err := kvstore.Get(receiptsNS, byteutil.Uint64ToBytes(blkHeight))
+	receiptStore, err := db.GetCountingIndex(kvstore, []byte(recptDataNS))
+	if err != nil {
+		return nil, err
+	}
+	value, err := receiptStore.Get(blkHeight)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get receipts of block %d", blkHeight)
 	}
@@ -573,48 +579,30 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 	if h != hash.ZeroHash256 && err == nil {
 		return errors.Errorf("block %d already exist", blkHeight)
 	}
-
-	serHeader, err := blk.Header.Serialize()
+	serBlk, err := blk.Serialize()
 	if err != nil {
-		return errors.Wrap(err, "failed to serialize block header")
-	}
-	serBody, err := blk.Body.Serialize()
-	if err != nil {
-		return errors.Wrap(err, "failed to serialize block body")
-	}
-	serFooter, err := blk.Footer.Serialize()
-	if err != nil {
-		return errors.Wrap(err, "failed to serialize block footer")
+		return errors.Wrap(err, "failed to serialize block")
 	}
 	if dao.compressBlock {
 		timer := dao.timerFactory.NewTimer("compress_header")
-		serHeader, err = compress.Compress(serHeader)
+		serBlk, err = compress.Compress(serBlk)
 		timer.End()
 		if err != nil {
-			return errors.Wrapf(err, "error when compressing a block header")
-		}
-		timer = dao.timerFactory.NewTimer("compress_body")
-		serBody, err = compress.Compress(serBody)
-		timer.End()
-		if err != nil {
-			return errors.Wrapf(err, "error when compressing a block body")
-		}
-		timer = dao.timerFactory.NewTimer("compress_footer")
-		serFooter, err = compress.Compress(serFooter)
-		timer.End()
-		if err != nil {
-			return errors.Wrapf(err, "error when compressing a block footer")
+			return errors.Wrapf(err, "error when compressing a block")
 		}
 	}
-	batchForBlock := db.NewBatch()
-	hash := blk.HashBlock()
-	batchForBlock.Put(blockHeaderNS, hash[:], serHeader, "failed to put block header")
-	batchForBlock.Put(blockBodyNS, hash[:], serBody, "failed to put block body")
-	batchForBlock.Put(blockFooterNS, hash[:], serFooter, "failed to put block footer")
 	kv, _, err := dao.getTopDB(blkHeight)
 	if err != nil {
 		return err
 	}
+	blkStore, err := db.NewCountingIndexNX(kv, []byte(blockDataNS))
+	if err != nil {
+		return err
+	}
+	if err = blkStore.Add(serBlk, false); err != nil {
+		return err
+	}
+
 	// write receipts
 	if blk.Receipts != nil {
 		receipts := iotextypes.Receipts{}
@@ -622,28 +610,38 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 			receipts.Receipts = append(receipts.Receipts, r.ConvertToReceiptPb())
 		}
 		if receiptsBytes, err := proto.Marshal(&receipts); err == nil {
-			batchForBlock.Put(receiptsNS, byteutil.Uint64ToBytes(blkHeight), receiptsBytes, "failed to put receipts")
+			receiptStore, err := db.NewCountingIndexNX(kv, []byte(recptDataNS))
+			if err != nil {
+				return err
+			}
+			if err = receiptStore.Add(receiptsBytes, false); err != nil {
+				return err
+			}
 		} else {
 			log.L().Error("failed to serialize receipits for block", zap.Uint64("height", blkHeight))
 		}
 	}
-	if err = kv.Commit(batchForBlock); err != nil {
+
+	h = blk.HashBlock()
+	hashStore, err := db.NewCountingIndexNX(dao.kvstore, []byte(hashDataNS))
+	if err != nil {
+		return err
+	}
+	if err = hashStore.Add(h[:], false); err != nil {
 		return err
 	}
 
 	batch := db.NewBatch()
 	heightValue := byteutil.Uint64ToBytes(blkHeight)
-	hashKey := hashKey(hash)
+	hashKey := hashKey(h)
 	batch.Put(blockHashHeightMappingNS, hashKey, heightValue, "failed to put hash -> height mapping")
-	heightKey := heightKey(blkHeight)
-	batch.Put(blockHashHeightMappingNS, heightKey, hash[:], "failed to put height -> hash mapping")
 	tipHeight, err := dao.kvstore.Get(blockNS, topHeightKey)
 	if err != nil {
 		return errors.Wrap(err, "failed to get top height")
 	}
 	if blkHeight > enc.MachineEndian.Uint64(tipHeight) {
 		batch.Put(blockNS, topHeightKey, heightValue, "failed to put top height")
-		batch.Put(blockNS, topHashKey, hash[:], "failed to put top hash")
+		batch.Put(blockNS, topHashKey, h[:], "failed to put top hash")
 	}
 	return dao.kvstore.Commit(batch)
 }
@@ -666,33 +664,38 @@ func (dao *blockDAO) deleteTipBlock() error {
 	}
 
 	batch := db.NewBatch()
-	batchForBlock := db.NewBatch()
 	whichDB, _, err := dao.getDBFromHeight(height)
 	if err != nil {
 		return err
 	}
-	// Delete hash -> block mapping
-	batchForBlock.Delete(blockHeaderNS, hash[:], "failed to delete block header")
-	if dao.headerCache != nil {
-		dao.headerCache.Remove(hash)
+	blkStore, err := db.GetCountingIndex(whichDB, []byte(blockDataNS))
+	if err != nil {
+		return err
 	}
-	batchForBlock.Delete(blockBodyNS, hash[:], "failed to delete block body")
-	if dao.bodyCache != nil {
-		dao.bodyCache.Remove(hash)
+	if blkStore.Size() > 0 {
+		if err = blkStore.Revert(1); err != nil {
+			return err
+		}
 	}
-	batchForBlock.Delete(blockFooterNS, hash[:], "failed to delete block footer")
-	if dao.footerCache != nil {
-		dao.footerCache.Remove(hash)
+
+	receiptStore, err := db.GetCountingIndex(whichDB, []byte(recptDataNS))
+	if err != nil {
+		return err
 	}
-	// delete receipt
-	batchForBlock.Delete(receiptsNS, byteutil.Uint64ToBytes(height), "failed to delete receipt")
+	if receiptStore.Size() > 0 {
+		if err = receiptStore.Revert(1); err != nil {
+			return err
+		}
+	}
+
+	if dao.hashStore.Size() > 0 {
+		if err = dao.hashStore.Revert(1); err != nil {
+			return err
+		}
+	}
 	// Delete hash -> height mapping
 	hashKey := hashKey(hash)
 	batch.Delete(blockHashHeightMappingNS, hashKey, "failed to delete hash -> height mapping")
-
-	// Delete height -> hash mapping
-	heightKey := heightKey(height)
-	batch.Delete(blockHashHeightMappingNS, heightKey, "failed to delete height -> hash mapping")
 
 	// Update tip height
 	batch.Put(blockNS, topHeightKey, byteutil.Uint64ToBytes(height-1), "failed to put top height")
@@ -704,25 +707,10 @@ func (dao *blockDAO) deleteTipBlock() error {
 	}
 	batch.Put(blockNS, topHashKey, hash2[:], "failed to put top hash")
 
-	if err := dao.kvstore.Commit(batch); err != nil {
-		return err
-	}
-	return whichDB.Commit(batchForBlock)
-}
-
-// getDBFromHash returns db of this block stored
-func (dao *blockDAO) getDBFromHash(h hash.Hash256) (db.KVStore, uint64, error) {
-	height, err := dao.getBlockHeight(h)
-	if err != nil {
-		return nil, 0, err
-	}
-	return dao.getDBFromHeight(height)
+	return dao.kvstore.Commit(batch)
 }
 
 func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint64, err error) {
-	if dao.cfg.SplitDBSizeMB == 0 || blkHeight <= dao.cfg.SplitDBHeight {
-		return dao.kvstore, 0, nil
-	}
 	topIndex := dao.topIndex.Load().(uint64)
 	file, dir := getFileNameAndDir(dao.cfg.DbPath)
 	if err != nil {
@@ -743,11 +731,11 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 		return
 	}
 	// file exists,but need create new db
-	if uint64(dat.Size()) > dao.cfg.SplitDBSize() {
+	if dao.cfg.SplitDBSizeMB > 0 && uint64(dat.Size()) > dao.cfg.SplitDBSize() {
 		kvstore, index, err = dao.openDB(topIndex + 1)
 		dao.topIndex.Store(index)
 		// index the height --> file index mapping
-		err = dao.IndexFile(blkHeight, byteutil.Uint64ToBytesBigEndian(topIndex))
+		err = dao.IndexFile(blkHeight, byteutil.Uint64ToBytesBigEndian(index))
 		return
 	}
 	// db exist,need load from kvstores
@@ -765,12 +753,6 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 }
 
 func (dao *blockDAO) getDBFromHeight(blkHeight uint64) (kvstore db.KVStore, index uint64, err error) {
-	if dao.cfg.SplitDBSizeMB == 0 {
-		return dao.kvstore, 0, nil
-	}
-	if blkHeight <= dao.cfg.SplitDBHeight {
-		return dao.kvstore, 0, nil
-	}
 	// get file index
 	value, err := dao.GetFileIndex(blkHeight)
 	if err != nil {
@@ -780,9 +762,6 @@ func (dao *blockDAO) getDBFromHeight(blkHeight uint64) (kvstore db.KVStore, inde
 }
 
 func (dao *blockDAO) getDBFromIndex(idx uint64) (kvstore db.KVStore, index uint64, err error) {
-	if idx == 0 {
-		return dao.kvstore, 0, nil
-	}
 	kv, ok := dao.kvstores.Load(idx)
 	if ok {
 		kvstore, ok = kv.(db.KVStore)
@@ -796,35 +775,8 @@ func (dao *blockDAO) getDBFromIndex(idx uint64) (kvstore db.KVStore, index uint6
 	return dao.openDB(idx)
 }
 
-// getBlockValue get block's data from db,if this db failed,it will try the previous one
-func (dao *blockDAO) getBlockValue(blockNS string, h hash.Hash256) ([]byte, error) {
-	whichDB, index, err := dao.getDBFromHash(h)
-	if err != nil {
-		return nil, err
-	}
-	value, err := whichDB.Get(blockNS, h[:])
-	if errors.Cause(err) == db.ErrNotExist {
-		idx := index - 1
-		if index == 0 {
-			idx = 0
-		}
-		db, _, err := dao.getDBFromIndex(idx)
-		if err != nil {
-			return nil, err
-		}
-		value, err = db.Get(blockNS, h[:])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return value, err
-}
-
 // openDB open file if exists, or create new file
 func (dao *blockDAO) openDB(idx uint64) (kvstore db.KVStore, index uint64, err error) {
-	if idx == 0 {
-		return dao.kvstore, 0, nil
-	}
 	dao.mutex.Lock()
 	defer dao.mutex.Unlock()
 	cfg := dao.cfg
