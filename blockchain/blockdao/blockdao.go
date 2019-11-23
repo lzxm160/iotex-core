@@ -40,9 +40,6 @@ import (
 const (
 	blockNS                  = "blk"
 	blockHashHeightMappingNS = "h2h"
-	//blockHeaderNS            = "bhr"
-	//blockBodyNS              = "bbd"
-	//blockFooterNS            = "bfr"
 	blockDataNS = "bdn"
 	receiptsNS  = "rpt"
 )
