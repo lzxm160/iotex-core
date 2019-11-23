@@ -436,7 +436,7 @@ func (dao *blockDAO) header(h hash.Hash256) (*block.Header, error) {
 		return nil, err
 	}
 	if dao.headerCache != nil {
-		dao.headerCache.Add(h, blk.Header)
+		dao.headerCache.Add(h, &blk.Header)
 	}
 	return &blk.Header, nil
 }
@@ -455,7 +455,7 @@ func (dao *blockDAO) body(h hash.Hash256) (*block.Body, error) {
 		return nil, err
 	}
 	if dao.bodyCache != nil {
-		dao.bodyCache.Add(h, blk.Body)
+		dao.bodyCache.Add(h, &blk.Body)
 	}
 	return &blk.Body, nil
 }
@@ -474,7 +474,7 @@ func (dao *blockDAO) footer(h hash.Hash256) (*block.Footer, error) {
 		return nil, err
 	}
 	if dao.footerCache != nil {
-		dao.footerCache.Add(h, blk.Footer)
+		dao.footerCache.Add(h, &blk.Footer)
 	}
 	return &blk.Footer, nil
 }
