@@ -2,6 +2,8 @@ package blockdao
 
 import (
 	"context"
+	"encoding/hex"
+	"fmt"
 	"hash/fnv"
 	"io/ioutil"
 	"math/big"
@@ -410,4 +412,26 @@ func BenchmarkBlockCache(b *testing.B) {
 	b.Run("no-cache", func(b *testing.B) {
 		test(0, b)
 	})
+}
+
+func TestBlkSerDer(t *testing.T) {
+	blks := getTestBlocks(t)
+	blk := blks[0]
+	fmt.Println(blk.Header.Height())
+	fmt.Println(blk.Body.Actions[0].Hash())
+	fmt.Println(blk.Footer.CommitTime())
+	ser, err := blk.Serialize()
+	require.NoError(t, err)
+
+	fmt.Println("ser:", hex.EncodeToString(ser[:]))
+	blkd := &block.Block{}
+	require.NoError(t, blkd.Deserialize(ser))
+
+	fmt.Println(blk.Header.Height())
+	fmt.Println(blk.Body.Actions[0].Hash())
+	fmt.Println(blk.Footer.CommitTime())
+	ser, err = blk.Serialize()
+	require.NoError(t, err)
+
+	fmt.Println("ser:", hex.EncodeToString(ser[:]))
 }
