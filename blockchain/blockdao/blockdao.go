@@ -524,11 +524,6 @@ func (dao *blockDAO) getReceipts(blkHeight uint64) ([]*action.Receipt, error) {
 	if err != nil {
 		return nil, err
 	}
-	//heightReceipt, err := kvstore.CreateRangeIndexNX([]byte(receiptsNS), make([]byte, 8))
-	//if err != nil {
-	//	return nil, err
-	//}
-	//value, err := heightReceipt.Get(blkHeight)
 	countingIndex, err := db.NewCountingIndexNX(kvstore, []byte(receiptsNS))
 	if err != nil {
 		return nil, err
@@ -645,15 +640,6 @@ func (dao *blockDAO) deleteTipBlock() error {
 	if err != nil {
 		return err
 	}
-	// delete block data
-	//htf, err := whichDB.CreateRangeIndexNX([]byte(blockDataNS), make([]byte, 8))
-	//if err != nil {
-	//	return err
-	//}
-	//err = htf.Delete(height)
-	//if err != nil {
-	//	return err
-	//}
 	countingIndex, err := db.NewCountingIndexNX(whichDB, []byte(blockDataNS))
 	if err != nil {
 		return err
@@ -662,15 +648,6 @@ func (dao *blockDAO) deleteTipBlock() error {
 	if err != nil {
 		return err
 	}
-	// delete receipts data
-	//htf, err = whichDB.CreateRangeIndexNX([]byte(receiptsNS), make([]byte, 8))
-	//if err != nil {
-	//	return err
-	//}
-	//err = htf.Delete(height)
-	//if err != nil {
-	//	return err
-	//}
 	countingIndex, err = db.NewCountingIndexNX(whichDB, []byte(receiptsNS))
 	if err != nil {
 		return err
@@ -796,12 +773,6 @@ func (dao *blockDAO) getBlockValue(blockNS string, h hash.Hash256) ([]byte, erro
 	if err != nil {
 		return nil, err
 	}
-	//heightBlock, err := whichDB.CreateRangeIndexNX([]byte(blockNS), nil)
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	//block, err := heightBlock.Get(height)
 	countingIndex, err := db.NewCountingIndexNX(whichDB, []byte(blockDataNS))
 	if err != nil {
 		return nil, err
@@ -816,11 +787,6 @@ func (dao *blockDAO) getBlockValue(blockNS string, h hash.Hash256) ([]byte, erro
 		if err != nil {
 			return nil, err
 		}
-		//heightBlock, err = db.CreateRangeIndexNX([]byte(blockNS), nil)
-		//if err != nil {
-		//	return nil, err
-		//}
-		//block, err = heightBlock.Get(height)
 		countingIndex, err := db.NewCountingIndexNX(dbs, []byte(blockDataNS))
 		if err != nil {
 			return nil, err
