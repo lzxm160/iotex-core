@@ -161,7 +161,7 @@ func (c *countingIndex) Revert(count uint64) error {
 	if c.batch != nil {
 		return errors.Wrap(ErrInvalid, "cannot call Revert in batch mode, call Commit() first to exit batch mode")
 	}
-	fmt.Println("xxxxxxxxxxxxxxxxxxxx:", c.size)
+	fmt.Println("xxxxxxxxxxxxxxxxxxxx:", c.size, ":", count)
 	if count == 0 || count > c.size {
 		return errors.Wrapf(ErrInvalid, "count: %d", count)
 	}
