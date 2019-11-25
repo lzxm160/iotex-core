@@ -7,6 +7,8 @@
 package db
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
@@ -159,18 +161,23 @@ func (c *countingIndex) Revert(count uint64) error {
 	if c.batch != nil {
 		return errors.Wrap(ErrInvalid, "cannot call Revert in batch mode, call Commit() first to exit batch mode")
 	}
+	fmt.Println("xxxxxxxxxxxxxxxxxxxx")
 	if count == 0 || count > c.size {
 		return errors.Wrapf(ErrInvalid, "count: %d", count)
 	}
+	fmt.Println("1666666666666666")
 	b := NewBatch()
 	start := c.size - count
 	for i := uint64(0); i < count; i++ {
 		b.Delete(c.bucket, byteutil.Uint64ToBytesBigEndian(start+i), "failed to delete %d-th item", start+i)
 	}
+	fmt.Println("174")
 	b.Put(c.bucket, CountKey, byteutil.Uint64ToBytesBigEndian(start), "failed to update size = %d", start)
+	fmt.Println("176")
 	if err := c.kvStore.Commit(b); err != nil {
 		return err
 	}
+	fmt.Println("180")
 	c.size = start
 	return nil
 }
