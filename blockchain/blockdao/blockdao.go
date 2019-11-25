@@ -645,6 +645,7 @@ func (dao *blockDAO) deleteTipBlock() error {
 		return err
 	}
 	err = countingIndex.Revert(1)
+	fmt.Println("xxxxxxxxxxxxxxxxxxxx", err)
 	if err != nil {
 		return err
 	}
