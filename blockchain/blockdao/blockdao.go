@@ -203,27 +203,30 @@ func (dao *blockDAO) initStores() error {
 		maxN = 1
 	}
 	dao.topIndex.Store(maxN)
-	return nil
+	return dao.initCountingIndex()
 }
 
-//func (dao *blockDAO) initCountingIndex() error {
-//	kv, _, err := dao.getTopDB(1)
-//	if err != nil {
-//		return err
-//	}
-//	countingIndex, err := db.NewCountingIndexNX(kv, []byte(blockDataNS))
-//	if err != nil {
-//		return err
-//	}
-//	if countingIndex.Size() == 0 {
-//		genesis.Genesis{}
-//		countingIndex.Add()
-//	}
-//	countingIndex, err = db.NewCountingIndexNX(kv, []byte(receiptsNS))
-//	if err != nil {
-//		return err
-//	}
-//}
+func (dao *blockDAO) initCountingIndex() error {
+	kv, _, err := dao.getTopDB(1)
+	if err != nil {
+		return err
+	}
+	countingIndex, err := db.NewCountingIndexNX(kv, []byte(blockDataNS))
+	if err != nil {
+		return err
+	}
+	if countingIndex.Size() == 0 {
+		countingIndex.Add(make([]byte, 0), false)
+	}
+	countingIndex, err = db.NewCountingIndexNX(kv, []byte(receiptsNS))
+	if err != nil {
+		return err
+	}
+	if countingIndex.Size() == 0 {
+		countingIndex.Add(make([]byte, 0), false)
+	}
+	return nil
+}
 
 func (dao *blockDAO) Stop(ctx context.Context) error { return dao.lifecycle.OnStop(ctx) }
 
