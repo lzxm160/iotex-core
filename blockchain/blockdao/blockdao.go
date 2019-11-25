@@ -218,6 +218,7 @@ func (dao *blockDAO) initCountingIndex() error {
 	if countingIndex.Size() == 0 {
 		countingIndex.Add(make([]byte, 0), false)
 	}
+	fmt.Println("block countingIndex.Size():", countingIndex.Size())
 	countingIndex, err = db.NewCountingIndexNX(kv, []byte(receiptsNS))
 	if err != nil {
 		return err
@@ -225,6 +226,7 @@ func (dao *blockDAO) initCountingIndex() error {
 	if countingIndex.Size() == 0 {
 		countingIndex.Add(make([]byte, 0), false)
 	}
+	fmt.Println("receipt countingIndex.Size():", countingIndex.Size())
 	return nil
 }
 
