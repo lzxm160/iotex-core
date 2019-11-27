@@ -152,6 +152,7 @@ func (ib *IndexBuilder) init() error {
 		if err != nil {
 			return err
 		}
+		log.L().Info("before indexer putblock:", zap.Uint64("startHeight:", startHeight), zap.Uint64("blk.height:", blk.Height()))
 		if err := ib.indexer.PutBlock(blk); err != nil {
 			return err
 		}
