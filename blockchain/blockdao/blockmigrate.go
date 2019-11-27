@@ -109,12 +109,16 @@ func (dao *blockDAO) migrate() error {
 		if err = dao.putBlockLegacy(blk, batch, blockBatch, kvForBlockData); err != nil {
 			return err
 		}
-		if i%100 == 0 {
+		if i%10000 == 0 {
 			kvForBlockData, err = dao.commitAndRefresh(i, batch, blockBatch, kvForBlockData)
 			if err != nil {
 				return err
 			}
 		}
+		if i%100 == 0 {
+			log.L().Info("putBlock:", zap.Uint64("height", i))
+		}
+
 	}
 	return nil
 }
@@ -135,7 +139,6 @@ func (dao *blockDAO) commitAndRefresh(height uint64, batch, blockBatch db.KVStor
 	if err != nil {
 		return
 	}
-	log.L().Info("putBlock:", zap.Uint64("height", height))
 	return
 }
 
