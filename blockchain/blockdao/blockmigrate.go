@@ -11,6 +11,8 @@ import (
 	"os"
 	"path"
 
+	"github.com/iotexproject/iotex-core/action"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/byteutil"
 	"github.com/iotexproject/go-pkgs/hash"
@@ -26,10 +28,14 @@ import (
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 )
 
+// these NS belong to old DB before migrating to storage optimization
+// they are left here only for record
+// do NOT use them in the future to avoid potential conflict
 const (
 	blockHeaderNS = "bhr"
 	blockBodyNS   = "bbd"
 	blockFooterNS = "bfr"
+	receiptsNS    = "rpt"
 )
 
 var (
@@ -40,7 +46,7 @@ var (
 	pattern = "-00000000.db"
 )
 
-func (dao *blockDAO) checkOldDB() error {
+func (dao *blockDAO) checkLegacyDB() error {
 	fileExists := func(path string) bool {
 		_, err := os.Stat(path)
 		if os.IsNotExist(err) {
@@ -92,24 +98,20 @@ func (dao *blockDAO) migrate() error {
 	if dao.blockIndex, err = db.NewCountingIndexNX(kvForBlockData, []byte(blockDataNS)); err != nil {
 		return err
 	}
-	if dao.receiptIndex, err = db.NewCountingIndexNX(kvForBlockData, []byte(receiptsNS)); err != nil {
+	if dao.receiptIndex, err = db.NewCountingIndexNX(kvForBlockData, []byte(recptDataNS)); err != nil {
 		return err
 	}
 	batch := db.NewBatch()
 	blockBatch := db.NewBatch()
 	for i := uint64(1); i <= tipHeight; i++ {
-		h, err := dao.getLegacyBlockHash(i)
-		if err != nil {
-			return err
-		}
-		blk, err := dao.getBlockLegacy(h)
+		blk, err := dao.getBlockLegacy(i)
 		if err != nil {
 			return err
 		}
 		if err = dao.putBlockLegacy(blk, batch, blockBatch, kvForBlockData); err != nil {
 			return err
 		}
-		if i%10000 == 0 {
+		if i%10000 == 0 || i == tipHeight {
 			kvForBlockData, err = dao.commitAndRefresh(i, batch, blockBatch, kvForBlockData)
 			if err != nil {
 				return err
@@ -134,7 +136,7 @@ func (dao *blockDAO) commitAndRefresh(height uint64, batch, blockBatch db.KVStor
 	if err != nil {
 		return
 	}
-	dao.receiptIndex, err = db.NewCountingIndexNX(kvForBlockData, []byte(receiptsNS))
+	dao.receiptIndex, err = db.NewCountingIndexNX(kvForBlockData, []byte(recptDataNS))
 	if err != nil {
 		return
 	}
@@ -159,14 +161,14 @@ func (dao *blockDAO) putBlockLegacy(blk *block.Block, batch, blockBatch db.KVSto
 	if err := dao.putBlockForBlockdbLegacy(blk, blockBatch, kv); err != nil {
 		return err
 	}
-
 	blkHeight := blk.Height()
 	hash := blk.HashBlock()
 	heightValue := byteutil.Uint64ToBytes(blkHeight)
-	heightKey := heightKey(blkHeight)
 	hashKey := append(hashPrefix, hash[:]...)
 	batch.Put(blockHashHeightMappingNS, hashKey, heightValue, "failed to put hash -> height mapping")
-	batch.Put(blockHashHeightMappingNS, heightKey, hash[:], "failed to put height -> hash mapping")
+	if err := addHeightHash(dao.kvstore, hash); err != nil {
+		return errors.Wrap(err, "failed to add height -> hash mapping")
+	}
 	topHeight, err := dao.kvstore.Get(blockNS, topHeightKey)
 	if err != nil {
 		return errors.Wrap(err, "failed to get top height")
@@ -203,9 +205,9 @@ func (dao *blockDAO) putBlockForBlockdbLegacy(blk *block.Block, blockBatch db.KV
 	if err = dao.blockIndex.Add(serBlk, true); err != nil {
 		return err
 	}
-
-	heightKey := heightKey(blkHeight)
-	batchForBlock.Put(blockHashHeightMappingNS, heightKey, h[:], "failed to put height -> hash mapping")
+	if err = addHeightHash(kv, h); err != nil {
+		return err
+	}
 	// write receipts
 	if blk.Receipts != nil {
 		receipts := iotextypes.Receipts{}
@@ -240,8 +242,7 @@ func (dao *blockDAO) getLegacyBlockHash(height uint64) (hash.Hash256, error) {
 	if height == 0 {
 		return h, nil
 	}
-	key := heightKey(height)
-	value, err := dao.legacyDB.Get(blockHashHeightMappingNS, key)
+	value, err := getHeightHash(dao.legacyDB, height)
 	if err != nil {
 		return h, errors.Wrap(err, "failed to get block hash")
 	}
@@ -253,7 +254,11 @@ func (dao *blockDAO) getLegacyBlockHash(height uint64) (hash.Hash256, error) {
 }
 
 // getBlock returns a block
-func (dao *blockDAO) getBlockLegacy(hash hash.Hash256) (*block.Block, error) {
+func (dao *blockDAO) getBlockLegacy(height uint64) (*block.Block, error) {
+	hash, err := dao.getLegacyBlockHash(height)
+	if err != nil {
+		return nil, err
+	}
 	header, err := dao.headerLegacy(hash)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get block header %x", hash)
@@ -266,10 +271,15 @@ func (dao *blockDAO) getBlockLegacy(hash hash.Hash256) (*block.Block, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get block footer %x", hash)
 	}
+	receipts, err := dao.receiptsLegacy(height)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get block receipts %d", height)
+	}
 	return &block.Block{
-		Header: *header,
-		Body:   *body,
-		Footer: *footer,
+		Header:   *header,
+		Body:     *body,
+		Footer:   *footer,
+		Receipts: receipts,
 	}, nil
 }
 
@@ -338,4 +348,25 @@ func (dao *blockDAO) footerLegacy(h hash.Hash256) (*block.Footer, error) {
 		return nil, errors.Wrapf(err, "failed to deserialize block footer %x", h)
 	}
 	return footer, nil
+}
+
+func (dao *blockDAO) receiptsLegacy(blkHeight uint64) ([]*action.Receipt, error) {
+	value, err := dao.legacyDB.Get(receiptsNS, byteutil.Uint64ToBytes(blkHeight))
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get receipts of block %d", blkHeight)
+	}
+	if len(value) == 0 {
+		return nil, errors.Wrap(db.ErrNotExist, "block receipts missing")
+	}
+	receiptsPb := &iotextypes.Receipts{}
+	if err := proto.Unmarshal(value, receiptsPb); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal block receipts")
+	}
+	var blockReceipts []*action.Receipt
+	for _, receiptPb := range receiptsPb.Receipts {
+		receipt := &action.Receipt{}
+		receipt.ConvertFromReceiptPb(receiptPb)
+		blockReceipts = append(blockReceipts, receipt)
+	}
+	return blockReceipts, nil
 }
