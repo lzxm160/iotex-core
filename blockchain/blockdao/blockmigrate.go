@@ -242,7 +242,8 @@ func (dao *blockDAO) getLegacyBlockHash(height uint64) (hash.Hash256, error) {
 	if height == 0 {
 		return h, nil
 	}
-	value, err := getHeightHash(dao.legacyDB, height)
+	key := heightKey(height)
+	value, err := dao.legacyDB.Get(blockHashHeightMappingNS, key)
 	if err != nil {
 		return h, errors.Wrap(err, "failed to get block hash")
 	}
