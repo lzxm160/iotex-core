@@ -120,7 +120,11 @@ func (dao *blockDAO) migrate() error {
 }
 
 func (dao *blockDAO) commitAndRefresh(height uint64, batch, blockBatch db.KVStoreBatch, kv db.KVStore) (kvForBlockData db.KVStore, err error) {
+<<<<<<< HEAD
 	if err = dao.commitForMigration(batch, blockBatch, kv); err != nil {
+=======
+	if err = dao.commitForMigration(batch, blockBatch, kvForBlockData); err != nil {
+>>>>>>> 0b4e9fe62d8c9bed30c5d8cb922b95c47852cce7
 		return
 	}
 	kvForBlockData, _, err = dao.getTopDB(height)
