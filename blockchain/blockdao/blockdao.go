@@ -123,7 +123,7 @@ type (
 	blockDAO struct {
 		compressBlock bool
 		kvstore       db.KVStore
-		oldDB         db.KVStore
+		legacyDB      db.KVStore
 		indexer       BlockIndexer
 		blockIndex    db.CountingIndex
 		receiptIndex  db.CountingIndex
@@ -193,7 +193,7 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 		return err
 	}
 	// check if make migrate
-	if dao.oldDB != nil {
+	if dao.legacyDB != nil {
 		err = dao.migrate()
 		if err != nil {
 			return err

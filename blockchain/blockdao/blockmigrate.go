@@ -69,17 +69,17 @@ func (dao *blockDAO) checkOldDB() error {
 	cfgDB := dao.cfg
 	cfgDB.DbPath = bakDbPath
 	bakdb := db.NewBoltDB(cfgDB)
-	dao.oldDB = bakdb
+	dao.legacyDB = bakdb
 	return nil
 }
 
 func (dao *blockDAO) migrate() error {
-	if err := dao.oldDB.Start(context.Background()); err != nil {
+	if err := dao.legacyDB.Start(context.Background()); err != nil {
 		return err
 	}
-	defer dao.oldDB.Stop(context.Background())
+	defer dao.legacyDB.Stop(context.Background())
 
-	tipHeightValue, err := dao.oldDB.Get(blockNS, tipHeightKey)
+	tipHeightValue, err := dao.legacyDB.Get(blockNS, tipHeightKey)
 	if err != nil {
 		return err
 	}
@@ -241,7 +241,7 @@ func (dao *blockDAO) getLegacyBlockHash(height uint64) (hash.Hash256, error) {
 		return h, nil
 	}
 	key := heightKey(height)
-	value, err := dao.oldDB.Get(blockHashHeightMappingNS, key)
+	value, err := dao.legacyDB.Get(blockHashHeightMappingNS, key)
 	if err != nil {
 		return h, errors.Wrap(err, "failed to get block hash")
 	}
@@ -274,7 +274,7 @@ func (dao *blockDAO) getBlockLegacy(hash hash.Hash256) (*block.Block, error) {
 }
 
 func (dao *blockDAO) headerLegacy(h hash.Hash256) (*block.Header, error) {
-	value, err := dao.oldDB.Get(blockHeaderNS, h[:])
+	value, err := dao.legacyDB.Get(blockHeaderNS, h[:])
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get block header %x", h)
 	}
@@ -297,7 +297,7 @@ func (dao *blockDAO) headerLegacy(h hash.Hash256) (*block.Header, error) {
 }
 
 func (dao *blockDAO) bodyLegacy(h hash.Hash256) (*block.Body, error) {
-	value, err := dao.oldDB.Get(blockBodyNS, h[:])
+	value, err := dao.legacyDB.Get(blockBodyNS, h[:])
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get block body %x", h)
 	}
@@ -318,7 +318,7 @@ func (dao *blockDAO) bodyLegacy(h hash.Hash256) (*block.Body, error) {
 }
 
 func (dao *blockDAO) footerLegacy(h hash.Hash256) (*block.Footer, error) {
-	value, err := dao.oldDB.Get(blockFooterNS, h[:])
+	value, err := dao.legacyDB.Get(blockFooterNS, h[:])
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get block footer %x", h)
 	}
