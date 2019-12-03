@@ -187,7 +187,6 @@ func NewBlockDAO(kvstore db.KVStore, indexer BlockIndexer, compressBlock bool, c
 // Start starts block DAO and initiates the top height if it doesn't exist
 func (dao *blockDAO) Start(ctx context.Context) error {
 	if !dao.isLegacyDB() {
-		// have to check and init here,because the following code will open chaindb
 		err := dao.initMigrate()
 		if err != nil {
 			return nil
@@ -213,7 +212,56 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 		return err
 	}
 
-	return nil
+	return dao.adjust()
+}
+func (dao *blockDAO) adjust() error {
+	topHeight, err := dao.getTipHeight()
+	if err != nil {
+		return err
+	}
+	if topHeight == 0 {
+		return nil
+	}
+	topDB, index, err := dao.getTopDB(topHeight)
+	if err != nil {
+		return err
+	}
+	value, err := topDB.Get(blockNS, topHeightKey)
+	if err != nil {
+		return err
+	}
+	topHeightOfBlockDB := enc.MachineEndian.Uint64(value)
+	if topHeight == topHeightOfBlockDB {
+		return nil
+	} else if topHeight > topHeightOfBlockDB {
+		return ErrMissingBlock
+	}
+	return dao.complement(topHeight+1, topHeightOfBlockDB, topDB, index)
+}
+
+func (dao *blockDAO) complement(from, to uint64, store db.KVStore, index uint64) (err error) {
+	indexValue := byteutil.Uint64ToBytesBigEndian(index)
+	batch := db.NewBatch()
+	for i := from; i <= to; i++ {
+		heightValue := byteutil.Uint64ToBytes(i)
+		h, err := getHeightHash(store, i)
+		if err != nil {
+			return err
+		}
+		hashKey := append(hashPrefix, h...)
+		batch.Put(blockHashHeightMappingNS, hashKey, heightValue, "failed to put hash -> height mapping")
+		hash := hash.BytesToHash256(h)
+		if err := addHeightHash(dao.kvstore, hash); err != nil {
+			return err
+		}
+		batch.Put(blockNS, topHeightKey, heightValue, "failed to put top height")
+		batch.Put(blockNS, topHashKey, h, "failed to put top hash")
+		err = dao.IndexFile(i, indexValue)
+		if err != nil {
+			return err
+		}
+	}
+	return dao.kvstore.Commit(batch)
 }
 
 func (dao *blockDAO) initStores() error {
@@ -837,4 +885,27 @@ func hashKey(h hash.Hash256) []byte {
 
 func heightKey(height uint64) []byte {
 	return append(heightPrefix, byteutil.Uint64ToBytes(height)...)
+}
+
+func addHeightHash(kv db.KVStore, hash hash.Hash256) error {
+	hashIndex, err := db.GetCountingIndex(kv, []byte(blockHashHeightMappingNS))
+	if err != nil {
+		return err
+	}
+	if err = hashIndex.Add(hash[:], false); err != nil {
+		return err
+	}
+	return nil
+}
+
+func getHeightHash(kv db.KVStore, height uint64) ([]byte, error) {
+	hashIndex, err := db.GetCountingIndex(kv, []byte(blockHashHeightMappingNS))
+	if err != nil {
+		return nil, err
+	}
+	hash, err := hashIndex.Get(height)
+	if err != nil {
+		return nil, err
+	}
+	return hash, nil
 }
