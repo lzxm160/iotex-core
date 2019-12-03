@@ -109,9 +109,11 @@ func (dao *blockDAO) migrate() error {
 		if err != nil {
 			return err
 		}
+		log.L().Info("getBlockByHeightLegacy:", zap.Uint64("height", i))
 		if err = dao.putBlockForMigration(blk); err != nil {
 			return err
 		}
+		log.L().Info("putBlockForMigration:", zap.Uint64("height", i))
 		if i%5000 == 0 || i == tipHeight {
 			err = dao.commitForMigration(legacyDB)
 			if err != nil {
