@@ -1,6 +1,16 @@
+// Copyright (c) 2019 IoTeX Foundation
+// This is an alpha (internal) release and is not suitable for production. This source code is provided 'as is' and no
+// warranties are given as to title or non-infringement, merchantability or fitness for purpose and, to the extent
+// permitted by law, all liability for your use of the code is disclaimed. This source code is governed by Apache
+// License 2.0 that can be found in the LICENSE file.
+
 package blockdao
 
 import (
+	"context"
+	"os"
+	"path"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
@@ -11,22 +21,44 @@ import (
 	"github.com/iotexproject/iotex-core/blockchain/block"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/pkg/compress"
-	"github.com/iotexproject/iotex-core/pkg/enc"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 )
 
 func (dao *blockDAO) isLegacyDB() bool {
-	// TODO: check if chain-0000000.db exist
-	return true
+	fileExists := func(path string) bool {
+		_, err := os.Stat(path)
+		if os.IsNotExist(err) {
+			return false
+		}
+		if err != nil {
+			zap.L().Panic("unexpected error", zap.Error(err))
+		}
+		return true
+	}
+	ext := path.Ext(dao.cfg.DbPath)
+	var fileName string
+	if len(ext) > 0 {
+		fileName = dao.cfg.DbPath[:len(dao.cfg.DbPath)-len(ext)] + pattern
+	}
+	log.L().Info("checkOldDB::", zap.String("fileName", fileName))
+
+	return fileExists(fileName)
 }
 
 func (dao *blockDAO) initMigrate() error {
-	tipHeight, err := dao.getTipHeight()
-	if err != nil {
+	bakDbPath := path.Dir(dao.cfg.DbPath) + "/oldchain.db"
+	log.L().Info("bakDbPath::", zap.String("bakDbPath:", bakDbPath))
+	if err := os.Rename(dao.cfg.DbPath, bakDbPath); err != nil {
 		return err
 	}
-	kv, _, err := dao.getTopDB(tipHeight)
+	cfgDB := dao.cfg
+	cfgDB.DbPath = bakDbPath
+	dao.kvstore = db.NewBoltDB(cfgDB)
+	if err := dao.kvstore.Start(context.Background()); err != nil {
+		return err
+	}
+	kv, _, err := dao.getTopDB(1)
 	if err != nil {
 		return err
 	}
@@ -46,12 +78,48 @@ func (dao *blockDAO) initMigrate() error {
 			return err
 		}
 	}
+	if dao.hashStore, err = db.NewCountingIndexNX(kv, []byte(hashDataNS)); err != nil {
+		return err
+	}
+	if dao.hashStore.Size() == 0 {
+		if err = dao.hashStore.Add(make([]byte, 0), false); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 func (dao *blockDAO) migrate() error {
-	// TODO: read all blocks from chain.db, write into chain-0000000.db
-	return nil
+	cfg := dao.cfg
+	legacyDB := db.NewBoltDB(cfg)
+	if err := legacyDB.Start(context.Background()); err != nil {
+		return err
+	}
+	tipHeightValue, err := dao.kvstore.Get(blockNS, tipHeightKey)
+	if err != nil {
+		return err
+	}
+	tipHeight := byteutil.BytesToUint64(tipHeightValue)
+	for i := uint64(1); i <= tipHeight; i++ {
+		blk, err := dao.getBlockByHeightLegacy(i)
+		if err != nil {
+			return err
+		}
+		if err = dao.putBlockForMigration(blk); err != nil {
+			return err
+		}
+		if i%5000 == 0 || i == tipHeight {
+			err = dao.commitForMigration(legacyDB)
+			if err != nil {
+				return err
+			}
+		}
+		if i%100 == 0 {
+			log.L().Info("putBlock:", zap.Uint64("height", i))
+		}
+	}
+	dao.kvstore = legacyDB
+	return os.Remove(path.Dir(dao.cfg.DbPath) + "/oldchain.db")
 }
 
 func (dao *blockDAO) getBlockByHeightLegacy(height uint64) (*block.Block, error) {
@@ -71,7 +139,7 @@ func (dao *blockDAO) getBlockByHeightLegacy(height uint64) (*block.Block, error)
 	return blk, nil
 }
 
-func (dao *blockDAO) commitForMigration() error {
+func (dao *blockDAO) commitForMigration(kvstore db.KVStore) error {
 	if err := dao.blkStore.Commit(); err != nil {
 		return err
 	}
@@ -81,14 +149,14 @@ func (dao *blockDAO) commitForMigration() error {
 	if err := dao.hashStore.Commit(); err != nil {
 		return err
 	}
-	return dao.kvstore.Commit(dao.batch)
+	return kvstore.Commit(dao.batch)
 }
 
 func (dao *blockDAO) putBlockForMigration(blk *block.Block) error {
 	blkHeight := blk.Height()
 	h, err := dao.getBlockHashLegacy(blkHeight)
-	if h != hash.ZeroHash256 && err == nil {
-		return errors.Errorf("block %d already exist", blkHeight)
+	if err != nil {
+		return err
 	}
 	serBlk, err := blk.Serialize()
 	if err != nil {
@@ -123,18 +191,13 @@ func (dao *blockDAO) putBlockForMigration(blk *block.Block) error {
 	if err = dao.hashStore.Add(h[:], true); err != nil {
 		return nil
 	}
-	
+
 	heightValue := byteutil.Uint64ToBytes(blkHeight)
 	hashKey := hashKey(h)
 	dao.batch.Put(blockHashHeightMappingNS, hashKey, heightValue, "failed to put hash -> height mapping")
-	tipHeight, err := dao.kvstore.Get(blockNS, topHeightKey)
-	if err != nil {
-		return errors.Wrap(err, "failed to get top height")
-	}
-	if blkHeight > enc.MachineEndian.Uint64(tipHeight) {
-		dao.batch.Put(blockNS, topHeightKey, heightValue, "failed to put top height")
-		dao.batch.Put(blockNS, topHashKey, h[:], "failed to put top hash")
-	}
+	dao.batch.Put(blockNS, topHeightKey, heightValue, "failed to put top height")
+	dao.batch.Put(blockNS, topHashKey, h[:], "failed to put top hash")
+
 	return nil
 }
 
@@ -245,45 +308,18 @@ func (dao *blockDAO) footerLegacy(h hash.Hash256) (*block.Footer, error) {
 	return footer, nil
 }
 
-// getDBFromHash returns db of this block stored
-func (dao *blockDAO) getDBFromHash(h hash.Hash256) (db.KVStore, uint64, error) {
-	height, err := dao.getBlockHeight(h)
-	if err != nil {
-		return nil, 0, err
-	}
-	return dao.getDBFromHeight(height)
-}
-
 // getBlockValue get block's data from db,if this db failed,it will try the previous one
 func (dao *blockDAO) getBlockValue(blockNS string, h hash.Hash256) ([]byte, error) {
-	whichDB, index, err := dao.getDBFromHash(h)
+	value, err := dao.kvstore.Get(blockNS, h[:])
 	if err != nil {
 		return nil, err
 	}
-	value, err := whichDB.Get(blockNS, h[:])
-	if errors.Cause(err) == db.ErrNotExist {
-		idx := index - 1
-		if index == 0 {
-			idx = 0
-		}
-		db, _, err := dao.getDBFromIndex(idx)
-		if err != nil {
-			return nil, err
-		}
-		value, err = db.Get(blockNS, h[:])
-		if err != nil {
-			return nil, err
-		}
-	}
+
 	return value, err
 }
 
 func (dao *blockDAO) getReceiptsLegacy(blkHeight uint64) ([]*action.Receipt, error) {
-	kvstore, _, err := dao.getDBFromHeight(blkHeight)
-	if err != nil {
-		return nil, err
-	}
-	value, err := kvstore.Get(receiptsNS, byteutil.Uint64ToBytes(blkHeight))
+	value, err := dao.kvstore.Get(receiptsNS, byteutil.Uint64ToBytes(blkHeight))
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get receipts of block %d", blkHeight)
 	}
