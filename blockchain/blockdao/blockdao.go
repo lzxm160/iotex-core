@@ -174,18 +174,12 @@ func NewBlockDAO(kvstore db.KVStore, indexer BlockIndexer, compressBlock bool, c
 		return nil
 	}
 	blockDAO.timerFactory = timerFactory
-	// check if have old db
-	if !blockDAO.isLegacyDB() {
-		// have to check and init here,because the following code will open chaindb
-		err = blockDAO.initMigrate()
-		if err != nil {
-			return nil
-		}
-	}
-
-	blockDAO.lifecycle.Add(kvstore)
 	if indexer != nil {
 		blockDAO.lifecycle.Add(indexer)
+	}
+	// check if have old db
+	if blockDAO.isLegacyDB() {
+		blockDAO.lifecycle.Add(kvstore)
 	}
 	return blockDAO
 }
@@ -204,7 +198,12 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 		}
 	}
 	if !dao.isLegacyDB() {
-		return dao.migrate()
+		// have to check and init here,because the following code will open chaindb
+		err = dao.initMigrate()
+		if err != nil {
+			return nil
+		}
+		dao.migrate()
 	}
 	if err = dao.initCountingIndex(); err != nil {
 		return err
