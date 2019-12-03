@@ -175,7 +175,7 @@ func NewBlockDAO(kvstore db.KVStore, indexer BlockIndexer, compressBlock bool, c
 	}
 	blockDAO.timerFactory = timerFactory
 	// check if have old db
-	if blockDAO.isLegacyDB() {
+	if !blockDAO.isLegacyDB() {
 		// have to check and init here,because the following code will open chaindb
 		err = blockDAO.initMigrate()
 		if err != nil {
@@ -203,15 +203,16 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 			return errors.Wrap(err, "failed to write initial value for top height")
 		}
 	}
+	if !dao.isLegacyDB() {
+		return dao.migrate()
+	}
 	if err = dao.initCountingIndex(); err != nil {
 		return err
 	}
 	if err = dao.initStores(); err != nil {
 		return err
 	}
-	if dao.isLegacyDB() {
-		return dao.migrate()
-	}
+
 	return nil
 }
 
