@@ -12,9 +12,7 @@ import (
 	"path"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/iotexproject/go-pkgs/byteutil"
 	"github.com/iotexproject/go-pkgs/hash"
-	"github.com/iotexproject/iotex-election/util"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -24,6 +22,7 @@ import (
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/pkg/compress"
 	"github.com/iotexproject/iotex-core/pkg/log"
+	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 )
 
 func (dao *blockDAO) isLegacyDB() bool {
@@ -101,7 +100,7 @@ func (dao *blockDAO) migrate() error {
 	if err != nil {
 		return err
 	}
-	tipHeight := util.BytesToUint64(tipHeightValue)
+	tipHeight := byteutil.BytesToUint64(tipHeightValue)
 	log.L().Info("tipHeight:", zap.Uint64("height", tipHeight))
 	for i := uint64(1); i <= tipHeight; i++ {
 		blk, err := dao.getBlockByHeightLegacy(i)
