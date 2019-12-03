@@ -165,8 +165,8 @@ func (dao *blockDAO) putBlockForMigration(blk *block.Block) error {
 	blkHeight := blk.Height()
 	log.L().Info("putBlockForMigration:", zap.Uint64("height", blkHeight))
 	h, err := dao.getBlockHashLegacy(blkHeight)
-	if h != hash.ZeroHash256 && err == nil {
-		return errors.Errorf("block %d already exist", blkHeight)
+	if err != nil {
+		return err
 	}
 	log.L().Info("dao.getBlockHashLegacy(blkHeight):", zap.Uint64("height", blkHeight))
 	serBlk, err := blk.Serialize()
