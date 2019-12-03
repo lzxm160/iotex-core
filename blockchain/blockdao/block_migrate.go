@@ -338,11 +338,7 @@ func (dao *blockDAO) getBlockValue(blockNS string, h hash.Hash256) ([]byte, erro
 }
 
 func (dao *blockDAO) getReceiptsLegacy(blkHeight uint64) ([]*action.Receipt, error) {
-	kvstore, _, err := dao.getDBFromHeight(blkHeight)
-	if err != nil {
-		return nil, err
-	}
-	value, err := kvstore.Get(receiptsNS, byteutil.Uint64ToBytes(blkHeight))
+	value, err := dao.kvstore.Get(receiptsNS, byteutil.Uint64ToBytes(blkHeight))
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get receipts of block %d", blkHeight)
 	}
