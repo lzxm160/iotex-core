@@ -186,6 +186,14 @@ func NewBlockDAO(kvstore db.KVStore, indexer BlockIndexer, compressBlock bool, c
 
 // Start starts block DAO and initiates the top height if it doesn't exist
 func (dao *blockDAO) Start(ctx context.Context) error {
+	if !dao.isLegacyDB() {
+		// have to check and init here,because the following code will open chaindb
+		err := dao.initMigrate()
+		if err != nil {
+			return nil
+		}
+		dao.migrate()
+	}
 	err := dao.lifecycle.OnStart(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to start child services")
@@ -197,14 +205,7 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 			return errors.Wrap(err, "failed to write initial value for top height")
 		}
 	}
-	if !dao.isLegacyDB() {
-		// have to check and init here,because the following code will open chaindb
-		err = dao.initMigrate()
-		if err != nil {
-			return nil
-		}
-		dao.migrate()
-	}
+
 	if err = dao.initCountingIndex(); err != nil {
 		return err
 	}
