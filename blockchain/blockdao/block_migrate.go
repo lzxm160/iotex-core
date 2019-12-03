@@ -61,11 +61,7 @@ func (dao *blockDAO) initMigrate() error {
 	if err := dao.kvstore.Start(context.Background()); err != nil {
 		return err
 	}
-	tipHeight, err := dao.getTipHeight()
-	if err != nil {
-		return err
-	}
-	kv, _, err := dao.getTopDB(tipHeight)
+	kv, _, err := dao.getTopDB(1)
 	if err != nil {
 		return err
 	}
