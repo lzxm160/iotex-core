@@ -58,6 +58,7 @@ func (dao *blockDAO) initMigrate() error {
 	cfgDB := dao.cfg
 	cfgDB.DbPath = bakDbPath
 	dao.kvstore = db.NewBoltDB(cfgDB)
+	dao.lifecycle.Add(dao.kvstore)
 	tipHeight, err := dao.getTipHeight()
 	if err != nil {
 		return err
