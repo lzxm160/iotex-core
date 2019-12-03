@@ -133,14 +133,17 @@ func (dao *blockDAO) getBlockByHeightLegacy(height uint64) (*block.Block, error)
 	if err != nil {
 		return nil, err
 	}
+	log.L().Info("getBlockHashLegacy:", zap.Uint64("height", height))
 	blk, err := dao.getBlockLegacy(h)
 	if err != nil {
 		return nil, err
 	}
+	log.L().Info("getBlockLegacy:", zap.Uint64("height", height))
 	receipts, err := dao.getReceiptsLegacy(height)
 	if err != nil {
 		return nil, err
 	}
+	log.L().Info("getReceiptsLegacy:", zap.Uint64("height", height))
 	blk.Receipts = receipts
 	return blk, nil
 }
@@ -230,6 +233,7 @@ func (dao *blockDAO) getBlockLegacy(hash hash.Hash256) (*block.Block, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get block header %x", hash)
 	}
+
 	body, err := dao.bodyLegacy(hash)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get block body %x", hash)
