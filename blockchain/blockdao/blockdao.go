@@ -662,10 +662,10 @@ func (dao *blockDAO) putBlockForBlockdb(blk *block.Block) error {
 		return err
 	}
 	batchForBlock := db.NewBatch()
-	_, err = kv.Get(blockNS, startHeightKey)
-	if err != nil && errors.Cause(err) == db.ErrNotExist {
-		batchForBlock.Put(blockNS, startHeightKey, heightValue, "failed to put start height key")
-	}
+	//_, err = kv.Get(blockNS, startHeightKey)
+	//if err != nil && errors.Cause(err) == db.ErrNotExist {
+	//	batchForBlock.Put(blockNS, startHeightKey, heightValue, "failed to put start height key")
+	//}
 	serBlk, err := blk.Serialize()
 	if err != nil {
 		return errors.Wrap(err, "failed to serialize block")
@@ -832,6 +832,9 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 	if dao.cfg.SplitDBSizeMB != 0 && uint64(dat.Size()) > dao.cfg.SplitDBSize() {
 		kvstore, index, err = dao.openDB(topIndex + 1)
 		dao.topIndex.Store(index)
+		// write startHeightKey here
+		heightValue := byteutil.Uint64ToBytes(blkHeight)
+		kvstore.Put(blockNS, startHeightKey, heightValue)
 		// index the height --> file index mapping
 		err = dao.IndexFile(blkHeight, byteutil.Uint64ToBytesBigEndian(index))
 		return
