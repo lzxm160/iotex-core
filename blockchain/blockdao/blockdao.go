@@ -138,6 +138,10 @@ type (
 		footerCache   *cache.ThreadSafeLruCache
 		cfg           config.DB
 		mutex         sync.RWMutex // for create new db file
+		// TODO: delete below after reasonably long period of time passed DB migration
+		blkStore     db.CountingIndex
+		receiptStore db.CountingIndex
+		batch        db.KVStoreBatch
 	}
 )
 
@@ -148,6 +152,7 @@ func NewBlockDAO(kvstore db.KVStore, indexer BlockIndexer, compressBlock bool, c
 		kvstore:       kvstore,
 		indexer:       indexer,
 		cfg:           cfg,
+		batch:         db.NewBatch(),
 	}
 	if cfg.MaxCacheSize > 0 {
 		blockDAO.headerCache = cache.NewThreadSafeLruCache(cfg.MaxCacheSize)
@@ -189,6 +194,12 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 	}
 	if err = dao.initStores(); err != nil {
 		return err
+	}
+	if dao.isLegacyDB() {
+		if err = dao.initMigrate(); err != nil {
+			return err
+		}
+		return dao.migrate()
 	}
 	return nil
 }
