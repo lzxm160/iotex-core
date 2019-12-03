@@ -318,6 +318,7 @@ func (cs *ChainService) Start(ctx context.Context) error {
 		return errors.Wrap(err, "error when starting consensus")
 	}
 	if cs.indexBuilder != nil {
+		ctx = context.WithValue(ctx, "syncFromCheckPoint", true)
 		if err := cs.indexBuilder.Start(ctx); err != nil {
 			return errors.Wrap(err, "error when starting index builder")
 		}

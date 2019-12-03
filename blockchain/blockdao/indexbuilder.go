@@ -70,7 +70,11 @@ func (ib *IndexBuilder) Start(ctx context.Context) error {
 	if err := ib.indexer.Start(ctx); err != nil {
 		return err
 	}
-	if err := ib.init(); err != nil {
+	syncFromCheckPoint, ok := ctx.Value("syncFromCheckPoint").(bool)
+	if !ok {
+		return errors.New("syncFromCheckPoint context error")
+	}
+	if err := ib.init(syncFromCheckPoint); err != nil {
 		return err
 	}
 	// start handler to index incoming new block
@@ -124,7 +128,7 @@ func (ib *IndexBuilder) handler() {
 	}
 }
 
-func (ib *IndexBuilder) init() error {
+func (ib *IndexBuilder) init(syncFromCheckPoint bool) error {
 	startHeight, err := ib.indexer.GetBlockchainHeight()
 	if err != nil {
 		return err
@@ -145,6 +149,9 @@ func (ib *IndexBuilder) init() error {
 		err := errors.Errorf("Inconsistent DB: indexer height %d > blockDAO height %d", startHeight, tipHeight)
 		zap.L().Error(err.Error())
 		return err
+	}
+	if syncFromCheckPoint {
+		return nil
 	}
 	// update index to latest block
 	for startHeight++; startHeight <= tipHeight; startHeight++ {
