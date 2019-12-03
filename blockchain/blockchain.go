@@ -392,6 +392,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 		return err
 	}
 	if bc.tipHeight == 0 {
+		log.L().Info("bc.tipHeight:", zap.Uint64("height", bc.tipHeight))
 		// if have trie.db,start from trie.db
 		ws, err := bc.sf.NewWorkingSet()
 		if err != nil {
@@ -402,6 +403,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 			log.L().Info("start from checkpoint:", zap.Uint64("height", blk.Height()))
 			return bc.dao.PutBlock(blk)
 		}
+		log.L().Error("GetTopBlock:", zap.Error(err))
 		return nil
 	}
 	// get blockchain tip hash
