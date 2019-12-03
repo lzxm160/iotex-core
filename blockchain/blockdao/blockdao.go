@@ -69,10 +69,12 @@ const (
 
 var (
 	topHeightKey       = []byte("th")
+	startHeightKey     = []byte("sh")
 	topHashKey         = []byte("ts")
 	hashPrefix         = []byte("ha.")
 	heightPrefix       = []byte("he.")
 	heightToFileBucket = []byte("h2f")
+	tipHeightKey       = []byte("th")
 )
 
 var (
@@ -84,9 +86,12 @@ var (
 		[]string{"result"},
 	)
 	patternLen = len("00000000.db")
+	pattern    = "-00000000.db"
 	suffixLen  = len(".db")
 	// ErrNotOpened indicates db is not opened
 	ErrNotOpened = errors.New("DB is not opened")
+	// ErrMissingBlock indicates block db is missing blocks
+	ErrMissingBlock = errors.New("block db is missing block")
 )
 
 type (
@@ -169,6 +174,15 @@ func NewBlockDAO(kvstore db.KVStore, indexer BlockIndexer, compressBlock bool, c
 		return nil
 	}
 	blockDAO.timerFactory = timerFactory
+	// check if have old db
+	if blockDAO.isLegacyDB() {
+		// have to check and init here,because the following code will open chaindb
+		err = blockDAO.initMigrate()
+		if err != nil {
+			return nil
+		}
+	}
+
 	blockDAO.lifecycle.Add(kvstore)
 	if indexer != nil {
 		blockDAO.lifecycle.Add(indexer)
@@ -196,9 +210,6 @@ func (dao *blockDAO) Start(ctx context.Context) error {
 		return err
 	}
 	if dao.isLegacyDB() {
-		if err = dao.initMigrate(); err != nil {
-			return err
-		}
 		return dao.migrate()
 	}
 	return nil
