@@ -734,7 +734,10 @@ func (dao *blockDAO) deleteTipBlock() error {
 }
 
 func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint64, err error) {
-	topIndex := dao.topIndex.Load().(uint64)
+	topIndex, ok := dao.topIndex.Load().(uint64)
+	if !ok {
+		topIndex = 0
+	}
 	file, dir := getFileNameAndDir(dao.cfg.DbPath)
 	if err != nil {
 		return
