@@ -23,7 +23,6 @@ import (
 	"github.com/iotexproject/iotex-core/blockchain/block"
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/pkg/compress"
-	"github.com/iotexproject/iotex-core/pkg/enc"
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 )
@@ -98,7 +97,6 @@ func (dao *blockDAO) migrate() error {
 	if err := legacyDB.Start(context.Background()); err != nil {
 		return err
 	}
-	defer legacyDB.Stop(context.Background())
 
 	tipHeightValue, err := dao.kvstore.Get(blockNS, tipHeightKey)
 	if err != nil {
@@ -201,14 +199,9 @@ func (dao *blockDAO) putBlockForMigration(blk *block.Block) error {
 	heightValue := byteutil.Uint64ToBytes(blkHeight)
 	hashKey := hashKey(h)
 	dao.batch.Put(blockHashHeightMappingNS, hashKey, heightValue, "failed to put hash -> height mapping")
-	tipHeight, err := dao.kvstore.Get(blockNS, topHeightKey)
-	if err != nil {
-		return errors.Wrap(err, "failed to get top height")
-	}
-	if blkHeight > enc.MachineEndian.Uint64(tipHeight) {
-		dao.batch.Put(blockNS, topHeightKey, heightValue, "failed to put top height")
-		dao.batch.Put(blockNS, topHashKey, h[:], "failed to put top hash")
-	}
+	dao.batch.Put(blockNS, topHeightKey, heightValue, "failed to put top height")
+	dao.batch.Put(blockNS, topHashKey, h[:], "failed to put top hash")
+
 	return nil
 }
 
@@ -330,25 +323,11 @@ func (dao *blockDAO) getDBFromHash(h hash.Hash256) (db.KVStore, uint64, error) {
 
 // getBlockValue get block's data from db,if this db failed,it will try the previous one
 func (dao *blockDAO) getBlockValue(blockNS string, h hash.Hash256) ([]byte, error) {
-	whichDB, index, err := dao.getDBFromHash(h)
+	value, err := dao.kvstore.Get(blockNS, h[:])
 	if err != nil {
 		return nil, err
 	}
-	value, err := whichDB.Get(blockNS, h[:])
-	if errors.Cause(err) == db.ErrNotExist {
-		idx := index - 1
-		if index == 0 {
-			idx = 0
-		}
-		db, _, err := dao.getDBFromIndex(idx)
-		if err != nil {
-			return nil, err
-		}
-		value, err = db.Get(blockNS, h[:])
-		if err != nil {
-			return nil, err
-		}
-	}
+
 	return value, err
 }
 
