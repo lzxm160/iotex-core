@@ -163,10 +163,12 @@ func (dao *blockDAO) commitForMigration(kvstore db.KVStore) error {
 
 func (dao *blockDAO) putBlockForMigration(blk *block.Block) error {
 	blkHeight := blk.Height()
+	log.L().Info("putBlockForMigration:", zap.Uint64("height", blkHeight))
 	h, err := dao.getBlockHashLegacy(blkHeight)
 	if h != hash.ZeroHash256 && err == nil {
 		return errors.Errorf("block %d already exist", blkHeight)
 	}
+	log.L().Info("dao.getBlockHashLegacy(blkHeight):", zap.Uint64("height", blkHeight))
 	serBlk, err := blk.Serialize()
 	if err != nil {
 		return errors.Wrap(err, "failed to serialize block")
@@ -316,15 +318,6 @@ func (dao *blockDAO) footerLegacy(h hash.Hash256) (*block.Footer, error) {
 		return nil, errors.Wrapf(err, "failed to deserialize block footer %x", h)
 	}
 	return footer, nil
-}
-
-// getDBFromHash returns db of this block stored
-func (dao *blockDAO) getDBFromHash(h hash.Hash256) (db.KVStore, uint64, error) {
-	height, err := dao.getBlockHeight(h)
-	if err != nil {
-		return nil, 0, err
-	}
-	return dao.getDBFromHeight(height)
 }
 
 // getBlockValue get block's data from db,if this db failed,it will try the previous one
