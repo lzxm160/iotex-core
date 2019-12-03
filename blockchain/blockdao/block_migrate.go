@@ -11,11 +11,11 @@ import (
 	"os"
 	"path"
 
-	"github.com/iotexproject/iotex-election/util"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/byteutil"
 	"github.com/iotexproject/go-pkgs/hash"
+	"github.com/iotexproject/iotex-election/util"
+	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -24,7 +24,6 @@ import (
 	"github.com/iotexproject/iotex-core/db"
 	"github.com/iotexproject/iotex-core/pkg/compress"
 	"github.com/iotexproject/iotex-core/pkg/log"
-	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 )
 
 func (dao *blockDAO) isLegacyDB() bool {
