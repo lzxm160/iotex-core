@@ -130,7 +130,10 @@ func (dao *blockDAO) migrate() error {
 			log.L().Info("putBlock:", zap.Uint64("height", i))
 		}
 	}
-	dao.kvstore.Stop(context.Background())
+	err = dao.kvstore.Stop(context.Background())
+	if err != nil {
+		return err
+	}
 	dao.kvstore = db.NewBoltDB(cfg)
 	dao.lifecycle.Add(dao.kvstore)
 	return os.Remove(dao.cfg.DbPath + "bak")
