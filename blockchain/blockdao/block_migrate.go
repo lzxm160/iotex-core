@@ -101,10 +101,8 @@ func (dao *blockDAO) migrate() error {
 	if err := legacyDB.Start(context.Background()); err != nil {
 		return err
 	}
-	defer func() {
-		legacyDB.Stop(context.Background())
-		dao.kvstore.Stop(context.Background())
-	}()
+	defer legacyDB.Stop(context.Background())
+
 	log.L().Info("legacyDB.Start::")
 	tipHeightValue, err := dao.kvstore.Get(blockNS, tipHeightKey)
 	if err != nil {
@@ -131,7 +129,7 @@ func (dao *blockDAO) migrate() error {
 			log.L().Info("putBlock:", zap.Uint64("height", i))
 		}
 	}
-
+	dao.kvstore.Stop(context.Background())
 	dao.kvstore = db.NewBoltDB(cfg)
 	dao.lifecycle.Add(dao.kvstore)
 	return os.Remove(dao.cfg.DbPath + "bak")
