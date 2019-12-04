@@ -8,8 +8,11 @@ package blockdao
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
 	"os"
 	"path"
+	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/hash"
@@ -46,50 +49,51 @@ func (dao *blockDAO) isLegacyDB() bool {
 	return fileExists(fileName)
 }
 
-func (dao *blockDAO) initMigrate() error {
-	bakDbPath := path.Dir(dao.cfg.DbPath) + "/oldchain.db"
+func (dao *blockDAO) initMigrate() (bakDbPath string, err error) {
+	radomString := fmt.Sprintf("%d", rand.New(rand.NewSource(time.Now().Unix())).Int31())
+	bakDbPath = path.Dir(dao.cfg.DbPath) + "/" + radomString + "oldchain.db"
 	log.L().Info("bakDbPath::", zap.String("bakDbPath:", bakDbPath))
 	if err := os.Rename(dao.cfg.DbPath, bakDbPath); err != nil {
-		return err
+		return
 	}
 	cfgDB := dao.cfg
 	cfgDB.DbPath = bakDbPath
 	dao.kvstore = db.NewBoltDB(cfgDB)
 	if err := dao.kvstore.Start(context.Background()); err != nil {
-		return err
+		return
 	}
 	kv, _, err := dao.getTopDB(1)
 	if err != nil {
-		return err
+		return
 	}
 	if dao.blkStore, err = db.NewCountingIndexNX(kv, []byte(blockDataNS)); err != nil {
-		return err
+		return
 	}
 	if dao.blkStore.Size() == 0 {
 		if err = dao.blkStore.Add(make([]byte, 0), false); err != nil {
-			return err
+			return
 		}
 	}
 	if dao.receiptStore, err = db.NewCountingIndexNX(kv, []byte(recptDataNS)); err != nil {
-		return err
+		return
 	}
 	if dao.receiptStore.Size() == 0 {
 		if err = dao.receiptStore.Add(make([]byte, 0), false); err != nil {
-			return err
+			return
 		}
 	}
 	if dao.hashStore, err = db.NewCountingIndexNX(kv, []byte(hashDataNS)); err != nil {
-		return err
+		return
 	}
 	if dao.hashStore.Size() == 0 {
 		if err = dao.hashStore.Add(make([]byte, 0), false); err != nil {
-			return err
+			return
 		}
 	}
-	return nil
+	return
 }
 
-func (dao *blockDAO) migrate() error {
+func (dao *blockDAO) migrate(oldpath string) error {
 	cfg := dao.cfg
 	legacyDB := db.NewBoltDB(cfg)
 	if err := legacyDB.Start(context.Background()); err != nil {
@@ -119,7 +123,7 @@ func (dao *blockDAO) migrate() error {
 		}
 	}
 	dao.kvstore = legacyDB
-	return os.Remove(path.Dir(dao.cfg.DbPath) + "/oldchain.db")
+	return os.Remove(oldpath)
 }
 
 func (dao *blockDAO) getBlockByHeightLegacy(height uint64) (*block.Block, error) {

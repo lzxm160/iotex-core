@@ -187,11 +187,11 @@ func NewBlockDAO(kvstore db.KVStore, indexer BlockIndexer, compressBlock bool, c
 // Start starts block DAO and initiates the top height if it doesn't exist
 func (dao *blockDAO) Start(ctx context.Context) error {
 	if !dao.isLegacyDB() {
-		err := dao.initMigrate()
+		oldpath, err := dao.initMigrate()
 		if err != nil {
 			return nil
 		}
-		dao.migrate()
+		dao.migrate(oldpath)
 	}
 	err := dao.lifecycle.OnStart(ctx)
 	if err != nil {
