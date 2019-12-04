@@ -49,8 +49,6 @@ func (dao *blockDAO) isLegacyDB() bool {
 }
 
 func (dao *blockDAO) initMigrate() (err error) {
-	//radomString := fmt.Sprintf("%d", rand.New(rand.NewSource(time.Now().Unix())).Int31())
-	//bakDbPath = path.Dir(dao.cfg.DbPath) + "/" + radomString + "oldchain.db"
 	bakDbPath := dao.cfg.DbPath + "bak"
 	log.L().Info("bakDbPath::", zap.String("bakDbPath:", bakDbPath))
 	if err = os.Rename(dao.cfg.DbPath, bakDbPath); err != nil {
@@ -83,14 +81,6 @@ func (dao *blockDAO) initMigrate() (err error) {
 			return
 		}
 	}
-	if dao.hashStore, err = db.NewCountingIndexNX(kv, []byte(hashDataNS)); err != nil {
-		return
-	}
-	if dao.hashStore.Size() == 0 {
-		if err = dao.hashStore.Add(make([]byte, 0), false); err != nil {
-			return
-		}
-	}
 	return
 }
 
@@ -101,6 +91,16 @@ func (dao *blockDAO) migrate() error {
 	if err := legacyDB.Start(context.Background()); err != nil {
 		return err
 	}
+	var err error
+	if dao.hashStore, err = db.NewCountingIndexNX(legacyDB, []byte(hashDataNS)); err != nil {
+		return err
+	}
+	if dao.hashStore.Size() == 0 {
+		if err := dao.hashStore.Add(make([]byte, 0), false); err != nil {
+			return err
+		}
+	}
+
 	defer func() {
 		legacyDB.Stop(context.Background())
 	}()
