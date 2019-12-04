@@ -62,6 +62,7 @@ func (dao *blockDAO) initMigrate() (bakDbPath string, err error) {
 	if err = dao.kvstore.Start(context.Background()); err != nil {
 		return
 	}
+	log.L().Info("dao.kvstore.Start::", zap.String("bakDbPath:", cfgDB.DbPath))
 	kv, _, err := dao.getTopDB(1)
 	if err != nil {
 		return
