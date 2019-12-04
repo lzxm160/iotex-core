@@ -642,6 +642,7 @@ func (dao *blockDAO) putBlock(blk *block.Block) error {
 		return errors.Wrap(err, "failed to get top height")
 	}
 	if blkHeight > enc.MachineEndian.Uint64(tipHeight) {
+		log.L().Info("batch.Put(blockNS, topHeightKey, heightValue", zap.Uint64("topHeightKey", blkHeight))
 		batch.Put(blockNS, topHeightKey, heightValue, "failed to put top height")
 		batch.Put(blockNS, topHashKey, hash[:], "failed to put top hash")
 	}

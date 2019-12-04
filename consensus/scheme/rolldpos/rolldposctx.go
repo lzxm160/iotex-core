@@ -295,7 +295,6 @@ func (ctx *rollDPoSCtx) Prepare() error {
 	ctx.mutex.Lock()
 	defer ctx.mutex.Unlock()
 	height := ctx.chain.TipHeight() + 1
-	log.L().Info("(ctx *rollDPoSCtx) Prepare()", zap.Uint64("tip height", height))
 	newRound, err := ctx.roundCalc.UpdateRound(ctx.round, height, ctx.BlockInterval(height), ctx.clock.Now(), ctx.toleratedOvertime)
 	if err != nil {
 		return err
