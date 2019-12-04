@@ -56,7 +56,7 @@ func (b *blockBuffer) Flush(blk *block.Block) (bool, bCheckinResult) {
 		return false, bCheckinSkipNil
 	}
 	confirmedHeight := b.bc.TipHeight()
-	log.L().Info("flush:", zap.Uint64("confirmedHeight", confirmedHeight), zap.Uint64("blk height", blk.Height()))
+
 	// check
 	blkHeight := blk.Height()
 	if blkHeight <= confirmedHeight {

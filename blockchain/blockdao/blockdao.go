@@ -372,6 +372,7 @@ func (dao *blockDAO) getBlockHash(height uint64) (hash.Hash256, error) {
 	if height == 0 {
 		return h, nil
 	}
+	log.L().Info("getBlockHash:", zap.Uint64("height", height))
 	key := heightKey(height)
 	value, err := dao.kvstore.Get(blockHashHeightMappingNS, key)
 	if err != nil {
