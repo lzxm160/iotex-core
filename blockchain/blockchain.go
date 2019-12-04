@@ -401,10 +401,14 @@ func (bc *blockchain) Start(ctx context.Context) error {
 		blk, err := GetTopBlock(ws.GetDB())
 		if err == nil {
 			log.L().Info("start from checkpoint:", zap.Uint64("height", blk.Height()))
-			return bc.dao.PutBlock(blk)
+			err = bc.dao.PutBlock(blk)
+			if err != nil {
+				return err
+			}
 		}
-		log.L().Error("GetTopBlock:", zap.Error(err))
-		return nil
+		bc.tipHeight = blk.Height()
+		//log.L().Error("GetTopBlock:", zap.Error(err))
+		//return nil
 	}
 	// get blockchain tip hash
 	if bc.tipHash, err = bc.dao.GetTipHash(); err != nil {
