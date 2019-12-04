@@ -8,11 +8,8 @@ package blockdao
 
 import (
 	"context"
-	"fmt"
-	"math/rand"
 	"os"
 	"path"
-	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/hash"
@@ -51,9 +48,10 @@ func (dao *blockDAO) isLegacyDB() bool {
 	return fileExists(fileName)
 }
 
-func (dao *blockDAO) initMigrate() (bakDbPath string, err error) {
-	radomString := fmt.Sprintf("%d", rand.New(rand.NewSource(time.Now().Unix())).Int31())
-	bakDbPath = path.Dir(dao.cfg.DbPath) + "/" + radomString + "oldchain.db"
+func (dao *blockDAO) initMigrate() (err error) {
+	//radomString := fmt.Sprintf("%d", rand.New(rand.NewSource(time.Now().Unix())).Int31())
+	//bakDbPath = path.Dir(dao.cfg.DbPath) + "/" + radomString + "oldchain.db"
+	bakDbPath := dao.cfg.DbPath + "bak"
 	log.L().Info("bakDbPath::", zap.String("bakDbPath:", bakDbPath))
 	if err = os.Rename(dao.cfg.DbPath, bakDbPath); err != nil {
 		return
@@ -96,7 +94,7 @@ func (dao *blockDAO) initMigrate() (bakDbPath string, err error) {
 	return
 }
 
-func (dao *blockDAO) migrate(oldpath string) error {
+func (dao *blockDAO) migrate() error {
 	cfg := dao.cfg
 	log.L().Info("migrate::", zap.String("newpath:", cfg.DbPath))
 	legacyDB := db.NewBoltDB(cfg)
@@ -132,7 +130,7 @@ func (dao *blockDAO) migrate(oldpath string) error {
 	}
 	dao.kvstore = db.NewBoltDB(cfg)
 	dao.lifecycle.Add(dao.kvstore)
-	return os.Remove(oldpath)
+	return os.Remove(dao.cfg.DbPath + "bak")
 }
 
 func (dao *blockDAO) getBlockByHeightLegacy(height uint64) (*block.Block, error) {
