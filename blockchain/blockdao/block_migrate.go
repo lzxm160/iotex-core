@@ -95,12 +95,13 @@ func (dao *blockDAO) initMigrate() (bakDbPath string, err error) {
 }
 
 func (dao *blockDAO) migrate(oldpath string) error {
-	log.L().Info("migrate::", zap.String("oldpath:", oldpath))
 	cfg := dao.cfg
+	log.L().Info("migrate::", zap.String("oldpath:", cfg.DbPath))
 	legacyDB := db.NewBoltDB(cfg)
 	if err := legacyDB.Start(context.Background()); err != nil {
 		return err
 	}
+	log.L().Info("legacyDB.Start::")
 	tipHeightValue, err := dao.kvstore.Get(blockNS, tipHeightKey)
 	if err != nil {
 		return err
