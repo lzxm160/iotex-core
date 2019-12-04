@@ -53,13 +53,13 @@ func (dao *blockDAO) initMigrate() (bakDbPath string, err error) {
 	radomString := fmt.Sprintf("%d", rand.New(rand.NewSource(time.Now().Unix())).Int31())
 	bakDbPath = path.Dir(dao.cfg.DbPath) + "/" + radomString + "oldchain.db"
 	log.L().Info("bakDbPath::", zap.String("bakDbPath:", bakDbPath))
-	if err := os.Rename(dao.cfg.DbPath, bakDbPath); err != nil {
+	if err = os.Rename(dao.cfg.DbPath, bakDbPath); err != nil {
 		return
 	}
 	cfgDB := dao.cfg
 	cfgDB.DbPath = bakDbPath
 	dao.kvstore = db.NewBoltDB(cfgDB)
-	if err := dao.kvstore.Start(context.Background()); err != nil {
+	if err = dao.kvstore.Start(context.Background()); err != nil {
 		return
 	}
 	kv, _, err := dao.getTopDB(1)
