@@ -131,6 +131,7 @@ func (dao *blockDAO) migrate(oldpath string) error {
 		}
 	}
 	dao.kvstore = db.NewBoltDB(cfg)
+	dao.lifecycle.Add(dao.kvstore)
 	return os.Remove(oldpath)
 }
 
