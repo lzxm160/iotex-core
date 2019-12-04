@@ -95,6 +95,7 @@ func (dao *blockDAO) initMigrate() (bakDbPath string, err error) {
 }
 
 func (dao *blockDAO) migrate(oldpath string) error {
+	log.L().Info("migrate::", zap.String("oldpath:", oldpath))
 	cfg := dao.cfg
 	legacyDB := db.NewBoltDB(cfg)
 	if err := legacyDB.Start(context.Background()); err != nil {
