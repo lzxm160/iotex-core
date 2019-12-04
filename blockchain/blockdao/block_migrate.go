@@ -43,6 +43,8 @@ func (dao *blockDAO) isLegacyDB() bool {
 	var fileName string
 	if len(ext) > 0 {
 		fileName = dao.cfg.DbPath[:len(dao.cfg.DbPath)-len(ext)] + pattern
+	} else {
+		fileName = dao.cfg.DbPath + pattern
 	}
 	log.L().Info("checkOldDB::", zap.String("fileName", fileName))
 
