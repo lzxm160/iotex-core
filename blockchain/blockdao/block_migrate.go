@@ -101,8 +101,9 @@ func (dao *blockDAO) migrate() error {
 	if err := legacyDB.Start(context.Background()); err != nil {
 		return err
 	}
-	defer legacyDB.Stop(context.Background())
-
+	defer func() {
+		legacyDB.Stop(context.Background())
+	}()
 	log.L().Info("legacyDB.Start::")
 	tipHeightValue, err := dao.kvstore.Get(blockNS, tipHeightKey)
 	if err != nil {
