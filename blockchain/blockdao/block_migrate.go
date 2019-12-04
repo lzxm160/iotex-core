@@ -104,7 +104,9 @@ func (dao *blockDAO) migrate(oldpath string) error {
 	if err != nil {
 		return err
 	}
+
 	tipHeight := byteutil.BytesToUint64(tipHeightValue)
+	log.L().Info("migrate::", zap.Uint64("height:", tipHeight))
 	for i := uint64(1); i <= tipHeight; i++ {
 		blk, err := dao.getBlockByHeightLegacy(i)
 		if err != nil {
