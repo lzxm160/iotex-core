@@ -178,9 +178,9 @@ func NewBlockDAO(kvstore db.KVStore, indexer BlockIndexer, compressBlock bool, c
 		blockDAO.lifecycle.Add(indexer)
 	}
 	// check if have old db
-	if blockDAO.isLegacyDB() {
-		blockDAO.lifecycle.Add(kvstore)
-	}
+
+	blockDAO.lifecycle.Add(kvstore)
+
 	return blockDAO
 }
 
