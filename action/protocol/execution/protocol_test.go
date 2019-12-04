@@ -455,11 +455,14 @@ func TestProtocol_Handle(t *testing.T) {
 		testDBPath := testDBFile.Name()
 		testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
 		testIndexPath := testIndexFile.Name()
+		testConsensusFile, _ := ioutil.TempFile(os.TempDir(), "consensus")
+		testConsensusPath := testConsensusFile.Name()
 
 		cfg.Plugins[config.GatewayPlugin] = true
 		cfg.Chain.TrieDBPath = testTriePath
 		cfg.Chain.ChainDBPath = testDBPath
 		cfg.Chain.IndexDBPath = testIndexPath
+		cfg.Consensus.RollDPoS.ConsensusDBPath = testConsensusPath
 		cfg.Chain.EnableAsyncIndexWrite = false
 		cfg.Genesis.EnableGravityChainVoting = false
 		cfg.Genesis.InitBalanceMap[identityset.Address(27).String()] = unit.ConvertIotxToRau(1000000000).String()
