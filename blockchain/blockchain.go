@@ -415,6 +415,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 				}
 			}
 		}
+		return nil
 	}
 	// get blockchain tip hash
 	if bc.tipHash, err = bc.dao.GetTipHash(); err != nil {
