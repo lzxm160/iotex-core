@@ -140,6 +140,26 @@ func GetTopBlock(kv db.KVStore) (*block.Block, error) {
 	}
 	return GetBlock(kv, heightValue)
 }
+func GetLastEpochBlock(bc Blockchain, height uint64) (ret *block.Block, err error) {
+	ws, err := bc.Factory().NewWorkingSet()
+	if err != nil {
+		return
+	}
+	kv := ws.GetDB()
+	ctx, err := bc.Context()
+	if err != nil {
+		return
+	}
+	bcCtx := protocol.MustGetBlockchainCtx(ctx)
+	rp := rolldpos.MustGetProtocol(bcCtx.Registry)
+	epochNum := rp.GetEpochNum(height)
+	if epochNum > 1 {
+		beforeLastBlkHeight := rp.GetEpochHeight(epochNum - 1)
+		heightValue := byteutil.Uint64ToBytes(beforeLastBlkHeight)
+		ret, err = GetBlock(kv, heightValue)
+	}
+	return
+}
 func GetBlock(kv db.KVStore, heightValue []byte) (*block.Block, error) {
 	blkSer, err := kv.Get(blockNS, heightValue)
 	if err != nil {
