@@ -391,6 +391,15 @@ func (bc *blockchain) Start(ctx context.Context) error {
 	if bc.tipHeight, err = bc.dao.GetTipHeight(); err != nil {
 		return err
 	}
+	if bcCtx, ok := protocol.GetBlockchainCtx(ctx); ok {
+		for _, p := range bcCtx.Registry.All() {
+			if s, ok := p.(lifecycle.Starter); ok {
+				if err := s.Start(ctx); err != nil {
+					return errors.Wrap(err, "failed to start protocol")
+				}
+			}
+		}
+	}
 	if bc.tipHeight == 0 {
 		log.L().Info("bc.tipHeight:", zap.Uint64("height", bc.tipHeight))
 		// if have trie.db,start from trie.db
@@ -423,16 +432,6 @@ func (bc *blockchain) Start(ctx context.Context) error {
 	// get blockchain tip hash
 	if bc.tipHash, err = bc.dao.GetTipHash(); err != nil {
 		return err
-	}
-
-	if bcCtx, ok := protocol.GetBlockchainCtx(ctx); ok {
-		for _, p := range bcCtx.Registry.All() {
-			if s, ok := p.(lifecycle.Starter); ok {
-				if err := s.Start(ctx); err != nil {
-					return errors.Wrap(err, "failed to start protocol")
-				}
-			}
-		}
 	}
 
 	return bc.startExistingBlockchain(ctx)
