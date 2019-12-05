@@ -413,6 +413,8 @@ func (bc *blockchain) Start(ctx context.Context) error {
 				if err != nil {
 					return err
 				}
+			} else {
+				log.L().Error("GetLastEpochBlock", zap.Error(err))
 			}
 		}
 		return nil
