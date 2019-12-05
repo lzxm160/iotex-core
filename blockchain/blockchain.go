@@ -402,6 +402,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 		if err == nil {
 			log.L().Info("start from checkpoint:", zap.Uint64("height", blk.Height()))
 			err = bc.dao.PutBlock(blk)
+			log.L().Error("bc.dao.PutBlock(blk)", zap.Error(err))
 			if err != nil {
 				return err
 			}
