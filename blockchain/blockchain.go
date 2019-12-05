@@ -405,16 +405,14 @@ func (bc *blockchain) Start(ctx context.Context) error {
 			if err != nil {
 				return err
 			}
-		}
-		bc.tipHeight = blk.Height()
-		//log.L().Error("GetTopBlock:", zap.Error(err))
-		//return nil
-		blk, err = GetLastEpochBlock(bc, bc.tipHeight)
-		if err == nil {
-			log.L().Info("GetLastEpochBlock:", zap.Uint64("height", blk.Height()))
-			err = bc.dao.PutBlock(blk)
-			if err != nil {
-				return err
+			bc.tipHeight = blk.Height()
+			blk, err = GetLastEpochBlock(bc, bc.tipHeight)
+			if err == nil {
+				log.L().Info("GetLastEpochBlock:", zap.Uint64("height", blk.Height()))
+				err = bc.dao.PutBlock(blk)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
