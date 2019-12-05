@@ -150,6 +150,8 @@ func GetLastEpochBlock(bc Blockchain, height uint64) (ret *block.Block, err erro
 	if err != nil {
 		return
 	}
+	log.L().Info("GetLastEpochBlock:", zap.Uint64("height", height))
+
 	bcCtx := protocol.MustGetBlockchainCtx(ctx)
 	rp := rolldpos.MustGetProtocol(bcCtx.Registry)
 	epochNum := rp.GetEpochNum(height)
