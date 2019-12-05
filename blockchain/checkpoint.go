@@ -142,16 +142,27 @@ func GetTopBlock(kv db.KVStore) (*block.Block, error) {
 	}
 	return GetBlock(kv, heightValue)
 }
-func GetLastEpochBlock(kv db.KVStore, ctx context.Context, height uint64) (ret *block.Block, err error) {
+func GetLastEpochBlock(kv db.KVStore, ctx context.Context, height uint64) (ret []*block.Block, err error) {
 	log.L().Info("GetLastEpochBlock:", zap.Uint64("height", height))
 	bcCtx := protocol.MustGetBlockchainCtx(ctx)
 	rp := rolldpos.MustGetProtocol(bcCtx.Registry)
 	epochNum := rp.GetEpochNum(height)
+	epochNumHeight := rp.GetEpochHeight(epochNum)
+	heightValue := byteutil.Uint64ToBytes(epochNumHeight)
+	blk, err := GetBlock(kv, heightValue)
+	if err != nil {
+		return
+	}
+	ret = append(ret, blk)
 	if epochNum > 1 {
 		log.L().Info("epochNum-1", zap.Uint64("epochNum-1", epochNum-1))
 		beforeLastBlkHeight := rp.GetEpochHeight(epochNum - 1)
 		heightValue := byteutil.Uint64ToBytes(beforeLastBlkHeight)
-		ret, err = GetBlock(kv, heightValue)
+		blk, err = GetBlock(kv, heightValue)
+		if err != nil {
+			return
+		}
+		ret = append(ret, blk)
 	}
 	return
 }

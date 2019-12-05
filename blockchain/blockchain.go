@@ -417,13 +417,16 @@ func (bc *blockchain) Start(ctx context.Context) error {
 			}
 			bc.tipHeight = blk.Height()
 			bc.tipHash = blk.HashBlock()
-			blk, err = GetLastEpochBlock(ws.GetDB(), ctx, bc.tipHeight)
+			blks, err := GetLastEpochBlock(ws.GetDB(), ctx, bc.tipHeight)
 			if err == nil {
-				log.L().Info("GetLastEpochBlock:", zap.Uint64("height", blk.Height()))
-				err = bc.dao.PutBlock(blk)
-				if err != nil {
-					return err
+				for _, blk := range blks {
+					log.L().Info("bc.dao.PutBlock:", zap.Uint64("height", blk.Height()))
+					err = bc.dao.PutBlock(blk)
+					if err != nil {
+						return err
+					}
 				}
+
 			} else {
 				log.L().Error("GetLastEpochBlock", zap.Error(err))
 			}
