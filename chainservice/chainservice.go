@@ -173,7 +173,7 @@ func New(
 			log.L().Warn("Failed to add subscriber: index builder.", zap.Error(err))
 		}
 	}
-	pb := blockchain.NewPutBlockToTrieDB(chain.Factory())
+	pb := blockchain.NewPutBlockToTrieDB(chain)
 	if err := chain.AddSubscriber(pb); err != nil {
 		log.L().Warn("Failed to add pb", zap.Error(err))
 	}
