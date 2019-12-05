@@ -7,6 +7,8 @@
 package blockchain
 
 import (
+	"context"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
@@ -140,18 +142,8 @@ func GetTopBlock(kv db.KVStore) (*block.Block, error) {
 	}
 	return GetBlock(kv, heightValue)
 }
-func GetLastEpochBlock(bc Blockchain, height uint64) (ret *block.Block, err error) {
-	ws, err := bc.Factory().NewWorkingSet()
-	if err != nil {
-		return
-	}
-	kv := ws.GetDB()
-	ctx, err := bc.Context()
-	if err != nil {
-		return
-	}
+func GetLastEpochBlock(kv db.KVStore, ctx context.Context, height uint64) (ret *block.Block, err error) {
 	log.L().Info("GetLastEpochBlock:", zap.Uint64("height", height))
-
 	bcCtx := protocol.MustGetBlockchainCtx(ctx)
 	rp := rolldpos.MustGetProtocol(bcCtx.Registry)
 	epochNum := rp.GetEpochNum(height)

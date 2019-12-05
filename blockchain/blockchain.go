@@ -416,7 +416,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 				return err
 			}
 			bc.tipHeight = blk.Height()
-			blk, err = GetLastEpochBlock(bc, bc.tipHeight)
+			blk, err = GetLastEpochBlock(ws.GetDB(), ctx, bc.tipHeight)
 			if err == nil {
 				log.L().Info("GetLastEpochBlock:", zap.Uint64("height", blk.Height()))
 				err = bc.dao.PutBlock(blk)
