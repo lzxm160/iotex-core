@@ -416,6 +416,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 				return err
 			}
 			bc.tipHeight = blk.Height()
+			bc.tipHash = blk.HashBlock()
 			blk, err = GetLastEpochBlock(ws.GetDB(), ctx, bc.tipHeight)
 			if err == nil {
 				log.L().Info("GetLastEpochBlock:", zap.Uint64("height", blk.Height()))
