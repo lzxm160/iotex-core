@@ -83,6 +83,7 @@ func (pb *PutBlockToTrieDB) HandleBlock(blk *block.Block) error {
 		return err
 	}
 	if blk.Height() > 721 {
+		log.L().Error("HandleBlock del", zap.Uint64("height", blk.Height()-721))
 		pb.delBlock(blk.Height() - 721)
 	}
 	return nil
