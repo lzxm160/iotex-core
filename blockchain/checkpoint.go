@@ -102,6 +102,7 @@ func (pb *PutBlockToTrieDB) writeEpoch(blk *block.Block) error {
 		return err
 	}
 	heightKey := byteutil.Uint64ToBytes(epochBlk.Height())
+	log.L().Info("writeEpoch:", zap.Uint64("blk.Height()", blk.Height()), zap.Uint64("epochHeight", epochHeight))
 	if err = pb.writeBlock(epochBlk, heightKey); err != nil {
 		return err
 	}
@@ -112,6 +113,7 @@ func (pb *PutBlockToTrieDB) writeEpoch(blk *block.Block) error {
 		if err != nil {
 			return err
 		}
+		log.L().Info("writeEpoch:", zap.Uint64("beforeLastBlkHeightBlk.Height()", beforeLastBlkHeightBlk.Height()), zap.Uint64("beforeLastBlkHeight", beforeLastBlkHeight))
 		heightKey = byteutil.Uint64ToBytes(beforeLastBlkHeightBlk.Height())
 		if err = pb.writeBlock(beforeLastBlkHeightBlk, heightKey); err != nil {
 			return err
@@ -119,6 +121,7 @@ func (pb *PutBlockToTrieDB) writeEpoch(blk *block.Block) error {
 	}
 	if epochNum > 2 {
 		needDelBlkHeight := rp.GetEpochHeight(epochNum - 2)
+		log.L().Info("writeEpoch:", zap.Uint64("needDelBlkHeight", needDelBlkHeight))
 		if err = pb.delBlock(needDelBlkHeight); err != nil {
 			return err
 		}
