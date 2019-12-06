@@ -117,6 +117,24 @@ func (pb *PutBlockToTrieDB) writeEpoch(blk *block.Block, epochNum uint64, rp *ro
 		return err
 	}
 
+	if epochHeight > 1 {
+		epochHeight--
+		epochBlk, err := pb.bc.BlockDAO().GetBlockByHeight(epochHeight)
+		if err != nil {
+			return err
+		}
+		epochBlk.Receipts, err = pb.bc.BlockDAO().GetReceipts(epochHeight)
+		if err != nil {
+			return err
+		}
+
+		heightKey := byteutil.Uint64ToBytes(epochBlk.Height())
+		log.L().Info("writeEpoch:", zap.Uint64("blk.Height()", blk.Height()), zap.Uint64("epochHeight", epochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
+		if err = pb.writeBlock(epochBlk, heightKey); err != nil {
+			return err
+		}
+	}
+
 	if epochNum > 1 {
 		beforeLastBlkHeight := rp.GetEpochHeight(epochNum - 1)
 		beforeLastBlkHeightBlk, err := pb.bc.BlockDAO().GetBlockByHeight(beforeLastBlkHeight)
@@ -132,12 +150,34 @@ func (pb *PutBlockToTrieDB) writeEpoch(blk *block.Block, epochNum uint64, rp *ro
 		if err = pb.writeBlock(beforeLastBlkHeightBlk, heightKey); err != nil {
 			return err
 		}
+
+		if beforeLastBlkHeight > 1 {
+			beforeLastBlkHeight--
+			beforeLastBlkHeightBlk, err := pb.bc.BlockDAO().GetBlockByHeight(beforeLastBlkHeight)
+			if err != nil {
+				return err
+			}
+			beforeLastBlkHeightBlk.Receipts, err = pb.bc.BlockDAO().GetReceipts(beforeLastBlkHeight)
+			if err != nil {
+				return err
+			}
+			heightKey = byteutil.Uint64ToBytes(beforeLastBlkHeightBlk.Height())
+			log.L().Info("writeEpoch:", zap.Uint64("beforeLastBlkHeightBlk.Height()", beforeLastBlkHeightBlk.Height()), zap.Uint64("beforeLastBlkHeight", beforeLastBlkHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
+			if err = pb.writeBlock(beforeLastBlkHeightBlk, heightKey); err != nil {
+				return err
+			}
+		}
 	}
 	if epochNum > 2 {
 		needDelBlkHeight := rp.GetEpochHeight(epochNum - 2)
 		log.L().Info("writeEpoch:", zap.Uint64("needDelBlkHeight", needDelBlkHeight))
 		if err = pb.delBlock(needDelBlkHeight); err != nil {
 			return err
+		}
+		if needDelBlkHeight > 1 {
+			if err = pb.delBlock(needDelBlkHeight - 1); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
