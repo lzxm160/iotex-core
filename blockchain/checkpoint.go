@@ -40,7 +40,7 @@ func NewPutBlockToTrieDB(bc Blockchain) *PutBlockToTrieDB {
 	}
 	return p
 }
-func (pb *PutBlockToTrieDB) writeBlock(blk *block.Block) error {
+func (pb *PutBlockToTrieDB) writeBlock(blk *block.Block, key []byte) error {
 	ws, err := pb.bc.Factory().NewWorkingSet()
 	if err != nil {
 		return err
@@ -49,8 +49,8 @@ func (pb *PutBlockToTrieDB) writeBlock(blk *block.Block) error {
 	blkHeight := blk.Height()
 	blkSer, err := blk.Serialize()
 	batch := db.NewBatch()
-	heightKey := byteutil.Uint64ToBytes(blk.Height())
-	batch.Put(blockNS, heightKey, blkSer, "failed to put block")
+
+	batch.Put(blockNS, key, blkSer, "failed to put block")
 	// write receipts
 	if blk.Receipts != nil {
 		receipts := iotextypes.Receipts{}
@@ -58,7 +58,7 @@ func (pb *PutBlockToTrieDB) writeBlock(blk *block.Block) error {
 			receipts.Receipts = append(receipts.Receipts, r.ConvertToReceiptPb())
 		}
 		if receiptsBytes, err := proto.Marshal(&receipts); err == nil {
-			batch.Put(blockReceipNS, heightKey, receiptsBytes, "failed to put receipts")
+			batch.Put(blockReceipNS, key, receiptsBytes, "failed to put receipts")
 		} else {
 			log.L().Error("failed to serialize receipits for block", zap.Uint64("height", blkHeight))
 		}
@@ -71,29 +71,17 @@ func (pb *PutBlockToTrieDB) delBlock(height uint64) error {
 		return err
 	}
 	kv := ws.GetDB()
-	heightValue := byteutil.Uint64ToBytes(height)
+	heightKey := byteutil.Uint64ToBytes(height)
 	batch := db.NewBatch()
-	batch.Delete(blockNS, heightValue, "failed to del block")
-	batch.Delete(blockReceipNS, heightValue, "failed to del receipts")
+	batch.Delete(blockNS, heightKey, "failed to del block")
+	batch.Delete(blockReceipNS, heightKey, "failed to del receipts")
 	return kv.Commit(batch)
 }
-func (pb *PutBlockToTrieDB) writeBlockAndTop(blk *block.Block) error {
-	err := pb.writeBlock(blk)
-	if err != nil {
-		return err
-	}
-	ws, err := pb.bc.Factory().NewWorkingSet()
-	if err != nil {
-		return err
-	}
-	kv := ws.GetDB()
-	heightValue := byteutil.Uint64ToBytes(blk.Height())
-	batch := db.NewBatch()
-	batch.Put(blockTopNS, topBlockKey, heightValue, "failed to put block")
-	return kv.Commit(batch)
+func (pb *PutBlockToTrieDB) writeTopBlock(blk *block.Block) error {
+	return pb.writeBlock(blk, topBlockKey)
 }
 func (pb *PutBlockToTrieDB) HandleBlock(blk *block.Block) error {
-	err := pb.writeBlockAndTop(blk)
+	err := pb.writeTopBlock(blk)
 	if err != nil {
 		return err
 	}
@@ -113,7 +101,8 @@ func (pb *PutBlockToTrieDB) writeEpoch(blk *block.Block) error {
 	if err != nil {
 		return err
 	}
-	if err = pb.writeBlock(epochBlk); err != nil {
+	heightKey := byteutil.Uint64ToBytes(epochBlk.Height())
+	if err = pb.writeBlock(epochBlk, heightKey); err != nil {
 		return err
 	}
 
@@ -123,7 +112,8 @@ func (pb *PutBlockToTrieDB) writeEpoch(blk *block.Block) error {
 		if err != nil {
 			return err
 		}
-		if err = pb.writeBlock(beforeLastBlkHeightBlk); err != nil {
+		heightKey = byteutil.Uint64ToBytes(beforeLastBlkHeightBlk.Height())
+		if err = pb.writeBlock(beforeLastBlkHeightBlk, heightKey); err != nil {
 			return err
 		}
 	}
@@ -136,11 +126,7 @@ func (pb *PutBlockToTrieDB) writeEpoch(blk *block.Block) error {
 	return nil
 }
 func GetTopBlock(kv db.KVStore) (*block.Block, error) {
-	heightValue, err := kv.Get(blockTopNS, topBlockKey)
-	if err != nil {
-		return nil, err
-	}
-	return GetBlock(kv, heightValue)
+	return GetBlock(kv, topBlockKey)
 }
 func GetLastEpochBlock(kv db.KVStore, ctx context.Context, height uint64) (ret []*block.Block, err error) {
 	log.L().Info("GetLastEpochBlock:", zap.Uint64("height", height))
