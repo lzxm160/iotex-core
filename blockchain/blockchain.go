@@ -13,6 +13,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
+
 	"github.com/facebookgo/clock"
 	"github.com/iotexproject/go-pkgs/bloom"
 	"github.com/iotexproject/go-pkgs/hash"
@@ -417,18 +419,22 @@ func (bc *blockchain) Start(ctx context.Context) error {
 			}
 			bc.tipHeight = blk.Height()
 			bc.tipHash = blk.HashBlock()
-			blks, err := GetLastEpochBlock(ws.GetDB(), ctx, bc.tipHeight)
-			if err == nil {
-				for _, blk := range blks {
+			startHeight := uint64(1)
+			if blk.Height() > uint64(721) {
+				startHeight = blk.Height() - uint64(721)
+			}
+			for i := startHeight; i < blk.Height(); i++ {
+				heightValue := byteutil.Uint64ToBytes(i)
+				blks, err := GetBlock(ws.GetDB(), heightValue)
+				if err == nil {
 					log.L().Info("bc.dao.PutBlock:", zap.Uint64("height", blk.Height()))
-					err = bc.dao.PutBlock(blk)
+					err = bc.dao.PutBlock(blks)
 					if err != nil {
 						return err
 					}
+				} else {
+					log.L().Error("GetLastEpochBlock", zap.Error(err))
 				}
-
-			} else {
-				log.L().Error("GetLastEpochBlock", zap.Error(err))
 			}
 		}
 		return nil

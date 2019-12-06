@@ -7,13 +7,8 @@
 package blockchain
 
 import (
-	"context"
-	"encoding/hex"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/iotex-core/action"
-	"github.com/iotexproject/iotex-core/action/protocol"
-	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -64,6 +59,8 @@ func (pb *PutBlockToTrieDB) writeBlock(blk *block.Block, key []byte) error {
 			log.L().Error("failed to serialize receipits for block", zap.Uint64("height", blkHeight))
 		}
 	}
+	heightValue := byteutil.Uint64ToBytes(blk.Height())
+	batch.Put(blockTopNS, topBlockKey, heightValue, "failed to put block")
 	return kv.Commit(batch)
 }
 func (pb *PutBlockToTrieDB) delBlock(height uint64) error {
@@ -78,161 +75,158 @@ func (pb *PutBlockToTrieDB) delBlock(height uint64) error {
 	batch.Delete(blockReceipNS, heightKey, "failed to del receipts")
 	return kv.Commit(batch)
 }
-func (pb *PutBlockToTrieDB) writeTopBlock(blk *block.Block) error {
-	return pb.writeBlock(blk, topBlockKey)
-}
+
 func (pb *PutBlockToTrieDB) HandleBlock(blk *block.Block) error {
-	err := pb.writeTopBlock(blk)
+	heightKey := byteutil.Uint64ToBytes(blk.Height())
+	err := pb.writeBlock(blk, heightKey)
 	if err != nil {
 		return err
 	}
-	ctx, err := pb.bc.Context()
-	if err != nil {
-		return err
-	}
-	bcCtx := protocol.MustGetBlockchainCtx(ctx)
-	rp := rolldpos.MustGetProtocol(bcCtx.Registry)
-	epochNum := rp.GetEpochNum(blk.Height())
-	epochHeight := rp.GetEpochHeight(epochNum)
-	if epochHeight == blk.Height() {
-		return pb.writeEpoch(blk, epochNum, rp)
+	if blk.Height() > 721 {
+		pb.delBlock(blk.Height() - 721)
 	}
 	return nil
 }
-func (pb *PutBlockToTrieDB) writeEpoch(blk *block.Block, epochNum uint64, rp *rolldpos.Protocol) error {
-	// need write the current and the last epoch height and del the epoch height before the last epoch height
-	epochHeight := blk.Height()
-	epochBlk, err := pb.bc.BlockDAO().GetBlockByHeight(epochHeight)
-	if err != nil {
-		return err
-	}
-	epochBlk.Receipts, err = pb.bc.BlockDAO().GetReceipts(epochHeight)
-	if err != nil {
-		return err
-	}
 
-	heightKey := byteutil.Uint64ToBytes(epochBlk.Height())
-	log.L().Info("writeEpoch:", zap.Uint64("blk.Height()", blk.Height()), zap.Uint64("epochHeight", epochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
-	if err = pb.writeBlock(epochBlk, heightKey); err != nil {
-		return err
-	}
-
-	if epochHeight > 1 {
-		epochHeight--
-		epochBlk, err := pb.bc.BlockDAO().GetBlockByHeight(epochHeight)
-		if err != nil {
-			return err
-		}
-		epochBlk.Receipts, err = pb.bc.BlockDAO().GetReceipts(epochHeight)
-		if err != nil {
-			return err
-		}
-
-		heightKey := byteutil.Uint64ToBytes(epochBlk.Height())
-		log.L().Info("writeEpoch:", zap.Uint64("blk.Height()", blk.Height()), zap.Uint64("epochHeight", epochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
-		if err = pb.writeBlock(epochBlk, heightKey); err != nil {
-			return err
-		}
-	}
-
-	if epochNum > 1 {
-		beforeLastBlkHeight := rp.GetEpochHeight(epochNum - 1)
-		beforeLastBlkHeightBlk, err := pb.bc.BlockDAO().GetBlockByHeight(beforeLastBlkHeight)
-		if err != nil {
-			return err
-		}
-		beforeLastBlkHeightBlk.Receipts, err = pb.bc.BlockDAO().GetReceipts(beforeLastBlkHeight)
-		if err != nil {
-			return err
-		}
-		heightKey = byteutil.Uint64ToBytes(beforeLastBlkHeightBlk.Height())
-		log.L().Info("writeEpoch:", zap.Uint64("beforeLastBlkHeightBlk.Height()", beforeLastBlkHeightBlk.Height()), zap.Uint64("beforeLastBlkHeight", beforeLastBlkHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
-		if err = pb.writeBlock(beforeLastBlkHeightBlk, heightKey); err != nil {
-			return err
-		}
-
-		if beforeLastBlkHeight > 1 {
-			beforeLastBlkHeight--
-			beforeLastBlkHeightBlk, err := pb.bc.BlockDAO().GetBlockByHeight(beforeLastBlkHeight)
-			if err != nil {
-				return err
-			}
-			beforeLastBlkHeightBlk.Receipts, err = pb.bc.BlockDAO().GetReceipts(beforeLastBlkHeight)
-			if err != nil {
-				return err
-			}
-			heightKey = byteutil.Uint64ToBytes(beforeLastBlkHeightBlk.Height())
-			log.L().Info("writeEpoch:", zap.Uint64("beforeLastBlkHeightBlk.Height()", beforeLastBlkHeightBlk.Height()), zap.Uint64("beforeLastBlkHeight", beforeLastBlkHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
-			if err = pb.writeBlock(beforeLastBlkHeightBlk, heightKey); err != nil {
-				return err
-			}
-		}
-	}
-	if epochNum > 2 {
-		needDelBlkHeight := rp.GetEpochHeight(epochNum - 2)
-		log.L().Info("writeEpoch:", zap.Uint64("needDelBlkHeight", needDelBlkHeight))
-		if err = pb.delBlock(needDelBlkHeight); err != nil {
-			return err
-		}
-		if needDelBlkHeight > 1 {
-			if err = pb.delBlock(needDelBlkHeight - 1); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
+//func (pb *PutBlockToTrieDB) writeEpoch(blk *block.Block, epochNum uint64, rp *rolldpos.Protocol) error {
+//	// need write the current and the last epoch height and del the epoch height before the last epoch height
+//	epochHeight := blk.Height()
+//	epochBlk, err := pb.bc.BlockDAO().GetBlockByHeight(epochHeight)
+//	if err != nil {
+//		return err
+//	}
+//	epochBlk.Receipts, err = pb.bc.BlockDAO().GetReceipts(epochHeight)
+//	if err != nil {
+//		return err
+//	}
+//
+//	heightKey := byteutil.Uint64ToBytes(epochBlk.Height())
+//	log.L().Info("writeEpoch:", zap.Uint64("blk.Height()", blk.Height()), zap.Uint64("epochHeight", epochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
+//	if err = pb.writeBlock(epochBlk, heightKey); err != nil {
+//		return err
+//	}
+//
+//	if epochHeight > 1 {
+//		epochHeight--
+//		epochBlk, err := pb.bc.BlockDAO().GetBlockByHeight(epochHeight)
+//		if err != nil {
+//			return err
+//		}
+//		epochBlk.Receipts, err = pb.bc.BlockDAO().GetReceipts(epochHeight)
+//		if err != nil {
+//			return err
+//		}
+//
+//		heightKey := byteutil.Uint64ToBytes(epochBlk.Height())
+//		log.L().Info("writeEpoch:", zap.Uint64("blk.Height()", blk.Height()), zap.Uint64("epochHeight", epochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
+//		if err = pb.writeBlock(epochBlk, heightKey); err != nil {
+//			return err
+//		}
+//	}
+//
+//	if epochNum > 1 {
+//		beforeLastBlkHeight := rp.GetEpochHeight(epochNum - 1)
+//		beforeLastBlkHeightBlk, err := pb.bc.BlockDAO().GetBlockByHeight(beforeLastBlkHeight)
+//		if err != nil {
+//			return err
+//		}
+//		beforeLastBlkHeightBlk.Receipts, err = pb.bc.BlockDAO().GetReceipts(beforeLastBlkHeight)
+//		if err != nil {
+//			return err
+//		}
+//		heightKey = byteutil.Uint64ToBytes(beforeLastBlkHeightBlk.Height())
+//		log.L().Info("writeEpoch:", zap.Uint64("beforeLastBlkHeightBlk.Height()", beforeLastBlkHeightBlk.Height()), zap.Uint64("beforeLastBlkHeight", beforeLastBlkHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
+//		if err = pb.writeBlock(beforeLastBlkHeightBlk, heightKey); err != nil {
+//			return err
+//		}
+//
+//		if beforeLastBlkHeight > 1 {
+//			beforeLastBlkHeight--
+//			beforeLastBlkHeightBlk, err := pb.bc.BlockDAO().GetBlockByHeight(beforeLastBlkHeight)
+//			if err != nil {
+//				return err
+//			}
+//			beforeLastBlkHeightBlk.Receipts, err = pb.bc.BlockDAO().GetReceipts(beforeLastBlkHeight)
+//			if err != nil {
+//				return err
+//			}
+//			heightKey = byteutil.Uint64ToBytes(beforeLastBlkHeightBlk.Height())
+//			log.L().Info("writeEpoch:", zap.Uint64("beforeLastBlkHeightBlk.Height()", beforeLastBlkHeightBlk.Height()), zap.Uint64("beforeLastBlkHeight", beforeLastBlkHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
+//			if err = pb.writeBlock(beforeLastBlkHeightBlk, heightKey); err != nil {
+//				return err
+//			}
+//		}
+//	}
+//	if epochNum > 2 {
+//		needDelBlkHeight := rp.GetEpochHeight(epochNum - 2)
+//		log.L().Info("writeEpoch:", zap.Uint64("needDelBlkHeight", needDelBlkHeight))
+//		if err = pb.delBlock(needDelBlkHeight); err != nil {
+//			return err
+//		}
+//		if needDelBlkHeight > 1 {
+//			if err = pb.delBlock(needDelBlkHeight - 1); err != nil {
+//				return err
+//			}
+//		}
+//	}
+//	return nil
+//}
 func GetTopBlock(kv db.KVStore) (*block.Block, error) {
-	return GetBlock(kv, topBlockKey)
-}
-func GetLastEpochBlock(kv db.KVStore, ctx context.Context, height uint64) (ret []*block.Block, err error) {
-	bcCtx := protocol.MustGetBlockchainCtx(ctx)
-	rp := rolldpos.MustGetProtocol(bcCtx.Registry)
-	epochNum := rp.GetEpochNum(height)
-	epochHeight := rp.GetEpochHeight(epochNum)
-
-	heightKey := byteutil.Uint64ToBytes(epochHeight)
-	log.L().Info("GetLastEpochBlock:", zap.Uint64("height", height), zap.Uint64("epochHeight", epochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
-	blk, err := GetBlock(kv, heightKey)
+	heightValue, err := kv.Get(blockTopNS, topBlockKey)
 	if err != nil {
-		return
+		return nil, err
 	}
-	ret = append(ret, blk)
-	if epochHeight > 1 {
-		epochHeight--
-		heightKey := byteutil.Uint64ToBytes(epochHeight)
-		log.L().Info("GetLastEpochBlock:", zap.Uint64("height", height), zap.Uint64("epochHeight", epochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
-		blk, err = GetBlock(kv, heightKey)
-		if err != nil {
-			return
-		}
-		ret = append(ret, blk)
-	}
-	if epochNum > 1 {
-		lastEpochHeight := rp.GetEpochHeight(epochNum - 1)
-		heightKey = byteutil.Uint64ToBytes(lastEpochHeight)
-
-		log.L().Info("epochNum-1", zap.Uint64("epochNum-1", epochNum-1), zap.Uint64("lastEpochHeight", lastEpochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
-
-		blk, err = GetBlock(kv, heightKey)
-		if err != nil {
-			return
-		}
-		ret = append(ret, blk)
-		if lastEpochHeight > 1 {
-			lastEpochHeight--
-			heightKey = byteutil.Uint64ToBytes(lastEpochHeight)
-			log.L().Info("epochNum-1", zap.Uint64("epochNum-1", epochNum-1), zap.Uint64("lastEpochHeight", lastEpochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
-
-			blk, err = GetBlock(kv, heightKey)
-			if err != nil {
-				return
-			}
-			ret = append(ret, blk)
-		}
-	}
-	return
+	return GetBlock(kv, heightValue)
 }
+
+//func GetLastEpochBlock(kv db.KVStore, ctx context.Context, height uint64) (ret []*block.Block, err error) {
+//	bcCtx := protocol.MustGetBlockchainCtx(ctx)
+//	rp := rolldpos.MustGetProtocol(bcCtx.Registry)
+//	epochNum := rp.GetEpochNum(height)
+//	epochHeight := rp.GetEpochHeight(epochNum)
+//
+//	heightKey := byteutil.Uint64ToBytes(epochHeight)
+//	log.L().Info("GetLastEpochBlock:", zap.Uint64("height", height), zap.Uint64("epochHeight", epochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
+//	blk, err := GetBlock(kv, heightKey)
+//	if err != nil {
+//		return
+//	}
+//	ret = append(ret, blk)
+//	if epochHeight > 1 {
+//		epochHeight--
+//		heightKey := byteutil.Uint64ToBytes(epochHeight)
+//		log.L().Info("GetLastEpochBlock:", zap.Uint64("height", height), zap.Uint64("epochHeight", epochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
+//		blk, err = GetBlock(kv, heightKey)
+//		if err != nil {
+//			return
+//		}
+//		ret = append(ret, blk)
+//	}
+//	if epochNum > 1 {
+//		lastEpochHeight := rp.GetEpochHeight(epochNum - 1)
+//		heightKey = byteutil.Uint64ToBytes(lastEpochHeight)
+//
+//		log.L().Info("epochNum-1", zap.Uint64("epochNum-1", epochNum-1), zap.Uint64("lastEpochHeight", lastEpochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
+//
+//		blk, err = GetBlock(kv, heightKey)
+//		if err != nil {
+//			return
+//		}
+//		ret = append(ret, blk)
+//		if lastEpochHeight > 1 {
+//			lastEpochHeight--
+//			heightKey = byteutil.Uint64ToBytes(lastEpochHeight)
+//			log.L().Info("epochNum-1", zap.Uint64("epochNum-1", epochNum-1), zap.Uint64("lastEpochHeight", lastEpochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
+//
+//			blk, err = GetBlock(kv, heightKey)
+//			if err != nil {
+//				return
+//			}
+//			ret = append(ret, blk)
+//		}
+//	}
+//	return
+//}
 func GetBlock(kv db.KVStore, heightValue []byte) (*block.Block, error) {
 	blkSer, err := kv.Get(blockNS, heightValue)
 	if err != nil {
