@@ -198,6 +198,16 @@ func GetLastEpochBlock(kv db.KVStore, ctx context.Context, height uint64) (ret [
 		return
 	}
 	ret = append(ret, blk)
+	if epochHeight > 1 {
+		epochHeight--
+		heightKey := byteutil.Uint64ToBytes(epochHeight)
+		log.L().Info("GetLastEpochBlock:", zap.Uint64("height", height), zap.Uint64("epochHeight", epochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
+		blk, err := GetBlock(kv, heightKey)
+		if err != nil {
+			return
+		}
+		ret = append(ret, blk)
+	}
 	if epochNum > 1 {
 		lastEpochHeight := rp.GetEpochHeight(epochNum - 1)
 		heightKey = byteutil.Uint64ToBytes(lastEpochHeight)
@@ -209,6 +219,17 @@ func GetLastEpochBlock(kv db.KVStore, ctx context.Context, height uint64) (ret [
 			return
 		}
 		ret = append(ret, blk)
+		if lastEpochHeight > 1 {
+			lastEpochHeight--
+			heightKey = byteutil.Uint64ToBytes(lastEpochHeight)
+			log.L().Info("epochNum-1", zap.Uint64("epochNum-1", epochNum-1), zap.Uint64("lastEpochHeight", lastEpochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
+
+			blk, err = GetBlock(kv, heightKey)
+			if err != nil {
+				return
+			}
+			ret = append(ret, blk)
+		}
 	}
 	return
 }
