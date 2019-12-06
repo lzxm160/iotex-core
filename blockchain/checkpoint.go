@@ -86,10 +86,6 @@ func (pb *PutBlockToTrieDB) HandleBlock(blk *block.Block) error {
 	if err != nil {
 		return err
 	}
-	return pb.writeEpoch(blk)
-}
-func (pb *PutBlockToTrieDB) writeEpoch(blk *block.Block) error {
-	// need write the current and the last epoch height and del the epoch height before the last epoch height
 	ctx, err := pb.bc.Context()
 	if err != nil {
 		return err
@@ -98,10 +94,23 @@ func (pb *PutBlockToTrieDB) writeEpoch(blk *block.Block) error {
 	rp := rolldpos.MustGetProtocol(bcCtx.Registry)
 	epochNum := rp.GetEpochNum(blk.Height())
 	epochHeight := rp.GetEpochHeight(epochNum)
+	if epochHeight == blk.Height() {
+		return pb.writeEpoch(blk, epochNum, rp)
+	}
+	return nil
+}
+func (pb *PutBlockToTrieDB) writeEpoch(blk *block.Block, epochNum uint64, rp *rolldpos.Protocol) error {
+	// need write the current and the last epoch height and del the epoch height before the last epoch height
+	epochHeight := blk.Height()
 	epochBlk, err := pb.bc.BlockDAO().GetBlockByHeight(epochHeight)
 	if err != nil {
 		return err
 	}
+	epochBlk.Receipts, err = pb.bc.BlockDAO().GetReceipts(epochHeight)
+	if err != nil {
+		return err
+	}
+
 	heightKey := byteutil.Uint64ToBytes(epochBlk.Height())
 	log.L().Info("writeEpoch:", zap.Uint64("blk.Height()", blk.Height()), zap.Uint64("epochHeight", epochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
 	if err = pb.writeBlock(epochBlk, heightKey); err != nil {
@@ -111,6 +120,10 @@ func (pb *PutBlockToTrieDB) writeEpoch(blk *block.Block) error {
 	if epochNum > 1 {
 		beforeLastBlkHeight := rp.GetEpochHeight(epochNum - 1)
 		beforeLastBlkHeightBlk, err := pb.bc.BlockDAO().GetBlockByHeight(beforeLastBlkHeight)
+		if err != nil {
+			return err
+		}
+		beforeLastBlkHeightBlk.Receipts, err = pb.bc.BlockDAO().GetReceipts(beforeLastBlkHeight)
 		if err != nil {
 			return err
 		}
