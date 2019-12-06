@@ -202,7 +202,7 @@ func GetLastEpochBlock(kv db.KVStore, ctx context.Context, height uint64) (ret [
 		epochHeight--
 		heightKey := byteutil.Uint64ToBytes(epochHeight)
 		log.L().Info("GetLastEpochBlock:", zap.Uint64("height", height), zap.Uint64("epochHeight", epochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
-		blk, err := GetBlock(kv, heightKey)
+		blk, err = GetBlock(kv, heightKey)
 		if err != nil {
 			return
 		}
