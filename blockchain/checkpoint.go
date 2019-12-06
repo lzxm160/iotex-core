@@ -8,6 +8,7 @@ package blockchain
 
 import (
 	"context"
+	"encoding/hex"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/iotex-core/action"
@@ -102,7 +103,7 @@ func (pb *PutBlockToTrieDB) writeEpoch(blk *block.Block) error {
 		return err
 	}
 	heightKey := byteutil.Uint64ToBytes(epochBlk.Height())
-	log.L().Info("writeEpoch:", zap.Uint64("blk.Height()", blk.Height()), zap.Uint64("epochHeight", epochHeight))
+	log.L().Info("writeEpoch:", zap.Uint64("blk.Height()", blk.Height()), zap.Uint64("epochHeight", epochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
 	if err = pb.writeBlock(epochBlk, heightKey); err != nil {
 		return err
 	}
@@ -113,8 +114,8 @@ func (pb *PutBlockToTrieDB) writeEpoch(blk *block.Block) error {
 		if err != nil {
 			return err
 		}
-		log.L().Info("writeEpoch:", zap.Uint64("beforeLastBlkHeightBlk.Height()", beforeLastBlkHeightBlk.Height()), zap.Uint64("beforeLastBlkHeight", beforeLastBlkHeight))
 		heightKey = byteutil.Uint64ToBytes(beforeLastBlkHeightBlk.Height())
+		log.L().Info("writeEpoch:", zap.Uint64("beforeLastBlkHeightBlk.Height()", beforeLastBlkHeightBlk.Height()), zap.Uint64("beforeLastBlkHeight", beforeLastBlkHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
 		if err = pb.writeBlock(beforeLastBlkHeightBlk, heightKey); err != nil {
 			return err
 		}
@@ -136,18 +137,21 @@ func GetLastEpochBlock(kv db.KVStore, ctx context.Context, height uint64) (ret [
 	rp := rolldpos.MustGetProtocol(bcCtx.Registry)
 	epochNum := rp.GetEpochNum(height)
 	epochHeight := rp.GetEpochHeight(epochNum)
-	log.L().Info("GetLastEpochBlock:", zap.Uint64("height", height), zap.Uint64("epochHeight", epochHeight))
-	heightValue := byteutil.Uint64ToBytes(epochHeight)
-	blk, err := GetBlock(kv, heightValue)
+
+	heightKey := byteutil.Uint64ToBytes(epochHeight)
+	log.L().Info("GetLastEpochBlock:", zap.Uint64("height", height), zap.Uint64("epochHeight", epochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
+	blk, err := GetBlock(kv, heightKey)
 	if err != nil {
 		return
 	}
 	ret = append(ret, blk)
 	if epochNum > 1 {
 		lastEpochHeight := rp.GetEpochHeight(epochNum - 1)
-		log.L().Info("epochNum-1", zap.Uint64("epochNum-1", epochNum-1), zap.Uint64("lastEpochHeight", lastEpochHeight))
-		heightValue := byteutil.Uint64ToBytes(lastEpochHeight)
-		blk, err = GetBlock(kv, heightValue)
+		heightKey = byteutil.Uint64ToBytes(lastEpochHeight)
+
+		log.L().Info("epochNum-1", zap.Uint64("epochNum-1", epochNum-1), zap.Uint64("lastEpochHeight", lastEpochHeight), zap.String("heightKey", hex.EncodeToString(heightKey)))
+
+		blk, err = GetBlock(kv, heightKey)
 		if err != nil {
 			return
 		}
