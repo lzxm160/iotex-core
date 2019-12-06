@@ -770,6 +770,7 @@ func (bc *blockchain) validateBlock(blk *block.Block) error {
 	if err != nil {
 		return errors.Wrap(err, "Failed to obtain working set from state factory")
 	}
+	ws.GetCachedBatch().ClearAndUnlock()
 	runTimer := bc.timerFactory.NewTimer("runActions")
 	receipts, err := bc.runActions(ctx, blk, ws)
 	runTimer.End()
