@@ -242,8 +242,7 @@ func (dao *blockDAO) GetTipHash() (hash.Hash256, error) {
 }
 
 func (dao *blockDAO) GetTipHeight() (uint64, error) {
-	var tipHeight uint64
-	atomic.LoadUint64(&tipHeight)
+	tipHeight := atomic.LoadUint64(&dao.tipHeight)
 	return tipHeight, nil
 }
 
