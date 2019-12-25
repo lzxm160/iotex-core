@@ -296,10 +296,10 @@ func (bc *blockchain) Start(ctx context.Context) error {
 		return nil
 	}
 	// get blockchain tip hash
-	var tipHash hash.Hash256
-	if tipHash, err = bc.dao.GetTipHash(); err != nil {
-		return err
-	}
+	//var tipHash hash.Hash256
+	//if tipHash, err = bc.dao.GetTipHash(); err != nil {
+	//	return err
+	//}
 
 	if bcCtx, ok := protocol.GetBlockchainCtx(ctx); ok {
 		for _, p := range bcCtx.Registry.All() {
@@ -454,8 +454,7 @@ func (bc *blockchain) MintNewBlock(
 	ra := block.NewRunnableActionsBuilder().
 		AddActions(actions...).
 		Build()
-
-	prevBlkHash := bc.tipHash
+	prevBlkHash, _ := bc.dao.GetTipHash()
 	// The first block's previous block hash is pointing to the digest of genesis config. This is to guarantee all nodes
 	// could verify that they start from the same genesis
 	if newblockHeight == 1 {
