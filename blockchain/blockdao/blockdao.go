@@ -7,6 +7,7 @@
 package blockdao
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io/ioutil"
@@ -238,11 +239,26 @@ func (dao *blockDAO) GetBlockByHeight(height uint64) (*block.Block, error) {
 }
 
 func (dao *blockDAO) GetTipHash() (hash.Hash256, error) {
+	var err error
+	if bytes.Equal(dao.tipHash[:], hash.ZeroHash256[:]) {
+		dao.tipHash, err = dao.getTipHash()
+		if err != nil {
+			return hash.ZeroHash256, err
+		}
+	}
 	return dao.tipHash, nil
 }
 
 func (dao *blockDAO) GetTipHeight() (uint64, error) {
 	tipHeight := atomic.LoadUint64(&dao.tipHeight)
+	var err error
+	if tipHeight == 0 {
+		tipHeight, err = dao.getTipHeight()
+		if err != nil {
+			return 0, err
+		}
+		atomic.StoreUint64(&dao.tipHeight, tipHeight)
+	}
 	return tipHeight, nil
 }
 
