@@ -129,6 +129,8 @@ type (
 		footerCache   *cache.ThreadSafeLruCache
 		cfg           config.DB
 		mutex         sync.RWMutex // for create new db file
+		tipHeight     uint64
+		tipHash       hash.Hash256
 	}
 )
 
@@ -236,11 +238,13 @@ func (dao *blockDAO) GetBlockByHeight(height uint64) (*block.Block, error) {
 }
 
 func (dao *blockDAO) GetTipHash() (hash.Hash256, error) {
-	return dao.getTipHash()
+	return dao.tipHash, nil
 }
 
 func (dao *blockDAO) GetTipHeight() (uint64, error) {
-	return dao.getTipHeight()
+	var tipHeight uint64
+	atomic.LoadUint64(&tipHeight)
+	return tipHeight, nil
 }
 
 func (dao *blockDAO) Header(h hash.Hash256) (*block.Header, error) {
@@ -293,6 +297,8 @@ func (dao *blockDAO) PutBlock(blk *block.Block) error {
 	if err := dao.putBlock(blk); err != nil {
 		return err
 	}
+	atomic.StoreUint64(&dao.tipHeight, blk.Height())
+	dao.tipHash = blk.HashBlock()
 	// index the block if there's indexer
 	if dao.indexer == nil {
 		return nil
