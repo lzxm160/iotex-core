@@ -6,12 +6,13 @@ package mock_blockdao
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	hash "github.com/iotexproject/go-pkgs/hash"
 	action "github.com/iotexproject/iotex-core/action"
 	block "github.com/iotexproject/iotex-core/blockchain/block"
 	db "github.com/iotexproject/iotex-core/db"
-	reflect "reflect"
 )
 
 // MockBlockDAO is a mock of BlockDAO interface
@@ -126,12 +127,11 @@ func (mr *MockBlockDAOMockRecorder) GetBlockByHeight(arg0 interface{}) *gomock.C
 }
 
 // GetTipHeight mocks base method
-func (m *MockBlockDAO) GetTipHeight() (uint64, error) {
+func (m *MockBlockDAO) GetTipHeight() uint64 {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTipHeight")
 	ret0, _ := ret[0].(uint64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	return ret0
 }
 
 // GetTipHeight indicates an expected call of GetTipHeight
