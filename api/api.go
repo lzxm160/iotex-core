@@ -9,13 +9,12 @@ package api
 import (
 	"context"
 	"encoding/hex"
+	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"math"
 	"math/big"
 	"net"
 	"strconv"
 	"time"
-
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
@@ -1061,7 +1060,7 @@ func (api *Server) putBlockMetaUpgradeByHeader(height uint64, blockMeta *iotexty
 
 // getBlockMetasByHeader gets block header by height
 func (api *Server) getBlockMetasByHeader(height uint64) (*iotextypes.BlockMeta, error) {
-	header, err := api.dao.HeaderByHeight(height)
+	header, err := api.bc.BlockHeaderByHeight(height)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
