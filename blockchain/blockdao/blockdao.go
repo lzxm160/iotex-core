@@ -572,6 +572,8 @@ func (dao *blockDAO) getReceipts(blkHeight uint64) ([]*action.Receipt, error) {
 
 // putBlock puts a block
 func (dao *blockDAO) putBlock(blk *block.Block) error {
+	dao.mutex.Lock()
+	defer dao.mutex.Unlock()
 	blkHeight := blk.Height()
 	h, err := dao.getBlockHash(blkHeight)
 	if h != hash.ZeroHash256 && err == nil {
