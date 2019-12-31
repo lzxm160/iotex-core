@@ -63,8 +63,6 @@ type Blockchain interface {
 
 	// BlockHeaderByHeight return block header by height
 	BlockHeaderByHeight(height uint64) (*block.Header, error)
-	// BlockHeaderByHash return block header by hash
-	BlockHeaderByHash(h hash.Hash256) (*block.Header, error)
 	// BlockFooterByHeight return block footer by height
 	BlockFooterByHeight(height uint64) (*block.Footer, error)
 	// ChainID returns the chain ID
@@ -321,15 +319,11 @@ func (bc *blockchain) Stop(ctx context.Context) error {
 }
 
 func (bc *blockchain) BlockHeaderByHeight(height uint64) (*block.Header, error) {
-	return bc.dao.BlockHeaderByHeight(height)
-}
-
-func (bc *blockchain) BlockHeaderByHash(h hash.Hash256) (*block.Header, error) {
-	return bc.dao.Header(h)
+	return bc.dao.HeaderByHeight(height)
 }
 
 func (bc *blockchain) BlockFooterByHeight(height uint64) (*block.Footer, error) {
-	return bc.dao.BlockFooterByHeight(height)
+	return bc.dao.FooterByHeight(height)
 }
 
 // TipHash returns tip block's hash

@@ -9,12 +9,13 @@ package api
 import (
 	"context"
 	"encoding/hex"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"math"
 	"math/big"
 	"net"
 	"strconv"
 	"time"
+
+	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
@@ -1060,7 +1061,7 @@ func (api *Server) putBlockMetaUpgradeByHeader(height uint64, blockMeta *iotexty
 
 // getBlockMetasByHeader gets block header by height
 func (api *Server) getBlockMetasByHeader(height uint64) (*iotextypes.BlockMeta, error) {
-	header, err := api.bc.BlockHeaderByHeight(height)
+	header, err := api.dao.HeaderByHeight(height)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
@@ -1085,7 +1086,7 @@ func (api *Server) getBlockMetasByBlock(height uint64) (*iotextypes.BlockMeta, e
 
 // getBlockMetaByHeader gets block header by hash
 func (api *Server) getBlockMetaByHeader(h hash.Hash256) (*iotextypes.BlockMeta, error) {
-	header, err := api.bc.BlockHeaderByHash(h)
+	header, err := api.dao.Header(h)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
@@ -1156,7 +1157,7 @@ func (api *Server) getGravityChainStartHeight(epochHeight uint64) (uint64, error
 func (api *Server) committedAction(selp action.SealedEnvelope, blkHash hash.Hash256, blkHeight uint64) (
 	*iotexapi.ActionInfo, error) {
 	actHash := selp.Hash()
-	header, err := api.bc.BlockHeaderByHash(blkHash)
+	header, err := api.dao.Header(blkHash)
 	if err != nil {
 		return nil, err
 	}
