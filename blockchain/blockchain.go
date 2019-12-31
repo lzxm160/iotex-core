@@ -321,7 +321,7 @@ func (bc *blockchain) Stop(ctx context.Context) error {
 }
 
 func (bc *blockchain) BlockHeaderByHeight(height uint64) (*block.Header, error) {
-	return bc.dao.BlockHeaderByHeight(height)
+	return bc.dao.HeaderByHeight(height)
 }
 
 func (bc *blockchain) BlockHeaderByHash(h hash.Hash256) (*block.Header, error) {
@@ -329,7 +329,7 @@ func (bc *blockchain) BlockHeaderByHash(h hash.Hash256) (*block.Header, error) {
 }
 
 func (bc *blockchain) BlockFooterByHeight(height uint64) (*block.Footer, error) {
-	return bc.dao.BlockFooterByHeight(height)
+	return bc.dao.FooterByHeight(height)
 }
 
 // TipHash returns tip block's hash
