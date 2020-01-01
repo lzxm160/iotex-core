@@ -272,17 +272,18 @@ func (bc *blockchain) ChainAddress() string {
 func (bc *blockchain) Start(ctx context.Context) error {
 	bc.mu.Lock()
 	defer bc.mu.Unlock()
+
+	// pass registry to be used by state factory's initialization
+	ctx, err := bc.context(ctx, false, false)
+	if err != nil {
+		return err
+	}
 	for _, p := range bc.registry.All() {
 		if s, ok := p.(lifecycle.Starter); ok {
 			if err := s.Start(ctx); err != nil {
 				return errors.Wrap(err, "failed to start protocol")
 			}
 		}
-	}
-	// pass registry to be used by state factory's initialization
-	ctx, err := bc.context(ctx, false, false)
-	if err != nil {
-		return err
 	}
 	ctx = bc.contextWithBlock(ctx, bc.config.ProducerAddress(), 0, time.Unix(bc.config.Genesis.Timestamp, 0))
 	if err := bc.lifecycle.OnStart(ctx); err != nil {
