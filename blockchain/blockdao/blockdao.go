@@ -19,11 +19,13 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/hash"
+	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 
 	"github.com/iotexproject/iotex-core/action"
+	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/blockchain/block"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
@@ -35,6 +37,7 @@ import (
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/prometheustimer"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
+	"github.com/iotexproject/iotex-core/state/factory"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 )
 
@@ -105,6 +108,7 @@ type (
 		KVStore() db.KVStore
 		HeaderByHeight(uint64) (*block.Header, error)
 		FooterByHeight(uint64) (*block.Footer, error)
+		StartExistingBlockchain(context.Context, uint64) error
 	}
 
 	// BlockIndexer defines an interface to accept block to build index
@@ -120,6 +124,7 @@ type (
 		compressBlock bool
 		kvstore       db.KVStore
 		indexer       BlockIndexer
+		sf            factory.Factory
 		htf           db.RangeIndex
 		kvstores      sync.Map //store like map[index]db.KVStore,index from 1...N
 		topIndex      atomic.Value
@@ -135,11 +140,11 @@ type (
 )
 
 // NewBlockDAO instantiates a block DAO
-func NewBlockDAO(kvstore db.KVStore, indexer BlockIndexer, compressBlock bool, cfg config.DB) BlockDAO {
+func NewBlockDAO(kvstore db.KVStore, indexer factory.Factory, compressBlock bool, cfg config.DB) BlockDAO {
 	blockDAO := &blockDAO{
 		compressBlock: compressBlock,
 		kvstore:       kvstore,
-		indexer:       indexer,
+		sf:            indexer,
 		cfg:           cfg,
 	}
 	if cfg.MaxCacheSize > 0 {
@@ -213,6 +218,56 @@ func (dao *blockDAO) initStores() error {
 		maxN = 1
 	}
 	dao.topIndex.Store(maxN)
+	return nil
+}
+
+func (dao *blockDAO) StartExistingBlockchain(ctx context.Context, gas uint64) error {
+	if dao.sf == nil {
+		return errors.New("statefactory cannot be nil")
+	}
+
+	stateHeight, err := dao.sf.Height()
+	if err != nil {
+		return err
+	}
+	tipHeight := dao.GetTipHeight()
+	if stateHeight > tipHeight {
+		return errors.New("factory is higher than blockchain")
+	}
+
+	for i := stateHeight + 1; i <= tipHeight; i++ {
+		blk, err := dao.GetBlockByHeight(i)
+		if err != nil {
+			return err
+		}
+		producer, err := address.FromBytes(blk.PublicKey().Hash())
+		if err != nil {
+			return err
+		}
+		//ctx = bc.contextWithBlock(ctx, producer, blk.Height(), blk.Timestamp())
+		ctx = protocol.WithBlockCtx(
+			ctx,
+			protocol.BlockCtx{
+				BlockHeight:    blk.Height(),
+				BlockTimeStamp: blk.Timestamp(),
+				Producer:       producer,
+				GasLimit:       gas,
+			})
+		_, ws, err := dao.sf.RunActions(ctx, blk.RunnableActions().Actions())
+		if err != nil {
+			return err
+		}
+		if err := dao.sf.Commit(ws); err != nil {
+			return err
+		}
+	}
+	stateHeight, err = dao.sf.Height()
+	if err != nil {
+		return errors.Wrap(err, "failed to get factory's height")
+	}
+	log.L().Info("Restarting blockchain.",
+		zap.Uint64("chainHeight", tipHeight),
+		zap.Uint64("factoryHeight", stateHeight))
 	return nil
 }
 
