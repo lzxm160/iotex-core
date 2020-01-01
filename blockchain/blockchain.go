@@ -272,7 +272,13 @@ func (bc *blockchain) ChainAddress() string {
 func (bc *blockchain) Start(ctx context.Context) error {
 	bc.mu.Lock()
 	defer bc.mu.Unlock()
-
+	for _, p := range bc.registry.All() {
+		if s, ok := p.(lifecycle.Starter); ok {
+			if err := s.Start(ctx); err != nil {
+				return errors.Wrap(err, "failed to start protocol")
+			}
+		}
+	}
 	// pass registry to be used by state factory's initialization
 	ctx, err := bc.context(ctx, false, false)
 	if err != nil {
@@ -287,16 +293,6 @@ func (bc *blockchain) Start(ctx context.Context) error {
 	if tipHeight == 0 {
 		return nil
 	}
-	if bcCtx, ok := protocol.GetBlockchainCtx(ctx); ok {
-		for _, p := range bcCtx.Registry.All() {
-			if s, ok := p.(lifecycle.Starter); ok {
-				if err := s.Start(ctx); err != nil {
-					return errors.Wrap(err, "failed to start protocol")
-				}
-			}
-		}
-	}
-
 	return bc.startExistingBlockchain(ctx)
 }
 
