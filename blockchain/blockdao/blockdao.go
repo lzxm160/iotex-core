@@ -140,11 +140,12 @@ type (
 )
 
 // NewBlockDAO instantiates a block DAO
-func NewBlockDAO(kvstore db.KVStore, indexer factory.Factory, compressBlock bool, cfg config.DB) BlockDAO {
+func NewBlockDAO(kvstore db.KVStore, indexer BlockIndexer, sf factory.Factory, compressBlock bool, cfg config.DB) BlockDAO {
 	blockDAO := &blockDAO{
 		compressBlock: compressBlock,
 		kvstore:       kvstore,
-		sf:            indexer,
+		indexer:       indexer,
+		sf:            sf,
 		cfg:           cfg,
 	}
 	if cfg.MaxCacheSize > 0 {

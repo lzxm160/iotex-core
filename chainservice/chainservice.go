@@ -167,9 +167,9 @@ func New(
 	}
 	var dao blockdao.BlockDAO
 	if gateway && !cfg.Chain.EnableAsyncIndexWrite {
-		dao = blockdao.NewBlockDAO(kvstore, indexer, cfg.Chain.CompressBlock, cfg.DB)
+		dao = blockdao.NewBlockDAO(kvstore, indexer, sf, cfg.Chain.CompressBlock, cfg.DB)
 	} else {
-		dao = blockdao.NewBlockDAO(kvstore, nil, cfg.Chain.CompressBlock, cfg.DB)
+		dao = blockdao.NewBlockDAO(kvstore, nil, sf, cfg.Chain.CompressBlock, cfg.DB)
 	}
 	// create Blockchain
 	chain := blockchain.NewBlockchain(cfg, dao, sf, chainOpts...)
