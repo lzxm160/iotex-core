@@ -278,6 +278,8 @@ func (bc *blockchain) Start(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	ctx = bc.contextWithBlock(ctx, bc.config.ProducerAddress(), 0, time.Unix(bc.config.Genesis.Timestamp, 0))
 	for _, p := range bc.registry.All() {
 		if s, ok := p.(lifecycle.Starter); ok {
 			if err := s.Start(ctx); err != nil {
@@ -285,7 +287,6 @@ func (bc *blockchain) Start(ctx context.Context) error {
 			}
 		}
 	}
-	ctx = bc.contextWithBlock(ctx, bc.config.ProducerAddress(), 0, time.Unix(bc.config.Genesis.Timestamp, 0))
 	if err := bc.lifecycle.OnStart(ctx); err != nil {
 		return err
 	}
