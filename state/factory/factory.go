@@ -51,6 +51,7 @@ type (
 		SimulateExecution(context.Context, address.Address, *action.Execution, evm.GetBlockHash) ([]byte, *action.Receipt, error)
 		Commit(WorkingSet) error
 		State(hash.Hash160, interface{}) error
+		PutBlock(context.Context, []action.SealedEnvelope) error
 	}
 
 	// factory implements StateFactory interface, tracks changes to account/contract and batch-commits to DB
@@ -261,6 +262,15 @@ func (sf *factory) State(addr hash.Hash160, state interface{}) error {
 	defer sf.mutex.RUnlock()
 
 	return sf.state(addr, state)
+}
+
+// PutBlock call RunActions and Commit
+func (sf *factory) PutBlock(ctx context.Context, actions []action.SealedEnvelope) error {
+	_, ws, err := sf.RunActions(ctx, actions)
+	if err != nil {
+		return err
+	}
+	return sf.Commit(ws)
 }
 
 //======================================

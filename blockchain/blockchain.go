@@ -174,6 +174,7 @@ func BoltDBDaoOption() Option {
 		bc.dao = blockdao.NewBlockDAO(
 			db.NewBoltDB(cfg.DB),
 			nil,
+			bc.sf,
 			cfg.Chain.CompressBlock,
 			cfg.DB,
 		)
@@ -190,6 +191,7 @@ func InMemDaoOption() Option {
 		bc.dao = blockdao.NewBlockDAO(
 			db.NewMemKVStore(),
 			nil,
+			bc.sf,
 			cfg.Chain.CompressBlock,
 			cfg.DB,
 		)
@@ -279,6 +281,13 @@ func (bc *blockchain) Start(ctx context.Context) error {
 		return err
 	}
 	ctx = bc.contextWithBlock(ctx, bc.config.ProducerAddress(), 0, time.Unix(bc.config.Genesis.Timestamp, 0))
+	for _, p := range bc.registry.All() {
+		if s, ok := p.(lifecycle.Starter); ok {
+			if err := s.Start(ctx); err != nil {
+				return errors.Wrap(err, "failed to start protocol")
+			}
+		}
+	}
 	if err := bc.lifecycle.OnStart(ctx); err != nil {
 		return err
 	}
@@ -287,17 +296,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 	if tipHeight == 0 {
 		return nil
 	}
-	if bcCtx, ok := protocol.GetBlockchainCtx(ctx); ok {
-		for _, p := range bcCtx.Registry.All() {
-			if s, ok := p.(lifecycle.Starter); ok {
-				if err := s.Start(ctx); err != nil {
-					return errors.Wrap(err, "failed to start protocol")
-				}
-			}
-		}
-	}
-
-	return bc.startExistingBlockchain(ctx)
+	return bc.dao.StartExistingBlockchain(ctx, bc.config.Genesis.BlockGasLimit)
 }
 
 // Stop stops the blockchain.
@@ -537,48 +536,6 @@ func (bc *blockchain) candidatesByHeight(height uint64) (state.CandidateList, er
 		return pp.CandidatesByHeight(ctx, height)
 	}
 	return nil, nil
-}
-
-func (bc *blockchain) startExistingBlockchain(ctx context.Context) error {
-	if bc.sf == nil {
-		return errors.New("statefactory cannot be nil")
-	}
-
-	stateHeight, err := bc.sf.Height()
-	if err != nil {
-		return err
-	}
-	tipHeight := bc.dao.GetTipHeight()
-	if stateHeight > tipHeight {
-		return errors.New("factory is higher than blockchain")
-	}
-
-	for i := stateHeight + 1; i <= tipHeight; i++ {
-		blk, err := bc.dao.GetBlockByHeight(i)
-		if err != nil {
-			return err
-		}
-		producer, err := address.FromBytes(blk.PublicKey().Hash())
-		if err != nil {
-			return err
-		}
-		ctx = bc.contextWithBlock(ctx, producer, blk.Height(), blk.Timestamp())
-		_, ws, err := bc.sf.RunActions(ctx, blk.RunnableActions().Actions())
-		if err != nil {
-			return err
-		}
-		if err := bc.sf.Commit(ws); err != nil {
-			return err
-		}
-	}
-	stateHeight, err = bc.sf.Height()
-	if err != nil {
-		return errors.Wrap(err, "failed to get factory's height")
-	}
-	log.L().Info("Restarting blockchain.",
-		zap.Uint64("chainHeight", tipHeight),
-		zap.Uint64("factoryHeight", stateHeight))
-	return nil
 }
 
 func (bc *blockchain) tipInfo() (*protocol.TipInfo, error) {

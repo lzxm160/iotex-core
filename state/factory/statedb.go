@@ -214,6 +214,15 @@ func (sdb *stateDB) State(addr hash.Hash160, state interface{}) error {
 	return sdb.state(addr, state)
 }
 
+// PutBlock call RunActions and Commit
+func (sdb *stateDB) PutBlock(ctx context.Context, actions []action.SealedEnvelope) error {
+	_, ws, err := sdb.RunActions(ctx, actions)
+	if err != nil {
+		return err
+	}
+	return sdb.Commit(ws)
+}
+
 //======================================
 // private trie constructor functions
 //======================================
