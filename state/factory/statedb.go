@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/iotexproject/iotex-core/blockchain/block"
+
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -212,6 +214,15 @@ func (sdb *stateDB) State(addr hash.Hash160, state interface{}) error {
 	defer sdb.mutex.RUnlock()
 
 	return sdb.state(addr, state)
+}
+
+// PutBlock call RunActions and Commit
+func (sdb *stateDB) PutBlock(ctx context.Context, blk *block.Block) error {
+	_, ws, err := sdb.RunActions(ctx, blk.RunnableActions().Actions())
+	if err != nil {
+		return err
+	}
+	return sdb.Commit(ws)
 }
 
 //======================================

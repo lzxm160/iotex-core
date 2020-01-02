@@ -254,11 +254,7 @@ func (dao *blockDAO) StartExistingBlockchain(ctx context.Context, gas uint64) er
 				Producer:       producer,
 				GasLimit:       gas,
 			})
-		_, ws, err := dao.sf.RunActions(ctx, blk.RunnableActions().Actions())
-		if err != nil {
-			return err
-		}
-		if err := dao.sf.Commit(ws); err != nil {
+		if err := dao.sf.PutBlock(ctx, blk); err != nil {
 			return err
 		}
 	}
