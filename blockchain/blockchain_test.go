@@ -17,6 +17,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
+
+	"github.com/iotexproject/iotex-core/db/trie"
+
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -1226,6 +1230,120 @@ func TestActions(t *testing.T) {
 	)
 	val := &validator{sf: sf, validatorAddr: ""}
 	require.Nil(val.Validate(ctx, blk, 0, blk.PrevHash()))
+}
+
+func TestHistory(t *testing.T) {
+	require := require.New(t)
+
+	cfg := config.Default
+	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+	testTriePath := testTrieFile.Name()
+	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	testDBPath := testDBFile.Name()
+	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+	testIndexPath := testIndexFile.Name()
+	cfg.Chain.TrieDBPath = testTriePath
+	cfg.Chain.ChainDBPath = testDBPath
+	cfg.Chain.IndexDBPath = testIndexPath
+
+	// Create a blockchain from scratch
+	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
+	require.NoError(err)
+	acc := account.NewProtocol()
+	registry := protocol.Registry{}
+	require.NoError(registry.Register(account.ProtocolID, acc))
+	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+	require.NoError(registry.Register(rolldpos.ProtocolID, rp))
+	// create indexer
+	cfg.DB.DbPath = cfg.Chain.IndexDBPath
+	indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
+	require.NoError(err)
+	// create BlockDAO
+	cfg.DB.DbPath = cfg.Chain.ChainDBPath
+	dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
+
+	bc := NewBlockchain(cfg, dao, PrecreatedStateFactoryOption(sf), BoltDBDaoOption())
+	require.NoError(bc.Start(context.Background()))
+	require.NotNil(bc)
+	require.NoError(addCreatorToFactory(cfg, sf, nil))
+
+	a := identityset.Address(28).String()
+	priKeyA := identityset.PrivateKey(28)
+	b := identityset.Address(29).String()
+	ws, err := sf.NewWorkingSet(nil)
+	require.NoError(err)
+	AccountA, err := accountutil.LoadOrCreateAccount(ws, a, big.NewInt(90))
+	require.NoError(err)
+	AccountB, err := accountutil.LoadOrCreateAccount(ws, b, big.NewInt(90))
+	require.NoError(err)
+	require.Equal(big.NewInt(90), AccountA.Balance)
+	require.Equal(big.NewInt(90), AccountB.Balance)
+	// root hash before transfer
+	rootHash1 := ws.RootHash()
+
+	// make a transfer
+	actionMap := make(map[string][]action.SealedEnvelope)
+	actionMap[a] = []action.SealedEnvelope{}
+	tsf, err := testutil.SignedTransfer(b, priKeyA, 1, big.NewInt(10), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
+	require.NoError(err)
+	actionMap[a] = append(actionMap[a], tsf)
+	blk, _ := bc.MintNewBlock(
+		actionMap,
+		testutil.TimestampNow(),
+	)
+	require.Nil(bc.ValidateBlock(blk))
+	require.Nil(bc.CommitBlock(blk))
+
+	AccountA, err = accountutil.LoadOrCreateAccount(ws, a, nil)
+	require.NoError(err)
+	AccountB, err = accountutil.LoadOrCreateAccount(ws, b, nil)
+	require.NoError(err)
+	require.Equal(big.NewInt(90), AccountA.Balance)
+	require.Equal(big.NewInt(110), AccountB.Balance)
+
+	// root hash after transfer
+	rootHash2 := ws.RootHash()
+
+	// set root hash before transfer
+	cfg.DB.DbPath = cfg.Chain.TrieDBPath
+	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, evm.PruneKVNameSpace, db.NewBoltDB(cfg.DB), db.CachedBatchOption(db.NewCachedBatch()))
+	require.NoError(err)
+	options := []trie.Option{
+		trie.KVStoreOption(dbForTrie),
+		trie.KeyLengthOption(len(hash.Hash256{})),
+		trie.RootHashOption(rootHash1[:]),
+		trie.HistoryRetentionOption(20000),
+	}
+
+	// checkout balance before transfer
+	tr, err := trie.NewTrie(options...)
+	require.NoError(err)
+	require.NoError(tr.Start(context.Background()))
+	AccountA, err = accountutil.LoadOrCreateAccount(ws, a, nil)
+	require.NoError(err)
+	AccountB, err = accountutil.LoadOrCreateAccount(ws, b, nil)
+	require.NoError(err)
+	require.Equal(big.NewInt(100), AccountA.Balance)
+	require.Equal(big.NewInt(100), AccountB.Balance)
+	require.NoError(tr.Stop(context.Background()))
+
+	// checkout balance after transfer
+	options = []trie.Option{
+		trie.KVStoreOption(dbForTrie),
+		trie.KeyLengthOption(len(hash.Hash256{})),
+		trie.RootHashOption(rootHash2[:]),
+		trie.HistoryRetentionOption(20000),
+	}
+	tr2, err := trie.NewTrie(options...)
+	require.NoError(err)
+	require.NoError(tr2.Start(context.Background()))
+	AccountA, err = accountutil.LoadOrCreateAccount(ws, a, nil)
+	require.NoError(err)
+	AccountB, err = accountutil.LoadOrCreateAccount(ws, b, nil)
+	require.NoError(err)
+	require.Equal(big.NewInt(100), AccountA.Balance)
+	require.Equal(big.NewInt(100), AccountB.Balance)
+	require.NoError(tr2.Stop(context.Background()))
 }
 
 func addCreatorToFactory(cfg config.Config, sf factory.Factory, registry *protocol.Registry) error {
