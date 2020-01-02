@@ -172,3 +172,17 @@ func (mr *MockFactoryMockRecorder) State(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "State", reflect.TypeOf((*MockFactory)(nil).State), arg0, arg1)
 }
+
+// PutBlock mocks base method
+func (m *MockFactory) PutBlock(arg0 context.Context, arg1 []action.SealedEnvelope) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PutBlock", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PutBlock indicates an expected call of PutBlock
+func (mr *MockFactoryMockRecorder) PutBlock(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutBlock", reflect.TypeOf((*MockFactory)(nil).PutBlock), arg0, arg1)
+}
