@@ -353,7 +353,7 @@ func BenchmarkBlockCache(b *testing.B) {
 
 		db := config.Default.DB
 		db.MaxCacheSize = cacheSize
-		blkDao := NewBlockDAO(store, indexer, false, db)
+		blkDao := NewBlockDAO(store, indexer, nil, false, db)
 		require.NoError(b, blkDao.Start(context.Background()))
 		defer func() {
 			require.NoError(b, blkDao.Stop(context.Background()))
