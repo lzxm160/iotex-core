@@ -158,7 +158,7 @@ func TestBlockDAO(t *testing.T) {
 		require := require.New(t)
 
 		ctx := context.Background()
-		dao := NewBlockDAO(kvstore, indexer, false, config.Default.DB)
+		dao := NewBlockDAO(kvstore, indexer, nil, false, config.Default.DB)
 		require.NoError(dao.Start(ctx))
 		defer func() {
 			require.NoError(dao.Stop(ctx))
@@ -221,7 +221,7 @@ func TestBlockDAO(t *testing.T) {
 		require := require.New(t)
 
 		ctx := context.Background()
-		dao := NewBlockDAO(kvstore, indexer, false, config.Default.DB)
+		dao := NewBlockDAO(kvstore, indexer, nil, false, config.Default.DB)
 		require.NoError(dao.Start(ctx))
 		defer func() {
 			require.NoError(dao.Stop(ctx))
