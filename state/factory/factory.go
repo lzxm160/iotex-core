@@ -12,8 +12,6 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/iotexproject/iotex-core/blockchain/block"
-
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -53,7 +51,7 @@ type (
 		SimulateExecution(context.Context, address.Address, *action.Execution, evm.GetBlockHash) ([]byte, *action.Receipt, error)
 		Commit(WorkingSet) error
 		State(hash.Hash160, interface{}) error
-		PutBlock(context.Context, *block.Block) error
+		PutBlock(context.Context, []action.SealedEnvelope) error
 	}
 
 	// factory implements StateFactory interface, tracks changes to account/contract and batch-commits to DB
@@ -267,8 +265,8 @@ func (sf *factory) State(addr hash.Hash160, state interface{}) error {
 }
 
 // PutBlock call RunActions and Commit
-func (sf *factory) PutBlock(ctx context.Context, blk *block.Block) error {
-	_, ws, err := sf.RunActions(ctx, blk.RunnableActions().Actions())
+func (sf *factory) PutBlock(ctx context.Context, actions []action.SealedEnvelope) error {
+	_, ws, err := sf.RunActions(ctx, actions)
 	if err != nil {
 		return err
 	}

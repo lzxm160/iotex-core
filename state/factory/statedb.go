@@ -12,8 +12,6 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/iotexproject/iotex-core/blockchain/block"
-
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -217,8 +215,8 @@ func (sdb *stateDB) State(addr hash.Hash160, state interface{}) error {
 }
 
 // PutBlock call RunActions and Commit
-func (sdb *stateDB) PutBlock(ctx context.Context, blk *block.Block) error {
-	_, ws, err := sdb.RunActions(ctx, blk.RunnableActions().Actions())
+func (sdb *stateDB) PutBlock(ctx context.Context, actions []action.SealedEnvelope) error {
+	_, ws, err := sdb.RunActions(ctx, actions)
 	if err != nil {
 		return err
 	}
