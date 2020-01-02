@@ -245,7 +245,6 @@ func (dao *blockDAO) StartExistingBlockchain(ctx context.Context, gas uint64) er
 		if err != nil {
 			return err
 		}
-		//ctx = bc.contextWithBlock(ctx, producer, blk.Height(), blk.Timestamp())
 		ctx = protocol.WithBlockCtx(
 			ctx,
 			protocol.BlockCtx{
