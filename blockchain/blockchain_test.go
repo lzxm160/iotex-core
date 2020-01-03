@@ -1269,7 +1269,7 @@ func TestHistory(t *testing.T) {
 	b := identityset.Address(29).String()
 
 	// make a transfer from genesisAccount to a and b
-	tsf, err := testutil.SignedTransfer(a, genesisPriKey, 1, big.NewInt(100), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
+	tsf, err := testutil.SignedTransfer(a, genesisPriKey, 1, unit.ConvertIotxToRau(100), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
 	require.NoError(err)
 	tsf2, err := testutil.SignedTransfer(b, genesisPriKey, 2, big.NewInt(100), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
 	require.NoError(err)
