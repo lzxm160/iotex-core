@@ -1464,7 +1464,7 @@ func TestHistoryForContract(t *testing.T) {
 	require.NoError(err)
 	fmt.Println(ret)
 	fmt.Println(hex.EncodeToString(ret))
-	fmt.Println(big.NewInt(0).SetBytes(ret))
+	fmt.Println(big.NewInt(0).SetString(hex.EncodeToString(ret), 16))
 }
 
 func addCreatorToFactory(cfg config.Config, sf factory.Factory, registry *protocol.Registry) error {
