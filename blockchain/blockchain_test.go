@@ -1424,7 +1424,7 @@ func TestHistoryForContract(t *testing.T) {
 	r, err := dao.GetReceiptByActionHash(selp.Hash(), blk.Height())
 	require.NoError(err)
 	contract = r.ContractAddress
-	balance := returnBalanceOfContract(contract, genesisAccount, sf, t, blk.Height())
+	balance, oldRoot := returnBalanceOfContract(contract, genesisAccount, sf, t, blk.Height(), hash.ZeroHash256)
 	expect, ok := big.NewInt(0).SetString("2000000000000000000000000000", 10)
 	require.True(ok)
 	require.Equal(expect, balance)
@@ -1450,14 +1450,20 @@ func TestHistoryForContract(t *testing.T) {
 	require.NoError(bc.ValidateBlock(blk))
 	require.NoError(bc.CommitBlock(blk))
 
-	// checkout the balance after transfer
-	balance = returnBalanceOfContract(contract, genesisAccount, sf, t, blk.Height())
+	// check the balance after transfer
+	balance, _ = returnBalanceOfContract(contract, genesisAccount, sf, t, blk.Height(), hash.ZeroHash256)
 	expect, ok = big.NewInt(0).SetString("1999999999999999999999999999", 10)
+	require.True(ok)
+	require.Equal(expect, balance)
+
+	// check the old trie root
+	balance, _ = returnBalanceOfContract(contract, genesisAccount, sf, t, blk.Height(), oldRoot)
+	expect, ok = big.NewInt(0).SetString("2000000000000000000000000000", 10)
 	require.True(ok)
 	require.Equal(expect, balance)
 }
 
-func returnBalanceOfContract(contract, genesisAccount string, sf factory.Factory, t *testing.T, hei uint64) *big.Int {
+func returnBalanceOfContract(contract, genesisAccount string, sf factory.Factory, t *testing.T, hei uint64, oldRoot hash.Hash256) (*big.Int, hash.Hash256) {
 	require := require.New(t)
 	ws, err := sf.NewWorkingSet(nil)
 	require.NoError(err)
@@ -1483,8 +1489,11 @@ func returnBalanceOfContract(contract, genesisAccount string, sf factory.Factory
 		}),
 	}
 	// trie root before make transfer for contract
-	oldRoot := account.Root
-	options = append(options, trie.RootHashOption(oldRoot[:]), trie.HistoryRetentionOption(2000))
+	root := account.Root
+	if oldRoot != hash.ZeroHash256 {
+		root = oldRoot
+	}
+	options = append(options, trie.RootHashOption(root[:]), trie.HistoryRetentionOption(2000))
 	tr, err := trie.NewTrie(options...)
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
@@ -1500,7 +1509,7 @@ func returnBalanceOfContract(contract, genesisAccount string, sf factory.Factory
 	ret, err := tr.Get(out2[:])
 	require.NoError(err)
 	fmt.Println(big.NewInt(0).SetBytes(ret))
-	return big.NewInt(0).SetBytes(ret)
+	return big.NewInt(0).SetBytes(ret), root
 	//expect, ok := big.NewInt(0).SetString("2000000000000000000000000000", 10)
 	//require.True(ok)
 	//// balance before transfer is 2000000000000000000000000000
