@@ -1282,7 +1282,7 @@ func TestHistory(t *testing.T) {
 	// make a transfer
 	actionMap := make(map[string][]action.SealedEnvelope)
 	actionMap[a] = []action.SealedEnvelope{}
-	tsf, err := testutil.SignedTransfer(b, priKeyA, 1, big.NewInt(10000000000000000000), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
+	tsf, err := testutil.SignedTransfer(b, priKeyA, 1, big.NewInt(10), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
 	require.NoError(err)
 	actionMap[a] = append(actionMap[a], tsf)
 	blk, _ := bc.MintNewBlock(
@@ -1291,6 +1291,7 @@ func TestHistory(t *testing.T) {
 	)
 	require.NoError(bc.ValidateBlock(blk))
 	require.NoError(bc.CommitBlock(blk))
+	fmt.Println("//////////////", blk.Height())
 	// balances after transfer
 	AccountA, err = accountutil.LoadOrCreateAccount(ws, a, nil)
 	require.NoError(err)
