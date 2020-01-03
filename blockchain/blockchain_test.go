@@ -17,6 +17,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Frankonly/iotex-core/state"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -1315,26 +1316,31 @@ func TestHistory(t *testing.T) {
 	require.NoError(err)
 	require.Equal(big.NewInt(90), AccountA.Balance)
 	require.Equal(big.NewInt(110), AccountB.Balance)
-	//ws, err = sf.NewWorkingSet(&registry)
-	//require.NoError(err)
-	//AccountA, err = accountutil.LoadOrCreateAccount(ws, a, nil)
-	//require.NoError(err)
-	//AccountB, err = accountutil.LoadOrCreateAccount(ws, b, nil)
-	//require.NoError(err)
-	//require.Equal(big.NewInt(100), AccountA.Balance)
-	//require.Equal(big.NewInt(100), AccountB.Balance)
-	// get history account through height
-	//addr, err := address.FromString(a)
-	//require.NoError(err)
-	//addrHash := hash.BytesToHash160(addr.Bytes())
-	//ns := append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
-	//ri, err := dao.KVStore().CreateRangeIndexNX(ns, db.NotExist)
-	//require.NoError(err)
-	//accountValue, err := ri.Get(blk.Height())
-	//require.NoError(err)
-	//var account state.Account
-	//require.NoError(state.Deserialize(account, accountValue))
-	//require.Equal(account.Balance, AccountA.Balance)
+
+	// get history account a through height
+	addr, err := address.FromString(a)
+	require.NoError(err)
+	addrHash := hash.BytesToHash160(addr.Bytes())
+	ns := append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
+	ri, err := dao.KVStore().CreateRangeIndexNX(ns, db.NotExist)
+	require.NoError(err)
+	accountValue, err := ri.Get(blk.Height() - 1)
+	require.NoError(err)
+	var account state.Account
+	require.NoError(state.Deserialize(account, accountValue))
+	require.Equal(big.NewInt(100), account.Balance)
+
+	// get history account a through height
+	addr, err = address.FromString(b)
+	require.NoError(err)
+	addrHash = hash.BytesToHash160(addr.Bytes())
+	ns = append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
+	ri, err = dao.KVStore().CreateRangeIndexNX(ns, db.NotExist)
+	require.NoError(err)
+	accountValue, err = ri.Get(blk.Height() - 1)
+	require.NoError(err)
+	require.NoError(state.Deserialize(account, accountValue))
+	require.Equal(big.NewInt(100), account.Balance)
 
 	// root hash after transfer
 	//rootHash2 := ws.RootHash()
