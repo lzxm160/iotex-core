@@ -1471,11 +1471,10 @@ func TestHistoryForContract(t *testing.T) {
 	encodeString2 := base64.StdEncoding.EncodeToString([]byte(hex.EncodeToString(out2)))
 	fmt.Println(encodeString2)
 	hashKey, err := hash.HexStringToHash256(encodeString2)
-	tr.Start(context.Background())
 	ret, err := tr.Get(hashKey[:])
 	require.NoError(err)
 	fmt.Println(ret)
-	fmt.Println([]byte(hex.EncodeToString(ret)))
+	fmt.Println(string([]byte(hex.EncodeToString(ret))))
 	fmt.Println(big.NewInt(0).SetBytes([]byte(hex.EncodeToString(ret))))
 }
 
