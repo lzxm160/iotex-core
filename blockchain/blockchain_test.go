@@ -1285,10 +1285,13 @@ func TestHistory(t *testing.T) {
 
 	// root hash before transfer
 	//rootHash1 := ws.RootHash()
+	genesisAcc, err := sf.AccountState(genesisAccount)
+	require.NoError(err)
 	AccountA, err := sf.AccountState(a)
 	require.NoError(err)
 	AccountB, err := sf.AccountState(b)
 	require.NoError(err)
+	require.Equal(big.NewInt(100), genesisAcc.Balance)
 	require.Equal(big.NewInt(100), AccountA.Balance)
 	require.Equal(big.NewInt(100), AccountB.Balance)
 
