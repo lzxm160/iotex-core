@@ -1453,7 +1453,6 @@ func TestHistoryForContract(t *testing.T) {
 	// trie root before make transfer for contract
 	oldRoot := account.Root
 	options = append(options, trie.RootHashOption(oldRoot[:]), trie.HistoryRetentionOption(2000))
-
 	tr, err := trie.NewTrie(options...)
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
@@ -1463,14 +1462,16 @@ func TestHistoryForContract(t *testing.T) {
 	require.NoError(err)
 	addrHash = hash.BytesToHash160(addr.Bytes())
 	checkData := "000000000000000000000000" + hex.EncodeToString(addrHash[:]) + "0000000000000000000000000000000000000000000000000000000000000004"
-	fmt.Println(checkData)
 	hb, err := hex.DecodeString(checkData)
 	require.NoError(err)
 	out2 := crypto.Keccak256(hb)
 	ret, err := tr.Get(out2[:])
 	require.NoError(err)
 	fmt.Println(big.NewInt(0).SetBytes(ret))
-
+	expect, ok := big.NewInt(0).SetString("2000000000000000000000000000", 10)
+	require.True(ok)
+	// balance before transfer is 2000000000000000000000000000
+	require.Equal(expect, big.NewInt(0).SetBytes(ret))
 }
 
 func addCreatorToFactory(cfg config.Config, sf factory.Factory, registry *protocol.Registry) error {
