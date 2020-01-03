@@ -1458,7 +1458,7 @@ func TestHistoryForContract(t *testing.T) {
 	require.NoError(tr.Start(context.Background()))
 	defer tr.Stop(context.Background())
 	// get producer's xrc20 balance
-	hashKey, err := hash.HexStringToHash256("OTRhZGQ2NTRjYmM2YTUwNWFjMGYyMTBlN2IwZGY2ZDJiZWY1NGU1YTYwZGUxNzdlMzA4Zjc0NmE4")
+	hashKey, err := hash.HexStringToHash256("94add654cbc6a505ac0f210e7b0df6d2bef54e5a60de177e308f746a8a79bdcc")
 	tr.Start(context.Background())
 	ret, err := tr.Get(hashKey[:])
 	require.NoError(err)
