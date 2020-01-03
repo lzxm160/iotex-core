@@ -1262,37 +1262,48 @@ func TestHistory(t *testing.T) {
 	require.NoError(bc.Start(context.Background()))
 	require.NotNil(bc)
 	require.NoError(addCreatorToFactory(cfg, sf, nil))
-
-	//a := identityset.Address(28).String()
-	priKeyA := identityset.PrivateKey(28)
+	genesisAccount := identityset.Address(27).String()
+	genesisPriKey := identityset.PrivateKey(27)
+	a := identityset.Address(28).String()
+	//priKeyA := identityset.PrivateKey(28)
 	b := identityset.Address(29).String()
-	ws, err := sf.NewWorkingSet(&registry)
-	require.NoError(err)
-	//AccountA, err := accountutil.LoadOrCreateAccount(ws, a, big.NewInt(100))
-	//require.NoError(err)
-	AccountB, err := accountutil.LoadOrCreateAccount(ws, b, big.NewInt(100))
-	require.NoError(err)
-	//require.Equal(big.NewInt(100), AccountA.Balance)
-	//require.Equal(big.NewInt(100), AccountB.Balance)
-	a := identityset.Address(27).String()
-	AccountA, err := accountutil.LoadOrCreateAccount(ws, a, nil)
-	require.NoError(err)
-	require.Equal(big.NewInt(100), AccountA.Balance)
-	// root hash before transfer
-	//rootHash1 := ws.RootHash()
 
-	// make a transfer
-	actionMap := make(map[string][]action.SealedEnvelope)
-	actionMap[a] = []action.SealedEnvelope{}
-	tsf, err := testutil.SignedTransfer(b, priKeyA, 1, big.NewInt(10), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
+	// make a transfer from genesisAccount to a and b
+	tsf, err := testutil.SignedTransfer(a, genesisPriKey, 1, big.NewInt(100), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
 	require.NoError(err)
-	actionMap[a] = append(actionMap[a], tsf)
+	tsf2, err := testutil.SignedTransfer(b, genesisPriKey, 1, big.NewInt(100), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
+	require.NoError(err)
+	actionMap := make(map[string][]action.SealedEnvelope)
+	actionMap[genesisAccount] = append(actionMap[genesisAccount], tsf)
+	actionMap[genesisAccount] = append(actionMap[genesisAccount], tsf2)
 	blk, _ := bc.MintNewBlock(
 		actionMap,
 		testutil.TimestampNow(),
 	)
 	require.NoError(bc.ValidateBlock(blk))
 	require.NoError(bc.CommitBlock(blk))
+
+	// root hash before transfer
+	//rootHash1 := ws.RootHash()
+	AccountA, err := sf.AccountState(a)
+	require.NoError(err)
+	AccountB, err := sf.AccountState(b)
+	require.NoError(err)
+	require.Equal(big.NewInt(100), AccountA.Balance)
+	require.Equal(big.NewInt(100), AccountB.Balance)
+
+	// make a transfer
+	//actionMap := make(map[string][]action.SealedEnvelope)
+	//actionMap[a] = []action.SealedEnvelope{}
+	//tsf, err := testutil.SignedTransfer(a, genesisAccount, 1, big.NewInt(100), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
+	//require.NoError(err)
+	//actionMap[a] = append(actionMap[a], tsf)
+	//blk, _ := bc.MintNewBlock(
+	//	actionMap,
+	//	testutil.TimestampNow(),
+	//)
+	//require.NoError(bc.ValidateBlock(blk))
+	//require.NoError(bc.CommitBlock(blk))
 	// balances after transfer
 	//AccountA, err = sf.AccountState(a)
 	//require.NoError(err)
@@ -1300,14 +1311,14 @@ func TestHistory(t *testing.T) {
 	//require.NoError(err)
 	//require.Equal(big.NewInt(90), AccountA.Balance)
 	//require.Equal(big.NewInt(110), AccountB.Balance)
-	ws, err = sf.NewWorkingSet(&registry)
-	require.NoError(err)
-	AccountA, err = accountutil.LoadOrCreateAccount(ws, a, nil)
-	require.NoError(err)
-	AccountB, err = accountutil.LoadOrCreateAccount(ws, b, nil)
-	require.NoError(err)
-	require.Equal(big.NewInt(100), AccountA.Balance)
-	require.Equal(big.NewInt(100), AccountB.Balance)
+	//ws, err = sf.NewWorkingSet(&registry)
+	//require.NoError(err)
+	//AccountA, err = accountutil.LoadOrCreateAccount(ws, a, nil)
+	//require.NoError(err)
+	//AccountB, err = accountutil.LoadOrCreateAccount(ws, b, nil)
+	//require.NoError(err)
+	//require.Equal(big.NewInt(100), AccountA.Balance)
+	//require.Equal(big.NewInt(100), AccountB.Balance)
 	// get history account through height
 	//addr, err := address.FromString(a)
 	//require.NoError(err)
