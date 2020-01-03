@@ -1251,6 +1251,8 @@ func TestHistory(t *testing.T) {
 	require.NoError(registry.Register(account.ProtocolID, acc))
 	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
 	require.NoError(registry.Register(rolldpos.ProtocolID, rp))
+	require.NoError(registry.Register(poll.ProtocolID, poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)))
+
 	// create indexer
 	cfg.DB.DbPath = cfg.Chain.IndexDBPath
 	indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
@@ -1259,7 +1261,9 @@ func TestHistory(t *testing.T) {
 	cfg.DB.DbPath = cfg.Chain.ChainDBPath
 	dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
 
-	bc := NewBlockchain(cfg, dao, PrecreatedStateFactoryOption(sf), BoltDBDaoOption())
+	bc := NewBlockchain(cfg, dao, PrecreatedStateFactoryOption(sf), BoltDBDaoOption(), RegistryOption(&registry))
+	rewardingProtocol := rewarding.NewProtocol(bc, rp)
+	require.NoError(registry.Register(rewarding.ProtocolID, rewardingProtocol))
 	require.NoError(bc.Start(context.Background()))
 	require.NotNil(bc)
 	require.NoError(addCreatorToFactory(cfg, sf, nil))
