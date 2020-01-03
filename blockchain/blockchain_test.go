@@ -1360,6 +1360,8 @@ func TestHistoryForContract(t *testing.T) {
 	cfg.Chain.IndexDBPath = testIndexPath
 	cfg.Chain.EnableHistoryStateDB = true
 	cfg.Consensus.Scheme = config.RollDPoSScheme
+	cfg.Genesis.BlockGasLimit = uint64(1000000)
+	cfg.Genesis.EnableGravityChainVoting = false
 	// Create a blockchain from scratch
 	sf, err := factory.NewStateDB(cfg, factory.DefaultStateDBOption())
 	require.NoError(err)
@@ -1381,6 +1383,11 @@ func TestHistoryForContract(t *testing.T) {
 	bc := NewBlockchain(cfg, dao, PrecreatedStateFactoryOption(sf), BoltDBDaoOption(), RegistryOption(&registry))
 	rewardingProtocol := rewarding.NewProtocol(bc, rp)
 	require.NoError(registry.Register(rewarding.ProtocolID, rewardingProtocol))
+	exec := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
+	require.NoError(registry.Register(execution.ProtocolID, exec))
+	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
+	bc.Validator().AddActionValidators(acc, exec)
+
 	require.NoError(bc.Start(context.Background()))
 	require.NotNil(bc)
 	require.NoError(addCreatorToFactory(cfg, sf, nil))
