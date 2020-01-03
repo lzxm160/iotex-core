@@ -1463,7 +1463,7 @@ func TestHistoryForContract(t *testing.T) {
 	ret, err := tr.Get(hashKey[:])
 	require.NoError(err)
 	fmt.Println(ret)
-	fmt.Println(hex.EncodeToString(ret))
+	fmt.Println([]byte(hex.EncodeToString(ret)))
 	fmt.Println(big.NewInt(0).SetString(hex.EncodeToString(ret), 16))
 }
 
