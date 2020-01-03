@@ -17,8 +17,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
-
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
@@ -29,6 +27,7 @@ import (
 	"github.com/iotexproject/iotex-core/action/protocol/account"
 	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
+	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
