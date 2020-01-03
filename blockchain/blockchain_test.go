@@ -1270,12 +1270,12 @@ func TestHistory(t *testing.T) {
 	b := identityset.Address(29).String()
 	ws, err := sf.NewWorkingSet(nil)
 	require.NoError(err)
-	AccountA, err := accountutil.LoadOrCreateAccount(ws, a, big.NewInt(90))
+	AccountA, err := accountutil.LoadOrCreateAccount(ws, a, big.NewInt(100))
 	require.NoError(err)
-	AccountB, err := accountutil.LoadOrCreateAccount(ws, b, big.NewInt(90))
+	AccountB, err := accountutil.LoadOrCreateAccount(ws, b, big.NewInt(100))
 	require.NoError(err)
-	require.Equal(big.NewInt(90), AccountA.Balance)
-	require.Equal(big.NewInt(90), AccountB.Balance)
+	require.Equal(big.NewInt(100), AccountA.Balance)
+	require.Equal(big.NewInt(100), AccountB.Balance)
 	// root hash before transfer
 	//rootHash1 := ws.RootHash()
 
