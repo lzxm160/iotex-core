@@ -1270,7 +1270,7 @@ func TestHistory(t *testing.T) {
 	genesisAccount := identityset.Address(27).String()
 	genesisPriKey := identityset.PrivateKey(27)
 	a := identityset.Address(28).String()
-	//priKeyA := identityset.PrivateKey(28)
+	priKeyA := identityset.PrivateKey(28)
 	b := identityset.Address(29).String()
 
 	// make a transfer from genesisAccount to a and b
@@ -1296,25 +1296,25 @@ func TestHistory(t *testing.T) {
 	require.Equal(big.NewInt(100), AccountA.Balance)
 	require.Equal(big.NewInt(100), AccountB.Balance)
 
-	// make a transfer
-	//actionMap := make(map[string][]action.SealedEnvelope)
-	//actionMap[a] = []action.SealedEnvelope{}
-	//tsf, err := testutil.SignedTransfer(a, genesisAccount, 1, big.NewInt(100), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
-	//require.NoError(err)
-	//actionMap[a] = append(actionMap[a], tsf)
-	//blk, _ := bc.MintNewBlock(
-	//	actionMap,
-	//	testutil.TimestampNow(),
-	//)
-	//require.NoError(bc.ValidateBlock(blk))
-	//require.NoError(bc.CommitBlock(blk))
+	// make a transfer from a to b
+	actionMap = make(map[string][]action.SealedEnvelope)
+	actionMap[a] = []action.SealedEnvelope{}
+	tsf, err = testutil.SignedTransfer(b, priKeyA, 1, big.NewInt(10), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
+	require.NoError(err)
+	actionMap[a] = append(actionMap[a], tsf)
+	blk, _ = bc.MintNewBlock(
+		actionMap,
+		testutil.TimestampNow(),
+	)
+	require.NoError(bc.ValidateBlock(blk))
+	require.NoError(bc.CommitBlock(blk))
 	// balances after transfer
-	//AccountA, err = sf.AccountState(a)
-	//require.NoError(err)
-	//AccountB, err = sf.AccountState(b)
-	//require.NoError(err)
-	//require.Equal(big.NewInt(90), AccountA.Balance)
-	//require.Equal(big.NewInt(110), AccountB.Balance)
+	AccountA, err = sf.AccountState(a)
+	require.NoError(err)
+	AccountB, err = sf.AccountState(b)
+	require.NoError(err)
+	require.Equal(big.NewInt(90), AccountA.Balance)
+	require.Equal(big.NewInt(110), AccountB.Balance)
 	//ws, err = sf.NewWorkingSet(&registry)
 	//require.NoError(err)
 	//AccountA, err = accountutil.LoadOrCreateAccount(ws, a, nil)
