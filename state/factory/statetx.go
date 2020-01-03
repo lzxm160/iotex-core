@@ -201,6 +201,7 @@ func (stx *stateTX) State(hash hash.Hash160, s interface{}) error {
 
 // PutState puts a state into DB
 func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
+	fmt.Println("PutState")
 	stateDBMtc.WithLabelValues("put").Inc()
 	ss, err := state.Serialize(s)
 	if err != nil {
