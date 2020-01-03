@@ -1242,6 +1242,7 @@ func TestHistory(t *testing.T) {
 	cfg.Chain.ChainDBPath = testDBPath
 	cfg.Chain.IndexDBPath = testIndexPath
 	cfg.Chain.EnableHistoryStateDB = true
+	cfg.Consensus.Scheme = config.RollDPoSScheme
 	// Create a blockchain from scratch
 	sf, err := factory.NewStateDB(cfg, factory.DefaultStateDBOption())
 	require.NoError(err)
