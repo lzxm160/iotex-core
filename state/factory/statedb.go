@@ -256,6 +256,7 @@ func (sdb *stateDB) state(addr hash.Hash160, s interface{}) error {
 }
 
 func (sdb *stateDB) accountState(encodedAddr string) (*state.Account, error) {
+	fmt.Println("accountState:", encodedAddr)
 	// TODO: state db shouldn't serve this function
 	addr, err := address.FromString(encodedAddr)
 	if err != nil {
