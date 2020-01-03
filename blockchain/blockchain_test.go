@@ -1243,7 +1243,7 @@ func TestHistory(t *testing.T) {
 	cfg.Chain.IndexDBPath = testIndexPath
 	cfg.Chain.EnableHistoryStateDB = true
 	// Create a blockchain from scratch
-	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
+	sf, err := factory.NewStateDB(cfg, factory.DefaultStateDBOption())
 	require.NoError(err)
 	acc := account.NewProtocol()
 	registry := protocol.Registry{}
