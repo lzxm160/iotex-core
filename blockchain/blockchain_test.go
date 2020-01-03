@@ -1492,8 +1492,10 @@ func TestHistoryForContract(t *testing.T) {
 	require.NoError(err)
 	require.NoError(bc.ValidateBlock(blk))
 	require.NoError(bc.CommitBlock(blk))
-
+	require.NoError(tr.Stop(context.Background()))
 	// checkout the balance after transfer
+	ri, err = kv.CreateRangeIndexNX(ns, db.NotExist)
+	require.NoError(err)
 	accountValue, err = ri.Get(blk.Height())
 	require.NoError(err)
 	require.NoError(state.Deserialize(&account, accountValue))
