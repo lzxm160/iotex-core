@@ -1271,7 +1271,7 @@ func TestHistory(t *testing.T) {
 	// make a transfer from genesisAccount to a and b
 	tsf, err := testutil.SignedTransfer(a, genesisPriKey, 1, big.NewInt(100), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
 	require.NoError(err)
-	tsf2, err := testutil.SignedTransfer(b, genesisPriKey, 1, big.NewInt(100), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
+	tsf2, err := testutil.SignedTransfer(b, genesisPriKey, 2, big.NewInt(100), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
 	require.NoError(err)
 	actionMap := make(map[string][]action.SealedEnvelope)
 	actionMap[genesisAccount] = append(actionMap[genesisAccount], tsf)
