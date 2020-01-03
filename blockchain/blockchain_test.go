@@ -1423,9 +1423,40 @@ func TestHistoryForContract(t *testing.T) {
 	var contract string
 	r, err := dao.GetReceiptByActionHash(selp.Hash(), blk.Height())
 	require.NoError(err)
-	contract = r.ContractAddress
-	fmt.Println(contract)
+	balance := returnBalanceOfContract(r.ContractAddress, genesisAccount, sf, t, blk.Height())
+	expect, ok := big.NewInt(0).SetString("2000000000000000000000000000", 10)
+	require.True(ok)
+	require.Equal(expect, balance)
+	// make a transfer for contract,transfer 1 to io16eur00s9gdvak4ujhpuk9a45x24n60jgecgxzz
+	bytecode := []byte("a9059cbb0000000000000000000000004867c4bada9553216bf296c4c64e9ff0749206490000000000000000000000000000000000000000000000000000000000000001")
+	execution, err = action.NewExecution(contract, 2, big.NewInt(0), 1000000, big.NewInt(testutil.TestGasPriceInt64), bytecode)
+	require.NoError(err)
+	bd = &action.EnvelopeBuilder{}
+	elp = bd.SetAction(execution).
+		SetNonce(2).
+		SetGasLimit(1000000).
+		SetGasPrice(big.NewInt(testutil.TestGasPriceInt64)).Build()
+	selp, err = action.Sign(elp, genesisPriKey)
+	require.NoError(err)
+	actionMap = make(map[string][]action.SealedEnvelope)
+	actionMap[genesisAccount] = []action.SealedEnvelope{selp}
+	blk, err = bc.MintNewBlock(
+		actionMap,
+		testutil.TimestampNow(),
+	)
+	require.NoError(err)
+	require.NoError(bc.ValidateBlock(blk))
+	require.NoError(bc.CommitBlock(blk))
 
+	// checkout the balance after transfer
+	balance = returnBalanceOfContract(r.ContractAddress, genesisAccount, sf, t, blk.Height())
+	expect, ok = big.NewInt(0).SetString("1999999999999999999999999999", 10)
+	require.True(ok)
+	require.Equal(expect, balance)
+}
+
+func returnBalanceOfContract(contract, genesisAccount string, sf factory.Factory, t *testing.T, hei uint64) *big.Int {
+	require := require.New(t)
 	ws, err := sf.NewWorkingSet(nil)
 	require.NoError(err)
 	kv := ws.GetDB()
@@ -1435,7 +1466,7 @@ func TestHistoryForContract(t *testing.T) {
 	ns := append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
 	ri, err := kv.CreateRangeIndexNX(ns, db.NotExist)
 	require.NoError(err)
-	accountValue, err := ri.Get(blk.Height())
+	accountValue, err := ri.Get(hei)
 	require.NoError(err)
 	var account state.Account
 	require.NoError(state.Deserialize(&account, accountValue))
@@ -1467,64 +1498,11 @@ func TestHistoryForContract(t *testing.T) {
 	ret, err := tr.Get(out2[:])
 	require.NoError(err)
 	fmt.Println(big.NewInt(0).SetBytes(ret))
-	expect, ok := big.NewInt(0).SetString("2000000000000000000000000000", 10)
-	require.True(ok)
-	// balance before transfer is 2000000000000000000000000000
-	require.Equal(expect, big.NewInt(0).SetBytes(ret))
-
-	// make a transfer for contract,transfer 1 to io16eur00s9gdvak4ujhpuk9a45x24n60jgecgxzz
-	bytecode := []byte("a9059cbb0000000000000000000000004867c4bada9553216bf296c4c64e9ff0749206490000000000000000000000000000000000000000000000000000000000000001")
-	execution, err = action.NewExecution(contract, 2, big.NewInt(0), 1000000, big.NewInt(testutil.TestGasPriceInt64), bytecode)
-	require.NoError(err)
-	bd = &action.EnvelopeBuilder{}
-	elp = bd.SetAction(execution).
-		SetNonce(2).
-		SetGasLimit(1000000).
-		SetGasPrice(big.NewInt(testutil.TestGasPriceInt64)).Build()
-	selp, err = action.Sign(elp, genesisPriKey)
-	require.NoError(err)
-	actionMap = make(map[string][]action.SealedEnvelope)
-	actionMap[genesisAccount] = []action.SealedEnvelope{selp}
-	blk, err = bc.MintNewBlock(
-		actionMap,
-		testutil.TimestampNow(),
-	)
-	require.NoError(err)
-	require.NoError(bc.ValidateBlock(blk))
-	require.NoError(bc.CommitBlock(blk))
-	require.NoError(tr.Stop(context.Background()))
-	// checkout the balance after transfer
-	ri, err = kv.CreateRangeIndexNX(ns, db.NotExist)
-	require.NoError(err)
-	accountValue, err = ri.Get(blk.Height())
-	require.NoError(err)
-	require.NoError(state.Deserialize(&account, accountValue))
-	require.NoError(err)
-	dbForTrie, err = db.NewKVStoreForTrie(evm.ContractKVNameSpace, evm.PruneKVNameSpace, kv, db.CachedBatchOption(db.NewCachedBatch()))
-	require.NoError(err)
-	options = []trie.Option{
-		trie.KVStoreOption(dbForTrie),
-		trie.KeyLengthOption(len(hash.Hash256{})),
-		trie.HashFuncOption(func(data []byte) []byte {
-			return trie.DefaultHashFunc(append(addrHash[:], data...))
-		}),
-	}
-	options = append(options, trie.RootHashOption(account.Root[:]), trie.HistoryRetentionOption(2000))
-	tr, err = trie.NewTrie(options...)
-	require.NoError(err)
-	require.NoError(tr.Start(context.Background()))
-	defer tr.Stop(context.Background())
-	// get producer's xrc20 balance
-	addr, err = address.FromString(genesisAccount)
-	require.NoError(err)
-	addrHash = hash.BytesToHash160(addr.Bytes())
-	ret, err = tr.Get(out2[:])
-	require.NoError(err)
-	fmt.Println(big.NewInt(0).SetBytes(ret))
-	expect, ok = big.NewInt(0).SetString("1999999999999999999999999999", 10)
-	require.True(ok)
-	// balance after transfer is 1999999999999999999999999999
-	require.Equal(expect, big.NewInt(0).SetBytes(ret))
+	return big.NewInt(0).SetBytes(ret)
+	//expect, ok := big.NewInt(0).SetString("2000000000000000000000000000", 10)
+	//require.True(ok)
+	//// balance before transfer is 2000000000000000000000000000
+	//require.Equal(expect, big.NewInt(0).SetBytes(ret))
 }
 
 func addCreatorToFactory(cfg config.Config, sf factory.Factory, registry *protocol.Registry) error {
