@@ -8,7 +8,6 @@ package factory
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/pkg/errors"
@@ -201,7 +200,6 @@ func (stx *stateTX) State(hash hash.Hash160, s interface{}) error {
 
 // PutState puts a state into DB
 func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
-	fmt.Println("PutState")
 	stateDBMtc.WithLabelValues("put").Inc()
 	ss, err := state.Serialize(s)
 	if err != nil {
@@ -228,7 +226,6 @@ func (stx *stateTX) addActionHandlers(actionHandlers ...protocol.ActionHandler) 
 // putIndex insert height-state
 func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	version := stx.ver + 1
-	fmt.Println(version)
 	ns := append([]byte(AccountKVNameSpace), pkHash[:]...)
 	ri, err := stx.dao.CreateRangeIndexNX(ns, db.NotExist)
 	if err != nil {

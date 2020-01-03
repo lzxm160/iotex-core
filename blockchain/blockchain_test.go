@@ -1477,6 +1477,13 @@ func TestHistoryForContract(t *testing.T) {
 	fmt.Println(string(ret))
 	fmt.Println(string([]byte(hex.EncodeToString(ret))))
 	//fmt.Println(big.NewInt(0).SetBytes([]byte(hex.EncodeToString(ret))))
+
+	fmt.Println("====================")
+	ret, err = tr.Get(out2[:])
+	require.NoError(err)
+	fmt.Println(string(ret))
+	fmt.Println(string([]byte(hex.EncodeToString(ret))))
+
 }
 
 func addCreatorToFactory(cfg config.Config, sf factory.Factory, registry *protocol.Registry) error {
