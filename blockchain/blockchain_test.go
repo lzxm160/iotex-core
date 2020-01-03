@@ -1423,7 +1423,8 @@ func TestHistoryForContract(t *testing.T) {
 	var contract string
 	r, err := dao.GetReceiptByActionHash(selp.Hash(), blk.Height())
 	require.NoError(err)
-	balance := returnBalanceOfContract(r.ContractAddress, genesisAccount, sf, t, blk.Height())
+	contract = r.ContractAddress
+	balance := returnBalanceOfContract(contract, genesisAccount, sf, t, blk.Height())
 	expect, ok := big.NewInt(0).SetString("2000000000000000000000000000", 10)
 	require.True(ok)
 	require.Equal(expect, balance)
@@ -1450,7 +1451,7 @@ func TestHistoryForContract(t *testing.T) {
 	require.NoError(bc.CommitBlock(blk))
 
 	// checkout the balance after transfer
-	balance = returnBalanceOfContract(r.ContractAddress, genesisAccount, sf, t, blk.Height())
+	balance = returnBalanceOfContract(contract, genesisAccount, sf, t, blk.Height())
 	expect, ok = big.NewInt(0).SetString("1999999999999999999999999999", 10)
 	require.True(ok)
 	require.Equal(expect, balance)
