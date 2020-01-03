@@ -1291,9 +1291,9 @@ func TestHistory(t *testing.T) {
 	require.NoError(bc.CommitBlock(blk))
 	fmt.Println("//////////////", blk.Height())
 	// balances after transfer
-	AccountA, err = bc.Factory().AccountState(a)
+	AccountA, err = sf.AccountState(a)
 	require.NoError(err)
-	AccountB, err = bc.Factory().AccountState(b)
+	AccountB, err = sf.AccountState(b)
 	require.NoError(err)
 	require.Equal(big.NewInt(90), AccountA.Balance)
 	require.Equal(big.NewInt(110), AccountB.Balance)
