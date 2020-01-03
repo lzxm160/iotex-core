@@ -1327,7 +1327,7 @@ func TestHistory(t *testing.T) {
 	accountValue, err := ri.Get(blk.Height() - 1)
 	require.NoError(err)
 	var account state.Account
-	require.NoError(state.Deserialize(account, accountValue))
+	require.NoError(state.Deserialize(&account, accountValue))
 	require.Equal(big.NewInt(100), account.Balance)
 
 	// get history account a through height
@@ -1339,7 +1339,7 @@ func TestHistory(t *testing.T) {
 	require.NoError(err)
 	accountValue, err = ri.Get(blk.Height() - 1)
 	require.NoError(err)
-	require.NoError(state.Deserialize(account, accountValue))
+	require.NoError(state.Deserialize(&account, accountValue))
 	require.Equal(big.NewInt(100), account.Balance)
 
 	// root hash after transfer
