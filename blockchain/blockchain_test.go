@@ -1229,7 +1229,7 @@ func TestActions(t *testing.T) {
 	require.Nil(val.Validate(ctx, blk, 0, blk.PrevHash()))
 }
 
-func TestHistory(t *testing.T) {
+func TestHistoryForAccount(t *testing.T) {
 	require := require.New(t)
 
 	cfg := config.Default
@@ -1289,7 +1289,6 @@ func TestHistory(t *testing.T) {
 	require.NoError(bc.CommitBlock(blk))
 
 	// root hash before transfer
-	//rootHash1 := ws.RootHash()
 	AccountA, err := sf.AccountState(a)
 	require.NoError(err)
 	AccountB, err := sf.AccountState(b)
@@ -1317,7 +1316,7 @@ func TestHistory(t *testing.T) {
 	require.Equal(big.NewInt(90), AccountA.Balance)
 	require.Equal(big.NewInt(110), AccountB.Balance)
 
-	// get history account a through height
+	// check history account a's balance through height
 	addr, err := address.FromString(a)
 	require.NoError(err)
 	addrHash := hash.BytesToHash160(addr.Bytes())
@@ -1333,7 +1332,7 @@ func TestHistory(t *testing.T) {
 	require.NoError(state.Deserialize(&account, accountValue))
 	require.Equal(big.NewInt(100), account.Balance)
 
-	// get history account a through height
+	// check history account b's balance through height
 	addr, err = address.FromString(b)
 	require.NoError(err)
 	addrHash = hash.BytesToHash160(addr.Bytes())
@@ -1344,6 +1343,79 @@ func TestHistory(t *testing.T) {
 	require.NoError(err)
 	require.NoError(state.Deserialize(&account, accountValue))
 	require.Equal(big.NewInt(100), account.Balance)
+}
+
+func TestHistoryForContract(t *testing.T) {
+	require := require.New(t)
+
+	cfg := config.Default
+	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+	testTriePath := testTrieFile.Name()
+	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	testDBPath := testDBFile.Name()
+	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+	testIndexPath := testIndexFile.Name()
+	cfg.Chain.TrieDBPath = testTriePath
+	cfg.Chain.ChainDBPath = testDBPath
+	cfg.Chain.IndexDBPath = testIndexPath
+	cfg.Chain.EnableHistoryStateDB = true
+	cfg.Consensus.Scheme = config.RollDPoSScheme
+	// Create a blockchain from scratch
+	sf, err := factory.NewStateDB(cfg, factory.DefaultStateDBOption())
+	require.NoError(err)
+	acc := account.NewProtocol()
+	registry := protocol.Registry{}
+	require.NoError(registry.Register(account.ProtocolID, acc))
+	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+	require.NoError(registry.Register(rolldpos.ProtocolID, rp))
+	require.NoError(registry.Register(poll.ProtocolID, poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)))
+
+	// create indexer
+	cfg.DB.DbPath = cfg.Chain.IndexDBPath
+	indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
+	require.NoError(err)
+	// create BlockDAO
+	cfg.DB.DbPath = cfg.Chain.ChainDBPath
+	dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
+
+	bc := NewBlockchain(cfg, dao, PrecreatedStateFactoryOption(sf), BoltDBDaoOption(), RegistryOption(&registry))
+	rewardingProtocol := rewarding.NewProtocol(bc, rp)
+	require.NoError(registry.Register(rewarding.ProtocolID, rewardingProtocol))
+	require.NoError(bc.Start(context.Background()))
+	require.NotNil(bc)
+	require.NoError(addCreatorToFactory(cfg, sf, nil))
+	genesisAccount := identityset.Address(27).String()
+	genesisPriKey := identityset.PrivateKey(27)
+	data, _ := hex.DecodeString("60806040526002805460ff1916601217905534801561001d57600080fd5b506040516107cd3803806107cd83398101604090815281516020808401518385015160025460ff16600a0a84026003819055336000908152600485529586205590850180519395909491019261007592850190610092565b508051610089906001906020840190610092565b5050505061012d565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f106100d357805160ff1916838001178555610100565b82800160010185558215610100579182015b828111156101005782518255916020019190600101906100e5565b5061010c929150610110565b5090565b61012a91905b8082111561010c5760008155600101610116565b90565b6106918061013c6000396000f3006080604052600436106100ae5763ffffffff7c010000000000000000000000000000000000000000000000000000000060003504166306fdde0381146100b3578063095ea7b31461013d57806318160ddd1461017557806323b872dd1461019c578063313ce567146101c657806342966c68146101f1578063670d14b21461020957806370a082311461022a57806395d89b411461024b578063a9059cbb14610260578063dd62ed3e14610286575b600080fd5b3480156100bf57600080fd5b506100c86102ad565b6040805160208082528351818301528351919283929083019185019080838360005b838110156101025781810151838201526020016100ea565b50505050905090810190601f16801561012f5780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b34801561014957600080fd5b50610161600160a060020a036004351660243561033b565b604080519115158252519081900360200190f35b34801561018157600080fd5b5061018a610368565b60408051918252519081900360200190f35b3480156101a857600080fd5b50610161600160a060020a036004358116906024351660443561036e565b3480156101d257600080fd5b506101db6103dd565b6040805160ff9092168252519081900360200190f35b3480156101fd57600080fd5b506101616004356103e6565b34801561021557600080fd5b506100c8600160a060020a036004351661045e565b34801561023657600080fd5b5061018a600160a060020a03600435166104c6565b34801561025757600080fd5b506100c86104d8565b34801561026c57600080fd5b50610284600160a060020a0360043516602435610532565b005b34801561029257600080fd5b5061018a600160a060020a0360043581169060243516610541565b6000805460408051602060026001851615610100026000190190941693909304601f810184900484028201840190925281815292918301828280156103335780601f1061030857610100808354040283529160200191610333565b820191906000526020600020905b81548152906001019060200180831161031657829003601f168201915b505050505081565b336000908152600560209081526040808320600160a060020a039590951683529390529190912055600190565b60035481565b600160a060020a038316600090815260056020908152604080832033845290915281205482111561039e57600080fd5b600160a060020a03841660009081526005602090815260408083203384529091529020805483900390556103d384848461055e565b5060019392505050565b60025460ff1681565b3360009081526004602052604081205482111561040257600080fd5b3360008181526004602090815260409182902080548690039055600380548690039055815185815291517fcc16f5dbb4873280815c1ee09dbd06736cffcc184412cf7a71a0fdb75d397ca59281900390910190a2506001919050565b60066020908152600091825260409182902080548351601f6002600019610100600186161502019093169290920491820184900484028101840190945280845290918301828280156103335780601f1061030857610100808354040283529160200191610333565b60046020526000908152604090205481565b60018054604080516020600284861615610100026000190190941693909304601f810184900484028201840190925281815292918301828280156103335780601f1061030857610100808354040283529160200191610333565b61053d33838361055e565b5050565b600560209081526000928352604080842090915290825290205481565b6000600160a060020a038316151561057557600080fd5b600160a060020a03841660009081526004602052604090205482111561059a57600080fd5b600160a060020a038316600090815260046020526040902054828101116105c057600080fd5b50600160a060020a038083166000818152600460209081526040808320805495891680855282852080548981039091559486905281548801909155815187815291519390950194927fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef929181900390910190a3600160a060020a0380841660009081526004602052604080822054928716825290205401811461065f57fe5b505050505600a165627a7a723058207c03ad12a18902cfe387e684509d310abd583d862c11e3ee80c116af8b49ec5c00290000000000000000000000000000000000000000000000000000000077359400000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000004696f7478000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004696f747800000000000000000000000000000000000000000000000000000000")
+	execution, err := action.NewExecution(action.EmptyAddress, 1, big.NewInt(0), uint64(1000000), big.NewInt(0), data)
+	require.NoError(err)
+
+	bd := &action.EnvelopeBuilder{}
+	// This execution should not be included in block because block is out of gas
+	elp := bd.SetAction(execution).
+		SetNonce(1).
+		SetGasLimit(1000000).
+		SetGasPrice(big.NewInt(10)).Build()
+	selp, err := action.Sign(elp, genesisPriKey)
+	require.NoError(err)
+
+	actionMap := make(map[string][]action.SealedEnvelope)
+	actionMap[genesisAccount] = []action.SealedEnvelope{selp}
+
+	blk, err := bc.MintNewBlock(
+		actionMap,
+		testutil.TimestampNow(),
+	)
+	require.NoError(err)
+	require.NoError(bc.ValidateBlock(blk))
+	require.NoError(bc.CommitBlock(blk))
+	// get deployed contract address
+	var contract string
+	r, err := dao.GetReceiptByActionHash(selp.Hash(), 1)
+	require.NoError(err)
+	contract = r.ContractAddress
+	fmt.Println(contract)
+	// deploy a xrc20 contract
 
 	// root hash after transfer
 	//rootHash2 := ws.RootHash()
@@ -1389,36 +1461,6 @@ func TestHistory(t *testing.T) {
 	//require.Equal(big.NewInt(100), AccountB.Balance)
 	//require.NoError(tr2.Stop(context.Background()))
 }
-
-//func TestHistory2(t *testing.T) {
-//	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
-//	testTriePath := testTrieFile.Name()
-//	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
-//	testDBPath := testDBFile.Name()
-//	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
-//	testIndexPath := testIndexFile.Name()
-//
-//	cfg := config.Default
-//	cfg.Consensus.Scheme = config.StandaloneScheme
-//	cfg.Genesis.BlockInterval = time.Second
-//	cfg.Genesis.EnableGravityChainVoting = true
-//	cfg.Chain.ProducerPrivKey = identityset.PrivateKey(0).HexString()
-//	cfg.Chain.TrieDBPath = testTriePath
-//	cfg.Chain.ChainDBPath = testDBPath
-//	cfg.Chain.IndexDBPath = testIndexPath
-//	cfg.Network.Port = testutil.RandomPort()
-//	cfg.Chain.EnableHistoryStateDB = true
-//	svr, err := itx.NewServer(cfg)
-//	require.NoError(t, err)
-//	require.NoError(t, svr.Start(context.Background()))
-//	defer func() {
-//		require.NoError(t, svr.Stop(context.Background()))
-//	}()
-//
-//	require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 20*time.Second, func() (b bool, e error) {
-//		return svr.ChainService(1).Blockchain().TipHeight() >= 5, nil
-//	}))
-//}
 
 func addCreatorToFactory(cfg config.Config, sf factory.Factory, registry *protocol.Registry) error {
 	ws, err := sf.NewWorkingSet(registry)
