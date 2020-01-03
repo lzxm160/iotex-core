@@ -1462,8 +1462,7 @@ func TestHistoryForContract(t *testing.T) {
 	tr.Start(context.Background())
 	ret, err := tr.Get(hashKey[:])
 	require.NoError(err)
-	balance := []byte(hex.EncodeToString(ret))
-	fmt.Println(balance)
+	fmt.Println(hex.EncodeToString(ret))
 }
 
 func addCreatorToFactory(cfg config.Config, sf factory.Factory, registry *protocol.Registry) error {
