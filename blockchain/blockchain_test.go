@@ -1428,7 +1428,8 @@ func TestHistoryForContract(t *testing.T) {
 	require.True(ok)
 	require.Equal(expect, balance)
 	// make a transfer for contract,transfer 1 to io16eur00s9gdvak4ujhpuk9a45x24n60jgecgxzz
-	bytecode := []byte("a9059cbb0000000000000000000000004867c4bada9553216bf296c4c64e9ff0749206490000000000000000000000000000000000000000000000000000000000000001")
+	bytecode, err := hex.DecodeString("a9059cbb0000000000000000000000004867c4bada9553216bf296c4c64e9ff0749206490000000000000000000000000000000000000000000000000000000000000001")
+	require.NoError(err)
 	execution, err = action.NewExecution(contract, 2, big.NewInt(0), 1000000, big.NewInt(testutil.TestGasPriceInt64), bytecode)
 	require.NoError(err)
 	bd = &action.EnvelopeBuilder{}
