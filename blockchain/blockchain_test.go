@@ -1463,7 +1463,7 @@ func TestHistoryForContract(t *testing.T) {
 	addr, err = address.FromString(genesisAccount)
 	require.NoError(err)
 	addrHash = hash.BytesToHash160(addr.Bytes())
-	checkData := "000000000000000000000000" + hex.EncodeToString(addrHash[:]) + "0000000000000000000000000000000000000000000000000000000000000004"
+	checkData := "000000000000000000000000" + hex.EncodeToString(addrHash[:]) + "0000000000000000000000000000000000000000000000000000000000000005"
 	fmt.Println(checkData)
 	hb, _ := hex.DecodeString(checkData)
 	out2 := crypto.Keccak256(hb)
