@@ -8,6 +8,7 @@ package blockchain
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
@@ -17,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
@@ -1458,7 +1460,17 @@ func TestHistoryForContract(t *testing.T) {
 	require.NoError(tr.Start(context.Background()))
 	defer tr.Stop(context.Background())
 	// get producer's xrc20 balance
-	hashKey, err := hash.HexStringToHash256("OTRhZGQ2NTRjYmM2YTUwNWFjMGYyMTBlN2IwZGY2ZDJiZWY1NGU1YTYwZGUxNzdlMzA4Zjc0NmE4YTc5YmRjYw==")
+	addr, err = address.FromString(genesisAccount)
+	require.NoError(err)
+	addrHash = hash.BytesToHash160(addr.Bytes())
+	checkData := "000000000000000000000000" + hex.EncodeToString(addrHash[:]) + "0000000000000000000000000000000000000000000000000000000000000004"
+	fmt.Println(checkData)
+	hb, _ := hex.DecodeString(checkData)
+	out2 := crypto.Keccak256(hb)
+	fmt.Println(hex.EncodeToString(out2))
+	encodeString2 := base64.StdEncoding.EncodeToString([]byte(hex.EncodeToString(out2)))
+	fmt.Println(encodeString2)
+	hashKey, err := hash.HexStringToHash256(encodeString2)
 	tr.Start(context.Background())
 	ret, err := tr.Get(hashKey[:])
 	require.NoError(err)
