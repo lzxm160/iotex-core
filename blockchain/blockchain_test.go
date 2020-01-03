@@ -8,7 +8,6 @@ package blockchain
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
@@ -1468,21 +1467,9 @@ func TestHistoryForContract(t *testing.T) {
 	hb, err := hex.DecodeString(checkData)
 	require.NoError(err)
 	out2 := crypto.Keccak256(hb)
-	fmt.Println(hex.EncodeToString(out2))
-	encodeString2 := base64.StdEncoding.EncodeToString([]byte(hex.EncodeToString(out2)))
-	fmt.Println(encodeString2)
-	hashKey, err := hash.HexStringToHash256(encodeString2)
-	ret, err := tr.Get(hashKey[:])
+	ret, err := tr.Get(out2[:])
 	require.NoError(err)
-	fmt.Println(string(ret))
-	fmt.Println(string([]byte(hex.EncodeToString(ret))))
-	//fmt.Println(big.NewInt(0).SetBytes([]byte(hex.EncodeToString(ret))))
-
-	fmt.Println("====================")
-	ret, err = tr.Get(out2[:])
-	require.NoError(err)
-	fmt.Println(string(ret))
-	fmt.Println(string([]byte(hex.EncodeToString(ret))))
+	fmt.Println(big.NewInt(0).SetBytes(ret))
 
 }
 
