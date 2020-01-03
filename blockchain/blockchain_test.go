@@ -17,8 +17,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iotexproject/iotex-core/state"
-
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -1293,25 +1291,25 @@ func TestHistory(t *testing.T) {
 	require.NoError(bc.CommitBlock(blk))
 	fmt.Println("//////////////", blk.Height())
 	// balances after transfer
-	AccountA, err = accountutil.LoadOrCreateAccount(ws, a, nil)
+	AccountA, err = bc.Factory().AccountState(a)
 	require.NoError(err)
-	AccountB, err = accountutil.LoadOrCreateAccount(ws, b, nil)
+	AccountB, err = bc.Factory().AccountState(b)
 	require.NoError(err)
 	require.Equal(big.NewInt(90), AccountA.Balance)
 	require.Equal(big.NewInt(110), AccountB.Balance)
 
 	// get history account through height
-	addr, err := address.FromString(a)
-	require.NoError(err)
-	addrHash := hash.BytesToHash160(addr.Bytes())
-	ns := append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
-	ri, err := dao.KVStore().CreateRangeIndexNX(ns, db.NotExist)
-	require.NoError(err)
-	accountValue, err := ri.Get(blk.Height())
-	require.NoError(err)
-	var account state.Account
-	require.NoError(state.Deserialize(account, accountValue))
-	require.Equal(account.Balance, AccountA.Balance)
+	//addr, err := address.FromString(a)
+	//require.NoError(err)
+	//addrHash := hash.BytesToHash160(addr.Bytes())
+	//ns := append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
+	//ri, err := dao.KVStore().CreateRangeIndexNX(ns, db.NotExist)
+	//require.NoError(err)
+	//accountValue, err := ri.Get(blk.Height())
+	//require.NoError(err)
+	//var account state.Account
+	//require.NoError(state.Deserialize(account, accountValue))
+	//require.Equal(account.Balance, AccountA.Balance)
 
 	// root hash after transfer
 	//rootHash2 := ws.RootHash()
@@ -1357,6 +1355,36 @@ func TestHistory(t *testing.T) {
 	//require.Equal(big.NewInt(100), AccountB.Balance)
 	//require.NoError(tr2.Stop(context.Background()))
 }
+
+//func TestHistory2(t *testing.T) {
+//	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+//	testTriePath := testTrieFile.Name()
+//	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+//	testDBPath := testDBFile.Name()
+//	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+//	testIndexPath := testIndexFile.Name()
+//
+//	cfg := config.Default
+//	cfg.Consensus.Scheme = config.StandaloneScheme
+//	cfg.Genesis.BlockInterval = time.Second
+//	cfg.Genesis.EnableGravityChainVoting = true
+//	cfg.Chain.ProducerPrivKey = identityset.PrivateKey(0).HexString()
+//	cfg.Chain.TrieDBPath = testTriePath
+//	cfg.Chain.ChainDBPath = testDBPath
+//	cfg.Chain.IndexDBPath = testIndexPath
+//	cfg.Network.Port = testutil.RandomPort()
+//	cfg.Chain.EnableHistoryStateDB = true
+//	svr, err := itx.NewServer(cfg)
+//	require.NoError(t, err)
+//	require.NoError(t, svr.Start(context.Background()))
+//	defer func() {
+//		require.NoError(t, svr.Stop(context.Background()))
+//	}()
+//
+//	require.NoError(t, testutil.WaitUntil(100*time.Millisecond, 20*time.Second, func() (b bool, e error) {
+//		return svr.ChainService(1).Blockchain().TipHeight() >= 5, nil
+//	}))
+//}
 
 func addCreatorToFactory(cfg config.Config, sf factory.Factory, registry *protocol.Registry) error {
 	ws, err := sf.NewWorkingSet(registry)
