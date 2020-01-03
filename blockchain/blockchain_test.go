@@ -1327,8 +1327,7 @@ func TestHistory(t *testing.T) {
 	kv := ws.GetDB()
 	ri, err := kv.CreateRangeIndexNX(ns, db.NotExist)
 	require.NoError(err)
-	fmt.Println("blk.Height():", blk.Height())
-	accountValue, err := ri.Get(blk.Height())
+	accountValue, err := ri.Get(blk.Height() - 1)
 	require.NoError(err)
 	var account state.Account
 	require.NoError(state.Deserialize(&account, accountValue))
