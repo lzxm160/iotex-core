@@ -1274,8 +1274,7 @@ func TestHistory(t *testing.T) {
 	tsf2, err := testutil.SignedTransfer(b, genesisPriKey, 2, big.NewInt(100), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
 	require.NoError(err)
 	actionMap := make(map[string][]action.SealedEnvelope)
-	actionMap[genesisAccount] = append(actionMap[genesisAccount], tsf)
-	actionMap[genesisAccount] = append(actionMap[genesisAccount], tsf2)
+	actionMap[genesisAccount] = []action.SealedEnvelope{tsf, tsf2}
 	blk, _ := bc.MintNewBlock(
 		actionMap,
 		testutil.TimestampNow(),
