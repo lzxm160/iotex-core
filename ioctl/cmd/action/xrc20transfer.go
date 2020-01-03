@@ -7,6 +7,8 @@
 package action
 
 import (
+	"encoding/hex"
+	"fmt"
 	"math/big"
 
 	"github.com/spf13/cobra"
@@ -49,5 +51,6 @@ func xrc20Transfer(args []string) error {
 	if err != nil {
 		return output.NewError(output.ConvertError, "cannot generate bytecode from given command", err)
 	}
+	fmt.Println(hex.EncodeToString(bytecode))
 	return Execute(contract.String(), big.NewInt(0), bytecode)
 }

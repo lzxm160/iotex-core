@@ -1401,7 +1401,6 @@ func TestHistoryForContract(t *testing.T) {
 	require.NoError(err)
 	execution, err := action.NewExecution(action.EmptyAddress, 1, big.NewInt(0), 1000000, big.NewInt(testutil.TestGasPriceInt64), data)
 	require.NoError(err)
-
 	bd := &action.EnvelopeBuilder{}
 	elp := bd.SetAction(execution).
 		SetNonce(1).
@@ -1472,6 +1471,27 @@ func TestHistoryForContract(t *testing.T) {
 	require.True(ok)
 	// balance before transfer is 2000000000000000000000000000
 	require.Equal(expect, big.NewInt(0).SetBytes(ret))
+
+	// make a transfer for contract
+	bytecode := []byte{}
+	execution, err = action.NewExecution(contract, 2, big.NewInt(0), 1000000, big.NewInt(testutil.TestGasPriceInt64), bytecode)
+	require.NoError(err)
+	bd = &action.EnvelopeBuilder{}
+	elp = bd.SetAction(execution).
+		SetNonce(2).
+		SetGasLimit(1000000).
+		SetGasPrice(big.NewInt(testutil.TestGasPriceInt64)).Build()
+	selp, err = action.Sign(elp, genesisPriKey)
+	require.NoError(err)
+	actionMap = make(map[string][]action.SealedEnvelope)
+	actionMap[genesisAccount] = []action.SealedEnvelope{selp}
+	blk, err = bc.MintNewBlock(
+		actionMap,
+		testutil.TimestampNow(),
+	)
+	require.NoError(err)
+	require.NoError(bc.ValidateBlock(blk))
+	require.NoError(bc.CommitBlock(blk))
 }
 
 func addCreatorToFactory(cfg config.Config, sf factory.Factory, registry *protocol.Registry) error {
