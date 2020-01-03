@@ -1266,7 +1266,7 @@ func TestHistory(t *testing.T) {
 	a := identityset.Address(28).String()
 	priKeyA := identityset.PrivateKey(28)
 	b := identityset.Address(29).String()
-	ws, err := sf.NewWorkingSet(nil)
+	ws, err := sf.NewWorkingSet(&registry)
 	require.NoError(err)
 	AccountA, err := accountutil.LoadOrCreateAccount(ws, a, big.NewInt(100))
 	require.NoError(err)
