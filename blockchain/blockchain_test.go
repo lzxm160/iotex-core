@@ -1338,7 +1338,7 @@ func TestHistory(t *testing.T) {
 	require.NoError(err)
 	addrHash = hash.BytesToHash160(addr.Bytes())
 	ns = append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
-	ri, err = dao.KVStore().CreateRangeIndexNX(ns, db.NotExist)
+	ri, err = kv.CreateRangeIndexNX(ns, db.NotExist)
 	require.NoError(err)
 	accountValue, err = ri.Get(blk.Height() - 1)
 	require.NoError(err)
