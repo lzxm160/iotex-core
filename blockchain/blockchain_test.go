@@ -1400,7 +1400,6 @@ func returnBalanceOfContract(contract, genesisAccount string, sf factory.Factory
 	out2 := crypto.Keccak256(hb)
 	ret, err := tr.Get(out2[:])
 	require.NoError(err)
-	fmt.Println(big.NewInt(0).SetBytes(ret))
 	return big.NewInt(0).SetBytes(ret), root
 }
 
