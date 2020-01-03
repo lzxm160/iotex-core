@@ -1463,7 +1463,7 @@ func TestHistoryForContract(t *testing.T) {
 	addr, err = address.FromString(genesisAccount)
 	require.NoError(err)
 	addrHash = hash.BytesToHash160(addr.Bytes())
-	checkData := "000000000000000000000000" + hex.EncodeToString(addrHash[:]) + "0000000000000000000000000000000000000000000000000000000000000000"
+	checkData := "000000000000000000000000" + hex.EncodeToString(addrHash[:]) + "0000000000000000000000000000000000000000000000000000000000000004"
 	fmt.Println(checkData)
 	hb, _ := hex.DecodeString(checkData)
 	out2 := crypto.Keccak256(hb)
@@ -1475,7 +1475,7 @@ func TestHistoryForContract(t *testing.T) {
 	require.NoError(err)
 	fmt.Println(string(ret))
 	fmt.Println(string([]byte(hex.EncodeToString(ret))))
-	fmt.Println(big.NewInt(0).SetBytes([]byte(hex.EncodeToString(ret))))
+	//fmt.Println(big.NewInt(0).SetBytes([]byte(hex.EncodeToString(ret))))
 }
 
 func addCreatorToFactory(cfg config.Config, sf factory.Factory, registry *protocol.Registry) error {
