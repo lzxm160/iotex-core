@@ -17,9 +17,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
-
-	"github.com/iotexproject/iotex-core/db/trie"
+	"github.com/iotexproject/iotex-core/state"
 
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
@@ -29,7 +27,7 @@ import (
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
 	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
@@ -1279,7 +1277,7 @@ func TestHistory(t *testing.T) {
 	require.Equal(big.NewInt(90), AccountA.Balance)
 	require.Equal(big.NewInt(90), AccountB.Balance)
 	// root hash before transfer
-	rootHash1 := ws.RootHash()
+	//rootHash1 := ws.RootHash()
 
 	// make a transfer
 	actionMap := make(map[string][]action.SealedEnvelope)
@@ -1293,7 +1291,7 @@ func TestHistory(t *testing.T) {
 	)
 	require.Nil(bc.ValidateBlock(blk))
 	require.Nil(bc.CommitBlock(blk))
-
+	// balances after transfer
 	AccountA, err = accountutil.LoadOrCreateAccount(ws, a, nil)
 	require.NoError(err)
 	AccountB, err = accountutil.LoadOrCreateAccount(ws, b, nil)
@@ -1301,49 +1299,62 @@ func TestHistory(t *testing.T) {
 	require.Equal(big.NewInt(90), AccountA.Balance)
 	require.Equal(big.NewInt(110), AccountB.Balance)
 
-	// root hash after transfer
-	rootHash2 := ws.RootHash()
-
-	// set root hash before transfer
-	cfg.DB.DbPath = cfg.Chain.TrieDBPath
-	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, evm.PruneKVNameSpace, db.NewBoltDB(cfg.DB), db.CachedBatchOption(db.NewCachedBatch()))
+	// get history account through height
+	addr, err := address.FromString(a)
 	require.NoError(err)
-	options := []trie.Option{
-		trie.KVStoreOption(dbForTrie),
-		trie.KeyLengthOption(len(hash.Hash256{})),
-		trie.RootHashOption(rootHash1[:]),
-		trie.HistoryRetentionOption(20000),
-	}
+	addrHash := hash.BytesToHash160(addr.Bytes())
+	ns := append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
+	ri, err := dao.KVStore().CreateRangeIndexNX(ns, db.NotExist)
+	require.NoError(err)
+	accountValue, err := ri.Get(blk.Height())
+	require.NoError(err)
+	var account state.Account
+	require.NoError(state.Deserialize(account, accountValue))
+	require.Equal(account.Balance, AccountA.Balance)
+
+	// root hash after transfer
+	//rootHash2 := ws.RootHash()
+	//
+	//// set root hash before transfer
+	//cfg.DB.DbPath = cfg.Chain.TrieDBPath
+	//dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, evm.PruneKVNameSpace, db.NewBoltDB(cfg.DB), db.CachedBatchOption(db.NewCachedBatch()))
+	//require.NoError(err)
+	//options := []trie.Option{
+	//	trie.KVStoreOption(dbForTrie),
+	//	trie.KeyLengthOption(len(hash.Hash256{})),
+	//	trie.RootHashOption(rootHash1[:]),
+	//	trie.HistoryRetentionOption(20000),
+	//}
 
 	// checkout balance before transfer
-	tr, err := trie.NewTrie(options...)
-	require.NoError(err)
-	require.NoError(tr.Start(context.Background()))
-	AccountA, err = accountutil.LoadOrCreateAccount(ws, a, nil)
-	require.NoError(err)
-	AccountB, err = accountutil.LoadOrCreateAccount(ws, b, nil)
-	require.NoError(err)
-	require.Equal(big.NewInt(100), AccountA.Balance)
-	require.Equal(big.NewInt(100), AccountB.Balance)
-	require.NoError(tr.Stop(context.Background()))
-
-	// checkout balance after transfer
-	options = []trie.Option{
-		trie.KVStoreOption(dbForTrie),
-		trie.KeyLengthOption(len(hash.Hash256{})),
-		trie.RootHashOption(rootHash2[:]),
-		trie.HistoryRetentionOption(20000),
-	}
-	tr2, err := trie.NewTrie(options...)
-	require.NoError(err)
-	require.NoError(tr2.Start(context.Background()))
-	AccountA, err = accountutil.LoadOrCreateAccount(ws, a, nil)
-	require.NoError(err)
-	AccountB, err = accountutil.LoadOrCreateAccount(ws, b, nil)
-	require.NoError(err)
-	require.Equal(big.NewInt(100), AccountA.Balance)
-	require.Equal(big.NewInt(100), AccountB.Balance)
-	require.NoError(tr2.Stop(context.Background()))
+	//tr, err := trie.NewTrie(options...)
+	//require.NoError(err)
+	//require.NoError(tr.Start(context.Background()))
+	//AccountA, err = accountutil.LoadOrCreateAccount(ws, a, nil)
+	//require.NoError(err)
+	//AccountB, err = accountutil.LoadOrCreateAccount(ws, b, nil)
+	//require.NoError(err)
+	//require.Equal(big.NewInt(100), AccountA.Balance)
+	//require.Equal(big.NewInt(100), AccountB.Balance)
+	//require.NoError(tr.Stop(context.Background()))
+	//
+	//// checkout balance after transfer
+	//options = []trie.Option{
+	//	trie.KVStoreOption(dbForTrie),
+	//	trie.KeyLengthOption(len(hash.Hash256{})),
+	//	trie.RootHashOption(rootHash2[:]),
+	//	trie.HistoryRetentionOption(20000),
+	//}
+	//tr2, err := trie.NewTrie(options...)
+	//require.NoError(err)
+	//require.NoError(tr2.Start(context.Background()))
+	//AccountA, err = accountutil.LoadOrCreateAccount(ws, a, nil)
+	//require.NoError(err)
+	//AccountB, err = accountutil.LoadOrCreateAccount(ws, b, nil)
+	//require.NoError(err)
+	//require.Equal(big.NewInt(100), AccountA.Balance)
+	//require.Equal(big.NewInt(100), AccountB.Balance)
+	//require.NoError(tr2.Stop(context.Background()))
 }
 
 func addCreatorToFactory(cfg config.Config, sf factory.Factory, registry *protocol.Registry) error {

@@ -3,6 +3,7 @@ module github.com/iotexproject/iotex-core
 go 1.13
 
 require (
+	github.com/Frankonly/iotex-core v0.5.0 // indirect
 	github.com/cenkalti/backoff v2.1.1+incompatible
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/ethereum/go-ethereum v1.8.27
