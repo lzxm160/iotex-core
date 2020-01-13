@@ -196,7 +196,7 @@ var (
 	}
 
 	// PrivateKey is a randomly generated producer's key for testing purpose
-	PrivateKey, _ = crypto.GenerateKey()
+	PrivateKey, _ = crypto.GenerateKey(true)
 )
 
 // Network is the config struct for network package
@@ -492,7 +492,7 @@ func (cfg Config) ProducerAddress() address.Address {
 
 // ProducerPrivateKey returns the configured private key
 func (cfg Config) ProducerPrivateKey() crypto.PrivateKey {
-	sk, err := crypto.HexStringToPrivateKey(cfg.Chain.ProducerPrivKey)
+	sk, err := crypto.HexStringToPrivateKey(cfg.Chain.ProducerPrivKey, true)
 	if err != nil {
 		log.L().Panic(
 			"Error when decoding private key",

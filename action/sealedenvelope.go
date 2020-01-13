@@ -48,7 +48,7 @@ func (sealed *SealedEnvelope) LoadProto(pbAct *iotextypes.Action) error {
 	if pbAct == nil {
 		return errors.New("empty action proto to load")
 	}
-	srcPub, err := crypto.BytesToPublicKey(pbAct.GetSenderPubKey())
+	srcPub, err := crypto.BytesToPublicKey(pbAct.GetSenderPubKey(), true)
 	if err != nil {
 		return err
 	}
