@@ -34,7 +34,7 @@ func TestSealedEnvelope_SrcPubkey(t *testing.T) {
 	se, err := createSealedEnvelope()
 	req.NoError(err)
 	res := se.SrcPubkey()
-	cPubKey, err2 := crypto.HexStringToPublicKey(publicKey)
+	cPubKey, err2 := crypto.HexStringToPublicKey(publicKey, true)
 	req.NoError(err2)
 	req.Equal(cPubKey, res)
 }
@@ -84,7 +84,7 @@ func createSealedEnvelope() (SealedEnvelope, error) {
 		SetVersion(1).
 		Build()
 
-	cPubKey, err := crypto.HexStringToPublicKey(publicKey)
+	cPubKey, err := crypto.HexStringToPublicKey(publicKey, true)
 	se := SealedEnvelope{}
 	se.Envelope = evlp
 	se.srcPubkey = cPubKey
