@@ -106,7 +106,7 @@ func (h *Header) LoadFromBlockHeaderProto(pb *iotextypes.BlockHeader) error {
 	sig := pb.GetSignature()
 	h.blockSig = make([]byte, len(sig))
 	copy(h.blockSig, sig)
-	pubKey, err := crypto.BytesToPublicKey(pb.GetProducerPubkey())
+	pubKey, err := crypto.BytesToPublicKey(pb.GetProducerPubkey(), true)
 	if err != nil {
 		return err
 	}
