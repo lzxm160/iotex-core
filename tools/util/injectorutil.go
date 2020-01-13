@@ -92,11 +92,11 @@ func LoadAddresses(keypairsPath string, chainID uint32) ([]*AddressKey, error) {
 	// Construct iotex addresses from loaded key pairs
 	addrKeys := make([]*AddressKey, 0)
 	for _, pair := range keypairs.Pairs {
-		pk, err := crypto.HexStringToPublicKey(pair.PK)
+		pk, err := crypto.HexStringToPublicKey(pair.PK, true)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to decode public key")
 		}
-		sk, err := crypto.HexStringToPrivateKey(pair.SK)
+		sk, err := crypto.HexStringToPrivateKey(pair.SK, true)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to decode private key")
 		}
