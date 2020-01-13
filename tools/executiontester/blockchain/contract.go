@@ -226,7 +226,7 @@ func (c *contract) Transact(data []byte, readOnly bool) (string, error) {
 		SetGasPrice(gasPrice).
 		SetGasLimit(gasLimit).
 		SetAction(tx).Build()
-	prvKey, err := crypto.HexStringToPrivateKey(c.prvkey)
+	prvKey, err := crypto.HexStringToPrivateKey(c.prvkey, true)
 	if err != nil {
 		return "", crypto.ErrInvalidKey
 	}
