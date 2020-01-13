@@ -55,7 +55,7 @@ func accountVerify() error {
 	if err != nil {
 		return output.NewError(output.InputError, "failed to get private key", err)
 	}
-	priKey, err := crypto.HexStringToPrivateKey(privateKey)
+	priKey, err := crypto.HexStringToPrivateKey(privateKey, true)
 	if err != nil {
 		return output.NewError(output.CryptoError, "failed to generate private key from hex string", err)
 	}

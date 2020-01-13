@@ -67,7 +67,7 @@ func init() {
 func accountCreate() error {
 	newAccounts := make([]generatedAccount, 0)
 	for i := 0; i < int(numAccounts); i++ {
-		private, err := crypto.GenerateKey()
+		private, err := crypto.GenerateKey(true)
 		if err != nil {
 			return output.NewError(output.CryptoError, "failed to generate new private key", err)
 		}

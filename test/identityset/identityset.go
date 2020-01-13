@@ -59,7 +59,7 @@ func Size() int {
 
 // PrivateKey returns the i-th identity's private key
 func PrivateKey(i int) crypto.PrivateKey {
-	sk, err := crypto.HexStringToPrivateKey(keyPortfolio[i])
+	sk, err := crypto.HexStringToPrivateKey(keyPortfolio[i], true)
 	if err != nil {
 		log.L().Panic(
 			"Error when decoding private key string",

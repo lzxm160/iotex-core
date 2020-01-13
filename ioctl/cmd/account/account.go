@@ -192,7 +192,7 @@ func newAccountByKey(alias string, privateKey string, walletDir string) (string,
 		return "", output.NewError(output.ValidationError, ErrPasswdNotMatch.Error(), nil)
 	}
 	ks := keystore.NewKeyStore(walletDir, keystore.StandardScryptN, keystore.StandardScryptP)
-	priKey, err := crypto.HexStringToPrivateKey(privateKey)
+	priKey, err := crypto.HexStringToPrivateKey(privateKey, true)
 	if err != nil {
 		return "", output.NewError(output.CryptoError, "failed to generate private key from hex string ", err)
 	}
