@@ -66,7 +66,7 @@ func main() {
 
 	// path of config file containing all the public/private key paris of addresses getting transfers
 	// from Creator in genesis block
-	injectorConfigPath := "./tools/minicluster/gentsfaddrs.yaml"
+	injectorConfigPath := "./tools/minicluster/sm2.yaml"
 
 	chainAddrs, err := util.LoadAddresses(injectorConfigPath, uint32(1))
 	if err != nil {
