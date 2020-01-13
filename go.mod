@@ -34,7 +34,7 @@ require (
 	go.uber.org/automaxprocs v1.2.0
 	go.uber.org/config v1.3.1
 	go.uber.org/zap v1.10.0
-	golang.org/x/crypto v0.0.0-20191202143827-86a70503ff7e
+	golang.org/x/crypto v0.0.0-20191219195013-becbf705a915
 	golang.org/x/net v0.0.0-20191204025024-5ee1b9f4859a
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	golang.org/x/sys v0.0.0-20191204072324-ce4227a45e2e // indirect
@@ -46,3 +46,5 @@ require (
 )
 
 replace github.com/ethereum/go-ethereum => github.com/iotexproject/go-ethereum v0.3.0
+
+replace github.com/iotexproject/go-pkgs => github.com/lzxm160/go-pkgs v1.0.1
