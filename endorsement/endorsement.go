@@ -133,7 +133,7 @@ func (en *Endorsement) LoadProto(ePb *iotextypes.Endorsement) (err error) {
 	}
 	eb := make([]byte, len(ePb.Endorser))
 	copy(eb, ePb.Endorser)
-	if en.endorser, err = crypto.BytesToPublicKey(eb); err != nil {
+	if en.endorser, err = crypto.BytesToPublicKey(eb, true); err != nil {
 		return err
 	}
 	en.signature = make([]byte, len(ePb.Signature))
