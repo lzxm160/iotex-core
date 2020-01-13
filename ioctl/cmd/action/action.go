@@ -228,7 +228,7 @@ func SendAction(elp action.Envelope, signer string) error {
 		if err != nil {
 			return output.NewError(output.InputError, "failed to get private key", err)
 		}
-		prvKey, err = crypto.HexStringToPrivateKey(prvKeyOrPassword)
+		prvKey, err = crypto.HexStringToPrivateKey(prvKeyOrPassword, true)
 		if err != nil {
 			return output.NewError(output.InputError, "failed to HexString private key", err)
 		}

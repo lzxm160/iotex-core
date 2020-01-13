@@ -153,7 +153,7 @@ func printAction(actionInfo *iotexapi.ActionInfo) (string, error) {
 }
 
 func printActionProto(action *iotextypes.Action) (string, error) {
-	pubKey, err := crypto.BytesToPublicKey(action.SenderPubKey)
+	pubKey, err := crypto.BytesToPublicKey(action.SenderPubKey, true)
 	if err != nil {
 		return "", output.NewError(output.ConvertError, "failed to convert public key from bytes", err)
 	}
