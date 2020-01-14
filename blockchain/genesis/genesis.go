@@ -79,8 +79,8 @@ func defaultConfig() Genesis {
 func initTestDefaultConfig() {
 	Default = defaultConfig()
 	Default.PacificBlockHeight = 0
-	for i := 0; i < identityset.Size(); i++ {
-		addr := identityset.Address(i).String()
+	for i := 0; i < identityset.Sm2Size(); i++ {
+		addr := identityset.Sm2Address(i).String()
 		value := unit.ConvertIotxToRau(100000000).String()
 		Default.InitBalanceMap[addr] = value
 		if uint64(i) < Default.NumDelegates {
