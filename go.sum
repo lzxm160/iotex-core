@@ -320,6 +320,7 @@ github.com/libp2p/go-ws-transport v0.0.2 h1:PtK1AoM16nm96FwPBQoq+4T4t9LdDwOhkB+m
 github.com/libp2p/go-ws-transport v0.0.2/go.mod h1:p3bKjDWHEgtuKKj+2OdPYs5dAPIjtpQGHF2tJfGz7Ww=
 github.com/lzxm160/go-pkgs v1.1.5 h1:jOEPFwesbzRICz3VwyIFBIQcOF01/WHKreNxq6ZwQVI=
 github.com/lzxm160/go-pkgs v1.1.5/go.mod h1:A6O7IuKs2U4/+scVhARxXqs04HQSq1rTiIIy5aK5F5A=
+github.com/lzxm160/go-pkgs v1.1.6/go.mod h1:A6O7IuKs2U4/+scVhARxXqs04HQSq1rTiIIy5aK5F5A=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/mattn/go-colorable v0.1.1/go.mod h1:FuOcm+DKB9mbwrcAfNl7/TZVBZ6rcnceauSikq3lYCQ=
 github.com/mattn/go-colorable v0.1.2 h1:/bC9yWikZXAL9uJdulbSfyVNIR3n3trXl+v8+1sx8mU=
