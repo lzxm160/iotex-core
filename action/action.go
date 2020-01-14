@@ -7,6 +7,8 @@
 package action
 
 import (
+	"encoding/hex"
+	"fmt"
 	"math/big"
 
 	"github.com/pkg/errors"
@@ -47,6 +49,7 @@ func Sign(act Envelope, sk crypto.PrivateKey) (SealedEnvelope, error) {
 	sealed.srcPubkey = sk.PublicKey()
 
 	hash := act.Hash()
+	fmt.Println(hex.EncodeToString(hash[:]))
 	sig, err := sk.Sign(hash[:])
 	if err != nil {
 		return sealed, errors.Wrapf(ErrAction, "failed to sign action hash = %x", hash)
