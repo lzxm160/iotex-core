@@ -7,6 +7,7 @@
 package endorsement
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
@@ -91,7 +92,9 @@ func VerifyEndorsement(doc Document, en *Endorsement) bool {
 	if err != nil {
 		return false
 	}
-
+	fmt.Println("************len(hash)***************:", len(hash))
+	fmt.Println("************len(en.Signature())*****:", len(en.Signature()))
+	fmt.Println("***************************:", en.Signature())
 	return en.Endorser().Verify(hash, en.Signature())
 }
 
