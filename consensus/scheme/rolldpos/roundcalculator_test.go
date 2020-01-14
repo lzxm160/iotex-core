@@ -152,7 +152,7 @@ func makeChain(t *testing.T) (blockchain.Blockchain, *rolldpos.Protocol, poll.Pr
 	cfg.Network.Port = testutil.RandomPort()
 	cfg.API.Port = testutil.RandomPort()
 	cfg.Genesis.Timestamp = 1562382372
-	sk, err := crypto.GenerateKey()
+	sk, err := crypto.GenerateKey(true)
 	cfg.Chain.ProducerPrivKey = sk.HexString()
 	require.NoError(err)
 
