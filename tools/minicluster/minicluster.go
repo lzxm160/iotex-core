@@ -398,7 +398,7 @@ func newConfig(
 	cfg.Chain.ID = 1
 	cfg.Chain.CompressBlock = true
 	cfg.Chain.ProducerPrivKey = producerPriKey.HexString()
-
+	fmt.Println("pri key:", cfg.Chain.ProducerPrivKey)
 	cfg.ActPool.MinGasPriceStr = big.NewInt(0).String()
 
 	cfg.Consensus.Scheme = config.RollDPoSScheme
