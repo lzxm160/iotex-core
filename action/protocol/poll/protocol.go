@@ -8,7 +8,6 @@ package poll
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -107,7 +106,6 @@ func NewProtocol(
 		if uint64(len(delegates)) < genesisConfig.NumDelegates {
 			return nil, errors.New("invalid delegate address in genesis block")
 		}
-		fmt.Println("func NewProtocol////////////////", delegates)
 		return NewLifeLongDelegatesProtocol(delegates), nil
 	}
 	var pollProtocol, governance Protocol

@@ -8,7 +8,6 @@ package genesis
 
 import (
 	"flag"
-	"fmt"
 	"math/big"
 	"sort"
 	"time"
@@ -82,7 +81,6 @@ func initTestDefaultConfig() {
 	Default.PacificBlockHeight = 0
 	for i := 0; i < identityset.Sm2Size(); i++ {
 		addr := identityset.Sm2Address(i).String()
-		fmt.Println("/////initTestDefaultConfig///////////////", addr)
 		value := unit.ConvertIotxToRau(100000000).String()
 		Default.InitBalanceMap[addr] = value
 		if uint64(i) < Default.NumDelegates {

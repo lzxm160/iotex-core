@@ -8,7 +8,6 @@ package rolldpos
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -541,7 +540,6 @@ func (ctx *rollDPoSCtx) Broadcast(endorsedMsg interface{}) {
 		return
 	}
 	if err := ctx.broadcastHandler(msg); err != nil {
-		fmt.Println("///////////////////ctx.broadcastHandler:", zap.Error(err))
 		ctx.loggerWithStats().Error("fail to broadcast", zap.Error(err))
 	}
 }

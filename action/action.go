@@ -7,7 +7,6 @@
 package action
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/pkg/errors"
@@ -52,7 +51,6 @@ func Sign(act Envelope, sk crypto.PrivateKey) (SealedEnvelope, error) {
 	if err != nil {
 		return sealed, errors.Wrapf(ErrAction, "failed to sign action hash = %x", hash)
 	}
-	fmt.Println("////////////////////////////:", len(sig))
 	sealed.signature = sig
 	sealed.payload.SetEnvelopeContext(sealed)
 	return sealed, nil

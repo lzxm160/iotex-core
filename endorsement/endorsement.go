@@ -7,8 +7,6 @@
 package endorsement
 
 import (
-	"encoding/hex"
-	"fmt"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
@@ -93,9 +91,7 @@ func VerifyEndorsement(doc Document, en *Endorsement) bool {
 	if err != nil {
 		return false
 	}
-	fmt.Println("************len(hash)***************:", len(hash))
-	fmt.Println("************len(en.Signature())*****:", len(en.Signature()))
-	fmt.Println("***************************:", en.Signature())
+
 	return en.Endorser().Verify(hash, en.Signature())
 }
 
@@ -123,7 +119,6 @@ func (en *Endorsement) Proto() (*iotextypes.Endorsement, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("///////////Proto//////////////", hex.EncodeToString(en.endorser.Bytes()))
 	return &iotextypes.Endorsement{
 		Timestamp: ts,
 		Endorser:  en.endorser.Bytes(),
@@ -138,7 +133,6 @@ func (en *Endorsement) LoadProto(ePb *iotextypes.Endorsement) (err error) {
 	}
 	eb := make([]byte, len(ePb.Endorser))
 	copy(eb, ePb.Endorser)
-	fmt.Println("///////////LoadProto//////////////", hex.EncodeToString(eb))
 	if en.endorser, err = crypto.BytesToPublicKey(eb, true); err != nil {
 		return err
 	}

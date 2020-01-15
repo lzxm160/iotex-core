@@ -8,7 +8,6 @@ package consensusfsm
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -403,7 +402,6 @@ func (m *ConsensusFSM) prepare(evt fsm.Event) (fsm.State, error) {
 
 	overtime := m.ctx.WaitUntilRoundStart()
 	if !m.ctx.IsDelegate() {
-		fmt.Println("///////////////////////////!m.ctx.IsDelegate()")
 		return m.BackToPrepare(0)
 	}
 	if proposal != nil {

@@ -8,7 +8,6 @@ package rolldpos
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -233,7 +232,6 @@ func (c *roundCalculator) newRound(
 		if delegates, err = c.Delegates(epochStartHeight); err != nil {
 			return
 		}
-		fmt.Println("func (c *roundCalculator) newRound(//////////////////", delegates)
 		if roundNum, roundStartTime, err = c.roundInfo(height, blockInterval, now, toleratedOvertime); err != nil {
 			return
 		}
