@@ -123,6 +123,7 @@ func (en *Endorsement) Proto() (*iotextypes.Endorsement, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("///////////Proto//////////////", hex.EncodeToString(en.endorser.Bytes()))
 	return &iotextypes.Endorsement{
 		Timestamp: ts,
 		Endorser:  en.endorser.Bytes(),
@@ -137,7 +138,7 @@ func (en *Endorsement) LoadProto(ePb *iotextypes.Endorsement) (err error) {
 	}
 	eb := make([]byte, len(ePb.Endorser))
 	copy(eb, ePb.Endorser)
-	fmt.Println("/////////////////////////", hex.EncodeToString(eb))
+	fmt.Println("///////////LoadProto//////////////", hex.EncodeToString(eb))
 	if en.endorser, err = crypto.BytesToPublicKey(eb, true); err != nil {
 		return err
 	}
