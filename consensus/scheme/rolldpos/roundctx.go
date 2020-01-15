@@ -7,6 +7,7 @@
 package rolldpos
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -97,6 +98,7 @@ func (ctx *roundCtx) Delegates() []string {
 
 func (ctx *roundCtx) IsDelegate(addr string) bool {
 	for _, d := range ctx.delegates {
+		fmt.Println(d, "////////////////////////////////", addr)
 		if addr == d {
 			return true
 		}
