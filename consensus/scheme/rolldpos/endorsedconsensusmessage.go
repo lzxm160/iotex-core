@@ -7,8 +7,6 @@
 package rolldpos
 
 import (
-	"fmt"
-
 	"github.com/pkg/errors"
 
 	"github.com/iotexproject/iotex-core/endorsement"
@@ -86,14 +84,12 @@ func (ecm *EndorsedConsensusMessage) LoadProto(msg *iotextypes.ConsensusMessage)
 	case msg.GetVote() != nil:
 		vote := &ConsensusVote{}
 		if err := vote.LoadProto(msg.GetVote()); err != nil {
-			fmt.Println("///////////////vote.LoadProto////////////////", err)
 			return err
 		}
 		ecm.message = vote
 	case msg.GetBlockProposal() != nil:
 		proposal := &blockProposal{}
 		if err := proposal.LoadProto(msg.GetBlockProposal()); err != nil {
-			fmt.Println("///////////////proposal.LoadProto////////////////", err)
 			return err
 		}
 		ecm.message = proposal

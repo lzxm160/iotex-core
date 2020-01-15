@@ -7,6 +7,7 @@
 package endorsement
 
 import (
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -136,6 +137,7 @@ func (en *Endorsement) LoadProto(ePb *iotextypes.Endorsement) (err error) {
 	}
 	eb := make([]byte, len(ePb.Endorser))
 	copy(eb, ePb.Endorser)
+	fmt.Println("/////////////////////////", hex.EncodeToString(eb))
 	if en.endorser, err = crypto.BytesToPublicKey(eb, true); err != nil {
 		return err
 	}
