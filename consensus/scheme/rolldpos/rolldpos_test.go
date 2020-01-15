@@ -379,7 +379,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 		chainAddrs := make([]*addrKeyPair, 0, numNodes)
 		networkAddrs := make([]net.Addr, 0, numNodes)
 		for i := 0; i < numNodes; i++ {
-			sk := identityset.PrivateKey(i)
+			sk := identityset.Sm2PrivateKey(i)
 			addr := addrKeyPair{
 				encodedAddr: identityset.Address(i).String(),
 				priKey:      sk,
