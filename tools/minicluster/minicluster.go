@@ -416,12 +416,12 @@ func newConfig(
 	//cfg.Genesis.Delegates = cfg.Genesis.Delegates[3 : numNodes+3]
 	cfg.Genesis.Delegates = cfg.Genesis.Delegates[:numNodes]
 	cfg.Genesis.EnableGravityChainVoting = true
-	addr := cfg.ProducerAddress()
-	if err := log.InitLoggers(cfg.Log, cfg.SubLogs, zap.Fields(
-		zap.String("ioAddr", addr.String()),
-		zap.String("networkAddr", fmt.Sprintf("%s:%d", cfg.Network.Host, cfg.Network.Port)),
-	)); err != nil {
-		fmt.Println("Cannot config global logger, use default one: ", err)
-	}
+	//addr := cfg.ProducerAddress()
+	//if err := log.InitLoggers(cfg.Log, cfg.SubLogs, zap.Fields(
+	//	zap.String("ioAddr", addr.String()),
+	//	zap.String("networkAddr", fmt.Sprintf("%s:%d", cfg.Network.Host, cfg.Network.Port)),
+	//)); err != nil {
+	//	fmt.Println("Cannot config global logger, use default one: ", err)
+	//}
 	return cfg
 }
