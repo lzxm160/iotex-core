@@ -8,11 +8,10 @@ package rolldpos
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/facebookgo/clock"
-	fsm "github.com/iotexproject/go-fsm"
+	"github.com/iotexproject/go-fsm"
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 	"github.com/pkg/errors"
@@ -123,7 +122,6 @@ func (r *RollDPoS) HandleConsensusMsg(msg *iotextypes.ConsensusMessage) error {
 	}
 	endorsedMessage := &EndorsedConsensusMessage{}
 	if err := endorsedMessage.LoadProto(msg); err != nil {
-		fmt.Println("///////////////////////////////", err)
 		return errors.Wrapf(err, "failed to decode endorsed consensus message")
 	}
 	if !endorsement.VerifyEndorsedDocument(endorsedMessage) {
