@@ -426,7 +426,7 @@ func TestRollDPoSConsensus(t *testing.T) {
 					ctx,
 					protocol.BlockCtx{
 						BlockHeight: 0,
-						Producer:    identityset.Sm2Address(j),
+						Producer:    identityset.Sm2Address(numNodes - 1),
 						GasLimit:    gasLimit,
 					},
 				)
