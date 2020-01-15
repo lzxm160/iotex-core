@@ -145,7 +145,7 @@ func Sm2PrivateKey(i int) crypto.PrivateKey {
 
 // Sm2Address returns the i-th identity's address
 func Sm2Address(i int) address.Address {
-	sk := PrivateKey(i)
+	sk := Sm2PrivateKey(i)
 	addr, err := address.FromBytes(sk.PublicKey().Hash())
 	if err != nil {
 		log.L().Panic("Error when constructing the address", zap.Error(err))
