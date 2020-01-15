@@ -73,7 +73,10 @@ func main() {
 		log.L().Fatal("Failed to load addresses from config path", zap.Error(err))
 	}
 	fmt.Println(len(chainAddrs))
-	fmt.Println(chainAddrs)
+	for _, addr := range chainAddrs {
+		fmt.Println(addr.EncodedAddr)
+	}
+
 	admins := chainAddrs[len(chainAddrs)-numAdmins:]
 	delegates := chainAddrs[:len(chainAddrs)-numAdmins]
 
