@@ -132,11 +132,11 @@ func Sm2Size() int {
 
 // Sm2PrivateKey returns the i-th identity's private key
 func Sm2PrivateKey(i int) crypto.PrivateKey {
-	sk, err := crypto.HexStringToPrivateKey(keyPortfolio[i], true)
+	sk, err := crypto.HexStringToPrivateKey(sm2keyPortfolio[i], true)
 	if err != nil {
 		log.L().Panic(
 			"Error when decoding private key string",
-			zap.String("keyStr", keyPortfolio[i]),
+			zap.String("keyStr", sm2keyPortfolio[i]),
 			zap.Error(err),
 		)
 	}
