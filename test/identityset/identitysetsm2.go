@@ -111,23 +111,23 @@ var sm2keyPortfolio = []string{
 	//"privateKey": "0aa7695bd13c8144cda0d82f42af35c4bea1fc275348c8285ffe47cee8697eeb",
 	//"publicKey": "046f1afc64b2617b734edad6c649200dbe7f35dccd1426985d8bc00d33f2c25874ec5c0b3a7a3ddf80b26be761e441b375aa888e66439b67252ee7dc69c0084462"
 	"0aa7695bd13c8144cda0d82f42af35c4bea1fc275348c8285ffe47cee8697eeb",
-	//24 "address": "io1amrchzxjyjfsa4w5n3p4ae3v052zqjsjmvaz2h",
-	//"privateKey": "cefd2e41a72931f05f5ecdbbc0f0bb851b9d6dcf7155aa9bf491f01782b453f1",
-	//"publicKey": "04be6fa7cd414057c8bc9f57faffbf14be2b4377568b7dbb4387bb4588bb0c2d40a2d4655b63ff4567a4743b5c07082932f8161863dcb92ccc014d9fda04e5d324"
-	"cefd2e41a72931f05f5ecdbbc0f0bb851b9d6dcf7155aa9bf491f01782b453f1",
-	//25 "address": "io1t4kfrrxzvrnchuy5f3unt487cetzjjkfr50tgp",
-	//"privateKey": "0bf442918170624c97f4036ed0f801c171ec180628cd79fec967b209fddd1583",
-	//"publicKey": "04fcd347831aafa54caf2afc7211106b28b177086b89f2a47af30733977fe2cbe79be2f12359171ef2c7031e5636332271c96e72ee4d20bffe21677003db2b5cd9"
-	"0bf442918170624c97f4036ed0f801c171ec180628cd79fec967b209fddd1583",
-	//26 "address": "io1xplfpykr3kpjetteapqgg9my74jt7533fd6lzj",
-	//"privateKey": "34af514aedda811fd04b2adf0ea1394808a6d733195224e23c54b599a9e254dc",
-	//"publicKey": "04330d55d57f640a4e37d5f161ad2edb592ada359fed0240a8ac58b94226be003fabfd0fdc8c654ede7cad1288673673a8d1a191b41e1d823169f7aa2e229790d5"
-	"34af514aedda811fd04b2adf0ea1394808a6d733195224e23c54b599a9e254dc",
+	////24 "address": "io1amrchzxjyjfsa4w5n3p4ae3v052zqjsjmvaz2h",
+	////"privateKey": "cefd2e41a72931f05f5ecdbbc0f0bb851b9d6dcf7155aa9bf491f01782b453f1",
+	////"publicKey": "04be6fa7cd414057c8bc9f57faffbf14be2b4377568b7dbb4387bb4588bb0c2d40a2d4655b63ff4567a4743b5c07082932f8161863dcb92ccc014d9fda04e5d324"
+	//"cefd2e41a72931f05f5ecdbbc0f0bb851b9d6dcf7155aa9bf491f01782b453f1",
+	////25 "address": "io1t4kfrrxzvrnchuy5f3unt487cetzjjkfr50tgp",
+	////"privateKey": "0bf442918170624c97f4036ed0f801c171ec180628cd79fec967b209fddd1583",
+	////"publicKey": "04fcd347831aafa54caf2afc7211106b28b177086b89f2a47af30733977fe2cbe79be2f12359171ef2c7031e5636332271c96e72ee4d20bffe21677003db2b5cd9"
+	//"0bf442918170624c97f4036ed0f801c171ec180628cd79fec967b209fddd1583",
+	////26 "address": "io1xplfpykr3kpjetteapqgg9my74jt7533fd6lzj",
+	////"privateKey": "34af514aedda811fd04b2adf0ea1394808a6d733195224e23c54b599a9e254dc",
+	////"publicKey": "04330d55d57f640a4e37d5f161ad2edb592ada359fed0240a8ac58b94226be003fabfd0fdc8c654ede7cad1288673673a8d1a191b41e1d823169f7aa2e229790d5"
+	//"34af514aedda811fd04b2adf0ea1394808a6d733195224e23c54b599a9e254dc",
 }
 
 // Sm2Size returns the size of the address
 func Sm2Size() int {
-	return 27 //27 is origin size before add last 8 private key,len(keyPortfolio)
+	return 24 //27 is origin size before add last 8 private key,len(keyPortfolio)
 }
 
 // Sm2PrivateKey returns the i-th identity's private key
