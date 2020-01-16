@@ -17,6 +17,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/db/batch"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -1503,8 +1504,6 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	require.NoError(acc.Register(registry))
 	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
 	require.NoError(rp.Register(registry))
-	rewardingProtocol := rewarding.NewProtocol(nil)
-	require.NoError(rewardingProtocol.Register(registry))
 	require.NoError(poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates).Register(registry))
 
 	// create indexer
@@ -1516,7 +1515,12 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
 
 	bc := NewBlockchain(cfg, dao, sf, BoltDBDaoOption(), RegistryOption(registry))
-	rewardingProtocol := rewarding.NewProtocol(nil)
+	//rewardingProtocol := rewarding.NewProtocol(func(ctx context.Context, epochNum uint64) (uint64, map[string]uint64, error) {
+	//	return blockchain.ProductivityByEpoch(ctx, bc, epochNum)
+	//})
+	rewardingProtocol := rewarding.NewProtocol(func(ctx context.Context, epochNum uint64) (uint64, map[string]uint64, error) {
+		return blockchain.ProductivityByEpoch(ctx, bc, epochNum)
+	})
 	require.NoError(rewardingProtocol.Register(registry))
 	exec := execution.NewProtocol(dao.GetBlockHash)
 	require.NoError(exec.Register(registry))
