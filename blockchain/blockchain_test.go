@@ -17,6 +17,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-core/db/batch"
+
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/golang/mock/gomock"
 	"github.com/iotexproject/go-pkgs/hash"
@@ -1314,9 +1316,9 @@ func TestHistoryForAccount(t *testing.T) {
 	b := identityset.Address(29).String()
 
 	// check the original balance a and b before transfer
-	AccountA, err := sf.AccountState(a)
+	AccountA, err := accountutil.AccountState(sf, a)
 	require.NoError(err)
-	AccountB, err := sf.AccountState(b)
+	AccountB, err := accountutil.AccountState(sf, b)
 	require.NoError(err)
 	require.Equal(big.NewInt(100), AccountA.Balance)
 	require.Equal(big.NewInt(100), AccountB.Balance)
@@ -1335,9 +1337,9 @@ func TestHistoryForAccount(t *testing.T) {
 	require.NoError(bc.CommitBlock(blk))
 
 	// check balances after transfer
-	AccountA, err = sf.AccountState(a)
+	AccountA, err = accountutil.AccountState(sf, a)
 	require.NoError(err)
-	AccountB, err = sf.AccountState(b)
+	AccountB, err = accountutil.AccountState(sf, b)
 	require.NoError(err)
 	require.Equal(big.NewInt(90), AccountA.Balance)
 	require.Equal(big.NewInt(110), AccountB.Balance)
@@ -1347,10 +1349,10 @@ func TestHistoryForAccount(t *testing.T) {
 	require.NoError(err)
 	addrHash := hash.BytesToHash160(addr.Bytes())
 	ns := append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
-	ws, err := sf.NewWorkingSet(nil)
+	ws, err := sf.NewWorkingSet()
 	require.NoError(err)
 	kv := ws.GetDB()
-	ri, err := kv.CreateRangeIndexNX(ns, db.NotExist)
+	ri, err := db.NewRangeIndex(kv, ns, db.NotExist)
 	require.NoError(err)
 	accountValue, err := ri.Get(blk.Height() - 1)
 	require.NoError(err)
@@ -1363,7 +1365,7 @@ func TestHistoryForAccount(t *testing.T) {
 	require.NoError(err)
 	addrHash = hash.BytesToHash160(addr.Bytes())
 	ns = append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
-	ri, err = kv.CreateRangeIndexNX(ns, db.NotExist)
+	ri, err = db.NewRangeIndex(kv, ns, db.NotExist)
 	require.NoError(err)
 	accountValue, err = ri.Get(blk.Height() - 1)
 	require.NoError(err)
@@ -1431,21 +1433,21 @@ func deployXrc20(bc Blockchain, dao blockdao.BlockDAO, t *testing.T) (string, *b
 
 func returnBalanceOfContract(contract, genesisAccount string, sf factory.Factory, t *testing.T, hei uint64, oldRoot hash.Hash256) (*big.Int, hash.Hash256) {
 	require := require.New(t)
-	ws, err := sf.NewWorkingSet(nil)
+	ws, err := sf.NewWorkingSet()
 	require.NoError(err)
 	kv := ws.GetDB()
 	addr, err := address.FromString(contract)
 	require.NoError(err)
 	addrHash := hash.BytesToHash160(addr.Bytes())
 	ns := append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
-	ri, err := kv.CreateRangeIndexNX(ns, db.NotExist)
+	ri, err := db.NewRangeIndex(kv, ns, db.NotExist)
 	require.NoError(err)
 	accountValue, err := ri.Get(hei)
 	require.NoError(err)
 	var account state.Account
 	require.NoError(state.Deserialize(&account, accountValue))
 	require.NoError(err)
-	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, evm.PruneKVNameSpace, kv, db.CachedBatchOption(db.NewCachedBatch()))
+	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, evm.PruneKVNameSpace, kv, db.CachedBatchOption(batch.NewCachedBatch()))
 	require.NoError(err)
 	options := []trie.Option{
 		trie.KVStoreOption(dbForTrie),
@@ -1496,13 +1498,12 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	// Create a blockchain from scratch
 	sf, err := factory.NewStateDB(cfg, factory.DefaultStateDBOption())
 	require.NoError(err)
-	acc := account.NewProtocol()
-	registry := protocol.Registry{}
-	require.NoError(registry.Register(account.ProtocolID, acc))
+	acc := account.NewProtocol(rewarding.DepositGas)
+	registry := protocol.NewRegistry()
+	require.NoError(acc.Register(registry))
 	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-	require.NoError(registry.Register(rolldpos.ProtocolID, rp))
-	require.NoError(registry.Register(poll.ProtocolID, poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)))
-
+	require.NoError(rp.Register(registry))
+	require.NoError(poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates).Register(registry))
 	// create indexer
 	cfg.DB.DbPath = cfg.Chain.IndexDBPath
 	indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
@@ -1511,13 +1512,11 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	cfg.DB.DbPath = cfg.Chain.ChainDBPath
 	dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
 
-	bc := NewBlockchain(cfg, dao, PrecreatedStateFactoryOption(sf), BoltDBDaoOption(), RegistryOption(&registry))
-	rewardingProtocol := rewarding.NewProtocol(bc, rp)
-	require.NoError(registry.Register(rewarding.ProtocolID, rewardingProtocol))
+	bc := NewBlockchain(cfg, dao, sf, BoltDBDaoOption(), RegistryOption(registry))
+	rewardingProtocol := rewarding.NewProtocol(nil)
+	require.NoError(rewardingProtocol.Register(registry))
 	exec := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
-	require.NoError(registry.Register(execution.ProtocolID, exec))
-	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
-	bc.Validator().AddActionValidators(acc, exec)
+	require.NoError(exec.Register(registry))
 
 	require.NoError(bc.Start(context.Background()))
 	require.NotNil(bc)
@@ -1571,25 +1570,26 @@ func makeTransfer(contract string, bc Blockchain, t *testing.T) *block.Block {
 }
 
 func addCreatorToFactory(cfg config.Config, sf factory.Factory, registry *protocol.Registry) error {
-	ws, err := sf.NewWorkingSet(registry)
+	ws, err := sf.NewWorkingSet()
 	if err != nil {
 		return err
 	}
-	if _, err = accountutil.LoadOrCreateAccount(
-		ws,
-		identityset.Address(27).String(),
-		unit.ConvertIotxToRau(10000000000),
-	); err != nil {
+	primAcc, err := accountutil.LoadOrCreateAccount(ws, identityset.Address(27).String())
+	if err != nil {
+		return err
+	}
+	primAcc.Balance = big.NewInt(0).Add(primAcc.Balance, unit.ConvertIotxToRau(10000000000))
+	err = accountutil.StoreAccount(ws, identityset.Address(27).String(), primAcc)
+	if err != nil {
 		return err
 	}
 	gasLimit := testutil.TestGasLimit
-	ctx := protocol.WithRunActionsCtx(context.Background(),
-		protocol.RunActionsCtx{
-			Producer: identityset.Address(27),
-			GasLimit: gasLimit,
-			Genesis:  cfg.Genesis,
+	ctx := protocol.WithActionCtx(context.Background(),
+		protocol.ActionCtx{
+			Caller:       identityset.Address(27),
+			IntrinsicGas: gasLimit,
 		})
-	if _, err = ws.RunActions(ctx, 0, nil); err != nil {
+	if _, err = ws.RunActions(ctx, nil); err != nil {
 		return err
 	}
 	return sf.Commit(ws)
