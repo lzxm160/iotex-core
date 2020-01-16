@@ -278,6 +278,7 @@ func (b *boltDB) SetBucketFillPercent(namespace string, percent float64) error {
 
 // Insert inserts a value into the index
 func (b *boltDB) Insert(name []byte, key uint64, value []byte) error {
+	fmt.Println("func (b *boltDB) Insert(name []byte, key uint64, value []byte):", key)
 	var err error
 	for i := uint8(0); i < b.config.NumRetries; i++ {
 		if err = b.db.Update(func(tx *bolt.Tx) error {
