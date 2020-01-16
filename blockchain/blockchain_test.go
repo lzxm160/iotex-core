@@ -1566,7 +1566,7 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	genesis, err := accountutil.LoadOrCreateAccount(ws, identityset.Address(27).String())
 	require.NoError(err)
 	require.Equal(unit.ConvertIotxToRau(10000000000), genesis.Balance)
-	require.NoError(addCreatorToFactory(sf))
+	//require.NoError(addCreatorToFactory(sf))
 	genesisAccount := identityset.Address(27).String()
 	genesisPriKey := identityset.PrivateKey(27)
 	a := identityset.Address(28).String()
