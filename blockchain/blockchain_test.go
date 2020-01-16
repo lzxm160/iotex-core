@@ -1561,8 +1561,8 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 
 	height := bc.TipHeight()
 	fmt.Printf("Open blockchain pass, height = %d\n", height)
-	ws, err := sf.NewWorkingSet()
-	require.NoError(err)
+	//ws, err := sf.NewWorkingSet()
+	//require.NoError(err)
 	//genesis, err := accountutil.LoadOrCreateAccount(ws, identityset.Address(27).String())
 	//require.NoError(err)
 	//require.Equal(unit.ConvertIotxToRau(10000000000), genesis.Balance)
