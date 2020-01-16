@@ -241,6 +241,7 @@ func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 		return errors.Wrapf(err, "failed to convert account %v to bytes", s)
 	}
 	stx.cb.Put(AccountKVNameSpace, pkHash[:], ss, "error when putting k = %x", pkHash)
+	fmt.Println("///////PutState")
 	if stx.saveHistory {
 		fmt.Println("PutState")
 		return stx.putIndex(pkHash, ss)
