@@ -1515,7 +1515,7 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	bc := NewBlockchain(cfg, dao, sf, BoltDBDaoOption(), RegistryOption(registry))
 	rewardingProtocol := rewarding.NewProtocol(nil)
 	require.NoError(rewardingProtocol.Register(registry))
-	exec := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
+	exec := execution.NewProtocol(dao.GetBlockHash)
 	require.NoError(exec.Register(registry))
 
 	require.NoError(bc.Start(context.Background()))
