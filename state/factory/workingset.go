@@ -303,6 +303,7 @@ func (ws *workingSet) State(hash hash.Hash160, s interface{}) error {
 
 // PutState puts a state into DB
 func (ws *workingSet) PutState(pkHash hash.Hash160, s interface{}) error {
+	fmt.Println("func (ws *workingSet) PutState(pkHash hash.Hash160, s interface{}) error {")
 	stateDBMtc.WithLabelValues("put").Inc()
 	ss, err := state.Serialize(s)
 	if err != nil {
