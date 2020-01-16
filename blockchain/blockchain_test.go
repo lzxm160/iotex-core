@@ -1308,7 +1308,7 @@ func TestBlockchain_RemoveSubscriber(t *testing.T) {
 	req.EqualError(bc.RemoveSubscriber(nil), "cannot find subscription")
 }
 
-func testHistoryForAccount(t *testing.T) {
+func TestHistoryForAccount(t *testing.T) {
 	require := require.New(t)
 	bc, sf, _ := newChain(t)
 	a := identityset.Address(28).String()
@@ -1496,35 +1496,72 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	cfg.Genesis.BlockGasLimit = uint64(1000000)
 	cfg.Genesis.EnableGravityChainVoting = false
 	// Create a blockchain from scratch
-	sf, err := factory.NewStateDB(cfg, factory.DefaultStateDBOption())
+	//sf, err := factory.NewStateDB(cfg, factory.DefaultStateDBOption())
+	//require.NoError(err)
+	//acc := account.NewProtocol(rewarding.DepositGas)
+	//registry := protocol.NewRegistry()
+	//require.NoError(acc.Register(registry))
+	//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+	//require.NoError(rp.Register(registry))
+	//require.NoError(poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates).Register(registry))
+	//
+	//// create indexer
+	//cfg.DB.DbPath = cfg.Chain.IndexDBPath
+	//indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
+	//require.NoError(err)
+	//// create BlockDAO
+	//cfg.DB.DbPath = cfg.Chain.ChainDBPath
+	//dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
+	//
+	//bc := NewBlockchain(cfg, dao, sf, BoltDBDaoOption(), RegistryOption(registry))
+	//rewardingProtocol := rewarding.NewProtocol(func(ctx context.Context, epochNum uint64) (uint64, map[string]uint64, error) {
+	//	return ProductivityByEpoch(ctx, bc, epochNum)
+	//})
+	//require.NoError(rewardingProtocol.Register(registry))
+	//exec := execution.NewProtocol(dao.GetBlockHash)
+	//require.NoError(exec.Register(registry))
+	//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(sf, accountutil.AccountState))
+	//
+	//require.NoError(bc.Start(context.Background()))
+	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
 	require.NoError(err)
 	acc := account.NewProtocol(rewarding.DepositGas)
 	registry := protocol.NewRegistry()
 	require.NoError(acc.Register(registry))
 	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
 	require.NoError(rp.Register(registry))
-	require.NoError(poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates).Register(registry))
-
-	// create indexer
-	cfg.DB.DbPath = cfg.Chain.IndexDBPath
-	indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
-	require.NoError(err)
+	var indexer blockindex.Indexer
+	if _, gateway := cfg.Plugins[config.GatewayPlugin]; gateway && !cfg.Chain.EnableAsyncIndexWrite {
+		// create indexer
+		cfg.DB.DbPath = cfg.Chain.IndexDBPath
+		indexer, err = blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
+		require.NoError(err)
+	}
+	cfg.Genesis.InitBalanceMap[identityset.Address(27).String()] = unit.ConvertIotxToRau(10000000000).String()
 	// create BlockDAO
 	cfg.DB.DbPath = cfg.Chain.ChainDBPath
 	dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
-
-	bc := NewBlockchain(cfg, dao, sf, BoltDBDaoOption(), RegistryOption(registry))
-	rewardingProtocol := rewarding.NewProtocol(func(ctx context.Context, epochNum uint64) (uint64, map[string]uint64, error) {
-		return ProductivityByEpoch(ctx, bc, epochNum)
-	})
-	require.NoError(rewardingProtocol.Register(registry))
-	exec := execution.NewProtocol(dao.GetBlockHash)
-	require.NoError(exec.Register(registry))
-	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(sf, accountutil.AccountState))
-
-	require.NoError(bc.Start(context.Background()))
+	require.NotNil(dao)
+	bc := NewBlockchain(
+		cfg,
+		dao,
+		sf,
+		RegistryOption(registry),
+	)
 	require.NotNil(bc)
-	require.NoError(addCreatorToFactory(sf))
+	ep := execution.NewProtocol(dao.GetBlockHash)
+	require.NoError(ep.Register(registry))
+	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(sf, accountutil.AccountState))
+	require.NoError(bc.Start(context.Background()))
+
+	ms := &MockSubscriber{counter: 0}
+	require.NoError(bc.AddSubscriber(ms))
+	require.Equal(0, ms.Counter())
+
+	height := bc.TipHeight()
+	fmt.Printf("Open blockchain pass, height = %d\n", height)
+
+	//require.NoError(addCreatorToFactory(sf))
 	genesisAccount := identityset.Address(27).String()
 	genesisPriKey := identityset.PrivateKey(27)
 	a := identityset.Address(28).String()
