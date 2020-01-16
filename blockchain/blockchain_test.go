@@ -1503,7 +1503,10 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	require.NoError(acc.Register(registry))
 	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
 	require.NoError(rp.Register(registry))
+	rewardingProtocol := rewarding.NewProtocol(nil)
+	require.NoError(rewardingProtocol.Register(registry))
 	require.NoError(poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates).Register(registry))
+
 	// create indexer
 	cfg.DB.DbPath = cfg.Chain.IndexDBPath
 	indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
