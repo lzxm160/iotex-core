@@ -17,17 +17,19 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/golang/mock/gomock"
+	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
 	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
+	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/action/protocol/poll"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
 	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
@@ -38,7 +40,9 @@ import (
 	"github.com/iotexproject/iotex-core/blockindex"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
+	"github.com/iotexproject/iotex-core/db/trie"
 	"github.com/iotexproject/iotex-core/pkg/unit"
+	"github.com/iotexproject/iotex-core/state"
 	"github.com/iotexproject/iotex-core/state/factory"
 	"github.com/iotexproject/iotex-core/test/identityset"
 	"github.com/iotexproject/iotex-core/test/mock/mock_blockcreationsubscriber"
@@ -62,7 +66,7 @@ var (
 	crt2Topic, _ = hex.DecodeString("0000000000000000000000001895e6033cd1081f18e0bd23a4501d9376028523") // in block 8
 )
 
-func addTestingConstantinopleBlocks(bc Blockchain, dao blockdao.BlockDAO) error {
+func addTestingConstantinopleBlocks(bc Blockchain, dao blockdao.IndexBuilder) error {
 	// Add block 1
 	addr0 := identityset.Address(27).String()
 	priKey0 := identityset.PrivateKey(27)
@@ -1300,4 +1304,293 @@ func TestBlockchain_RemoveSubscriber(t *testing.T) {
 	req.NoError(bc.AddSubscriber(mb))
 	req.NoError(bc.RemoveSubscriber(mb))
 	req.EqualError(bc.RemoveSubscriber(nil), "cannot find subscription")
+}
+
+func TestHistoryForAccount(t *testing.T) {
+	require := require.New(t)
+	bc, sf, _ := newChain(t)
+	a := identityset.Address(28).String()
+	priKeyA := identityset.PrivateKey(28)
+	b := identityset.Address(29).String()
+
+	// check the original balance a and b before transfer
+	AccountA, err := sf.AccountState(a)
+	require.NoError(err)
+	AccountB, err := sf.AccountState(b)
+	require.NoError(err)
+	require.Equal(big.NewInt(100), AccountA.Balance)
+	require.Equal(big.NewInt(100), AccountB.Balance)
+
+	// make a transfer from a to b
+	actionMap := make(map[string][]action.SealedEnvelope)
+	actionMap[a] = []action.SealedEnvelope{}
+	tsf, err := testutil.SignedTransfer(b, priKeyA, 1, big.NewInt(10), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
+	require.NoError(err)
+	actionMap[a] = append(actionMap[a], tsf)
+	blk, _ := bc.MintNewBlock(
+		actionMap,
+		testutil.TimestampNow(),
+	)
+	require.NoError(bc.ValidateBlock(blk))
+	require.NoError(bc.CommitBlock(blk))
+
+	// check balances after transfer
+	AccountA, err = sf.AccountState(a)
+	require.NoError(err)
+	AccountB, err = sf.AccountState(b)
+	require.NoError(err)
+	require.Equal(big.NewInt(90), AccountA.Balance)
+	require.Equal(big.NewInt(110), AccountB.Balance)
+
+	// check history account a's balance through height
+	addr, err := address.FromString(a)
+	require.NoError(err)
+	addrHash := hash.BytesToHash160(addr.Bytes())
+	ns := append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
+	ws, err := sf.NewWorkingSet(nil)
+	require.NoError(err)
+	kv := ws.GetDB()
+	ri, err := kv.CreateRangeIndexNX(ns, db.NotExist)
+	require.NoError(err)
+	accountValue, err := ri.Get(blk.Height() - 1)
+	require.NoError(err)
+	var account state.Account
+	require.NoError(state.Deserialize(&account, accountValue))
+	require.Equal(big.NewInt(100), account.Balance)
+
+	// check history account b's balance through height
+	addr, err = address.FromString(b)
+	require.NoError(err)
+	addrHash = hash.BytesToHash160(addr.Bytes())
+	ns = append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
+	ri, err = kv.CreateRangeIndexNX(ns, db.NotExist)
+	require.NoError(err)
+	accountValue, err = ri.Get(blk.Height() - 1)
+	require.NoError(err)
+	require.NoError(state.Deserialize(&account, accountValue))
+	require.Equal(big.NewInt(100), account.Balance)
+}
+
+func TestHistoryForContract(t *testing.T) {
+	require := require.New(t)
+	bc, sf, dao := newChain(t)
+	genesisAccount := identityset.Address(27).String()
+	// deploy and get contract address
+	contract, blk := deployXrc20(bc, dao, t)
+	// check the original balance
+	balance, oldRoot := returnBalanceOfContract(contract, genesisAccount, sf, t, blk.Height(), hash.ZeroHash256)
+	expect, ok := big.NewInt(0).SetString("2000000000000000000000000000", 10)
+	require.True(ok)
+	require.Equal(expect, balance)
+	// make a transfer for contract
+	blk = makeTransfer(contract, bc, t)
+	// check the balance after transfer
+	balance, _ = returnBalanceOfContract(contract, genesisAccount, sf, t, blk.Height(), hash.ZeroHash256)
+	expect, ok = big.NewInt(0).SetString("1999999999999999999999999999", 10)
+	require.True(ok)
+	require.Equal(expect, balance)
+
+	// check the old trie root
+	balance, _ = returnBalanceOfContract(contract, genesisAccount, sf, t, blk.Height(), oldRoot)
+	expect, ok = big.NewInt(0).SetString("2000000000000000000000000000", 10)
+	require.True(ok)
+	require.Equal(expect, balance)
+}
+
+func deployXrc20(bc Blockchain, dao blockdao.BlockDAO, t *testing.T) (string, *block.Block) {
+	require := require.New(t)
+	genesisAccount := identityset.Address(27).String()
+	genesisPriKey := identityset.PrivateKey(27)
+	// deploy a xrc20 contract with balance 2000000000000000000000000000
+	data, err := hex.DecodeString("60806040526002805460ff1916601217905534801561001d57600080fd5b506040516107cd3803806107cd83398101604090815281516020808401518385015160025460ff16600a0a84026003819055336000908152600485529586205590850180519395909491019261007592850190610092565b508051610089906001906020840190610092565b5050505061012d565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f106100d357805160ff1916838001178555610100565b82800160010185558215610100579182015b828111156101005782518255916020019190600101906100e5565b5061010c929150610110565b5090565b61012a91905b8082111561010c5760008155600101610116565b90565b6106918061013c6000396000f3006080604052600436106100ae5763ffffffff7c010000000000000000000000000000000000000000000000000000000060003504166306fdde0381146100b3578063095ea7b31461013d57806318160ddd1461017557806323b872dd1461019c578063313ce567146101c657806342966c68146101f1578063670d14b21461020957806370a082311461022a57806395d89b411461024b578063a9059cbb14610260578063dd62ed3e14610286575b600080fd5b3480156100bf57600080fd5b506100c86102ad565b6040805160208082528351818301528351919283929083019185019080838360005b838110156101025781810151838201526020016100ea565b50505050905090810190601f16801561012f5780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b34801561014957600080fd5b50610161600160a060020a036004351660243561033b565b604080519115158252519081900360200190f35b34801561018157600080fd5b5061018a610368565b60408051918252519081900360200190f35b3480156101a857600080fd5b50610161600160a060020a036004358116906024351660443561036e565b3480156101d257600080fd5b506101db6103dd565b6040805160ff9092168252519081900360200190f35b3480156101fd57600080fd5b506101616004356103e6565b34801561021557600080fd5b506100c8600160a060020a036004351661045e565b34801561023657600080fd5b5061018a600160a060020a03600435166104c6565b34801561025757600080fd5b506100c86104d8565b34801561026c57600080fd5b50610284600160a060020a0360043516602435610532565b005b34801561029257600080fd5b5061018a600160a060020a0360043581169060243516610541565b6000805460408051602060026001851615610100026000190190941693909304601f810184900484028201840190925281815292918301828280156103335780601f1061030857610100808354040283529160200191610333565b820191906000526020600020905b81548152906001019060200180831161031657829003601f168201915b505050505081565b336000908152600560209081526040808320600160a060020a039590951683529390529190912055600190565b60035481565b600160a060020a038316600090815260056020908152604080832033845290915281205482111561039e57600080fd5b600160a060020a03841660009081526005602090815260408083203384529091529020805483900390556103d384848461055e565b5060019392505050565b60025460ff1681565b3360009081526004602052604081205482111561040257600080fd5b3360008181526004602090815260409182902080548690039055600380548690039055815185815291517fcc16f5dbb4873280815c1ee09dbd06736cffcc184412cf7a71a0fdb75d397ca59281900390910190a2506001919050565b60066020908152600091825260409182902080548351601f6002600019610100600186161502019093169290920491820184900484028101840190945280845290918301828280156103335780601f1061030857610100808354040283529160200191610333565b60046020526000908152604090205481565b60018054604080516020600284861615610100026000190190941693909304601f810184900484028201840190925281815292918301828280156103335780601f1061030857610100808354040283529160200191610333565b61053d33838361055e565b5050565b600560209081526000928352604080842090915290825290205481565b6000600160a060020a038316151561057557600080fd5b600160a060020a03841660009081526004602052604090205482111561059a57600080fd5b600160a060020a038316600090815260046020526040902054828101116105c057600080fd5b50600160a060020a038083166000818152600460209081526040808320805495891680855282852080548981039091559486905281548801909155815187815291519390950194927fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef929181900390910190a3600160a060020a0380841660009081526004602052604080822054928716825290205401811461065f57fe5b505050505600a165627a7a723058207c03ad12a18902cfe387e684509d310abd583d862c11e3ee80c116af8b49ec5c00290000000000000000000000000000000000000000000000000000000077359400000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000004696f7478000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004696f747800000000000000000000000000000000000000000000000000000000")
+	require.NoError(err)
+	execution, err := action.NewExecution(action.EmptyAddress, 3, big.NewInt(0), 1000000, big.NewInt(testutil.TestGasPriceInt64), data)
+	require.NoError(err)
+	bd := &action.EnvelopeBuilder{}
+	elp := bd.SetAction(execution).
+		SetNonce(3).
+		SetGasLimit(1000000).
+		SetGasPrice(big.NewInt(testutil.TestGasPriceInt64)).Build()
+	selp, err := action.Sign(elp, genesisPriKey)
+	require.NoError(err)
+
+	actionMap := make(map[string][]action.SealedEnvelope)
+	actionMap[genesisAccount] = []action.SealedEnvelope{selp}
+
+	blk, err := bc.MintNewBlock(
+		actionMap,
+		testutil.TimestampNow(),
+	)
+	require.NoError(err)
+	require.NoError(bc.ValidateBlock(blk))
+	require.NoError(bc.CommitBlock(blk))
+	r, err := dao.GetReceiptByActionHash(selp.Hash(), blk.Height())
+	require.NoError(err)
+	return r.ContractAddress, blk
+}
+
+func returnBalanceOfContract(contract, genesisAccount string, sf factory.Factory, t *testing.T, hei uint64, oldRoot hash.Hash256) (*big.Int, hash.Hash256) {
+	require := require.New(t)
+	ws, err := sf.NewWorkingSet(nil)
+	require.NoError(err)
+	kv := ws.GetDB()
+	addr, err := address.FromString(contract)
+	require.NoError(err)
+	addrHash := hash.BytesToHash160(addr.Bytes())
+	ns := append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
+	ri, err := kv.CreateRangeIndexNX(ns, db.NotExist)
+	require.NoError(err)
+	accountValue, err := ri.Get(hei)
+	require.NoError(err)
+	var account state.Account
+	require.NoError(state.Deserialize(&account, accountValue))
+	require.NoError(err)
+	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, evm.PruneKVNameSpace, kv, db.CachedBatchOption(db.NewCachedBatch()))
+	require.NoError(err)
+	options := []trie.Option{
+		trie.KVStoreOption(dbForTrie),
+		trie.KeyLengthOption(len(hash.Hash256{})),
+		trie.HashFuncOption(func(data []byte) []byte {
+			return trie.DefaultHashFunc(append(addrHash[:], data...))
+		}),
+	}
+	// trie root before make transfer for contract
+	root := account.Root
+	if oldRoot != hash.ZeroHash256 {
+		root = oldRoot
+	}
+	options = append(options, trie.RootHashOption(root[:]), trie.HistoryRetentionOption(2000))
+	tr, err := trie.NewTrie(options...)
+	require.NoError(err)
+	require.NoError(tr.Start(context.Background()))
+	defer tr.Stop(context.Background())
+	// get producer's xrc20 balance
+	addr, err = address.FromString(genesisAccount)
+	require.NoError(err)
+	addrHash = hash.BytesToHash160(addr.Bytes())
+	checkData := "000000000000000000000000" + hex.EncodeToString(addrHash[:]) + "0000000000000000000000000000000000000000000000000000000000000004"
+	hb, err := hex.DecodeString(checkData)
+	require.NoError(err)
+	out2 := crypto.Keccak256(hb)
+	ret, err := tr.Get(out2[:])
+	require.NoError(err)
+	return big.NewInt(0).SetBytes(ret), root
+}
+
+func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
+	require := require.New(t)
+	cfg := config.Default
+	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+	testTriePath := testTrieFile.Name()
+	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	testDBPath := testDBFile.Name()
+	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+	testIndexPath := testIndexFile.Name()
+	cfg.Chain.TrieDBPath = testTriePath
+	cfg.Chain.ChainDBPath = testDBPath
+	cfg.Chain.IndexDBPath = testIndexPath
+	cfg.Chain.EnableHistoryStateDB = true
+	cfg.Consensus.Scheme = config.RollDPoSScheme
+	cfg.Genesis.BlockGasLimit = uint64(1000000)
+	cfg.Genesis.EnableGravityChainVoting = false
+	// Create a blockchain from scratch
+	sf, err := factory.NewStateDB(cfg, factory.DefaultStateDBOption())
+	require.NoError(err)
+	acc := account.NewProtocol()
+	registry := protocol.Registry{}
+	require.NoError(registry.Register(account.ProtocolID, acc))
+	rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
+	require.NoError(registry.Register(rolldpos.ProtocolID, rp))
+	require.NoError(registry.Register(poll.ProtocolID, poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates)))
+
+	// create indexer
+	cfg.DB.DbPath = cfg.Chain.IndexDBPath
+	indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
+	require.NoError(err)
+	// create BlockDAO
+	cfg.DB.DbPath = cfg.Chain.ChainDBPath
+	dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
+
+	bc := NewBlockchain(cfg, dao, PrecreatedStateFactoryOption(sf), BoltDBDaoOption(), RegistryOption(&registry))
+	rewardingProtocol := rewarding.NewProtocol(bc, rp)
+	require.NoError(registry.Register(rewarding.ProtocolID, rewardingProtocol))
+	exec := execution.NewProtocol(bc.BlockDAO().GetBlockHash)
+	require.NoError(registry.Register(execution.ProtocolID, exec))
+	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(bc.Factory().Nonce))
+	bc.Validator().AddActionValidators(acc, exec)
+
+	require.NoError(bc.Start(context.Background()))
+	require.NotNil(bc)
+	require.NoError(addCreatorToFactory(cfg, sf, nil))
+	genesisAccount := identityset.Address(27).String()
+	genesisPriKey := identityset.PrivateKey(27)
+	a := identityset.Address(28).String()
+	b := identityset.Address(29).String()
+	// make a transfer from genesisAccount to a and b
+	tsf, err := testutil.SignedTransfer(a, genesisPriKey, 1, big.NewInt(100), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
+	require.NoError(err)
+	tsf2, err := testutil.SignedTransfer(b, genesisPriKey, 2, big.NewInt(100), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
+	require.NoError(err)
+	actionMap := make(map[string][]action.SealedEnvelope)
+	actionMap[genesisAccount] = []action.SealedEnvelope{tsf, tsf2}
+	blk, _ := bc.MintNewBlock(
+		actionMap,
+		testutil.TimestampNow(),
+	)
+	require.NoError(bc.ValidateBlock(blk))
+	require.NoError(bc.CommitBlock(blk))
+	return bc, sf, dao
+}
+
+func makeTransfer(contract string, bc Blockchain, t *testing.T) *block.Block {
+	require := require.New(t)
+	genesisAccount := identityset.Address(27).String()
+	genesisPriKey := identityset.PrivateKey(27)
+	// make a transfer for contract,transfer 1 to io16eur00s9gdvak4ujhpuk9a45x24n60jgecgxzz
+	bytecode, err := hex.DecodeString("a9059cbb0000000000000000000000004867c4bada9553216bf296c4c64e9ff0749206490000000000000000000000000000000000000000000000000000000000000001")
+	require.NoError(err)
+	execution, err := action.NewExecution(contract, 4, big.NewInt(0), 1000000, big.NewInt(testutil.TestGasPriceInt64), bytecode)
+	require.NoError(err)
+	bd := &action.EnvelopeBuilder{}
+	elp := bd.SetAction(execution).
+		SetNonce(4).
+		SetGasLimit(1000000).
+		SetGasPrice(big.NewInt(testutil.TestGasPriceInt64)).Build()
+	selp, err := action.Sign(elp, genesisPriKey)
+	require.NoError(err)
+	actionMap := make(map[string][]action.SealedEnvelope)
+	actionMap[genesisAccount] = []action.SealedEnvelope{selp}
+	blk, err := bc.MintNewBlock(
+		actionMap,
+		testutil.TimestampNow(),
+	)
+	require.NoError(err)
+	require.NoError(bc.ValidateBlock(blk))
+	require.NoError(bc.CommitBlock(blk))
+	return blk
+}
+
+func addCreatorToFactory(cfg config.Config, sf factory.Factory, registry *protocol.Registry) error {
+	ws, err := sf.NewWorkingSet(registry)
+	if err != nil {
+		return err
+	}
+	if _, err = accountutil.LoadOrCreateAccount(
+		ws,
+		identityset.Address(27).String(),
+		unit.ConvertIotxToRau(10000000000),
+	); err != nil {
+		return err
+	}
+	gasLimit := testutil.TestGasLimit
+	ctx := protocol.WithRunActionsCtx(context.Background(),
+		protocol.RunActionsCtx{
+			Producer: identityset.Address(27),
+			GasLimit: gasLimit,
+			Genesis:  cfg.Genesis,
+		})
+	if _, err = ws.RunActions(ctx, 0, nil); err != nil {
+		return err
+	}
+	return sf.Commit(ws)
 }
