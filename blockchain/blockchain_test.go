@@ -1517,6 +1517,7 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	require.NoError(rewardingProtocol.Register(registry))
 	exec := execution.NewProtocol(dao.GetBlockHash)
 	require.NoError(exec.Register(registry))
+	bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(sf, accountutil.AccountState))
 
 	require.NoError(bc.Start(context.Background()))
 	require.NotNil(bc)
