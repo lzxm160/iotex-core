@@ -17,7 +17,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iotexproject/iotex-core/blockchain"
 	"github.com/iotexproject/iotex-core/db/batch"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -1519,7 +1518,7 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	//	return blockchain.ProductivityByEpoch(ctx, bc, epochNum)
 	//})
 	rewardingProtocol := rewarding.NewProtocol(func(ctx context.Context, epochNum uint64) (uint64, map[string]uint64, error) {
-		return blockchain.ProductivityByEpoch(ctx, bc, epochNum)
+		return ProductivityByEpoch(ctx, bc, epochNum)
 	})
 	require.NoError(rewardingProtocol.Register(registry))
 	exec := execution.NewProtocol(dao.GetBlockHash)
