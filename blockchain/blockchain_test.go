@@ -1538,6 +1538,8 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 		require.NoError(err)
 	}
 	cfg.Genesis.InitBalanceMap[identityset.Address(27).String()] = unit.ConvertIotxToRau(10000000000).String()
+	require.NoError(addCreatorToFactory(sf))
+
 	// create BlockDAO
 	cfg.DB.DbPath = cfg.Chain.ChainDBPath
 	dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
@@ -1561,7 +1563,6 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	height := bc.TipHeight()
 	fmt.Printf("Open blockchain pass, height = %d\n", height)
 
-	require.NoError(addCreatorToFactory(sf))
 	genesisAccount := identityset.Address(27).String()
 	genesisPriKey := identityset.PrivateKey(27)
 	a := identityset.Address(28).String()
