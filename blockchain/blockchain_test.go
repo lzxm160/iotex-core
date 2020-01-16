@@ -1491,7 +1491,7 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.ChainDBPath = testDBPath
 	cfg.Chain.IndexDBPath = testIndexPath
-	cfg.Chain.EnableHistoryStateDB = true
+	cfg.Chain.EnableHistoryStateDB = false
 	cfg.Consensus.Scheme = config.RollDPoSScheme
 	cfg.Genesis.BlockGasLimit = uint64(1000000)
 	cfg.Genesis.EnableGravityChainVoting = false
@@ -1514,9 +1514,6 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
 
 	bc := NewBlockchain(cfg, dao, sf, BoltDBDaoOption(), RegistryOption(registry))
-	//rewardingProtocol := rewarding.NewProtocol(func(ctx context.Context, epochNum uint64) (uint64, map[string]uint64, error) {
-	//	return blockchain.ProductivityByEpoch(ctx, bc, epochNum)
-	//})
 	rewardingProtocol := rewarding.NewProtocol(func(ctx context.Context, epochNum uint64) (uint64, map[string]uint64, error) {
 		return ProductivityByEpoch(ctx, bc, epochNum)
 	})
