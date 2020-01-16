@@ -1599,5 +1599,8 @@ func addCreatorToFactory(cfg config.Config, sf factory.Factory, registry *protoc
 	if _, err = ws.RunActions(ctx, nil); err != nil {
 		return err
 	}
+	if err = ws.Finalize(); err != nil {
+		return err
+	}
 	return sf.Commit(ws)
 }
