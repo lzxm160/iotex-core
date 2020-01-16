@@ -66,7 +66,7 @@ var (
 	crt2Topic, _ = hex.DecodeString("0000000000000000000000001895e6033cd1081f18e0bd23a4501d9376028523") // in block 8
 )
 
-func addTestingConstantinopleBlocks(bc Blockchain, dao blockdao.IndexBuilder) error {
+func addTestingConstantinopleBlocks(bc Blockchain, dao blockdao.BlockDAO) error {
 	// Add block 1
 	addr0 := identityset.Address(27).String()
 	priKey0 := identityset.PrivateKey(27)
