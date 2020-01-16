@@ -1354,6 +1354,7 @@ func TestHistoryForAccount(t *testing.T) {
 	kv := ws.GetDB()
 	ri, err := db.NewRangeIndex(kv, ns, db.NotExist)
 	require.NoError(err)
+	fmt.Println("blk.Height() - 1:", blk.Height()-1)
 	accountValue, err := ri.Get(blk.Height() - 1)
 	require.NoError(err)
 	var account state.Account

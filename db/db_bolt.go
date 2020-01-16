@@ -9,6 +9,7 @@ package db
 import (
 	"bytes"
 	"context"
+	"fmt"
 
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
@@ -320,6 +321,7 @@ func (b *boltDB) Seek(name []byte, key uint64) ([]byte, error) {
 		}
 		// seek to start
 		cur := bucket.Cursor()
+		fmt.Println("func (b *boltDB) Seek(name []byte, key uint64):", key)
 		_, v := cur.Seek(byteutil.Uint64ToBytesBigEndian(key))
 		value = make([]byte, len(v))
 		copy(value, v)
