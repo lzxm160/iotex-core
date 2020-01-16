@@ -1308,7 +1308,7 @@ func TestBlockchain_RemoveSubscriber(t *testing.T) {
 	req.EqualError(bc.RemoveSubscriber(nil), "cannot find subscription")
 }
 
-func TestHistoryForAccount(t *testing.T) {
+func testHistoryForAccount(t *testing.T) {
 	require := require.New(t)
 	bc, sf, _ := newChain(t)
 	a := identityset.Address(28).String()
@@ -1373,7 +1373,7 @@ func TestHistoryForAccount(t *testing.T) {
 	require.Equal(big.NewInt(100), account.Balance)
 }
 
-func TestHistoryForContract(t *testing.T) {
+func testHistoryForContract(t *testing.T) {
 	require := require.New(t)
 	bc, sf, dao := newChain(t)
 	genesisAccount := identityset.Address(27).String()
@@ -1524,7 +1524,7 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 
 	require.NoError(bc.Start(context.Background()))
 	require.NotNil(bc)
-	require.NoError(addCreatorToFactory(cfg, sf, nil))
+	require.NoError(addCreatorToFactory(sf))
 	genesisAccount := identityset.Address(27).String()
 	genesisPriKey := identityset.PrivateKey(27)
 	a := identityset.Address(28).String()
@@ -1573,7 +1573,7 @@ func makeTransfer(contract string, bc Blockchain, t *testing.T) *block.Block {
 	return blk
 }
 
-func addCreatorToFactory(cfg config.Config, sf factory.Factory, registry *protocol.Registry) error {
+func addCreatorToFactory(sf factory.Factory) error {
 	ws, err := sf.NewWorkingSet()
 	if err != nil {
 		return err
