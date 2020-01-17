@@ -1374,7 +1374,7 @@ func TestHistoryForAccount(t *testing.T) {
 	require.Equal(big.NewInt(100), account.Balance)
 }
 
-func testHistoryForContract(t *testing.T) {
+func TestHistoryForContract(t *testing.T) {
 	require := require.New(t)
 	bc, sf, dao := newChain(t)
 	genesisAccount := identityset.Address(27).String()
