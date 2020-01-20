@@ -17,6 +17,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Frankonly/iotex-core/action/protocol/account"
 	"github.com/iotexproject/iotex-core/db/batch"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -28,7 +29,6 @@ import (
 
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
-	"github.com/iotexproject/iotex-core/action/protocol/account"
 	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/execution"
 	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
@@ -1353,34 +1353,12 @@ func TestHistoryForAccount(t *testing.T) {
 	require.NoError(err)
 	addrHash := hash.BytesToHash160(addr.Bytes())
 	var account state.Account
-	require.NoError(accountBalance(oldRoot[:], ws.GetDB(), addrHash, &account))
+	require.NoError(accountState(oldRoot[:], ws.GetDB(), addrHash, &account))
 	require.Equal(big.NewInt(100), account.Balance)
 
 	// check history account b's balance through height
-	require.NoError(accountBalance(oldRoot[:], ws.GetDB(), addrHash, &account))
+	require.NoError(accountState(oldRoot[:], ws.GetDB(), addrHash, &account))
 	require.Equal(big.NewInt(100), account.Balance)
-
-	//ws.
-	//ri, err := db.NewRangeIndex(kv, ns, db.NotExist)
-	//require.NoError(err)
-	//fmt.Println("blk.Height() - 1:", blk.Height()-1)
-	//accountValue, err := ri.Get(blk.Height() - 1)
-	//require.NoError(err)
-	//var account state.Account
-	//require.NoError(state.Deserialize(&account, accountValue))
-	//require.Equal(big.NewInt(100), account.Balance)
-	//
-	//// check history account b's balance through height
-	//addr, err = address.FromString(b)
-	//require.NoError(err)
-	//addrHash = hash.BytesToHash160(addr.Bytes())
-	//ns = append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
-	//ri, err = db.NewRangeIndex(kv, ns, db.NotExist)
-	//require.NoError(err)
-	//accountValue, err = ri.Get(blk.Height() - 1)
-	//require.NoError(err)
-	//require.NoError(state.Deserialize(&account, accountValue))
-	//require.Equal(big.NewInt(100), account.Balance)
 }
 
 func TestHistoryForContract(t *testing.T) {
@@ -1388,22 +1366,29 @@ func TestHistoryForContract(t *testing.T) {
 	bc, sf, dao := newChain(t)
 	genesisAccount := identityset.Address(27).String()
 	// deploy and get contract address
-	contract, blk := deployXrc20(bc, dao, t)
+	contract, _ := deployXrc20(bc, dao, t)
+	ws, err := sf.NewWorkingSet()
+	require.NoError(err)
+	require.NoError(ws.Finalize())
+	oldRoot, err := ws.RootHash()
+	require.NoError(err)
 	// check the original balance
-	balance, oldRoot := returnBalanceOfContract(contract, genesisAccount, sf, t, blk.Height(), hash.ZeroHash256)
+	balance := returnBalanceOfContract(contract, genesisAccount, sf, t, oldRoot)
 	expect, ok := big.NewInt(0).SetString("2000000000000000000000000000", 10)
 	require.True(ok)
 	require.Equal(expect, balance)
 	// make a transfer for contract
-	blk = makeTransfer(contract, bc, t)
+	makeTransfer(contract, bc, t)
+	oldRoot, err = ws.RootHash()
+	require.NoError(err)
 	// check the balance after transfer
-	balance, _ = returnBalanceOfContract(contract, genesisAccount, sf, t, blk.Height(), hash.ZeroHash256)
+	balance = returnBalanceOfContract(contract, genesisAccount, sf, t, oldRoot)
 	expect, ok = big.NewInt(0).SetString("1999999999999999999999999999", 10)
 	require.True(ok)
 	require.Equal(expect, balance)
 
 	// check the old trie root
-	balance, _ = returnBalanceOfContract(contract, genesisAccount, sf, t, blk.Height(), oldRoot)
+	balance = returnBalanceOfContract(contract, genesisAccount, sf, t, oldRoot)
 	expect, ok = big.NewInt(0).SetString("2000000000000000000000000000", 10)
 	require.True(ok)
 	require.Equal(expect, balance)
@@ -1441,7 +1426,7 @@ func deployXrc20(bc Blockchain, dao blockdao.BlockDAO, t *testing.T) (string, *b
 	return r.ContractAddress, blk
 }
 
-func returnBalanceOfContract(contract, genesisAccount string, sf factory.Factory, t *testing.T, hei uint64, oldRoot hash.Hash256) (*big.Int, hash.Hash256) {
+func returnBalanceOfContract(contract, genesisAccount string, sf factory.Factory, t *testing.T, oldRoot hash.Hash256) *big.Int {
 	require := require.New(t)
 	ws, err := sf.NewWorkingSet()
 	require.NoError(err)
@@ -1449,14 +1434,9 @@ func returnBalanceOfContract(contract, genesisAccount string, sf factory.Factory
 	addr, err := address.FromString(contract)
 	require.NoError(err)
 	addrHash := hash.BytesToHash160(addr.Bytes())
-	ns := append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
-	ri, err := db.NewRangeIndex(kv, ns, db.NotExist)
-	require.NoError(err)
-	accountValue, err := ri.Get(hei)
-	require.NoError(err)
-	var account state.Account
-	require.NoError(state.Deserialize(&account, accountValue))
-	require.NoError(err)
+	//var account state.Account
+	//require.NoError(accountState(oldRoot[:], ws.GetDB(), addrHash, &account))
+	//require.NoError(err)
 	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, evm.PruneKVNameSpace, kv, db.CachedBatchOption(batch.NewCachedBatch()))
 	require.NoError(err)
 	options := []trie.Option{
@@ -1466,12 +1446,7 @@ func returnBalanceOfContract(contract, genesisAccount string, sf factory.Factory
 			return trie.DefaultHashFunc(append(addrHash[:], data...))
 		}),
 	}
-	// trie root before make transfer for contract
-	root := account.Root
-	if oldRoot != hash.ZeroHash256 {
-		root = oldRoot
-	}
-	options = append(options, trie.RootHashOption(root[:]), trie.HistoryRetentionOption(2000))
+	options = append(options, trie.RootHashOption(oldRoot[:]), trie.HistoryRetentionOption(2000))
 	tr, err := trie.NewTrie(options...)
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
@@ -1486,10 +1461,10 @@ func returnBalanceOfContract(contract, genesisAccount string, sf factory.Factory
 	out2 := crypto.Keccak256(hb)
 	ret, err := tr.Get(out2[:])
 	require.NoError(err)
-	return big.NewInt(0).SetBytes(ret), root
+	return big.NewInt(0).SetBytes(ret)
 }
 
-func accountBalance(root []byte, kv db.KVStore, hash hash.Hash160, s interface{}) error {
+func accountState(root []byte, kv db.KVStore, hash hash.Hash160, s interface{}) error {
 	dbForTrie, err := db.NewKVStoreForTrie(factory.AccountKVNameSpace, evm.PruneKVNameSpace, kv, db.CachedBatchOption(batch.NewCachedBatch()))
 	if err != nil {
 		return errors.Wrap(err, "failed to generate state tire db")
