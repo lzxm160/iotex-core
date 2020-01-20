@@ -1310,7 +1310,7 @@ func TestBlockchain_RemoveSubscriber(t *testing.T) {
 
 func TestHistoryForAccount(t *testing.T) {
 	require := require.New(t)
-	bc, sf, _ := newChain(t)
+	bc, sf, dao := newChain(t)
 	a := identityset.Address(28).String()
 	priKeyA := identityset.PrivateKey(28)
 	b := identityset.Address(29).String()
@@ -1322,7 +1322,10 @@ func TestHistoryForAccount(t *testing.T) {
 	require.NoError(err)
 	require.Equal(big.NewInt(100), AccountA.Balance)
 	require.Equal(big.NewInt(100), AccountB.Balance)
-
+	ws, err := sf.NewWorkingSet()
+	require.NoError(err)
+	oldRoot, err := ws.RootHash()
+	require.NoError(err)
 	// make a transfer from a to b
 	actionMap := make(map[string][]action.SealedEnvelope)
 	actionMap[a] = []action.SealedEnvelope{}
@@ -1348,30 +1351,34 @@ func TestHistoryForAccount(t *testing.T) {
 	addr, err := address.FromString(a)
 	require.NoError(err)
 	addrHash := hash.BytesToHash160(addr.Bytes())
-	ns := append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
-	ws, err := sf.NewWorkingSet()
-	require.NoError(err)
-	kv := ws.GetDB()
-	ri, err := db.NewRangeIndex(kv, ns, db.NotExist)
-	require.NoError(err)
-	fmt.Println("blk.Height() - 1:", blk.Height()-1)
-	accountValue, err := ri.Get(blk.Height() - 1)
-	require.NoError(err)
-	var account state.Account
-	require.NoError(state.Deserialize(&account, accountValue))
-	require.Equal(big.NewInt(100), account.Balance)
+	require.NoError(accountBalance(oldRoot[:], dao, addrHash, &AccountA))
+	require.Equal(big.NewInt(100), AccountA.Balance)
 
 	// check history account b's balance through height
-	addr, err = address.FromString(b)
-	require.NoError(err)
-	addrHash = hash.BytesToHash160(addr.Bytes())
-	ns = append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
-	ri, err = db.NewRangeIndex(kv, ns, db.NotExist)
-	require.NoError(err)
-	accountValue, err = ri.Get(blk.Height() - 1)
-	require.NoError(err)
-	require.NoError(state.Deserialize(&account, accountValue))
-	require.Equal(big.NewInt(100), account.Balance)
+	require.NoError(accountBalance(oldRoot[:], dao, addrHash, &AccountB))
+	require.Equal(big.NewInt(100), AccountB.Balance)
+
+	//ws.
+	//ri, err := db.NewRangeIndex(kv, ns, db.NotExist)
+	//require.NoError(err)
+	//fmt.Println("blk.Height() - 1:", blk.Height()-1)
+	//accountValue, err := ri.Get(blk.Height() - 1)
+	//require.NoError(err)
+	//var account state.Account
+	//require.NoError(state.Deserialize(&account, accountValue))
+	//require.Equal(big.NewInt(100), account.Balance)
+	//
+	//// check history account b's balance through height
+	//addr, err = address.FromString(b)
+	//require.NoError(err)
+	//addrHash = hash.BytesToHash160(addr.Bytes())
+	//ns = append([]byte(factory.AccountKVNameSpace), addrHash[:]...)
+	//ri, err = db.NewRangeIndex(kv, ns, db.NotExist)
+	//require.NoError(err)
+	//accountValue, err = ri.Get(blk.Height() - 1)
+	//require.NoError(err)
+	//require.NoError(state.Deserialize(&account, accountValue))
+	//require.Equal(big.NewInt(100), account.Balance)
 }
 
 func TestHistoryForContract(t *testing.T) {
@@ -1478,6 +1485,29 @@ func returnBalanceOfContract(contract, genesisAccount string, sf factory.Factory
 	ret, err := tr.Get(out2[:])
 	require.NoError(err)
 	return big.NewInt(0).SetBytes(ret), root
+}
+
+func accountBalance(root []byte, kv db.KVStore, hash hash.Hash160, s interface{}) error {
+	dbForTrie, err := db.NewKVStoreForTrie(factory.AccountKVNameSpace, evm.PruneKVNameSpace, kv, db.CachedBatchOption(batch.NewCachedBatch()))
+	if err != nil {
+		return errors.Wrap(err, "failed to generate state tire db")
+	}
+	tr, err := trie.NewTrie(trie.KVStoreOption(dbForTrie), trie.RootHashOption(root[:]))
+	if err != nil {
+		return errors.Wrap(err, "failed to generate state trie from config")
+	}
+	if err := tr.Start(context.Background()); err != nil {
+		return errors.Wrapf(err, "failed to load state trie from root = %x", root)
+	}
+	defer tr.Stop(context.Background())
+	mstate, err := tr.Get(hash[:])
+	if errors.Cause(err) == trie.ErrNotExist {
+		return errors.Wrapf(state.ErrStateNotExist, "addrHash = %x", hash[:])
+	}
+	if err != nil {
+		return errors.Wrapf(err, "failed to get account of %x", hash)
+	}
+	return state.Deserialize(s, mstate)
 }
 
 func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
