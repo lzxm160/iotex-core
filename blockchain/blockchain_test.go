@@ -1369,25 +1369,36 @@ func TestHistoryForContract(t *testing.T) {
 	ws, err := sf.NewWorkingSet()
 	require.NoError(err)
 	require.NoError(ws.Finalize())
-	oldRoot, err := ws.RootHash()
+	deployRoot, err := ws.RootHash()
+	require.NoError(err)
+	addr, err := address.FromString(contract)
+	require.NoError(err)
+	addrHash := hash.BytesToHash160(addr.Bytes())
+
+	var account state.Account
+	require.NoError(accountState(deployRoot[:], ws.GetDB(), addrHash, &account))
 	require.NoError(err)
 	// check the original balance
-	balance := returnBalanceOfContract(contract, genesisAccount, sf, t, oldRoot)
+	balance := returnBalanceOfContract(contract, genesisAccount, sf, t, account.Root)
 	expect, ok := big.NewInt(0).SetString("2000000000000000000000000000", 10)
 	require.True(ok)
 	require.Equal(expect, balance)
 	// make a transfer for contract
 	makeTransfer(contract, bc, t)
-	oldRoot, err = ws.RootHash()
+	transferRoot, err := ws.RootHash()
+	require.NoError(err)
+	require.NoError(accountState(transferRoot[:], ws.GetDB(), addrHash, &account))
 	require.NoError(err)
 	// check the balance after transfer
-	balance = returnBalanceOfContract(contract, genesisAccount, sf, t, oldRoot)
+	balance = returnBalanceOfContract(contract, genesisAccount, sf, t, account.Root)
 	expect, ok = big.NewInt(0).SetString("1999999999999999999999999999", 10)
 	require.True(ok)
 	require.Equal(expect, balance)
 
-	// check the old trie root
-	balance = returnBalanceOfContract(contract, genesisAccount, sf, t, oldRoot)
+	// check the the original balance again
+	require.NoError(accountState(deployRoot[:], ws.GetDB(), addrHash, &account))
+	require.NoError(err)
+	balance = returnBalanceOfContract(contract, genesisAccount, sf, t, account.Root)
 	expect, ok = big.NewInt(0).SetString("2000000000000000000000000000", 10)
 	require.True(ok)
 	require.Equal(expect, balance)
