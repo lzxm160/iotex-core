@@ -1324,6 +1324,7 @@ func TestHistoryForAccount(t *testing.T) {
 	require.Equal(big.NewInt(100), AccountB.Balance)
 	ws, err := sf.NewWorkingSet()
 	require.NoError(err)
+	require.NoError(ws.Finalize())
 	oldRoot, err := ws.RootHash()
 	require.NoError(err)
 	// make a transfer from a to b
