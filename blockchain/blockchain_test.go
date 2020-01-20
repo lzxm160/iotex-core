@@ -1352,12 +1352,13 @@ func TestHistoryForAccount(t *testing.T) {
 	addr, err := address.FromString(a)
 	require.NoError(err)
 	addrHash := hash.BytesToHash160(addr.Bytes())
-	require.NoError(accountBalance(oldRoot[:], ws.GetDB(), addrHash, &AccountA))
-	require.Equal(big.NewInt(100), AccountA.Balance)
+	var account state.Account
+	require.NoError(accountBalance(oldRoot[:], ws.GetDB(), addrHash, &account))
+	require.Equal(big.NewInt(100), account.Balance)
 
 	// check history account b's balance through height
-	require.NoError(accountBalance(oldRoot[:], ws.GetDB(), addrHash, &AccountB))
-	require.Equal(big.NewInt(100), AccountB.Balance)
+	require.NoError(accountBalance(oldRoot[:], ws.GetDB(), addrHash, &account))
+	require.Equal(big.NewInt(100), account.Balance)
 
 	//ws.
 	//ri, err := db.NewRangeIndex(kv, ns, db.NotExist)
