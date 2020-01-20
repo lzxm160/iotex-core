@@ -1310,7 +1310,7 @@ func TestBlockchain_RemoveSubscriber(t *testing.T) {
 
 func TestHistoryForAccount(t *testing.T) {
 	require := require.New(t)
-	bc, sf, dao := newChain(t)
+	bc, sf, _ := newChain(t)
 	a := identityset.Address(28).String()
 	priKeyA := identityset.PrivateKey(28)
 	b := identityset.Address(29).String()
@@ -1351,11 +1351,11 @@ func TestHistoryForAccount(t *testing.T) {
 	addr, err := address.FromString(a)
 	require.NoError(err)
 	addrHash := hash.BytesToHash160(addr.Bytes())
-	require.NoError(accountBalance(oldRoot[:], dao, addrHash, &AccountA))
+	require.NoError(accountBalance(oldRoot[:], ws.GetDB(), addrHash, &AccountA))
 	require.Equal(big.NewInt(100), AccountA.Balance)
 
 	// check history account b's balance through height
-	require.NoError(accountBalance(oldRoot[:], dao, addrHash, &AccountB))
+	require.NoError(accountBalance(oldRoot[:], ws.GetDB(), addrHash, &AccountB))
 	require.Equal(big.NewInt(100), AccountB.Balance)
 
 	//ws.
