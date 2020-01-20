@@ -1386,6 +1386,9 @@ func TestHistoryForContract(t *testing.T) {
 	require.Equal(expect, balance)
 	// make a transfer for contract
 	makeTransfer(contract, bc, t)
+	ws, err = sf.NewWorkingSet()
+	require.NoError(err)
+	require.NoError(ws.Finalize())
 	transferRoot, err := ws.RootHash()
 	require.NoError(err)
 	fmt.Println("transferRoot:", hex.EncodeToString(transferRoot[:]))
