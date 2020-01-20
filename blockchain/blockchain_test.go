@@ -1365,12 +1365,13 @@ func TestHistoryForContract(t *testing.T) {
 	bc, sf, dao := newChain(t)
 	genesisAccount := identityset.Address(27).String()
 	// deploy and get contract address
-	contract, _ := deployXrc20(bc, dao, t)
+	contract := deployXrc20(bc, dao, t)
 	ws, err := sf.NewWorkingSet()
 	require.NoError(err)
 	require.NoError(ws.Finalize())
 	deployRoot, err := ws.RootHash()
 	require.NoError(err)
+	fmt.Println("deployRoot:", hex.EncodeToString(deployRoot[:]))
 	addr, err := address.FromString(contract)
 	require.NoError(err)
 	addrHash := hash.BytesToHash160(addr.Bytes())
@@ -1387,6 +1388,7 @@ func TestHistoryForContract(t *testing.T) {
 	makeTransfer(contract, bc, t)
 	transferRoot, err := ws.RootHash()
 	require.NoError(err)
+	fmt.Println("transferRoot:", hex.EncodeToString(transferRoot[:]))
 	require.NoError(accountState(transferRoot[:], ws.GetDB(), addrHash, &account))
 	require.NoError(err)
 	// check the balance after transfer
@@ -1404,7 +1406,7 @@ func TestHistoryForContract(t *testing.T) {
 	require.Equal(expect, balance)
 }
 
-func deployXrc20(bc Blockchain, dao blockdao.BlockDAO, t *testing.T) (string, *block.Block) {
+func deployXrc20(bc Blockchain, dao blockdao.BlockDAO, t *testing.T) string {
 	require := require.New(t)
 	genesisAccount := identityset.Address(27).String()
 	genesisPriKey := identityset.PrivateKey(27)
@@ -1433,7 +1435,7 @@ func deployXrc20(bc Blockchain, dao blockdao.BlockDAO, t *testing.T) (string, *b
 	require.NoError(bc.CommitBlock(blk))
 	r, err := dao.GetReceiptByActionHash(selp.Hash(), blk.Height())
 	require.NoError(err)
-	return r.ContractAddress, blk
+	return r.ContractAddress
 }
 
 func returnBalanceOfContract(contract, genesisAccount string, sf factory.Factory, t *testing.T, oldRoot hash.Hash256) *big.Int {
@@ -1444,9 +1446,6 @@ func returnBalanceOfContract(contract, genesisAccount string, sf factory.Factory
 	addr, err := address.FromString(contract)
 	require.NoError(err)
 	addrHash := hash.BytesToHash160(addr.Bytes())
-	//var account state.Account
-	//require.NoError(accountState(oldRoot[:], ws.GetDB(), addrHash, &account))
-	//require.NoError(err)
 	dbForTrie, err := db.NewKVStoreForTrie(evm.ContractKVNameSpace, evm.PruneKVNameSpace, kv, db.CachedBatchOption(batch.NewCachedBatch()))
 	require.NoError(err)
 	options := []trie.Option{
@@ -1513,34 +1512,6 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	cfg.Consensus.Scheme = config.RollDPoSScheme
 	cfg.Genesis.BlockGasLimit = uint64(1000000)
 	cfg.Genesis.EnableGravityChainVoting = false
-	// Create a blockchain from scratch
-	//sf, err := factory.NewStateDB(cfg, factory.DefaultStateDBOption())
-	//require.NoError(err)
-	//acc := account.NewProtocol(rewarding.DepositGas)
-	//registry := protocol.NewRegistry()
-	//require.NoError(acc.Register(registry))
-	//rp := rolldpos.NewProtocol(cfg.Genesis.NumCandidateDelegates, cfg.Genesis.NumDelegates, cfg.Genesis.NumSubEpochs)
-	//require.NoError(rp.Register(registry))
-	//require.NoError(poll.NewLifeLongDelegatesProtocol(cfg.Genesis.Delegates).Register(registry))
-	//
-	//// create indexer
-	//cfg.DB.DbPath = cfg.Chain.IndexDBPath
-	//indexer, err := blockindex.NewIndexer(db.NewBoltDB(cfg.DB), cfg.Genesis.Hash())
-	//require.NoError(err)
-	//// create BlockDAO
-	//cfg.DB.DbPath = cfg.Chain.ChainDBPath
-	//dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
-	//
-	//bc := NewBlockchain(cfg, dao, sf, BoltDBDaoOption(), RegistryOption(registry))
-	//rewardingProtocol := rewarding.NewProtocol(func(ctx context.Context, epochNum uint64) (uint64, map[string]uint64, error) {
-	//	return ProductivityByEpoch(ctx, bc, epochNum)
-	//})
-	//require.NoError(rewardingProtocol.Register(registry))
-	//exec := execution.NewProtocol(dao.GetBlockHash)
-	//require.NoError(exec.Register(registry))
-	//bc.Validator().AddActionEnvelopeValidators(protocol.NewGenericValidator(sf, accountutil.AccountState))
-	//
-	//require.NoError(bc.Start(context.Background()))
 	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
 	require.NoError(err)
 	acc := account.NewProtocol(rewarding.DepositGas)
@@ -1577,14 +1548,6 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	require.NoError(bc.AddSubscriber(ms))
 	require.Equal(0, ms.Counter())
 
-	height := bc.TipHeight()
-	fmt.Printf("Open blockchain pass, height = %d\n", height)
-	//ws, err := sf.NewWorkingSet()
-	//require.NoError(err)
-	//genesis, err := accountutil.LoadOrCreateAccount(ws, identityset.Address(27).String())
-	//require.NoError(err)
-	//require.Equal(unit.ConvertIotxToRau(10000000000), genesis.Balance)
-	//require.NoError(addCreatorToFactory(sf))
 	genesisAccount := identityset.Address(27).String()
 	genesisPriKey := identityset.PrivateKey(27)
 	a := identityset.Address(28).String()
@@ -1631,33 +1594,4 @@ func makeTransfer(contract string, bc Blockchain, t *testing.T) *block.Block {
 	require.NoError(bc.ValidateBlock(blk))
 	require.NoError(bc.CommitBlock(blk))
 	return blk
-}
-
-func addCreatorToFactory(sf factory.Factory) error {
-	ws, err := sf.NewWorkingSet()
-	if err != nil {
-		return err
-	}
-	primAcc, err := accountutil.LoadOrCreateAccount(ws, identityset.Address(27).String())
-	if err != nil {
-		return err
-	}
-	primAcc.Balance = big.NewInt(0).Add(primAcc.Balance, unit.ConvertIotxToRau(10000000000))
-	err = accountutil.StoreAccount(ws, identityset.Address(27).String(), primAcc)
-	if err != nil {
-		return err
-	}
-	gasLimit := testutil.TestGasLimit
-	ctx := protocol.WithActionCtx(context.Background(),
-		protocol.ActionCtx{
-			Caller:       identityset.Address(27),
-			IntrinsicGas: gasLimit,
-		})
-	if _, err = ws.RunActions(ctx, nil); err != nil {
-		return err
-	}
-	if err = ws.Finalize(); err != nil {
-		return err
-	}
-	return sf.Commit(ws)
 }
