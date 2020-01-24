@@ -187,12 +187,12 @@ func (sf *factory) NewWorkingSet() (WorkingSet, error) {
 	sf.mutex.RLock()
 	defer sf.mutex.RUnlock()
 
-	return newWorkingSet(sf.currentChainHeight+1, sf.dao, sf.rootHash(), sf.saveHistory)
+	return NewWorkingSet(sf.currentChainHeight+1, sf.dao, sf.rootHash(), sf.saveHistory)
 }
 
 func (sf *factory) RunActions(ctx context.Context, actions []action.SealedEnvelope) ([]*action.Receipt, WorkingSet, error) {
 	sf.mutex.Lock()
-	ws, err := newWorkingSet(sf.currentChainHeight+1, sf.dao, sf.rootHash(), sf.saveHistory)
+	ws, err := NewWorkingSet(sf.currentChainHeight+1, sf.dao, sf.rootHash(), sf.saveHistory)
 	sf.mutex.Unlock()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to obtain working set from state factory")
@@ -207,7 +207,7 @@ func (sf *factory) PickAndRunActions(
 	postSystemActions []action.SealedEnvelope,
 ) ([]*action.Receipt, []action.SealedEnvelope, WorkingSet, error) {
 	sf.mutex.Lock()
-	ws, err := newWorkingSet(sf.currentChainHeight+1, sf.dao, sf.rootHash(), sf.saveHistory)
+	ws, err := NewWorkingSet(sf.currentChainHeight+1, sf.dao, sf.rootHash(), sf.saveHistory)
 	sf.mutex.Unlock()
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "Failed to obtain working set from state factory")
@@ -225,7 +225,7 @@ func (sf *factory) SimulateExecution(
 	getBlockHash evm.GetBlockHash,
 ) ([]byte, *action.Receipt, error) {
 	sf.mutex.Lock()
-	ws, err := newWorkingSet(sf.currentChainHeight+1, sf.dao, sf.rootHash(), sf.saveHistory)
+	ws, err := NewWorkingSet(sf.currentChainHeight+1, sf.dao, sf.rootHash(), sf.saveHistory)
 	sf.mutex.Unlock()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to obtain working set from state factory")
@@ -307,7 +307,7 @@ func (sf *factory) commit(ws WorkingSet) error {
 
 // Initialize initializes the state factory
 func (sf *factory) createGenesisStates(ctx context.Context) error {
-	ws, err := newWorkingSet(0, sf.dao, sf.rootHash(), sf.saveHistory)
+	ws, err := NewWorkingSet(0, sf.dao, sf.rootHash(), sf.saveHistory)
 	if err != nil {
 		return errors.Wrap(err, "failed to obtain working set from state factory")
 	}

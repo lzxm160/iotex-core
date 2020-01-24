@@ -1480,27 +1480,33 @@ func BalanceOfContract(contract, genesisAccount string, sf factory.Factory, t *t
 	return big.NewInt(0).SetBytes(ret)
 }
 
-func accountState(root []byte, kv db.KVStore, hash hash.Hash160, s interface{}) error {
-	dbForTrie, err := db.NewKVStoreForTrie(factory.AccountKVNameSpace, evm.PruneKVNameSpace, kv, db.CachedBatchOption(batch.NewCachedBatch()))
+func accountState(root []byte, kv db.KVStore, addrHash hash.Hash160, s interface{}) error {
+	rootHash := hash.BytesToHash256(root)
+	ws, err := factory.NewWorkingSet(1, kv, rootHash, true)
 	if err != nil {
-		return errors.Wrap(err, "failed to generate state tire db")
+		return err
 	}
-	tr, err := trie.NewTrie(trie.KVStoreOption(dbForTrie), trie.RootHashOption(root[:]))
-	if err != nil {
-		return errors.Wrap(err, "failed to generate state trie from config")
-	}
-	if err := tr.Start(context.Background()); err != nil {
-		return errors.Wrapf(err, "failed to load state trie from root = %x", root)
-	}
-	defer tr.Stop(context.Background())
-	mstate, err := tr.Get(hash[:])
-	if errors.Cause(err) == trie.ErrNotExist {
-		return errors.Wrapf(state.ErrStateNotExist, "addrHash = %x", hash[:])
-	}
-	if err != nil {
-		return errors.Wrapf(err, "failed to get account of %x", hash)
-	}
-	return state.Deserialize(s, mstate)
+	return ws.State(addrHash, s)
+	//dbForTrie, err := db.NewKVStoreForTrie(factory.AccountKVNameSpace, evm.PruneKVNameSpace, kv, db.CachedBatchOption(batch.NewCachedBatch()))
+	//if err != nil {
+	//	return errors.Wrap(err, "failed to generate state tire db")
+	//}
+	//tr, err := trie.NewTrie(trie.KVStoreOption(dbForTrie), trie.RootHashOption(root[:]))
+	//if err != nil {
+	//	return errors.Wrap(err, "failed to generate state trie from config")
+	//}
+	//if err := tr.Start(context.Background()); err != nil {
+	//	return errors.Wrapf(err, "failed to load state trie from root = %x", root)
+	//}
+	//defer tr.Stop(context.Background())
+	//mstate, err := tr.Get(hash[:])
+	//if errors.Cause(err) == trie.ErrNotExist {
+	//	return errors.Wrapf(state.ErrStateNotExist, "addrHash = %x", hash[:])
+	//}
+	//if err != nil {
+	//	return errors.Wrapf(err, "failed to get account of %x", hash)
+	//}
+	//return state.Deserialize(s, mstate)
 }
 
 func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
