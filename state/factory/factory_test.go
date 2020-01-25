@@ -349,6 +349,7 @@ func testHistoryState(sf Factory, t *testing.T) {
 		protocol.BlockchainCtx{
 			Genesis:  config.Default.Genesis,
 			Registry: registry,
+			History:  true,
 		},
 	)
 
