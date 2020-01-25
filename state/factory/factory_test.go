@@ -396,13 +396,13 @@ func testHistoryState(sf Factory, t *testing.T) {
 	err = sf.State(sHash, &testAccount)
 	require.NoError(t, err)
 	require.Equal(t, accountA, &testAccount)
-	require.Equal(t, big.NewInt(90), accountA.Balance)
+	require.Equal(t, big.NewInt(90), testAccount.Balance)
 
 	//check old balance
 	ws, err = NewWorkingSet(1, ws.GetDB(), oldRoot, true)
 	require.NoError(t, err)
 	require.NoError(t, ws.State(sHash, &testAccount))
-	require.Equal(t, big.NewInt(100), accountA.Balance)
+	require.Equal(t, big.NewInt(100), testAccount.Balance)
 }
 
 func TestNonce(t *testing.T) {
