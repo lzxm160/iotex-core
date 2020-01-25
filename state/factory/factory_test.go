@@ -9,7 +9,6 @@ package factory
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
@@ -364,7 +363,7 @@ func testHistoryState(sf Factory, t *testing.T) {
 	require.NoError(t, ws.Finalize())
 	oldRoot, err := ws.RootHash()
 	require.NoError(t, err)
-	fmt.Println("old root:", hex.EncodeToString(oldRoot[:]))
+	//fmt.Println("old root:", hex.EncodeToString(oldRoot[:]))
 	ws, err = sf.NewWorkingSet()
 	require.NoError(t, err)
 	tsf, err := action.NewTransfer(1, big.NewInt(10), identityset.Address(31).String(), nil, uint64(20000), big.NewInt(0))
@@ -385,9 +384,9 @@ func testHistoryState(sf Factory, t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, ws.Finalize())
 	require.NoError(t, sf.Commit(ws))
-	newRoot, err := ws.RootHash()
-	require.NoError(t, err)
-	fmt.Println("new root:", hex.EncodeToString(newRoot[:]))
+	//newRoot, err := ws.RootHash()
+	//require.NoError(t, err)
+	//fmt.Println("new root:", hex.EncodeToString(newRoot[:]))
 	//test AccountState() & State()
 	var testAccount state.Account
 	accountA, err := accountutil.AccountState(sf, a)
