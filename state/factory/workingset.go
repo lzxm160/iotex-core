@@ -82,7 +82,7 @@ type (
 	}
 )
 
-// newWorkingSet creates a new working set
+// NewWorkingSet creates a new working set
 func NewWorkingSet(
 	height uint64,
 	kv db.KVStore,
