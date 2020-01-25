@@ -420,17 +420,20 @@ func TestHistoryTrie(t *testing.T) {
 	trieDB := tr.DB()
 	// insert 1 entries
 	require.NoError(tr.Upsert(cat, testV[2]))
-	c, _ := tr.Get(cat)
+	c, err := tr.Get(cat)
+	require.NoError(err)
 	require.Equal(testV[2], c)
 	oldRoot := tr.RootHash()
 	// update entry
 	require.NoError(tr.Upsert(cat, testV[6]))
-	c, _ = tr.Get(cat)
+	c, err = tr.Get(cat)
+	require.NoError(err)
 	require.Equal(testV[6], c)
 
 	tr, err = NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot), KeyLengthOption(8))
 	// check old entry
-	c, _ = tr.Get(cat)
+	c, err = tr.Get(cat)
+	require.NoError(err)
 	require.Equal(testV[2], c)
 	require.NoError(tr.Stop(context.Background()))
 }
