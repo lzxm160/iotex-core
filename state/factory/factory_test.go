@@ -248,7 +248,8 @@ func TestHistoryState(t *testing.T) {
 
 	cfg := config.Default
 	cfg.DB.DbPath = testTriePath
-	sf, err := NewFactory(cfg, PrecreatedTrieDBOption(db.NewBoltDB(cfg.DB)))
+	cfg.Chain.EnableHistoryStateDB = true
+	sf, err := NewFactory(cfg, DefaultTrieOption())
 	require.NoError(t, err)
 	testHistoryState(sf, t)
 }
@@ -350,7 +351,6 @@ func testHistoryState(sf Factory, t *testing.T) {
 		protocol.BlockchainCtx{
 			Genesis:  config.Default.Genesis,
 			Registry: registry,
-			History:  true,
 		},
 	)
 
