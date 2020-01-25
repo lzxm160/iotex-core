@@ -17,6 +17,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Frankonly/iotex-core/state/factory"
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
@@ -241,6 +242,17 @@ func TestState(t *testing.T) {
 	testState(sf, t)
 }
 
+func TestHistoryState(t *testing.T) {
+	testTrieFile, _ := ioutil.TempFile(os.TempDir(), triePath)
+	testTriePath := testTrieFile.Name()
+
+	cfg := config.Default
+	cfg.DB.DbPath = testTriePath
+	sf, err := NewFactory(cfg, PrecreatedTrieDBOption(db.NewBoltDB(cfg.DB)))
+	require.NoError(t, err)
+	testHistoryState(sf, t)
+}
+
 func TestSDBState(t *testing.T) {
 	testDBFile, _ := ioutil.TempFile(os.TempDir(), stateDBPath)
 	testDBPath := testDBFile.Name()
@@ -313,6 +325,78 @@ func testState(sf Factory, t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, accountA, &testAccount)
 	require.Equal(t, big.NewInt(90), accountA.Balance)
+}
+
+func testHistoryState(sf Factory, t *testing.T) {
+	// Create a dummy iotex address
+	a := identityset.Address(28).String()
+	priKeyA := identityset.PrivateKey(28)
+	registry := protocol.NewRegistry()
+	acc := account.NewProtocol(rewarding.DepositGas)
+	require.NoError(t, acc.Register(registry))
+	ge := genesis.Default
+	ge.InitBalanceMap[a] = "100"
+	gasLimit := uint64(1000000)
+	ctx := protocol.WithBlockCtx(
+		context.Background(),
+		protocol.BlockCtx{
+			BlockHeight: 0,
+			Producer:    identityset.Address(27),
+			GasLimit:    gasLimit,
+		},
+	)
+	ctx = protocol.WithBlockchainCtx(
+		ctx,
+		protocol.BlockchainCtx{
+			Genesis:  config.Default.Genesis,
+			Registry: registry,
+		},
+	)
+
+	require.NoError(t, sf.Start(ctx))
+	defer func() {
+		require.NoError(t, sf.Stop(ctx))
+	}()
+	ws, err := sf.NewWorkingSet()
+	require.NoError(t, err)
+
+	tsf, err := action.NewTransfer(1, big.NewInt(10), identityset.Address(31).String(), nil, uint64(20000), big.NewInt(0))
+	require.NoError(t, err)
+	bd := &action.EnvelopeBuilder{}
+	elp := bd.SetAction(tsf).SetGasLimit(20000).Build()
+	selp, err := action.Sign(elp, priKeyA)
+	require.NoError(t, err)
+	ctx = protocol.WithBlockCtx(
+		ctx,
+		protocol.BlockCtx{
+			BlockHeight: 1,
+			Producer:    identityset.Address(27),
+			GasLimit:    gasLimit,
+		},
+	)
+	_, err = ws.RunAction(ctx, selp)
+	require.NoError(t, err)
+	require.NoError(t, ws.Finalize())
+	require.NoError(t, sf.Commit(ws))
+
+	//old root
+	oldRoot, err := ws.RootHash()
+	require.NoError(t, err)
+	//test AccountState() & State()
+	var testAccount state.Account
+	accountA, err := accountutil.AccountState(sf, a)
+	require.NoError(t, err)
+	sHash := hash.BytesToHash160(identityset.Address(28).Bytes())
+	err = sf.State(sHash, &testAccount)
+	require.NoError(t, err)
+	require.Equal(t, accountA, &testAccount)
+	require.Equal(t, big.NewInt(90), accountA.Balance)
+
+	//check old balance
+	ws, err = NewWorkingSet(1, ws.GetDB(), oldRoot, true)
+	require.NoError(t, err)
+	require.NoError(t, ws.State(sHash, testAccount))
+	require.Equal(t, big.NewInt(100), accountA.Balance)
 }
 
 func TestNonce(t *testing.T) {
