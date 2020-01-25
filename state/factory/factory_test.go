@@ -17,7 +17,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Frankonly/iotex-core/state/factory"
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
