@@ -360,6 +360,7 @@ func testHistoryState(sf Factory, t *testing.T) {
 	require.NoError(t, err)
 	//old root
 	require.NoError(t, ws.Finalize())
+	require.NoError(t, sf.Commit(ws))
 	oldRoot, err := ws.RootHash()
 	require.NoError(t, err)
 
