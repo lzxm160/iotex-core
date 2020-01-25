@@ -360,10 +360,11 @@ func testHistoryState(sf Factory, t *testing.T) {
 	require.NoError(t, err)
 	//old root
 	require.NoError(t, ws.Finalize())
-	require.NoError(t, sf.Commit(ws))
 	oldRoot, err := ws.RootHash()
 	require.NoError(t, err)
 
+	ws, err = sf.NewWorkingSet()
+	require.NoError(t, err)
 	tsf, err := action.NewTransfer(1, big.NewInt(10), identityset.Address(31).String(), nil, uint64(20000), big.NewInt(0))
 	require.NoError(t, err)
 	bd := &action.EnvelopeBuilder{}
