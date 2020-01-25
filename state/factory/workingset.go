@@ -83,7 +83,7 @@ type (
 )
 
 // newWorkingSet creates a new working set
-func newWorkingSet(
+func NewWorkingSet(
 	height uint64,
 	kv db.KVStore,
 	root hash.Hash256,
