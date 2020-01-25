@@ -414,60 +414,28 @@ func TestBatchCommit(t *testing.T) {
 
 func TestHistoryTrie(t *testing.T) {
 	require := require.New(t)
-
 	tr, err := NewTrie(KeyLengthOption(8))
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
 	trieDB := tr.DB()
-	// insert 3 entries
+	// insert 1 entries
 	require.NoError(tr.Upsert(cat, testV[2]))
-	require.NoError(tr.Upsert(car, testV[1]))
-	require.NoError(tr.Upsert(egg, testV[4]))
 	c, _ := tr.Get(cat)
 	require.Equal(testV[2], c)
-	// entries committed exist
-	v, _ := tr.Get(cat)
-	require.Equal(testV[2], v)
-	v, _ = tr.Get(car)
-	require.Equal(testV[1], v)
-	v, _ = tr.Get(egg)
-	require.Equal(testV[4], v)
-	// entries not committed won't exist
-	_, err = tr.Get(dog)
-	require.Equal(ErrNotExist, errors.Cause(err))
-	_, err = tr.Get(ham)
-	require.Equal(ErrNotExist, errors.Cause(err))
-	_, err = tr.Get(fox)
-	require.Equal(ErrNotExist, errors.Cause(err))
+	oldRoot := tr.RootHash()
+	// update entry
+	require.NoError(tr.Upsert(cat, testV[6]))
+	c, _ = tr.Get(cat)
+	require.Equal(testV[6], c)
 
-	// insert 3 entries again
-	require.NoError(tr.Upsert(dog, testV[3]))
-	require.NoError(tr.Upsert(ham, testV[0]))
-	require.NoError(tr.Upsert(fox, testV[6]))
-	v, _ = tr.Get(fox)
-	require.Equal(testV[6], v)
-	require.NoError(tr.Upsert(fox, testV[5]))
-	v, _ = tr.Get(fox)
-	require.Equal(testV[5], v)
-	root := tr.RootHash()
 	// commit and reopen
 	require.NoError(tr.Stop(context.Background()))
-	tr, err = NewTrie(KVStoreOption(trieDB), RootHashOption(root), KeyLengthOption(8))
+	tr, err = NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot), KeyLengthOption(8))
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
-	// all entries should exist now
-	v, _ = tr.Get(cat)
-	require.Equal(testV[2], v)
-	v, _ = tr.Get(car)
-	require.Equal(testV[1], v)
-	v, _ = tr.Get(egg)
-	require.Equal(testV[4], v)
-	v, _ = tr.Get(dog)
-	require.Equal(testV[3], v)
-	v, _ = tr.Get(ham)
-	require.Equal(testV[0], v)
-	v, _ = tr.Get(fox)
-	require.Equal(testV[5], v)
+	// check old entry
+	c, _ = tr.Get(cat)
+	require.Equal(testV[2], c)
 	require.NoError(tr.Stop(context.Background()))
 }
 
