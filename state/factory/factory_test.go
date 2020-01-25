@@ -359,6 +359,7 @@ func testHistoryState(sf Factory, t *testing.T) {
 	ws, err := sf.NewWorkingSet()
 	require.NoError(t, err)
 	//old root
+	require.NoError(t, ws.Finalize())
 	oldRoot, err := ws.RootHash()
 	require.NoError(t, err)
 
