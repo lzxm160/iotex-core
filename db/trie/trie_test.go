@@ -414,7 +414,7 @@ func TestBatchCommit(t *testing.T) {
 
 func TestHistoryTrie(t *testing.T) {
 	require := require.New(t)
-	tr, err := NewTrie(KeyLengthOption(8))
+	tr, err := NewTrie(KeyLengthOption(8), HistoryRetentionOption(2000))
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
 	trieDB := tr.DB()
@@ -430,7 +430,7 @@ func TestHistoryTrie(t *testing.T) {
 	require.NoError(err)
 	require.Equal(testV[6], c)
 
-	tr, err = NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot), KeyLengthOption(8))
+	tr, err = NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot), HistoryRetentionOption(2000), KeyLengthOption(8))
 	// check old entry
 	c, err = tr.Get(cat)
 	require.NoError(err)
