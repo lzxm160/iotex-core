@@ -394,7 +394,7 @@ func testHistoryState(sf Factory, t *testing.T) {
 	//check old balance
 	ws, err = NewWorkingSet(1, ws.GetDB(), oldRoot, true)
 	require.NoError(t, err)
-	require.NoError(t, ws.State(sHash, testAccount))
+	require.NoError(t, ws.State(sHash, &testAccount))
 	require.Equal(t, big.NewInt(100), accountA.Balance)
 }
 
