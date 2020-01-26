@@ -429,9 +429,11 @@ func TestHistoryTrie(t *testing.T) {
 	c, err = tr.Get(cat)
 	require.NoError(err)
 	require.Equal(testV[6], c)
+	require.NoError(tr.Stop(context.Background()))
 
-	tr, err = NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot), HistoryRetentionOption(2000), KeyLengthOption(8))
 	// check old entry
+	tr, err = NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot), HistoryRetentionOption(2000), KeyLengthOption(8))
+	require.NoError(tr.Start(context.Background()))
 	c, err = tr.Get(cat)
 	require.NoError(err)
 	require.Equal(testV[2], c)
