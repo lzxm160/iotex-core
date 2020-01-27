@@ -13,8 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iotexproject/iotex-core/state/factory"
-
 	"github.com/iotexproject/iotex-core/db/batch"
 
 	"github.com/iotexproject/iotex-core/config"
@@ -23,7 +21,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/go-pkgs/hash"
-	"github.com/iotexproject/iotex-core/action/protocol/execution/evm"
 	"github.com/iotexproject/iotex-core/db"
 )
 
@@ -427,7 +424,9 @@ func TestHistoryTrie(t *testing.T) {
 	cfg := config.Default
 	cfg.DB.DbPath = testTriePath
 	dao := db.NewBoltDB(cfg.DB)
-	trieDB, err := db.NewKVStoreForTrie(factory.AccountKVNameSpace, evm.PruneKVNameSpace, dao, db.CachedBatchOption(batch.NewCachedBatch()))
+	AccountKVNameSpace := "Account"
+	PruneKVNameSpace := "cp"
+	trieDB, err := db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, dao, db.CachedBatchOption(batch.NewCachedBatch()))
 	require.NoError(err)
 	tr, err := NewTrie(KVStoreOption(trieDB), KeyLengthOption(8), HistoryRetentionOption(2000))
 	require.NoError(err)
