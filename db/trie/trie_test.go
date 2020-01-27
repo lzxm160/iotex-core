@@ -416,10 +416,10 @@ func TestBatchCommit(t *testing.T) {
 
 func TestHistoryTrie(t *testing.T) {
 	require := require.New(t)
-	tr, err := NewTrie(KeyLengthOption(8), HistoryRetentionOption(2000))
+	trieDB := newInMemKVStore()
+	tr, err := NewTrie(KVStoreOption(trieDB), KeyLengthOption(8), HistoryRetentionOption(2000))
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
-	trieDB := tr.DB()
 	// insert 1 entries
 	require.NoError(tr.Upsert(cat, testV[2]))
 	c, err := tr.Get(cat)
@@ -437,7 +437,7 @@ func TestHistoryTrie(t *testing.T) {
 	require.NoError(tr.Stop(context.Background()))
 
 	// check old entry
-	tr, err = NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot), HistoryRetentionOption(2000), KeyLengthOption(8))
+	tr, err = NewTrie(KVStoreOption(trieDB), KVStoreOption(trieDB), RootHashOption(oldRoot), HistoryRetentionOption(2000), KeyLengthOption(8))
 	require.NoError(tr.Start(context.Background()))
 	c, err = tr.Get(cat)
 	require.NoError(err)
