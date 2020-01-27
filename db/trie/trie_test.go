@@ -8,6 +8,8 @@ package trie
 
 import (
 	"context"
+	"encoding/hex"
+	"fmt"
 	"testing"
 	"time"
 
@@ -424,11 +426,14 @@ func TestHistoryTrie(t *testing.T) {
 	require.NoError(err)
 	require.Equal(testV[2], c)
 	oldRoot := tr.RootHash()
+	fmt.Println(hex.EncodeToString(oldRoot))
 	// update entry
 	require.NoError(tr.Upsert(cat, testV[6]))
 	c, err = tr.Get(cat)
 	require.NoError(err)
 	require.Equal(testV[6], c)
+	newRoot := tr.RootHash()
+	fmt.Println(hex.EncodeToString(newRoot))
 	require.NoError(tr.Stop(context.Background()))
 
 	// check old entry
