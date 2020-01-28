@@ -341,7 +341,7 @@ func testHistoryState(sf Factory, t *testing.T) {
 	ctx := protocol.WithBlockCtx(
 		context.Background(),
 		protocol.BlockCtx{
-			BlockHeight: 0,
+			BlockHeight: 1,
 			Producer:    identityset.Address(27),
 			GasLimit:    gasLimit,
 		},
@@ -369,7 +369,7 @@ func testHistoryState(sf Factory, t *testing.T) {
 	ctx = protocol.WithBlockCtx(
 		ctx,
 		protocol.BlockCtx{
-			BlockHeight: 1,
+			BlockHeight: 2,
 			Producer:    identityset.Address(27),
 			GasLimit:    gasLimit,
 		},
@@ -378,10 +378,7 @@ func testHistoryState(sf Factory, t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, ws.Finalize())
 	require.NoError(t, sf.Commit(ws))
-	//newRoot, err := ws.RootHash()
-	//require.NoError(t, err)
-	//fmt.Println("new root:", hex.EncodeToString(newRoot[:]))
-	//test AccountState() & State()
+
 	accountA, err := accountutil.AccountState(sf, a)
 	require.NoError(t, err)
 	accountB, err := accountutil.AccountState(sf, identityset.Address(31).String())
@@ -389,9 +386,9 @@ func testHistoryState(sf Factory, t *testing.T) {
 	require.Equal(t, big.NewInt(90), accountA.Balance)
 	require.Equal(t, big.NewInt(10), accountB.Balance)
 	//check old balance
-	accountA, err = accountutil.AccountStateAtHeight(sf, a, 0)
+	accountA, err = accountutil.AccountStateAtHeight(sf, a, 1)
 	require.NoError(t, err)
-	accountB, err = accountutil.AccountStateAtHeight(sf, identityset.Address(31).String(), 0)
+	accountB, err = accountutil.AccountStateAtHeight(sf, identityset.Address(31).String(), 1)
 	require.NoError(t, err)
 	require.Equal(t, big.NewInt(100), accountA.Balance)
 	require.Equal(t, big.NewInt(100), accountB.Balance)
