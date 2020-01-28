@@ -1510,7 +1510,6 @@ func newChain(t *testing.T, statetx bool) (Blockchain, factory.Factory, blockdao
 		require.NoError(err)
 	}
 	cfg.Genesis.InitBalanceMap[identityset.Address(27).String()] = unit.ConvertIotxToRau(10000000000).String()
-
 	// create BlockDAO
 	cfg.DB.DbPath = cfg.Chain.ChainDBPath
 	dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, cfg.Chain.CompressBlock, cfg.DB)
@@ -1535,7 +1534,7 @@ func newChain(t *testing.T, statetx bool) (Blockchain, factory.Factory, blockdao
 	genesisPriKey := identityset.PrivateKey(27)
 	a := identityset.Address(28).String()
 	b := identityset.Address(29).String()
-	// make a transfer from genesisAccount to a and b
+	// make a transfer from genesisAccount to a and b,because statetx cannot store data in height 0
 	tsf, err := testutil.SignedTransfer(a, genesisPriKey, 1, big.NewInt(100), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))
 	require.NoError(err)
 	tsf2, err := testutil.SignedTransfer(b, genesisPriKey, 2, big.NewInt(100), []byte{}, testutil.TestGasLimit, big.NewInt(testutil.TestGasPriceInt64))

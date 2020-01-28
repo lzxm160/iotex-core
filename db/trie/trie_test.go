@@ -440,18 +440,18 @@ func TestHistoryTrie(t *testing.T) {
 	require.NoError(err)
 	require.Equal(testV[2], c)
 	oldRoot := tr.RootHash()
-	fmt.Println(hex.EncodeToString(oldRoot))
+	fmt.Println("old root", hex.EncodeToString(oldRoot))
 	// update entry
 	require.NoError(tr.Upsert(cat, testV[6]))
 	c, err = tr.Get(cat)
 	require.NoError(err)
 	require.Equal(testV[6], c)
 	newRoot := tr.RootHash()
-	fmt.Println(hex.EncodeToString(newRoot))
+	fmt.Println("new root", hex.EncodeToString(newRoot))
 	require.NoError(tr.Stop(context.Background()))
 
 	// check old entry
-	tr, err = NewTrie(KVStoreOption(trieDB), KVStoreOption(trieDB), RootHashOption(oldRoot), HistoryRetentionOption(2000), KeyLengthOption(8))
+	tr, err = NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot), HistoryRetentionOption(2000), KeyLengthOption(8))
 	require.NoError(tr.Start(context.Background()))
 	c, err = tr.Get(cat)
 	require.NoError(err)
