@@ -172,3 +172,17 @@ func (mr *MockFactoryMockRecorder) State(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "State", reflect.TypeOf((*MockFactory)(nil).State), arg0, arg1)
 }
+
+// StateAtHeight mocks base method
+func (m *MockFactory) StateAtHeight(arg0 uint64, arg1 hash.Hash160, arg2 interface{}) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StateAtHeight", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// StateAtHeight indicates an expected call of StateAtHeight
+func (mr *MockFactoryMockRecorder) StateAtHeight(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StateAtHeight", reflect.TypeOf((*MockFactory)(nil).StateAtHeight), arg0, arg1, arg2)
+}
