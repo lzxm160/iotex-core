@@ -449,6 +449,7 @@ func TestHistoryTrie(t *testing.T) {
 	require.Equal(testV[6], c)
 	newRoot := tr.RootHash()
 	fmt.Println("new root", hex.EncodeToString(newRoot))
+	require.NoError(dao.Stop(context.Background()))
 	require.NoError(tr.Stop(context.Background()))
 
 	// check old entry
