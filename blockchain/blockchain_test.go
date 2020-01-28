@@ -1317,10 +1317,13 @@ func TestBlockchain_RemoveSubscriber(t *testing.T) {
 	req.NoError(bc.RemoveSubscriber(mb))
 	req.EqualError(bc.RemoveSubscriber(nil), "cannot find subscription")
 }
-
 func TestHistoryForAccount(t *testing.T) {
+	//testHistoryForAccount(t,false)
+	testHistoryForAccount(t, true)
+}
+func testHistoryForAccount(t *testing.T, statetx bool) {
 	require := require.New(t)
-	bc, sf, _ := newChain(t, false)
+	bc, sf, _ := newChain(t, statetx)
 	a := identityset.Address(28).String()
 	priKeyA := identityset.PrivateKey(28)
 	b := identityset.Address(29).String()
@@ -1373,8 +1376,12 @@ func TestHistoryForAccount(t *testing.T) {
 	require.NoError(accountState(oldRoot[:], ws.GetDB(), addrHash, &account))
 	require.Equal(big.NewInt(100), account.Balance)
 }
-
 func TestHistoryForContract(t *testing.T) {
+	//testHistoryForContract(t, false)
+	testHistoryForContract(t, true)
+}
+
+func testHistoryForContract(t *testing.T, statetx bool) {
 	require := require.New(t)
 	bc, sf, dao := newChain(t, true)
 	genesisAccount := identityset.Address(27).String()
