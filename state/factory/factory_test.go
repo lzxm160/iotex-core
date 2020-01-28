@@ -9,7 +9,6 @@ package factory
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
@@ -28,7 +27,7 @@ import (
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/action/protocol/account"
-	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/action/protocol/rewarding"
 	"github.com/iotexproject/iotex-core/action/protocol/vote/candidatesutil"
 	"github.com/iotexproject/iotex-core/blockchain/genesis"
@@ -365,13 +364,6 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 	}()
 	ws, err := sf.NewWorkingSet()
 	require.NoError(t, err)
-	//old root
-	require.NoError(t, ws.Finalize())
-	oldRoot, err := ws.RootHash()
-	require.NoError(t, err)
-	fmt.Println("old root:", hex.EncodeToString(oldRoot[:]))
-	ws, err = sf.NewWorkingSet()
-	require.NoError(t, err)
 	tsf, err := action.NewTransfer(1, big.NewInt(10), b, nil, uint64(20000), big.NewInt(0))
 	require.NoError(t, err)
 	bd := &action.EnvelopeBuilder{}
@@ -390,10 +382,6 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 	require.NoError(t, err)
 	require.NoError(t, ws.Finalize())
 	require.NoError(t, sf.Commit(ws))
-
-	newRoot, err := ws.RootHash()
-	require.NoError(t, err)
-	fmt.Println("new root:", hex.EncodeToString(newRoot[:]))
 
 	accountA, err := accountutil.AccountState(sf, a)
 	require.NoError(t, err)
