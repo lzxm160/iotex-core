@@ -233,6 +233,7 @@ func (ws *workingSet) Finalize() error {
 	// Persist current chain Height
 	h := byteutil.Uint64ToBytes(ws.blockHeight)
 	ws.cb.Put(AccountKVNameSpace, []byte(CurrentHeightKey), h, "failed to store accountTrie's current Height")
+	fmt.Println("Finalize():", fmt.Sprintf("%s-%d", AccountTrieRootKey, ws.blockHeight))
 	// Persist the historical accountTrie's root hash
 	ws.cb.Put(
 		AccountKVNameSpace,

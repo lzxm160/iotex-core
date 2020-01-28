@@ -299,6 +299,7 @@ func (sf *factory) state(addr hash.Hash160, s interface{}) error {
 
 func (sf *factory) stateAtHeight(height uint64, addr hash.Hash160, s interface{}) error {
 	// get root through height
+	fmt.Println("(sf *factory) stateAtHeight:", fmt.Sprintf("%s-%d", AccountTrieRootKey, height))
 	rootHash, err := sf.dao.Get(AccountKVNameSpace, []byte(fmt.Sprintf("%s-%d", AccountTrieRootKey, height)))
 	if err != nil {
 		return errors.Wrap(err, "failed to get root hash through height")
