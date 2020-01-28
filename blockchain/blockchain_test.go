@@ -43,7 +43,6 @@ import (
 	"github.com/iotexproject/iotex-core/db/batch"
 	"github.com/iotexproject/iotex-core/db/trie"
 	"github.com/iotexproject/iotex-core/pkg/unit"
-	"github.com/iotexproject/iotex-core/state"
 	"github.com/iotexproject/iotex-core/state/factory"
 	"github.com/iotexproject/iotex-core/test/identityset"
 	"github.com/iotexproject/iotex-core/test/mock/mock_blockcreationsubscriber"
@@ -1382,14 +1381,11 @@ func testHistoryForContract(t *testing.T, statetx bool) {
 	ws, err := sf.NewWorkingSet()
 	require.NoError(err)
 	require.NoError(ws.Finalize())
-	deployRoot, err := ws.RootHash()
-	require.NoError(err)
-	addr, err := address.FromString(contract)
-	require.NoError(err)
-	addrHash := hash.BytesToHash160(addr.Bytes())
 
-	var account state.Account
-	require.NoError(accountState(deployRoot[:], ws.GetDB(), addrHash, &account))
+	//var account state.Account
+	//require.NoError(accountState(deployRoot[:], ws.GetDB(), addrHash, &account))
+	//require.NoError(err)
+	account, err := accountutil.AccountState(sf, contract)
 	require.NoError(err)
 	// check the original balance
 	balance := BalanceOfContract(contract, genesisAccount, sf, t, account.Root)
@@ -1398,12 +1394,12 @@ func testHistoryForContract(t *testing.T, statetx bool) {
 	require.Equal(expect, balance)
 	// make a transfer for contract
 	makeTransfer(contract, bc, t)
-	ws, err = sf.NewWorkingSet()
-	require.NoError(err)
-	require.NoError(ws.Finalize())
-	transferRoot, err := ws.RootHash()
-	require.NoError(err)
-	require.NoError(accountState(transferRoot[:], ws.GetDB(), addrHash, &account))
+	//ws, err = sf.NewWorkingSet()
+	//require.NoError(err)
+	//require.NoError(ws.Finalize())
+	//transferRoot, err := ws.RootHash()
+	//require.NoError(err)
+	account, err = accountutil.AccountState(sf, contract)
 	require.NoError(err)
 	// check the balance after transfer
 	balance = BalanceOfContract(contract, genesisAccount, sf, t, account.Root)
@@ -1412,7 +1408,9 @@ func testHistoryForContract(t *testing.T, statetx bool) {
 	require.Equal(expect, balance)
 
 	// check the the original balance again
-	require.NoError(accountState(deployRoot[:], ws.GetDB(), addrHash, &account))
+	//require.NoError(accountState(deployRoot[:], ws.GetDB(), addrHash, &account))
+	//require.NoError(err)
+	account, err = accountutil.AccountStateAtHeight(sf, contract, bc.TipHeight()-1)
 	require.NoError(err)
 	balance = BalanceOfContract(contract, genesisAccount, sf, t, account.Root)
 	expect, ok = big.NewInt(0).SetString("2000000000000000000000000000", 10)
@@ -1485,15 +1483,6 @@ func BalanceOfContract(contract, genesisAccount string, sf factory.Factory, t *t
 	ret, err := tr.Get(out2[:])
 	require.NoError(err)
 	return big.NewInt(0).SetBytes(ret)
-}
-
-func accountState(root []byte, kv db.KVStore, addrHash hash.Hash160, s interface{}) error {
-	rootHash := hash.BytesToHash256(root)
-	ws, err := factory.NewWorkingSet(1, kv, rootHash, true)
-	if err != nil {
-		return err
-	}
-	return ws.State(addrHash, s)
 }
 
 func newChain(t *testing.T, statetx bool) (Blockchain, factory.Factory, blockdao.BlockDAO) {
