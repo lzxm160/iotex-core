@@ -314,6 +314,11 @@ func (sf *factory) stateAtHeight(height uint64, addr hash.Hash160, s interface{}
 	if err != nil {
 		return errors.Wrap(err, "failed to generate state trie from config")
 	}
+	err = tr.Start(context.Background())
+	if err != nil {
+		return err
+	}
+	defer tr.Stop(context.Background())
 	mstate, err := tr.Get(addr[:])
 	if errors.Cause(err) == trie.ErrNotExist {
 		return errors.Wrapf(state.ErrStateNotExist, "addrHash = %x", addr[:])

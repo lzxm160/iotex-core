@@ -318,6 +318,11 @@ func (ws *workingSet) StateAtHeight(height uint64, hash hash.Hash160, s interfac
 	if err != nil {
 		return errors.Wrap(err, "failed to generate state trie from config")
 	}
+	err = tr.Start(context.Background())
+	if err != nil {
+		return err
+	}
+	defer tr.Stop(context.Background())
 	mstate, err := tr.Get(hash[:])
 	if errors.Cause(err) == trie.ErrNotExist {
 		return errors.Wrapf(state.ErrStateNotExist, "addrHash = %x", hash[:])
