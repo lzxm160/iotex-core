@@ -1114,6 +1114,14 @@ func TestBlockchain_AccountState(t *testing.T) {
 	require.Equal(big.NewInt(100), s.Balance)
 	require.Equal(hash.ZeroHash256, s.Root)
 	require.Equal([]byte(nil), s.CodeHash)
+
+	// check account state according height
+	s, err = accountutil.AccountStateAtHeight(sf, identityset.Address(0).String(), bc.TipHeight())
+	require.NoError(err)
+	require.Equal(uint64(0), s.Nonce)
+	require.Equal(big.NewInt(100), s.Balance)
+	require.Equal(hash.ZeroHash256, s.Root)
+	require.Equal([]byte(nil), s.CodeHash)
 }
 
 func TestBlocks(t *testing.T) {
