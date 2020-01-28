@@ -407,7 +407,7 @@ func testHistoryState(sf Factory, t *testing.T) {
 	accountB, err = accountutil.AccountStateAtHeight(sf, b, 0)
 	require.NoError(t, err)
 	require.Equal(t, big.NewInt(100), accountA.Balance)
-	require.Equal(t, big.NewInt(100), accountB.Balance)
+	require.Equal(t, big.NewInt(0), accountB.Balance)
 }
 
 func TestNonce(t *testing.T) {
