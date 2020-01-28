@@ -51,6 +51,7 @@ type (
 		SimulateExecution(context.Context, address.Address, *action.Execution, evm.GetBlockHash) ([]byte, *action.Receipt, error)
 		Commit(WorkingSet) error
 		State(hash.Hash160, interface{}) error
+		StateAtHeight(uint64, hash.Hash160, interface{}) error
 	}
 
 	// factory implements StateFactory interface, tracks changes to account/contract and batch-commits to DB

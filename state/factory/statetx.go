@@ -232,6 +232,11 @@ func (stx *stateTX) State(hash hash.Hash160, s interface{}) error {
 	return state.Deserialize(s, mstate)
 }
 
+// StateAtHeight pulls a state from DB
+func (ws *stateTX) StateAtHeight(height uint64, hash hash.Hash160, s interface{}) error {
+	return nil
+}
+
 // PutState puts a state into DB
 func (stx *stateTX) PutState(pkHash hash.Hash160, s interface{}) error {
 	stateDBMtc.WithLabelValues("put").Inc()

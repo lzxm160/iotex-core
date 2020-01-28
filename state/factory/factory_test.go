@@ -359,13 +359,6 @@ func testHistoryState(sf Factory, t *testing.T) {
 	}()
 	ws, err := sf.NewWorkingSet()
 	require.NoError(t, err)
-	//old root
-	require.NoError(t, ws.Finalize())
-	oldRoot, err := ws.RootHash()
-	require.NoError(t, err)
-	//fmt.Println("old root:", hex.EncodeToString(oldRoot[:]))
-	ws, err = sf.NewWorkingSet()
-	require.NoError(t, err)
 	tsf, err := action.NewTransfer(1, big.NewInt(10), identityset.Address(31).String(), nil, uint64(20000), big.NewInt(0))
 	require.NoError(t, err)
 	bd := &action.EnvelopeBuilder{}
@@ -398,9 +391,9 @@ func testHistoryState(sf Factory, t *testing.T) {
 	require.Equal(t, big.NewInt(90), testAccount.Balance)
 
 	//check old balance
-	ws, err = NewWorkingSet(1, ws.GetDB(), oldRoot, true)
+	err = sf.StateAtHeight(0, sHash, &testAccount)
 	require.NoError(t, err)
-	require.NoError(t, ws.State(sHash, &testAccount))
+	require.Equal(t, accountA, &testAccount)
 	require.Equal(t, big.NewInt(100), testAccount.Balance)
 }
 
