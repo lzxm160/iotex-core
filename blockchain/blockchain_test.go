@@ -1318,7 +1318,7 @@ func TestBlockchain_RemoveSubscriber(t *testing.T) {
 	req.EqualError(bc.RemoveSubscriber(nil), "cannot find subscription")
 }
 func TestHistoryForAccount(t *testing.T) {
-	//testHistoryForAccount(t,false)
+	testHistoryForAccount(t, false)
 	testHistoryForAccount(t, true)
 }
 func testHistoryForAccount(t *testing.T, statetx bool) {
