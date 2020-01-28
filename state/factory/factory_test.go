@@ -341,7 +341,7 @@ func testHistoryState(sf Factory, t *testing.T) {
 	ctx := protocol.WithBlockCtx(
 		context.Background(),
 		protocol.BlockCtx{
-			BlockHeight: 1,
+			BlockHeight: 0,
 			Producer:    identityset.Address(27),
 			GasLimit:    gasLimit,
 		},
