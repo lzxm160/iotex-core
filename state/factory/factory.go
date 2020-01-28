@@ -265,6 +265,14 @@ func (sf *factory) State(addr hash.Hash160, state interface{}) error {
 	return sf.state(addr, state)
 }
 
+// StateAtHeight returns a confirmed state in the state factory
+func (sf *factory) StateAtHeight(height uint64, addr hash.Hash160, state interface{}) error {
+	sf.mutex.RLock()
+	defer sf.mutex.RUnlock()
+
+	return sf.state(addr, state)
+}
+
 //======================================
 // private trie constructor functions
 //======================================
