@@ -381,20 +381,19 @@ func testHistoryState(sf Factory, t *testing.T) {
 	//require.NoError(t, err)
 	//fmt.Println("new root:", hex.EncodeToString(newRoot[:]))
 	//test AccountState() & State()
-	var testAccount state.Account
 	accountA, err := accountutil.AccountState(sf, a)
 	require.NoError(t, err)
-	sHash := hash.BytesToHash160(identityset.Address(28).Bytes())
-	err = sf.State(sHash, &testAccount)
+	accountB, err := accountutil.AccountState(sf, identityset.Address(31).String())
 	require.NoError(t, err)
-	require.Equal(t, accountA, &testAccount)
-	require.Equal(t, big.NewInt(90), testAccount.Balance)
-
+	require.Equal(t, big.NewInt(90), accountA.Balance)
+	require.Equal(t, big.NewInt(10), accountB.Balance)
 	//check old balance
-	err = sf.StateAtHeight(0, sHash, &testAccount)
+	accountA, err = accountutil.AccountStateAtHeight(sf, a, 0)
 	require.NoError(t, err)
-	require.Equal(t, accountA, &testAccount)
-	require.Equal(t, big.NewInt(100), testAccount.Balance)
+	accountB, err = accountutil.AccountStateAtHeight(sf, identityset.Address(31).String(), 0)
+	require.NoError(t, err)
+	require.Equal(t, big.NewInt(100), accountA.Balance)
+	require.Equal(t, big.NewInt(100), accountB.Balance)
 }
 
 func TestNonce(t *testing.T) {

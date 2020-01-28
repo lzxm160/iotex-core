@@ -64,7 +64,6 @@ type (
 		History() bool
 		// General state
 		State(hash.Hash160, interface{}) error
-		StateAtHeight(uint64, hash.Hash160, interface{}) error
 		PutState(hash.Hash160, interface{}) error
 		DelState(pkHash hash.Hash160) error
 		GetDB() db.KVStore
@@ -293,37 +292,6 @@ func (ws *workingSet) GetCachedBatch() batch.CachedBatch {
 func (ws *workingSet) State(hash hash.Hash160, s interface{}) error {
 	stateDBMtc.WithLabelValues("get").Inc()
 	mstate, err := ws.accountTrie.Get(hash[:])
-	if errors.Cause(err) == trie.ErrNotExist {
-		return errors.Wrapf(state.ErrStateNotExist, "addrHash = %x", hash[:])
-	}
-	if err != nil {
-		return errors.Wrapf(err, "failed to get account of %x", hash)
-	}
-	return state.Deserialize(s, mstate)
-}
-
-// StateAtHeight pulls a state from DB
-func (ws *workingSet) StateAtHeight(height uint64, hash hash.Hash160, s interface{}) error {
-	// get root through height
-	//ws.cb.Put(
-	//	AccountKVNameSpace,
-	//	[]byte(fmt.Sprintf("%s-%d", AccountTrieRootKey, ws.blockHeight)),
-	//	rootHash,
-	//	"failed to store accountTrie's root hash",
-	//)
-	rootHash, err := ws.dao.Get(AccountKVNameSpace, []byte(fmt.Sprintf("%s-%d", AccountTrieRootKey, ws.blockHeight)))
-	if err != nil {
-		return errors.Wrap(err, "failed to get root hash through height")
-	}
-	dbForTrie, err := db.NewKVStoreForTrie(AccountKVNameSpace, evm.PruneKVNameSpace, ws.dao, db.CachedBatchOption(ws.cb))
-	if err != nil {
-		return errors.Wrap(err, "failed to generate state tire db")
-	}
-	tr, err := trie.NewTrie(trie.KVStoreOption(dbForTrie), trie.RootHashOption(rootHash))
-	if err != nil {
-		return errors.Wrap(err, "failed to generate state trie from config")
-	}
-	mstate, err := tr.Get(hash[:])
 	if errors.Cause(err) == trie.ErrNotExist {
 		return errors.Wrapf(state.ErrStateNotExist, "addrHash = %x", hash[:])
 	}
