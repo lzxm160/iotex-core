@@ -1320,7 +1320,7 @@ func TestBlockchain_RemoveSubscriber(t *testing.T) {
 
 func TestHistoryForAccount(t *testing.T) {
 	require := require.New(t)
-	bc, sf, _ := newChain(t, true)
+	bc, sf, _ := newChain(t, false)
 	a := identityset.Address(28).String()
 	priKeyA := identityset.PrivateKey(28)
 	b := identityset.Address(29).String()
