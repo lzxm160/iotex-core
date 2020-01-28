@@ -51,7 +51,6 @@ type (
 		SimulateExecution(context.Context, address.Address, *action.Execution, evm.GetBlockHash) ([]byte, *action.Receipt, error)
 		Commit(WorkingSet) error
 		State(hash.Hash160, interface{}) error
-		StateAtHeight(uint64, hash.Hash160, interface{}) error
 	}
 
 	// factory implements StateFactory interface, tracks changes to account/contract and batch-commits to DB
@@ -259,14 +258,6 @@ func (sf *factory) Commit(ws WorkingSet) error {
 
 // State returns a confirmed state in the state factory
 func (sf *factory) State(addr hash.Hash160, state interface{}) error {
-	sf.mutex.RLock()
-	defer sf.mutex.RUnlock()
-
-	return sf.state(addr, state)
-}
-
-// StateAtHeight returns a confirmed state in the state factory
-func (sf *factory) StateAtHeight(height uint64, addr hash.Hash160, state interface{}) error {
 	sf.mutex.RLock()
 	defer sf.mutex.RUnlock()
 

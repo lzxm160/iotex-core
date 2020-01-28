@@ -64,6 +64,7 @@ type (
 		History() bool
 		// General state
 		State(hash.Hash160, interface{}) error
+		StateAtHeight(uint64, hash.Hash160, interface{}) error
 		PutState(hash.Hash160, interface{}) error
 		DelState(pkHash hash.Hash160) error
 		GetDB() db.KVStore
