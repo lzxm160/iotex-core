@@ -1336,10 +1336,7 @@ func testHistoryForAccount(t *testing.T, statetx bool) {
 	require.NoError(err)
 	require.Equal(big.NewInt(100), AccountA.Balance)
 	require.Equal(big.NewInt(100), AccountB.Balance)
-	//ws, err := sf.NewWorkingSet()
-	//require.NoError(err)
-	//require.NoError(ws.Finalize())
-	//require.NoError(err)
+
 	// make a transfer from a to b
 	actionMap := make(map[string][]action.SealedEnvelope)
 	actionMap[a] = []action.SealedEnvelope{}
@@ -1381,9 +1378,6 @@ func testHistoryForContract(t *testing.T, statetx bool) {
 	genesisAccount := identityset.Address(27).String()
 	// deploy and get contract address
 	contract := deployXrc20(bc, dao, t)
-	//ws, err := sf.NewWorkingSet()
-	//require.NoError(err)
-	//require.NoError(ws.Finalize())
 
 	account, err := accountutil.AccountState(sf, contract)
 	require.NoError(err)
