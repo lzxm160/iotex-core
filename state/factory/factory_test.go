@@ -412,6 +412,8 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 	}
 
 	/////transfer in block 2
+	ws, err = sf.NewWorkingSet()
+	require.NoError(t, err)
 	tsf, err = action.NewTransfer(2, big.NewInt(10), b, nil, uint64(20000), big.NewInt(0))
 	require.NoError(t, err)
 	bd = &action.EnvelopeBuilder{}
