@@ -9,6 +9,7 @@ package factory
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
@@ -244,7 +245,7 @@ func TestState(t *testing.T) {
 func TestHistoryState(t *testing.T) {
 	testTrieFile, _ := ioutil.TempFile(os.TempDir(), triePath)
 	testTriePath := testTrieFile.Name()
-
+	fmt.Println(testTriePath)
 	cfg := config.Default
 	cfg.DB.DbPath = testTriePath
 	cfg.Chain.EnableHistoryStateDB = true
