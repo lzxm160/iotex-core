@@ -451,18 +451,18 @@ func TestHistoryTrie(t *testing.T) {
 	fmt.Println("new root", hex.EncodeToString(newRoot))
 
 	require.NoError(tr.Stop(context.Background()))
-	require.NoError(dao.Stop(context.Background()))
+	//require.NoError(dao.Stop(context.Background()))
 	// check old entry
-	dao = db.NewBoltDB(cfg.DB)
-	trieDB, err = db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, dao, db.CachedBatchOption(batch.NewCachedBatch()))
-	require.NoError(err)
-	tr, err = NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot))
+	//dao = db.NewBoltDB(cfg.DB)
+	//trieDB, err = db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, dao, db.CachedBatchOption(batch.NewCachedBatch()))
+	//require.NoError(err)
+	tr2, err := NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot))
 	require.NoError(tr.Start(context.Background()))
-	require.NoError(tr.SetRootHash(oldRoot))
-	c, err = tr.Get(cat)
+	//require.NoError(tr.SetRootHash(oldRoot))
+	c, err = tr2.Get(cat)
 	require.NoError(err)
 	require.Equal(testV[2], c)
-	require.NoError(tr.Stop(context.Background()))
+	require.NoError(tr2.Stop(context.Background()))
 }
 
 func TestCollision(t *testing.T) {
