@@ -1316,10 +1316,12 @@ func TestBlockchain_RemoveSubscriber(t *testing.T) {
 	req.NoError(bc.RemoveSubscriber(mb))
 	req.EqualError(bc.RemoveSubscriber(nil), "cannot find subscription")
 }
+
 func TestHistoryForAccount(t *testing.T) {
 	testHistoryForAccount(t, false)
 	testHistoryForAccount(t, true)
 }
+
 func testHistoryForAccount(t *testing.T, statetx bool) {
 	require := require.New(t)
 	bc, sf, _ := newChain(t, statetx)
@@ -1334,10 +1336,10 @@ func testHistoryForAccount(t *testing.T, statetx bool) {
 	require.NoError(err)
 	require.Equal(big.NewInt(100), AccountA.Balance)
 	require.Equal(big.NewInt(100), AccountB.Balance)
-	ws, err := sf.NewWorkingSet()
-	require.NoError(err)
-	require.NoError(ws.Finalize())
-	require.NoError(err)
+	//ws, err := sf.NewWorkingSet()
+	//require.NoError(err)
+	//require.NoError(ws.Finalize())
+	//require.NoError(err)
 	// make a transfer from a to b
 	actionMap := make(map[string][]action.SealedEnvelope)
 	actionMap[a] = []action.SealedEnvelope{}
@@ -1359,7 +1361,7 @@ func testHistoryForAccount(t *testing.T, statetx bool) {
 	require.Equal(big.NewInt(90), AccountA.Balance)
 	require.Equal(big.NewInt(110), AccountB.Balance)
 
-	// check history account a's balance
+	// check history account's balance
 	AccountA, err = accountutil.AccountStateAtHeight(sf, a, bc.TipHeight()-1)
 	require.NoError(err)
 	AccountB, err = accountutil.AccountStateAtHeight(sf, b, bc.TipHeight()-1)
@@ -1367,6 +1369,7 @@ func testHistoryForAccount(t *testing.T, statetx bool) {
 	require.Equal(big.NewInt(100), AccountA.Balance)
 	require.Equal(big.NewInt(100), AccountB.Balance)
 }
+
 func TestHistoryForContract(t *testing.T) {
 	testHistoryForContract(t, false)
 	testHistoryForContract(t, true)
@@ -1378,13 +1381,10 @@ func testHistoryForContract(t *testing.T, statetx bool) {
 	genesisAccount := identityset.Address(27).String()
 	// deploy and get contract address
 	contract := deployXrc20(bc, dao, t)
-	ws, err := sf.NewWorkingSet()
-	require.NoError(err)
-	require.NoError(ws.Finalize())
-
-	//var account state.Account
-	//require.NoError(accountState(deployRoot[:], ws.GetDB(), addrHash, &account))
+	//ws, err := sf.NewWorkingSet()
 	//require.NoError(err)
+	//require.NoError(ws.Finalize())
+
 	account, err := accountutil.AccountState(sf, contract)
 	require.NoError(err)
 	// check the original balance
@@ -1394,11 +1394,6 @@ func testHistoryForContract(t *testing.T, statetx bool) {
 	require.Equal(expect, balance)
 	// make a transfer for contract
 	makeTransfer(contract, bc, t)
-	//ws, err = sf.NewWorkingSet()
-	//require.NoError(err)
-	//require.NoError(ws.Finalize())
-	//transferRoot, err := ws.RootHash()
-	//require.NoError(err)
 	account, err = accountutil.AccountState(sf, contract)
 	require.NoError(err)
 	// check the balance after transfer
@@ -1408,8 +1403,6 @@ func testHistoryForContract(t *testing.T, statetx bool) {
 	require.Equal(expect, balance)
 
 	// check the the original balance again
-	//require.NoError(accountState(deployRoot[:], ws.GetDB(), addrHash, &account))
-	//require.NoError(err)
 	account, err = accountutil.AccountStateAtHeight(sf, contract, bc.TipHeight()-1)
 	require.NoError(err)
 	balance = BalanceOfContract(contract, genesisAccount, sf, t, account.Root)
