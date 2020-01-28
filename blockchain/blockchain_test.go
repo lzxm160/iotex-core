@@ -1338,7 +1338,6 @@ func testHistoryForAccount(t *testing.T, statetx bool) {
 	ws, err := sf.NewWorkingSet()
 	require.NoError(err)
 	require.NoError(ws.Finalize())
-	oldRoot, err := ws.RootHash()
 	require.NoError(err)
 	// make a transfer from a to b
 	actionMap := make(map[string][]action.SealedEnvelope)
@@ -1362,19 +1361,12 @@ func testHistoryForAccount(t *testing.T, statetx bool) {
 	require.Equal(big.NewInt(110), AccountB.Balance)
 
 	// check history account a's balance
-	addr, err := address.FromString(a)
+	AccountA, err = accountutil.AccountStateAtHeight(sf, a, bc.TipHeight()-1)
 	require.NoError(err)
-	addrHash := hash.BytesToHash160(addr.Bytes())
-	var account state.Account
-	require.NoError(accountState(oldRoot[:], ws.GetDB(), addrHash, &account))
-	require.Equal(big.NewInt(100), account.Balance)
-
-	// check history account b's balance through height
-	addr, err = address.FromString(b)
+	AccountB, err = accountutil.AccountStateAtHeight(sf, b, bc.TipHeight()-1)
 	require.NoError(err)
-	addrHash = hash.BytesToHash160(addr.Bytes())
-	require.NoError(accountState(oldRoot[:], ws.GetDB(), addrHash, &account))
-	require.Equal(big.NewInt(100), account.Balance)
+	require.Equal(big.NewInt(100), AccountA.Balance)
+	require.Equal(big.NewInt(100), AccountB.Balance)
 }
 func TestHistoryForContract(t *testing.T) {
 	//testHistoryForContract(t, false)
