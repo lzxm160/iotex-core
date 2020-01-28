@@ -8,6 +8,7 @@ package factory
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/pkg/errors"
@@ -277,5 +278,6 @@ func (stx *stateTX) putIndex(pkHash hash.Hash160, ss []byte) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("put index:", version)
 	return ri.Insert(version, ss)
 }
