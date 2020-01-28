@@ -1368,7 +1368,7 @@ func testHistoryForAccount(t *testing.T, statetx bool) {
 	require.Equal(big.NewInt(100), AccountB.Balance)
 }
 func TestHistoryForContract(t *testing.T) {
-	//testHistoryForContract(t, false)
+	testHistoryForContract(t, false)
 	testHistoryForContract(t, true)
 }
 
