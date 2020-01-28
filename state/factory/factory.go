@@ -28,6 +28,7 @@ import (
 	"github.com/iotexproject/iotex-core/pkg/prometheustimer"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 	"github.com/iotexproject/iotex-core/state"
+	"github.com/iotexproject/iotex-core/db/batch"
 )
 
 const (
@@ -51,6 +52,7 @@ type (
 		SimulateExecution(context.Context, address.Address, *action.Execution, evm.GetBlockHash) ([]byte, *action.Receipt, error)
 		Commit(WorkingSet) error
 		State(hash.Hash160, interface{}) error
+		StateAtHeight(uint64, hash.Hash160, interface{}) error
 	}
 
 	// factory implements StateFactory interface, tracks changes to account/contract and batch-commits to DB
@@ -263,6 +265,14 @@ func (sf *factory) State(addr hash.Hash160, state interface{}) error {
 	return sf.state(addr, state)
 }
 
+// StateAtHeight returns a confirmed state in the state factory
+func (sf *factory) StateAtHeight(height uint64, addr hash.Hash160, state interface{}) error {
+	sf.mutex.RLock()
+	defer sf.mutex.RUnlock()
+
+	return sf.stateAtHeight(height, addr, state)
+}
+
 //======================================
 // private trie constructor functions
 //======================================
@@ -283,6 +293,35 @@ func (sf *factory) state(addr hash.Hash160, s interface{}) error {
 		return errors.Wrapf(err, "error when deserializing state data into %T", s)
 	}
 	return nil
+}
+
+func (sf *factory) stateAtHeight(height uint64, addr hash.Hash160, s interface{}) error {
+	// get root through height
+	rootHash, err := sf.dao.Get(AccountKVNameSpace, []byte(fmt.Sprintf("%s-%d", AccountTrieRootKey, height)))
+	if err != nil {
+		return errors.Wrap(err, "failed to get root hash through height")
+	}
+	dbForTrie, err := db.NewKVStoreForTrie(AccountKVNameSpace, evm.PruneKVNameSpace, sf.dao, db.CachedBatchOption(batch.NewCachedBatch()))
+	if err != nil {
+		return errors.Wrap(err, "failed to generate state tire db")
+	}
+	tr, err := trie.NewTrie(trie.KVStoreOption(dbForTrie), trie.RootHashOption(rootHash))
+	if err != nil {
+		return errors.Wrap(err, "failed to generate state trie from config")
+	}
+	err = tr.Start(context.Background())
+	if err != nil {
+		return err
+	}
+	defer tr.Stop(context.Background())
+	mstate, err := tr.Get(addr[:])
+	if errors.Cause(err) == trie.ErrNotExist {
+		return errors.Wrapf(state.ErrStateNotExist, "addrHash = %x", addr[:])
+	}
+	if err != nil {
+		return errors.Wrapf(err, "failed to get account of %x", addr)
+	}
+	return state.Deserialize(s, mstate)
 }
 
 func (sf *factory) commit(ws WorkingSet) error {
