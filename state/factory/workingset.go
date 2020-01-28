@@ -302,7 +302,7 @@ func (ws *workingSet) State(hash hash.Hash160, s interface{}) error {
 	return state.Deserialize(s, mstate)
 }
 
-// State pulls a state from DB
+// StateAtHeight pulls a state from DB
 func (ws *workingSet) StateAtHeight(height uint64, hash hash.Hash160, s interface{}) error {
 	// get root through height
 	rootHash, err := ws.dao.Get(AccountKVNameSpace, []byte(fmt.Sprintf("%s-%d", AccountTrieRootKey, height)))
