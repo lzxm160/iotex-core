@@ -1376,7 +1376,7 @@ func TestHistoryForAccount(t *testing.T) {
 
 func TestHistoryForContract(t *testing.T) {
 	require := require.New(t)
-	bc, sf, dao := newChain(t)
+	bc, sf, dao := newChain(t, true)
 	genesisAccount := identityset.Address(27).String()
 	// deploy and get contract address
 	contract := deployXrc20(bc, dao, t)
@@ -1497,7 +1497,7 @@ func accountState(root []byte, kv db.KVStore, addrHash hash.Hash160, s interface
 	return ws.State(addrHash, s)
 }
 
-func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
+func newChain(t *testing.T, statetx bool) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	require := require.New(t)
 	cfg := config.Default
 	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
@@ -1513,8 +1513,15 @@ func newChain(t *testing.T) (Blockchain, factory.Factory, blockdao.BlockDAO) {
 	cfg.Consensus.Scheme = config.RollDPoSScheme
 	cfg.Genesis.BlockGasLimit = uint64(1000000)
 	cfg.Genesis.EnableGravityChainVoting = false
-	sf, err := factory.NewFactory(cfg, factory.DefaultTrieOption())
-	require.NoError(err)
+	var sf factory.Factory
+	var err error
+	if statetx {
+		sf, err = factory.NewStateDB(cfg, factory.DefaultStateDBOption())
+		require.NoError(err)
+	} else {
+		sf, err = factory.NewFactory(cfg, factory.DefaultTrieOption())
+		require.NoError(err)
+	}
 	acc := account.NewProtocol(rewarding.DepositGas)
 	registry := protocol.NewRegistry()
 	require.NoError(acc.Register(registry))
