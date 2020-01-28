@@ -392,7 +392,7 @@ func testHistoryState(sf Factory, t *testing.T) {
 	require.Equal(t, big.NewInt(90), accountA.Balance)
 	require.Equal(t, big.NewInt(10), accountB.Balance)
 	//check old balance
-	accountA, err = accountutil.AccountStateAtHeight(sf, a, 1)
+	accountA, err = accountutil.AccountStateAtHeight(sf, a, 0)
 	require.NoError(t, err)
 	accountB, err = accountutil.AccountStateAtHeight(sf, identityset.Address(31).String(), 1)
 	require.NoError(t, err)
