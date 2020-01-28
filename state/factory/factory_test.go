@@ -9,7 +9,6 @@ package factory
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
@@ -244,20 +243,18 @@ func TestState(t *testing.T) {
 
 func TestHistoryState(t *testing.T) {
 	testTrieFile, _ := ioutil.TempFile(os.TempDir(), triePath)
-	fmt.Println(testTrieFile.Name())
 	cfg := config.Default
 	cfg.Chain.TrieDBPath = testTrieFile.Name()
 	cfg.Chain.EnableHistoryStateDB = true
 	sf, err := NewFactory(cfg, DefaultTrieOption())
 	require.NoError(t, err)
-	//testHistoryState(sf, t)
+	testHistoryState(sf, t)
 
 	testTrieFile, _ = ioutil.TempFile(os.TempDir(), triePath)
 	cfg.Chain.TrieDBPath = testTrieFile.Name()
-	fmt.Println(testTrieFile.Name())
 	sf, err = NewStateDB(cfg, DefaultStateDBOption())
 	require.NoError(t, err)
-	testHistoryState(sf, t)
+	//testHistoryState(sf, t)
 }
 
 func TestSDBState(t *testing.T) {
