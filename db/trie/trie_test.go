@@ -429,10 +429,10 @@ func TestHistoryTrie(t *testing.T) {
 	dao := db.NewBoltDB(cfg.DB)
 	AccountKVNameSpace := "Account"
 	PruneKVNameSpace := "cp"
-	//AccountTrieRootKey := "accountTrieRoot"
+	AccountTrieRootKey := "accountTrieRoot"
 	trieDB, err := db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, dao, db.CachedBatchOption(batch.NewCachedBatch()))
 	require.NoError(err)
-	tr, err := NewTrie(KVStoreOption(trieDB), KeyLengthOption(8), HistoryRetentionOption(2000))
+	tr, err := NewTrie(KVStoreOption(trieDB), RootKeyOption(AccountTrieRootKey), HistoryRetentionOption(2000))
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
 	// insert 1 entries
@@ -450,19 +450,20 @@ func TestHistoryTrie(t *testing.T) {
 	newRoot := tr.RootHash()
 	fmt.Println("new root", hex.EncodeToString(newRoot))
 
-	require.NoError(tr.Stop(context.Background()))
+	//require.NoError(tr.Stop(context.Background()))
 	//require.NoError(dao.Stop(context.Background()))
 	// check old entry
 	//dao = db.NewBoltDB(cfg.DB)
-	//trieDB, err = db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, dao, db.CachedBatchOption(batch.NewCachedBatch()))
-	//require.NoError(err)
-	tr2, err := NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot), KeyLengthOption(8), HistoryRetentionOption(2000))
+	trieDB, err = db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, dao, db.CachedBatchOption(batch.NewCachedBatch()))
+	require.NoError(err)
+	tr2, err := NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot))
 	require.NoError(tr2.Start(context.Background()))
 	//require.NoError(tr.SetRootHash(oldRoot))
 	c, err = tr2.Get(cat)
 	require.NoError(err)
 	require.Equal(testV[2], c)
 	require.NoError(tr2.Stop(context.Background()))
+
 }
 
 func TestCollision(t *testing.T) {
