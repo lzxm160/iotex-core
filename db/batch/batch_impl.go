@@ -7,6 +7,8 @@
 package batch
 
 import (
+	"encoding/hex"
+	"fmt"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -241,6 +243,7 @@ func (cb *cachedBatch) Delete(namespace string, key []byte, errorFormat string, 
 	defer cb.lock.Unlock()
 	h := cb.hash(namespace, key)
 	cb.Evict(h)
+	fmt.Println("evict key:", hex.EncodeToString(key))
 	cb.kvStoreBatch.batch(Delete, namespace, key, nil, errorFormat, errorArgs)
 }
 
