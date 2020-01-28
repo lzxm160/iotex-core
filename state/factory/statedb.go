@@ -76,7 +76,6 @@ func InMemStateDBOption() StateDBOption {
 
 // NewStateDB creates a new state db
 func NewStateDB(cfg config.Config, opts ...StateDBOption) (Factory, error) {
-	fmt.Println("new state db/////////////////////////////")
 	sdb := stateDB{
 		cfg:                cfg,
 		currentChainHeight: 0,
