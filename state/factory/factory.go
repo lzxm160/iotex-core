@@ -8,6 +8,7 @@ package factory
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"strconv"
 	"sync"
@@ -304,6 +305,7 @@ func (sf *factory) stateAtHeight(height uint64, addr hash.Hash160, s interface{}
 	if err != nil {
 		return errors.Wrap(err, "failed to get root hash through height")
 	}
+	fmt.Println("root hash:", hex.EncodeToString(rootHash))
 	dbForTrie, err := db.NewKVStoreForTrie(AccountKVNameSpace, evm.PruneKVNameSpace, sf.dao, db.CachedBatchOption(batch.NewCachedBatch()))
 	if err != nil {
 		return errors.Wrap(err, "failed to generate state tire db")
