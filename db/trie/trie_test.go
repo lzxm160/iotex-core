@@ -10,6 +10,8 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -45,8 +47,6 @@ var (
 		[]byte("egg"), []byte("fox"), []byte("cow"), []byte("ant"),
 	}
 )
-
-const testTriePath = "trie.test"
 
 func TestEmptyTrie(t *testing.T) {
 	require := require.New(t)
@@ -422,7 +422,10 @@ func TestBatchCommit(t *testing.T) {
 func TestHistoryTrie(t *testing.T) {
 	require := require.New(t)
 	cfg := config.Default
-	cfg.DB.DbPath = testTriePath
+	path := "test-history-trie.bolt"
+	testFile, _ := ioutil.TempFile(os.TempDir(), path)
+	testPath := testFile.Name()
+	cfg.DB.DbPath = testPath
 	dao := db.NewBoltDB(cfg.DB)
 	AccountKVNameSpace := "Account"
 	PruneKVNameSpace := "cp"

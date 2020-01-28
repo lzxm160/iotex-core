@@ -104,6 +104,7 @@ func InMemTrieOption() Option {
 
 // NewFactory creates a new state factory
 func NewFactory(cfg config.Config, opts ...Option) (Factory, error) {
+	fmt.Println("new factory/////////////////////////////")
 	sf := &factory{
 		cfg:                cfg,
 		currentChainHeight: 0,
