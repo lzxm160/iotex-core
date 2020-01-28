@@ -390,6 +390,10 @@ func testHistoryState(sf Factory, t *testing.T) {
 	require.NoError(t, ws.Finalize())
 	require.NoError(t, sf.Commit(ws))
 
+	newRoot, err := ws.RootHash()
+	require.NoError(t, err)
+	fmt.Println("new root:", hex.EncodeToString(newRoot[:]))
+
 	accountA, err := accountutil.AccountState(sf, a)
 	require.NoError(t, err)
 	accountB, err := accountutil.AccountState(sf, identityset.Address(31).String())
