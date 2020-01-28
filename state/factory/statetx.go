@@ -233,8 +233,20 @@ func (stx *stateTX) State(hash hash.Hash160, s interface{}) error {
 }
 
 // StateAtHeight pulls a state from DB
-func (ws *stateTX) StateAtHeight(height uint64, hash hash.Hash160, s interface{}) error {
-	return nil
+func (stx *stateTX) StateAtHeight(height uint64, addr hash.Hash160, s interface{}) error {
+	ns := append([]byte(AccountKVNameSpace), addr[:]...)
+	ri, err := db.NewRangeIndex(stx.dao, ns, db.NotExist)
+	if err != nil {
+		return err
+	}
+	data, err := ri.Get(height)
+	if err != nil {
+		if errors.Cause(err) == db.ErrNotExist {
+			return errors.Wrapf(state.ErrStateNotExist, "state of %x doesn't exist", addr)
+		}
+		return errors.Wrapf(err, "error when getting the state of %x", addr)
+	}
+	return state.Deserialize(s, data)
 }
 
 // PutState puts a state into DB
