@@ -456,7 +456,7 @@ func TestHistoryTrie(t *testing.T) {
 	//dao = db.NewBoltDB(cfg.DB)
 	//trieDB, err = db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, dao, db.CachedBatchOption(batch.NewCachedBatch()))
 	//require.NoError(err)
-	tr2, err := NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot))
+	tr2, err := NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot), KeyLengthOption(8), HistoryRetentionOption(2000))
 	require.NoError(tr.Start(context.Background()))
 	//require.NoError(tr.SetRootHash(oldRoot))
 	c, err = tr2.Get(cat)
