@@ -249,13 +249,13 @@ func TestHistoryState(t *testing.T) {
 	cfg.Chain.EnableHistoryStateDB = true
 	sf, err := NewFactory(cfg, DefaultTrieOption())
 	require.NoError(t, err)
-	testHistoryState(sf, t)
+	//testHistoryState(sf, t)
 
 	testTrieFile, _ = ioutil.TempFile(os.TempDir(), triePath)
 	cfg.Chain.TrieDBPath = testTrieFile.Name()
 	sf, err = NewStateDB(cfg, DefaultStateDBOption())
 	require.NoError(t, err)
-	//testHistoryState(sf, t)
+	testHistoryState(sf, t)
 }
 
 func TestSDBState(t *testing.T) {
