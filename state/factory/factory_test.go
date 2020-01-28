@@ -247,7 +247,7 @@ func TestHistoryState(t *testing.T) {
 	testTriePath := testTrieFile.Name()
 	fmt.Println(testTriePath)
 	cfg := config.Default
-	cfg.DB.DbPath = testTriePath
+	cfg.Chain.TrieDBPath = testTriePath
 	cfg.Chain.EnableHistoryStateDB = true
 	sf, err := NewFactory(cfg, DefaultTrieOption())
 	require.NoError(t, err)
