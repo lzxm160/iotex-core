@@ -476,6 +476,7 @@ func TestHistoryTrie(t *testing.T) {
 		en, err := cb.Entry(i)
 		fmt.Println(en.WriteType(), ":", hex.EncodeToString(en.Key()), ":", err)
 	}
+	cb.Clear()
 	fmt.Println()
 	fmt.Println("newcb.Size():", newcb.Size())
 	for i := 0; i < newcb.Size(); i++ {
@@ -484,6 +485,7 @@ func TestHistoryTrie(t *testing.T) {
 	}
 
 	require.NoError(dao.WriteBatch(newcb))
+
 	c, err = tr.Get(addrKey)
 	require.NoError(err)
 	require.Equal(value2, c)
