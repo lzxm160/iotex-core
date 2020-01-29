@@ -489,6 +489,11 @@ func TestHistoryTrie(t *testing.T) {
 	require.Equal(value2, c)
 	newRoot := tr.RootHash()
 	fmt.Println("new root", hex.EncodeToString(newRoot))
+	fmt.Println()
+	require.NoError(tr.SetRootHash(oldRoot))
+	c, err = tr.Get(addrKey)
+	require.NoError(err)
+	require.Equal(value1, c)
 
 	//require.NoError(tr.Stop(context.Background()))
 	//require.NoError(dao.Stop(context.Background()))
