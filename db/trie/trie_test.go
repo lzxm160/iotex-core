@@ -433,25 +433,28 @@ func TestHistoryTrie(t *testing.T) {
 	AccountKVNameSpace := "Account"
 	PruneKVNameSpace := "cp"
 	AccountTrieRootKey := "accountTrieRoot"
+	addrKey := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
+	value1 := []byte{1}
+	value2 := []byte{2}
 	trieDB, err := db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, dao, db.CachedBatchOption(batch.NewCachedBatch()))
 	require.NoError(err)
 	tr, err := NewTrie(KVStoreOption(trieDB), RootKeyOption(AccountTrieRootKey), HistoryRetentionOption(2000))
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
 	// insert 1 entries
-	require.NoError(tr.Upsert(cat, testV[2]))
-	c, err := tr.Get(cat)
+	require.NoError(tr.Upsert(addrKey, value1))
+	c, err := tr.Get(addrKey)
 	require.NoError(err)
-	require.Equal(testV[2], c)
+	require.Equal(value1, c)
 	oldRoot := tr.RootHash()
 	fmt.Println("old root", hex.EncodeToString(oldRoot))
 	hashold := hash.BytesToHash256(oldRoot)
 	fmt.Println("old root", hex.EncodeToString(hashold[:]))
 	// update entry
-	require.NoError(tr.Upsert(cat, testV[6]))
-	c, err = tr.Get(cat)
+	require.NoError(tr.Upsert(addrKey, value2))
+	c, err = tr.Get(addrKey)
 	require.NoError(err)
-	require.Equal(testV[6], c)
+	require.Equal(value2, c)
 	newRoot := tr.RootHash()
 	fmt.Println("new root", hex.EncodeToString(newRoot))
 
@@ -464,9 +467,9 @@ func TestHistoryTrie(t *testing.T) {
 	tr2, err := NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot))
 	require.NoError(tr2.Start(context.Background()))
 	//require.NoError(tr.SetRootHash(oldRoot))
-	c, err = tr2.Get(cat)
+	c, err = tr2.Get(addrKey)
 	require.NoError(err)
-	require.Equal(testV[2], c)
+	require.Equal(value1, c)
 	require.NoError(tr2.Stop(context.Background()))
 
 }
