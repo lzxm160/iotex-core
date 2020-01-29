@@ -445,6 +445,7 @@ func TestHistoryTrie(t *testing.T) {
 	// insert 1 entries
 	require.NoError(tr.Upsert(addrKey, value1))
 	fmt.Println("cb.Size():", cb.Size())
+	require.NoError(dao.WriteBatch(cb))
 	c, err := tr.Get(addrKey)
 	require.NoError(err)
 	require.Equal(value1, c)
