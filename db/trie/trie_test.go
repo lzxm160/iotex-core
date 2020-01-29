@@ -461,7 +461,7 @@ func TestHistoryTrie(t *testing.T) {
 
 	fmt.Println("old root", hex.EncodeToString(oldRoot))
 	fmt.Println("cb.Size():", cb.Size())
-	//require.NoError(dao.WriteBatch(cb))
+	require.NoError(dao.WriteBatch(cb))
 	c, err := tr.Get(addrKey)
 	require.NoError(err)
 	require.Equal(value1, c)
