@@ -459,10 +459,15 @@ func TestHistoryTrie(t *testing.T) {
 	require.NoError(tr.Upsert(addrKey, value2))
 	newcb := cb.ExcludeEntries("", batch.Delete)
 	fmt.Println("cb.Size():", cb.Size())
+	for i := 0; i < cb.Size(); i++ {
+		en, err := cb.Entry(i)
+		fmt.Println(en.WriteType(), ":", hex.EncodeToString(en.Key()), ":", err)
+	}
+	fmt.Println()
 	fmt.Println("newcb.Size():", newcb.Size())
 	for i := 0; i < newcb.Size(); i++ {
 		en, err := newcb.Entry(i)
-		fmt.Println(hex.EncodeToString(en.Key()), ":", err)
+		fmt.Println(en.WriteType(), ":", hex.EncodeToString(en.Key()), ":", err)
 	}
 
 	require.NoError(dao.WriteBatch(newcb))
