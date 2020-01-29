@@ -13,15 +13,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iotexproject/iotex-core/db/batch"
-
-	"github.com/iotexproject/iotex-core/config"
-
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/go-pkgs/hash"
+	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/db"
+	"github.com/iotexproject/iotex-core/db/batch"
 )
 
 var (

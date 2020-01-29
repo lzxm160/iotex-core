@@ -8,8 +8,6 @@ package db
 
 import (
 	"context"
-	"encoding/hex"
-	"fmt"
 
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
@@ -86,7 +84,6 @@ func (s *KVStoreForTrie) Stop(ctx context.Context) error {
 // Delete deletes key
 func (s *KVStoreForTrie) Delete(key []byte) error {
 	trieKeystoreMtc.WithLabelValues("delete").Inc()
-	fmt.Println("KVStoreForTrie delete:", hex.EncodeToString(key))
 	s.cb.Delete(s.bucket, key, "failed to delete key %x", key)
 	// TODO: bug, need to mark key as deleted
 	return nil
@@ -130,6 +127,5 @@ func (s *KVStoreForTrie) Get(key []byte) ([]byte, error) {
 
 // Flush flushs the data in cache layer to db
 func (s *KVStoreForTrie) Flush() error {
-	fmt.Println("Flush()")
 	return s.dao.WriteBatch(s.cb)
 }
