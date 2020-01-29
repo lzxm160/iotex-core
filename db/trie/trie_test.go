@@ -423,12 +423,12 @@ func TestBatchCommit(t *testing.T) {
 
 func TestHistoryTrie(t *testing.T) {
 	require := require.New(t)
-	cfg := config.Default
+	cfg := config.Default.DB
 	path := "test-history-trie.bolt"
 	testFile, _ := ioutil.TempFile(os.TempDir(), path)
 	testPath := testFile.Name()
-	cfg.DB.DbPath = testPath
-	dao := db.NewBoltDB(cfg.DB)
+	cfg.DbPath = testPath
+	dao := db.NewBoltDB(cfg)
 	AccountKVNameSpace := "Account"
 	PruneKVNameSpace := "cp"
 	AccountTrieRootKey := "accountTrieRoot"
@@ -444,6 +444,8 @@ func TestHistoryTrie(t *testing.T) {
 	require.Equal(testV[2], c)
 	oldRoot := tr.RootHash()
 	fmt.Println("old root", hex.EncodeToString(oldRoot))
+	hashold := hash.BytesToHash256(oldRoot)
+	fmt.Println("old root", hex.EncodeToString(hashold[:]))
 	// update entry
 	require.NoError(tr.Upsert(cat, testV[6]))
 	c, err = tr.Get(cat)
