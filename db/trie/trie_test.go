@@ -22,6 +22,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
+	"github.com/iotexproject/go-pkgs/byteutil"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-core/db"
 )
@@ -433,6 +434,7 @@ func TestHistoryTrie(t *testing.T) {
 	AccountKVNameSpace := "Account"
 	PruneKVNameSpace := "cp"
 	AccountTrieRootKey := "accountTrieRoot"
+	CurrentHeightKey := "xxx"
 	addrKey := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
 	value1 := []byte{1}
 	value2 := []byte{2}
@@ -443,10 +445,21 @@ func TestHistoryTrie(t *testing.T) {
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
 	oldRoot := tr.RootHash()
-	fmt.Println("old root", hex.EncodeToString(oldRoot))
 	// insert 1 entries
 	require.NoError(tr.Upsert(addrKey, value1))
 	oldRoot = tr.RootHash()
+	cb.Put(AccountKVNameSpace, []byte(AccountTrieRootKey), oldRoot, "failed to store accountTrie's root hash")
+	// Persist current chain Height
+	h := byteutil.Uint64ToBytes(1)
+	cb.Put(AccountKVNameSpace, []byte(CurrentHeightKey), h, "failed to store accountTrie's current Height")
+	// Persist the historical accountTrie's root hash
+	cb.Put(
+		AccountKVNameSpace,
+		[]byte(fmt.Sprintf("%s-%d", AccountTrieRootKey, 1)),
+		oldRoot,
+		"failed to store accountTrie's root hash",
+	)
+
 	fmt.Println("old root", hex.EncodeToString(oldRoot))
 	fmt.Println("cb.Size():", cb.Size())
 	require.NoError(dao.WriteBatch(cb))
