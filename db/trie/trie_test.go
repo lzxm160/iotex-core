@@ -447,6 +447,12 @@ func TestHistoryTrie(t *testing.T) {
 	require.NoError(err)
 	require.Equal(value1, c)
 	oldRoot := tr.RootHash()
+	//dao.Put(
+	//	AccountKVNameSpace,
+	//	[]byte(fmt.Sprintf("%s-%d", AccountTrieRootKey, ws.blockHeight)),
+	//	rootHash,
+	//	"failed to store accountTrie's root hash",
+	//)
 	fmt.Println("old root", hex.EncodeToString(oldRoot))
 	// update entry
 	require.NoError(tr.Upsert(addrKey, value2))
