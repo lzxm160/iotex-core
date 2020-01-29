@@ -141,6 +141,7 @@ func (tr *branchRootTrie) DB() KVStore {
 }
 
 func (tr *branchRootTrie) deleteNodeFromDB(tn Node) error {
+	fmt.Println("deleteNodeFromDB")
 	h := tr.nodeHash(tn)
 	if tr.saveNode {
 		fmt.Println("tr.saveNode")
