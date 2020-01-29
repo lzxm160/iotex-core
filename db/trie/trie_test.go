@@ -433,7 +433,7 @@ func TestHistoryTrie(t *testing.T) {
 	AccountKVNameSpace := "Account"
 	PruneKVNameSpace := "cp"
 	AccountTrieRootKey := "accountTrieRoot"
-	CurrentHeightKey := "xxx"
+	//CurrentHeightKey := "xxx"
 	addrKey := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
 	value1 := []byte{1}
 	value2 := []byte{2}
