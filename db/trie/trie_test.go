@@ -8,8 +8,6 @@ package trie
 
 import (
 	"context"
-	"encoding/hex"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -433,86 +431,40 @@ func TestHistoryTrie(t *testing.T) {
 	AccountKVNameSpace := "Account"
 	PruneKVNameSpace := "cp"
 	AccountTrieRootKey := "accountTrieRoot"
-	//CurrentHeightKey := "xxx"
 	addrKey := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
 	value1 := []byte{1}
 	value2 := []byte{2}
+
 	cb := batch.NewCachedBatch()
 	trieDB, err := db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, dao, db.CachedBatchOption(cb))
 	require.NoError(err)
 	tr, err := NewTrie(KVStoreOption(trieDB), RootKeyOption(AccountTrieRootKey))
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
-	oldRoot := tr.RootHash()
+
 	// insert 1 entries
 	require.NoError(tr.Upsert(addrKey, value1))
-	oldRoot = tr.RootHash()
-	//cb.Put(AccountKVNameSpace, []byte(AccountTrieRootKey), oldRoot, "failed to store accountTrie's root hash")
-	//// Persist current chain Height
-	//h := byteutil.Uint64ToBytes(1)
-	//cb.Put(AccountKVNameSpace, []byte(CurrentHeightKey), h, "failed to store accountTrie's current Height")
-	//// Persist the historical accountTrie's root hash
-	//cb.Put(
-	//	AccountKVNameSpace,
-	//	[]byte(fmt.Sprintf("%s-%d", AccountTrieRootKey, 1)),
-	//	oldRoot,
-	//	"failed to store accountTrie's root hash",
-	//)
-
-	fmt.Println("old root", hex.EncodeToString(oldRoot))
-	fmt.Println("cb.Size():", cb.Size())
-	require.NoError(dao.WriteBatch(cb))
 	c, err := tr.Get(addrKey)
 	require.NoError(err)
 	require.Equal(value1, c)
-	oldRoot = tr.RootHash()
-	fmt.Println("old root", hex.EncodeToString(oldRoot))
-	fmt.Println("cb.Size() after get:", cb.Size())
+	oldRoot := tr.RootHash()
+
 	// update entry
 	require.NoError(tr.Upsert(addrKey, value2))
 	newcb := cb.ExcludeEntries("", batch.Delete)
-	fmt.Println("cb.Size():", cb.Size())
-	for i := 0; i < cb.Size(); i++ {
-		en, err := cb.Entry(i)
-		fmt.Println(en.WriteType(), ":", hex.EncodeToString(en.Key()), ":", err)
-	}
 	cb.Clear()
-	fmt.Println()
-	fmt.Println("newcb.Size():", newcb.Size())
-	for i := 0; i < newcb.Size(); i++ {
-		en, err := newcb.Entry(i)
-		fmt.Println(en.WriteType(), ":", hex.EncodeToString(en.Key()), ":", err)
-	}
-
 	require.NoError(dao.WriteBatch(newcb))
 
+	// get new value
 	c, err = tr.Get(addrKey)
 	require.NoError(err)
 	require.Equal(value2, c)
-	newRoot := tr.RootHash()
-	fmt.Println("new root", hex.EncodeToString(newRoot))
-	fmt.Println()
+
+	// get history value
 	require.NoError(tr.SetRootHash(oldRoot))
 	c, err = tr.Get(addrKey)
 	require.NoError(err)
 	require.Equal(value1, c)
-
-	//require.NoError(tr.Stop(context.Background()))
-	//require.NoError(dao.Stop(context.Background()))
-	// check old entry
-	//dao = db.NewBoltDB(cfg.DB)
-	//trieDB, err = db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, dao, db.CachedBatchOption(batch.NewCachedBatch()))
-	//require.NoError(err)
-	//fmt.Println()
-	//fmt.Println()
-	//tr2, err := NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot))
-	//require.NoError(tr2.Start(context.Background()))
-	////require.NoError(tr.SetRootHash(oldRoot))
-	//c, err = tr2.Get(addrKey)
-	//require.NoError(err)
-	//require.Equal(value1, c)
-	//require.NoError(tr2.Stop(context.Background()))
-
 }
 
 func TestCollision(t *testing.T) {
