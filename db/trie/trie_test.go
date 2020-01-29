@@ -439,7 +439,7 @@ func TestHistoryTrie(t *testing.T) {
 	cb := batch.NewCachedBatch()
 	trieDB, err := db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, dao, db.CachedBatchOption(cb))
 	require.NoError(err)
-	tr, err := NewTrie(KVStoreOption(trieDB), RootKeyOption(AccountTrieRootKey), HistoryRetentionOption(2000))
+	tr, err := NewTrie(KVStoreOption(trieDB), RootKeyOption(AccountTrieRootKey))
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
 	oldRoot := tr.RootHash()
