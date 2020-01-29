@@ -130,5 +130,6 @@ func (s *KVStoreForTrie) Get(key []byte) ([]byte, error) {
 
 // Flush flushs the data in cache layer to db
 func (s *KVStoreForTrie) Flush() error {
+	fmt.Println("Flush()")
 	return s.dao.WriteBatch(s.cb)
 }
