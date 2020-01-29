@@ -22,7 +22,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/iotexproject/go-pkgs/byteutil"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-core/db"
 )
@@ -448,26 +447,27 @@ func TestHistoryTrie(t *testing.T) {
 	// insert 1 entries
 	require.NoError(tr.Upsert(addrKey, value1))
 	oldRoot = tr.RootHash()
-	cb.Put(AccountKVNameSpace, []byte(AccountTrieRootKey), oldRoot, "failed to store accountTrie's root hash")
-	// Persist current chain Height
-	h := byteutil.Uint64ToBytes(1)
-	cb.Put(AccountKVNameSpace, []byte(CurrentHeightKey), h, "failed to store accountTrie's current Height")
-	// Persist the historical accountTrie's root hash
-	cb.Put(
-		AccountKVNameSpace,
-		[]byte(fmt.Sprintf("%s-%d", AccountTrieRootKey, 1)),
-		oldRoot,
-		"failed to store accountTrie's root hash",
-	)
+	//cb.Put(AccountKVNameSpace, []byte(AccountTrieRootKey), oldRoot, "failed to store accountTrie's root hash")
+	//// Persist current chain Height
+	//h := byteutil.Uint64ToBytes(1)
+	//cb.Put(AccountKVNameSpace, []byte(CurrentHeightKey), h, "failed to store accountTrie's current Height")
+	//// Persist the historical accountTrie's root hash
+	//cb.Put(
+	//	AccountKVNameSpace,
+	//	[]byte(fmt.Sprintf("%s-%d", AccountTrieRootKey, 1)),
+	//	oldRoot,
+	//	"failed to store accountTrie's root hash",
+	//)
 
 	fmt.Println("old root", hex.EncodeToString(oldRoot))
 	fmt.Println("cb.Size():", cb.Size())
-	require.NoError(dao.WriteBatch(cb))
+	//require.NoError(dao.WriteBatch(cb))
 	c, err := tr.Get(addrKey)
 	require.NoError(err)
 	require.Equal(value1, c)
 	oldRoot = tr.RootHash()
 	fmt.Println("old root", hex.EncodeToString(oldRoot))
+	fmt.Println("cb.Size() after get:", cb.Size())
 	// update entry
 	require.NoError(tr.Upsert(addrKey, value2))
 	newcb := cb.ExcludeEntries("", batch.Delete)
@@ -501,15 +501,15 @@ func TestHistoryTrie(t *testing.T) {
 	//dao = db.NewBoltDB(cfg.DB)
 	//trieDB, err = db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, dao, db.CachedBatchOption(batch.NewCachedBatch()))
 	//require.NoError(err)
-	fmt.Println()
-	fmt.Println()
-	tr2, err := NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot))
-	require.NoError(tr2.Start(context.Background()))
-	//require.NoError(tr.SetRootHash(oldRoot))
-	c, err = tr2.Get(addrKey)
-	require.NoError(err)
-	require.Equal(value1, c)
-	require.NoError(tr2.Stop(context.Background()))
+	//fmt.Println()
+	//fmt.Println()
+	//tr2, err := NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot))
+	//require.NoError(tr2.Start(context.Background()))
+	////require.NoError(tr.SetRootHash(oldRoot))
+	//c, err = tr2.Get(addrKey)
+	//require.NoError(err)
+	//require.Equal(value1, c)
+	//require.NoError(tr2.Stop(context.Background()))
 
 }
 
