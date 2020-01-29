@@ -461,6 +461,7 @@ func TestHistoryTrie(t *testing.T) {
 	newcb := cb.ExcludeEntries("", batch.Delete)
 	fmt.Println("cb.Size():", cb.Size())
 	fmt.Println("newcb.Size():", newcb.Size())
+	require.NoError(dao.WriteBatch(newcb))
 	c, err = tr.Get(addrKey)
 	require.NoError(err)
 	require.Equal(value2, c)
