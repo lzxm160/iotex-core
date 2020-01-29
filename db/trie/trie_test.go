@@ -8,13 +8,22 @@ package trie
 
 import (
 	"context"
+	"encoding/hex"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"testing"
 	"time"
+
+	"github.com/iotexproject/iotex-core/db/batch"
+
+	"github.com/iotexproject/iotex-core/config"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/go-pkgs/hash"
+	"github.com/iotexproject/iotex-core/db"
 )
 
 var (
@@ -410,6 +419,53 @@ func TestBatchCommit(t *testing.T) {
 	v, _ = tr.Get(fox)
 	require.Equal(testV[5], v)
 	require.NoError(tr.Stop(context.Background()))
+}
+
+func TestHistoryTrie(t *testing.T) {
+	require := require.New(t)
+	cfg := config.Default
+	path := "test-history-trie.bolt"
+	testFile, _ := ioutil.TempFile(os.TempDir(), path)
+	testPath := testFile.Name()
+	cfg.DB.DbPath = testPath
+	dao := db.NewBoltDB(cfg.DB)
+	AccountKVNameSpace := "Account"
+	PruneKVNameSpace := "cp"
+	AccountTrieRootKey := "accountTrieRoot"
+	trieDB, err := db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, dao, db.CachedBatchOption(batch.NewCachedBatch()))
+	require.NoError(err)
+	tr, err := NewTrie(KVStoreOption(trieDB), RootKeyOption(AccountTrieRootKey), HistoryRetentionOption(2000))
+	require.NoError(err)
+	require.NoError(tr.Start(context.Background()))
+	// insert 1 entries
+	require.NoError(tr.Upsert(cat, testV[2]))
+	c, err := tr.Get(cat)
+	require.NoError(err)
+	require.Equal(testV[2], c)
+	oldRoot := tr.RootHash()
+	fmt.Println("old root", hex.EncodeToString(oldRoot))
+	// update entry
+	require.NoError(tr.Upsert(cat, testV[6]))
+	c, err = tr.Get(cat)
+	require.NoError(err)
+	require.Equal(testV[6], c)
+	newRoot := tr.RootHash()
+	fmt.Println("new root", hex.EncodeToString(newRoot))
+
+	//require.NoError(tr.Stop(context.Background()))
+	//require.NoError(dao.Stop(context.Background()))
+	// check old entry
+	//dao = db.NewBoltDB(cfg.DB)
+	trieDB, err = db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, dao, db.CachedBatchOption(batch.NewCachedBatch()))
+	require.NoError(err)
+	tr2, err := NewTrie(KVStoreOption(trieDB), RootHashOption(oldRoot))
+	require.NoError(tr2.Start(context.Background()))
+	//require.NoError(tr.SetRootHash(oldRoot))
+	c, err = tr2.Get(cat)
+	require.NoError(err)
+	require.Equal(testV[2], c)
+	require.NoError(tr2.Stop(context.Background()))
+
 }
 
 func TestCollision(t *testing.T) {
