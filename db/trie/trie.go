@@ -8,6 +8,7 @@ package trie
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/pkg/errors"
@@ -123,6 +124,7 @@ func HistoryRetentionOption(height uint64) Option {
 
 // RootKeyOption sets the root key for the trie
 func RootKeyOption(key string) Option {
+	fmt.Println("RootKeyOption:", key)
 	return func(tr Trie) error {
 		switch t := tr.(type) {
 		case *branchRootTrie:
