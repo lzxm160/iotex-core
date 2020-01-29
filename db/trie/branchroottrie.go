@@ -155,8 +155,7 @@ func (tr *branchRootTrie) deleteNodeFromDB(tn Node) error {
 			return err
 		}
 	}
-	//return tr.kvStore.Delete(h)
-	return nil
+	return tr.kvStore.Delete(h)
 }
 
 func (tr *branchRootTrie) putNodeIntoDB(tn Node) error {

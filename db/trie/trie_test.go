@@ -442,20 +442,18 @@ func TestHistoryTrie(t *testing.T) {
 	tr, err := NewTrie(KVStoreOption(trieDB), RootKeyOption(AccountTrieRootKey), HistoryRetentionOption(2000))
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
+	oldRoot := tr.RootHash()
+	fmt.Println("old root", hex.EncodeToString(oldRoot))
 	// insert 1 entries
 	require.NoError(tr.Upsert(addrKey, value1))
+	oldRoot = tr.RootHash()
+	fmt.Println("old root", hex.EncodeToString(oldRoot))
 	fmt.Println("cb.Size():", cb.Size())
 	require.NoError(dao.WriteBatch(cb))
 	c, err := tr.Get(addrKey)
 	require.NoError(err)
 	require.Equal(value1, c)
-	oldRoot := tr.RootHash()
-	//dao.Put(
-	//	AccountKVNameSpace,
-	//	[]byte(fmt.Sprintf("%s-%d", AccountTrieRootKey, ws.blockHeight)),
-	//	rootHash,
-	//	"failed to store accountTrie's root hash",
-	//)
+	oldRoot = tr.RootHash()
 	fmt.Println("old root", hex.EncodeToString(oldRoot))
 	// update entry
 	require.NoError(tr.Upsert(addrKey, value2))
