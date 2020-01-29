@@ -448,8 +448,6 @@ func TestHistoryTrie(t *testing.T) {
 	require.Equal(value1, c)
 	oldRoot := tr.RootHash()
 	fmt.Println("old root", hex.EncodeToString(oldRoot))
-	hashold := hash.BytesToHash256(oldRoot)
-	fmt.Println("old root", hex.EncodeToString(hashold[:]))
 	// update entry
 	require.NoError(tr.Upsert(addrKey, value2))
 	c, err = tr.Get(addrKey)

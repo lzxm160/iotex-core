@@ -9,6 +9,7 @@ package trie
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/golang/protobuf/proto"
@@ -142,6 +143,7 @@ func (tr *branchRootTrie) DB() KVStore {
 func (tr *branchRootTrie) deleteNodeFromDB(tn Node) error {
 	h := tr.nodeHash(tn)
 	if tr.saveNode {
+		fmt.Println("tr.saveNode")
 		// mark the height-hash to be purged in later pruning
 		tag := byteutil.Uint64ToBytesBigEndian(tr.height)
 		if err := tr.kvStore.Purge(tag, h); err != nil {
