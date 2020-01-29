@@ -9,6 +9,7 @@ package trie
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"fmt"
 	"sync"
 
@@ -40,9 +41,11 @@ func (tr *branchRootTrie) Start(ctx context.Context) error {
 	tr.mutex.Lock()
 	defer tr.mutex.Unlock()
 	if tr.rootKey != "" {
+		fmt.Println("tr.rootKey:", tr.rootKey)
 		switch root, err := tr.kvStore.Get([]byte(tr.rootKey)); errors.Cause(err) {
 		case nil:
 			tr.rootHash = root
+			fmt.Println("tr.rootHash:", hex.EncodeToString(tr.rootHash))
 		case db.ErrNotExist:
 			tr.rootHash = tr.emptyRootHash()
 		default:
@@ -65,6 +68,7 @@ func (tr *branchRootTrie) SetRootHash(rootHash []byte) error {
 	if len(rootHash) == 0 {
 		rootHash = tr.emptyRootHash()
 	}
+	fmt.Println("tr.loadNodeFromDB(rootHash):", hex.EncodeToString(rootHash))
 	node, err := tr.loadNodeFromDB(rootHash)
 	if err != nil {
 		return err
