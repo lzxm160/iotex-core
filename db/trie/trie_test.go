@@ -429,6 +429,7 @@ func TestHistoryTrie(t *testing.T) {
 	testPath := testFile.Name()
 	cfg.DbPath = testPath
 	dao := db.NewBoltDB(cfg)
+	require.NoError(dao.Start(context.Background()))
 	AccountKVNameSpace := "Account"
 	PruneKVNameSpace := "cp"
 	AccountTrieRootKey := "accountTrieRoot"
