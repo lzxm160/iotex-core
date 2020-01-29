@@ -436,13 +436,15 @@ func TestHistoryTrie(t *testing.T) {
 	addrKey := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
 	value1 := []byte{1}
 	value2 := []byte{2}
-	trieDB, err := db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, dao, db.CachedBatchOption(batch.NewCachedBatch()))
+	cb := batch.NewCachedBatch()
+	trieDB, err := db.NewKVStoreForTrie(AccountKVNameSpace, PruneKVNameSpace, dao, db.CachedBatchOption(cb))
 	require.NoError(err)
 	tr, err := NewTrie(KVStoreOption(trieDB), RootKeyOption(AccountTrieRootKey), HistoryRetentionOption(2000))
 	require.NoError(err)
 	require.NoError(tr.Start(context.Background()))
 	// insert 1 entries
 	require.NoError(tr.Upsert(addrKey, value1))
+	fmt.Println("cb.Size():", cb.Size())
 	c, err := tr.Get(addrKey)
 	require.NoError(err)
 	require.Equal(value1, c)
@@ -456,6 +458,8 @@ func TestHistoryTrie(t *testing.T) {
 	fmt.Println("old root", hex.EncodeToString(oldRoot))
 	// update entry
 	require.NoError(tr.Upsert(addrKey, value2))
+	//newcb := cb.ExcludeEntries("", batch.Delete)
+	fmt.Println("cb.Size():", cb.Size())
 	c, err = tr.Get(addrKey)
 	require.NoError(err)
 	require.Equal(value2, c)
