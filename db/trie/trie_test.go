@@ -458,8 +458,9 @@ func TestHistoryTrie(t *testing.T) {
 	fmt.Println("old root", hex.EncodeToString(oldRoot))
 	// update entry
 	require.NoError(tr.Upsert(addrKey, value2))
-	//newcb := cb.ExcludeEntries("", batch.Delete)
+	newcb := cb.ExcludeEntries("", batch.Delete)
 	fmt.Println("cb.Size():", cb.Size())
+	fmt.Println("newcb.Size():", newcb.Size())
 	c, err = tr.Get(addrKey)
 	require.NoError(err)
 	require.Equal(value2, c)
