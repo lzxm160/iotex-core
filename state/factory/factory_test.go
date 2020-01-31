@@ -421,13 +421,10 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 			Registry: registry,
 		},
 	)
-
 	require.NoError(t, sf.Start(ctx))
 	defer func() {
 		require.NoError(t, sf.Stop(ctx))
 	}()
-	//ws, err := sf.NewWorkingSet()
-	//require.NoError(t, err)
 	tsf, err := action.NewTransfer(1, big.NewInt(10), b, nil, uint64(20000), big.NewInt(0))
 	require.NoError(t, err)
 	bd := &action.EnvelopeBuilder{}
@@ -442,7 +439,6 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 			GasLimit:    gasLimit,
 		},
 	)
-
 	blk, err := block.NewTestingBuilder().
 		SetHeight(1).
 		SetPrevBlockHash(hash.ZeroHash256).
@@ -450,13 +446,9 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 		AddActions([]action.SealedEnvelope{selp}...).
 		SignAndBuild(identityset.PrivateKey(27))
 	require.NoError(t, err)
-
 	require.NoError(t, sf.Commit(ctx, &blk))
-	//_, err = ws.RunAction(ctx, selp)
-	//require.NoError(t, err)
-	//require.NoError(t, ws.Finalize())
-	//require.NoError(t, sf.Commit(ws))
 
+	// check latest balance
 	accountA, err := accountutil.AccountState(sf, a)
 	require.NoError(t, err)
 	accountB, err := accountutil.AccountState(sf, b)
@@ -464,7 +456,7 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 	require.Equal(t, big.NewInt(90), accountA.Balance)
 	require.Equal(t, big.NewInt(10), accountB.Balance)
 	if !statetx {
-		//check old balance in block 0
+		//check history balance in block 0,only check workingset,because statetx cannot store history in block 0
 		accountA, err = accountutil.AccountStateAtHeight(sf, a, 0)
 		require.NoError(t, err)
 		accountB, err = accountutil.AccountStateAtHeight(sf, b, 0)
@@ -473,9 +465,7 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 		require.Equal(t, big.NewInt(0), accountB.Balance)
 	}
 
-	/////transfer in block 2
-	//ws, err = sf.NewWorkingSet()
-	//require.NoError(t, err)
+	// transfer in block 2
 	tsf, err = action.NewTransfer(2, big.NewInt(10), b, nil, uint64(20000), big.NewInt(0))
 	require.NoError(t, err)
 	bd = &action.EnvelopeBuilder{}
@@ -497,19 +487,17 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 		AddActions([]action.SealedEnvelope{selp}...).
 		SignAndBuild(identityset.PrivateKey(27))
 	require.NoError(t, err)
-
 	require.NoError(t, sf.Commit(ctx, &blk))
-	//_, err = ws.RunAction(ctx, selp)
-	//require.NoError(t, err)
-	//require.NoError(t, ws.Finalize())
-	//require.NoError(t, sf.Commit(ws))
+
+	// check latest balance
 	accountA, err = accountutil.AccountState(sf, a)
 	require.NoError(t, err)
 	accountB, err = accountutil.AccountState(sf, b)
 	require.NoError(t, err)
 	require.Equal(t, big.NewInt(80), accountA.Balance)
 	require.Equal(t, big.NewInt(20), accountB.Balance)
-	//check old balance
+
+	//check history balance in block 1
 	accountA, err = accountutil.AccountStateAtHeight(sf, a, 1)
 	require.NoError(t, err)
 	accountB, err = accountutil.AccountStateAtHeight(sf, b, 1)
