@@ -426,8 +426,8 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 	defer func() {
 		require.NoError(t, sf.Stop(ctx))
 	}()
-	ws, err := sf.NewWorkingSet()
-	require.NoError(t, err)
+	//ws, err := sf.NewWorkingSet()
+	//require.NoError(t, err)
 	tsf, err := action.NewTransfer(1, big.NewInt(10), b, nil, uint64(20000), big.NewInt(0))
 	require.NoError(t, err)
 	bd := &action.EnvelopeBuilder{}
@@ -442,10 +442,20 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 			GasLimit:    gasLimit,
 		},
 	)
-	_, err = ws.RunAction(ctx, selp)
+
+	blk, err := block.NewTestingBuilder().
+		SetHeight(1).
+		SetPrevBlockHash(hash.ZeroHash256).
+		SetTimeStamp(testutil.TimestampNow()).
+		AddActions([]action.SealedEnvelope{selp}...).
+		SignAndBuild(identityset.PrivateKey(27))
 	require.NoError(t, err)
-	require.NoError(t, ws.Finalize())
-	require.NoError(t, sf.Commit(ws))
+
+	require.NoError(t, sf.Commit(ctx, &blk))
+	//_, err = ws.RunAction(ctx, selp)
+	//require.NoError(t, err)
+	//require.NoError(t, ws.Finalize())
+	//require.NoError(t, sf.Commit(ws))
 
 	accountA, err := accountutil.AccountState(sf, a)
 	require.NoError(t, err)
@@ -464,8 +474,8 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 	}
 
 	/////transfer in block 2
-	ws, err = sf.NewWorkingSet()
-	require.NoError(t, err)
+	//ws, err = sf.NewWorkingSet()
+	//require.NoError(t, err)
 	tsf, err = action.NewTransfer(2, big.NewInt(10), b, nil, uint64(20000), big.NewInt(0))
 	require.NoError(t, err)
 	bd = &action.EnvelopeBuilder{}
@@ -480,10 +490,19 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 			GasLimit:    gasLimit,
 		},
 	)
-	_, err = ws.RunAction(ctx, selp)
+	blk, err = block.NewTestingBuilder().
+		SetHeight(1).
+		SetPrevBlockHash(hash.ZeroHash256).
+		SetTimeStamp(testutil.TimestampNow()).
+		AddActions([]action.SealedEnvelope{selp}...).
+		SignAndBuild(identityset.PrivateKey(27))
 	require.NoError(t, err)
-	require.NoError(t, ws.Finalize())
-	require.NoError(t, sf.Commit(ws))
+
+	require.NoError(t, sf.Commit(ctx, &blk))
+	//_, err = ws.RunAction(ctx, selp)
+	//require.NoError(t, err)
+	//require.NoError(t, ws.Finalize())
+	//require.NoError(t, sf.Commit(ws))
 	accountA, err = accountutil.AccountState(sf, a)
 	require.NoError(t, err)
 	accountB, err = accountutil.AccountState(sf, b)
