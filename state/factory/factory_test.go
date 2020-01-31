@@ -491,7 +491,7 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 		},
 	)
 	blk, err = block.NewTestingBuilder().
-		SetHeight(1).
+		SetHeight(2).
 		SetPrevBlockHash(hash.ZeroHash256).
 		SetTimeStamp(testutil.TimestampNow()).
 		AddActions([]action.SealedEnvelope{selp}...).
