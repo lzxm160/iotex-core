@@ -477,15 +477,15 @@ func testHistoryState(sf Factory, t *testing.T, statetx, archive bool) {
 	if statetx {
 		// statetx not support archive mode
 		_, err = accountutil.AccountStateAtHeight(sf, a, 0)
-		require.Equal(t, ErrNotSupported, err)
+		require.True(t, errors.Cause(err) == ErrNotSupported)
 		_, err = accountutil.AccountStateAtHeight(sf, b, 0)
-		require.Error(t, ErrNotSupported, err)
+		require.True(t, errors.Cause(err) == ErrNotSupported)
 	} else {
 		if !archive {
 			_, err = accountutil.AccountStateAtHeight(sf, a, 0)
-			require.Equal(t, ErrNoArchiveData, err)
+			require.True(t, errors.Cause(err) == ErrNoArchiveData)
 			_, err = accountutil.AccountStateAtHeight(sf, b, 0)
-			require.Error(t, ErrNoArchiveData, err)
+			require.True(t, errors.Cause(err) == ErrNoArchiveData)
 		} else {
 			accountA, err = accountutil.AccountStateAtHeight(sf, a, 0)
 			require.NoError(t, err)
