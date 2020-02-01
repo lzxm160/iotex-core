@@ -455,8 +455,15 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 	require.NoError(t, err)
 	require.Equal(t, big.NewInt(90), accountA.Balance)
 	require.Equal(t, big.NewInt(10), accountB.Balance)
-	if !statetx {
-		//check history balance in block 0,only check workingset,because statetx cannot store history in block 0
+
+	// check archive data
+	if statetx {
+		// statetx not support archive mode
+		_, err = accountutil.AccountStateAtHeight(sf, a, 0)
+		require.Error(t, err)
+		_, err = accountutil.AccountStateAtHeight(sf, b, 0)
+		require.Error(t, err)
+	} else {
 		accountA, err = accountutil.AccountStateAtHeight(sf, a, 0)
 		require.NoError(t, err)
 		accountB, err = accountutil.AccountStateAtHeight(sf, b, 0)
@@ -464,46 +471,6 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 		require.Equal(t, big.NewInt(100), accountA.Balance)
 		require.Equal(t, big.NewInt(0), accountB.Balance)
 	}
-
-	// transfer in block 2
-	tsf, err = action.NewTransfer(2, big.NewInt(10), b, nil, uint64(20000), big.NewInt(0))
-	require.NoError(t, err)
-	bd = &action.EnvelopeBuilder{}
-	elp = bd.SetAction(tsf).SetGasLimit(20000).Build()
-	selp, err = action.Sign(elp, priKeyA)
-	require.NoError(t, err)
-	ctx = protocol.WithBlockCtx(
-		ctx,
-		protocol.BlockCtx{
-			BlockHeight: 2,
-			Producer:    identityset.Address(27),
-			GasLimit:    gasLimit,
-		},
-	)
-	blk, err = block.NewTestingBuilder().
-		SetHeight(2).
-		SetPrevBlockHash(hash.ZeroHash256).
-		SetTimeStamp(testutil.TimestampNow()).
-		AddActions([]action.SealedEnvelope{selp}...).
-		SignAndBuild(identityset.PrivateKey(27))
-	require.NoError(t, err)
-	require.NoError(t, sf.Commit(ctx, &blk))
-
-	// check latest balance
-	accountA, err = accountutil.AccountState(sf, a)
-	require.NoError(t, err)
-	accountB, err = accountutil.AccountState(sf, b)
-	require.NoError(t, err)
-	require.Equal(t, big.NewInt(80), accountA.Balance)
-	require.Equal(t, big.NewInt(20), accountB.Balance)
-
-	//check history balance in block 1
-	accountA, err = accountutil.AccountStateAtHeight(sf, a, 1)
-	require.NoError(t, err)
-	accountB, err = accountutil.AccountStateAtHeight(sf, b, 1)
-	require.NoError(t, err)
-	require.Equal(t, big.NewInt(90), accountA.Balance)
-	require.Equal(t, big.NewInt(10), accountB.Balance)
 }
 
 func TestNonce(t *testing.T) {
