@@ -46,8 +46,8 @@ const (
 var (
 	// ErrNotSupported is the error that the statedb is not for archive mode
 	ErrNotSupported = errors.New("not supported")
-	// ErrNotArchiveMode is the error that the node is not archive mode
-	ErrNotArchiveMode = errors.New("not in archive mode")
+	// ErrNoArchiveData is the error that the node have no archive data
+	ErrNoArchiveData = errors.New("no archive data")
 )
 
 type (
@@ -339,7 +339,7 @@ func (sf *factory) StateAtHeight(height uint64, addr hash.Hash160, state interfa
 	sf.mutex.RLock()
 	defer sf.mutex.RUnlock()
 	if !sf.saveHistory {
-		return ErrNotArchiveMode
+		return ErrNoArchiveData
 	}
 	return sf.stateAtHeight(height, addr, state)
 }

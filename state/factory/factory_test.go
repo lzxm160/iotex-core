@@ -304,19 +304,36 @@ func TestState(t *testing.T) {
 }
 
 func TestHistoryState(t *testing.T) {
+	// using factory and enable history
 	testTrieFile, _ := ioutil.TempFile(os.TempDir(), triePath)
 	cfg := config.Default
 	cfg.Chain.TrieDBPath = testTrieFile.Name()
 	cfg.Chain.EnableHistoryStateDB = true
 	sf, err := NewFactory(cfg, DefaultTrieOption())
 	require.NoError(t, err)
-	testHistoryState(sf, t, false)
+	testHistoryState(sf, t, false, cfg.Chain.EnableHistoryStateDB)
 
+	// using statedb and enable history
 	testTrieFile, _ = ioutil.TempFile(os.TempDir(), triePath)
 	cfg.Chain.TrieDBPath = testTrieFile.Name()
 	sf, err = NewStateDB(cfg, DefaultStateDBOption())
 	require.NoError(t, err)
-	testHistoryState(sf, t, true)
+	testHistoryState(sf, t, true, cfg.Chain.EnableHistoryStateDB)
+
+	// using factory and disable history
+	testTrieFile, _ = ioutil.TempFile(os.TempDir(), triePath)
+	cfg.Chain.TrieDBPath = testTrieFile.Name()
+	cfg.Chain.EnableHistoryStateDB = false
+	sf, err = NewFactory(cfg, DefaultTrieOption())
+	require.NoError(t, err)
+	testHistoryState(sf, t, false, cfg.Chain.EnableHistoryStateDB)
+
+	// using statedb and disable history
+	testTrieFile, _ = ioutil.TempFile(os.TempDir(), triePath)
+	cfg.Chain.TrieDBPath = testTrieFile.Name()
+	sf, err = NewStateDB(cfg, DefaultStateDBOption())
+	require.NoError(t, err)
+	testHistoryState(sf, t, true, cfg.Chain.EnableHistoryStateDB)
 }
 
 func TestSDBState(t *testing.T) {
@@ -395,7 +412,7 @@ func testState(sf Factory, t *testing.T) {
 	require.Equal(t, big.NewInt(90), accountA.Balance)
 }
 
-func testHistoryState(sf Factory, t *testing.T, statetx bool) {
+func testHistoryState(sf Factory, t *testing.T, statetx, archive bool) {
 	// Create a dummy iotex address
 	a := identityset.Address(28).String()
 	b := identityset.Address(31).String()
@@ -460,16 +477,23 @@ func testHistoryState(sf Factory, t *testing.T, statetx bool) {
 	if statetx {
 		// statetx not support archive mode
 		_, err = accountutil.AccountStateAtHeight(sf, a, 0)
-		require.Error(t, err)
+		require.Equal(t, ErrNotSupported, err)
 		_, err = accountutil.AccountStateAtHeight(sf, b, 0)
-		require.Error(t, err)
+		require.Error(t, ErrNotSupported, err)
 	} else {
-		accountA, err = accountutil.AccountStateAtHeight(sf, a, 0)
-		require.NoError(t, err)
-		accountB, err = accountutil.AccountStateAtHeight(sf, b, 0)
-		require.NoError(t, err)
-		require.Equal(t, big.NewInt(100), accountA.Balance)
-		require.Equal(t, big.NewInt(0), accountB.Balance)
+		if !archive {
+			_, err = accountutil.AccountStateAtHeight(sf, a, 0)
+			require.Equal(t, ErrNoArchiveData, err)
+			_, err = accountutil.AccountStateAtHeight(sf, b, 0)
+			require.Error(t, ErrNoArchiveData, err)
+		} else {
+			accountA, err = accountutil.AccountStateAtHeight(sf, a, 0)
+			require.NoError(t, err)
+			accountB, err = accountutil.AccountStateAtHeight(sf, b, 0)
+			require.NoError(t, err)
+			require.Equal(t, big.NewInt(100), accountA.Balance)
+			require.Equal(t, big.NewInt(0), accountB.Balance)
+		}
 	}
 }
 
