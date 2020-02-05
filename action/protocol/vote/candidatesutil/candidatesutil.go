@@ -7,9 +7,10 @@
 package candidatesutil
 
 import (
-	"go.uber.org/zap"
 	"math/big"
 	"sort"
+
+	"go.uber.org/zap"
 
 	"github.com/pkg/errors"
 
@@ -55,6 +56,9 @@ func CandidatesByHeight(sr protocol.StateReader, height uint64) ([]*state.Candid
 
 // KickoutListByEpoch returns array of unqualified delegate address in delegate pool for the given epochNum
 func KickoutListByEpoch(sr protocol.StateReader, epochNum uint64) (*vote.Blacklist, error) {
+	if epochNum == 0 {
+		return nil, nil
+	}
 	blackList := &vote.Blacklist{}
 	// Load kick out list on the given epochNum from underlying db
 	blackListKey := ConstructBlackListKey(epochNum)
