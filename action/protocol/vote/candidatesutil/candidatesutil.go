@@ -7,6 +7,7 @@
 package candidatesutil
 
 import (
+	"fmt"
 	"math/big"
 	"sort"
 
@@ -56,6 +57,7 @@ func CandidatesByHeight(sr protocol.StateReader, height uint64) ([]*state.Candid
 
 // KickoutListByEpoch returns array of unqualified delegate address in delegate pool for the given epochNum
 func KickoutListByEpoch(sr protocol.StateReader, epochNum uint64) (*vote.Blacklist, error) {
+	fmt.Println("///////////////////////////:", epochNum)
 	if epochNum == 0 {
 		return nil, nil
 	}
