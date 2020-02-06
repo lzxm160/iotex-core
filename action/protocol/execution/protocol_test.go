@@ -478,7 +478,7 @@ func TestProtocol_Handle(t *testing.T) {
 		require.NoError(err)
 		// create BlockDAO
 		cfg.DB.DbPath = cfg.Chain.ChainDBPath
-		dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), indexer, sf, cfg.Chain.CompressBlock, cfg.DB)
+		dao := blockdao.NewBlockDAO(db.NewBoltDB(cfg.DB), cfg.Chain.CompressBlock, cfg.DB, blockdao.IndexerOption(indexer), blockdao.FactoryOption(sf))
 		require.NotNil(dao)
 		bc := blockchain.NewBlockchain(
 			cfg,
