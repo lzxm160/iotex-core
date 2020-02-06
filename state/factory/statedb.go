@@ -281,6 +281,11 @@ func (sdb *stateDB) StateAtHeight(height uint64, addr hash.Hash160, state interf
 	return ErrNotSupported
 }
 
+// DeleteTipBlock delete blk
+func (sf *stateDB) DeleteTipBlock(blk *block.Block) error {
+	return nil
+}
+
 //======================================
 // private trie constructor functions
 //======================================
