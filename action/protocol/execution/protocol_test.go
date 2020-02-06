@@ -303,7 +303,7 @@ func (sct *SmartContractTest) prepareBlockchain(
 	indexer, err := blockindex.NewIndexer(db.NewMemKVStore(), cfg.Genesis.Hash())
 	r.NoError(err)
 	// create BlockDAO
-	dao := blockdao.NewBlockDAO(db.NewMemKVStore(), indexer, sf, cfg.Chain.CompressBlock, cfg.DB)
+	dao := blockdao.NewBlockDAO(db.NewMemKVStore(), cfg.Chain.CompressBlock, cfg.DB, blockdao.IndexerOption(indexer), blockdao.FactoryOption(sf))
 	r.NotNil(dao)
 	bc := blockchain.NewBlockchain(
 		cfg,
