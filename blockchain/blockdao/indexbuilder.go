@@ -9,14 +9,13 @@ package blockdao
 import (
 	"strconv"
 
-	"github.com/iotexproject/iotex-core/action/protocol"
-
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
 
+	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/blockchain/block"
 	"github.com/iotexproject/iotex-core/blockindex"
 	"github.com/iotexproject/iotex-core/db"
@@ -88,8 +87,7 @@ func (ib *IndexBuilder) Indexer() blockindex.Indexer {
 // ReceiveBlock handles the block and create the indices for the actions and receipts in it
 func (ib *IndexBuilder) ReceiveBlock(blk *block.Block) error {
 	timer := ib.timerFactory.NewTimer("indexBlock")
-	ctx := context.WithValue(context.Background(), "", true)
-	if err := ib.indexer.PutBlock(ctx, blk); err != nil {
+	if err := ib.indexer.PutBlock(protocol.WithCommitCtx(context.Background(), true), blk); err != nil {
 		log.L().Error(
 			"Error when indexing the block",
 			zap.Uint64("height", blk.Height()),
