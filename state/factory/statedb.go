@@ -218,6 +218,46 @@ func (sdb *stateDB) SimulateExecution(
 func (sdb *stateDB) Commit(ctx context.Context, blk *block.Block) error {
 	sdb.mutex.Lock()
 	defer sdb.mutex.Unlock()
+	return sdb.commitBlock(ctx, blk)
+}
+
+// PutBlock persists all changes in RunActions() into the DB
+func (sdb *stateDB) PutBlock(ctx context.Context, blk *block.Block) error {
+	sdb.mutex.Lock()
+	defer sdb.mutex.Unlock()
+	return sdb.commitBlock(ctx, blk)
+}
+
+// State returns a confirmed state in the state factory
+func (sdb *stateDB) State(addr hash.Hash160, state interface{}) error {
+	sdb.mutex.RLock()
+	defer sdb.mutex.RUnlock()
+
+	return sdb.state(addr, state)
+}
+
+// DeleteWorkingSet returns true if it remove ws from workingsets cache successfully
+func (sdb *stateDB) DeleteWorkingSet(blk *block.Block) error {
+	key := generateWorkingSetCacheKey(blk.Header, blk.Header.ProducerAddress())
+	sdb.workingsets.Remove(key)
+	return nil
+}
+
+// StateAtHeight returns a confirmed state in the state factory
+func (sdb *stateDB) StateAtHeight(height uint64, addr hash.Hash160, state interface{}) error {
+	return ErrNotSupported
+}
+
+// DeleteTipBlock delete blk
+func (sf *stateDB) DeleteTipBlock(blk *block.Block) error {
+	return nil
+}
+
+//======================================
+// private trie constructor functions
+//======================================
+
+func (sdb *stateDB) commitBlock(ctx context.Context, blk *block.Block) error {
 	timer := sdb.timerFactory.NewTimer("Commit")
 	defer timer.End()
 	producer, err := address.FromBytes(blk.PublicKey().Hash())
@@ -260,30 +300,6 @@ func (sdb *stateDB) Commit(ctx context.Context, blk *block.Block) error {
 
 	return sdb.commit(ws)
 }
-
-// State returns a confirmed state in the state factory
-func (sdb *stateDB) State(addr hash.Hash160, state interface{}) error {
-	sdb.mutex.RLock()
-	defer sdb.mutex.RUnlock()
-
-	return sdb.state(addr, state)
-}
-
-// DeleteWorkingSet returns true if it remove ws from workingsets cache successfully
-func (sdb *stateDB) DeleteWorkingSet(blk *block.Block) error {
-	key := generateWorkingSetCacheKey(blk.Header, blk.Header.ProducerAddress())
-	sdb.workingsets.Remove(key)
-	return nil
-}
-
-// StateAtHeight returns a confirmed state in the state factory
-func (sdb *stateDB) StateAtHeight(height uint64, addr hash.Hash160, state interface{}) error {
-	return ErrNotSupported
-}
-
-//======================================
-// private trie constructor functions
-//======================================
 
 func (sdb *stateDB) state(addr hash.Hash160, s interface{}) error {
 	data, err := sdb.dao.Get(AccountKVNameSpace, addr[:])
