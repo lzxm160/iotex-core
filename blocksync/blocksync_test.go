@@ -372,7 +372,7 @@ func TestBlockSyncerProcessBlockSync(t *testing.T) {
 	require.NoError(rolldposProtocol.Register(registry2))
 	sf2, err := factory.NewFactory(cfg, factory.InMemTrieOption())
 	require.NoError(err)
-	dao2 := blockdao.NewBlockDAO(db.NewMemKVStore(), nil, cfg.Chain.CompressBlock, cfg.DB)
+	dao2 := blockdao.NewBlockDAO(db.NewMemKVStore(), cfg.Chain.CompressBlock, cfg.DB)
 	chain2 := bc.NewBlockchain(
 		cfg,
 		dao2,

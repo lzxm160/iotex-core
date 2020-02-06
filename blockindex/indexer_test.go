@@ -189,7 +189,7 @@ func TestIndexer(t *testing.T) {
 		require.NoError(err)
 		require.EqualValues(6, total)
 
-		require.NoError(indexer.PutBlock(blks[2]))
+		require.NoError(indexer.PutBlock(ctx, blks[2]))
 		require.NoError(indexer.Commit())
 		height, err = indexer.GetBlockchainHeight()
 		require.NoError(err)
@@ -261,7 +261,7 @@ func TestIndexer(t *testing.T) {
 		}()
 
 		for i := 0; i < 3; i++ {
-			require.NoError(indexer.PutBlock(blks[i]))
+			require.NoError(indexer.PutBlock(ctx, blks[i]))
 		}
 		require.NoError(indexer.Commit())
 
