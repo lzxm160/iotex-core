@@ -12,6 +12,8 @@ import (
 	"math/big"
 	"sync"
 
+	"github.com/iotexproject/iotex-core/action/protocol"
+
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/pkg/errors"
 
@@ -47,7 +49,8 @@ type (
 		Start(context.Context) error
 		Stop(context.Context) error
 		Commit() error
-		PutBlock(*block.Block) error
+		Height() (uint64, error)
+		PutBlock(context.Context, *block.Block) error
 		DeleteTipBlock(*block.Block) error
 		GetBlockchainHeight() (uint64, error)
 		GetBlockHash(height uint64) (hash.Hash256, error)
@@ -126,8 +129,13 @@ func (x *blockIndexer) Commit() error {
 	return x.commit()
 }
 
+// Height return height
+func (x *blockIndexer) Height() (uint64, error) {
+	return 0, nil
+}
+
 // PutBlock index the block
-func (x *blockIndexer) PutBlock(blk *block.Block) error {
+func (x *blockIndexer) PutBlock(ctx context.Context, blk *block.Block) error {
 	x.mutex.Lock()
 	defer x.mutex.Unlock()
 
@@ -162,6 +170,10 @@ func (x *blockIndexer) PutBlock(blk *block.Block) error {
 		if err := x.indexAction(actHash, selp, true); err != nil {
 			return err
 		}
+	}
+	commit, ok := protocol.GetCommitCtx(ctx)
+	if ok && commit {
+		return x.commit()
 	}
 	return nil
 }

@@ -171,9 +171,9 @@ func BoltDBDaoOption() Option {
 		cfg.DB.DbPath = cfg.Chain.ChainDBPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
 		bc.dao = blockdao.NewBlockDAO(
 			db.NewBoltDB(cfg.DB),
-			nil,
 			cfg.Chain.CompressBlock,
 			cfg.DB,
+			blockdao.FactoryOption(bc.sf),
 		)
 		return nil
 	}
@@ -185,11 +185,12 @@ func InMemDaoOption() Option {
 		if bc.dao != nil {
 			return nil
 		}
+
 		bc.dao = blockdao.NewBlockDAO(
 			db.NewMemKVStore(),
-			nil,
 			cfg.Chain.CompressBlock,
 			cfg.DB,
+			blockdao.FactoryOption(bc.sf),
 		)
 		return nil
 	}
@@ -282,6 +283,13 @@ func (bc *blockchain) Start(ctx context.Context) error {
 		return err
 	}
 	ctx = bc.contextWithBlock(ctx, bc.config.ProducerAddress(), 0, time.Unix(bc.config.Genesis.Timestamp, 0))
+	for _, p := range bc.registry.All() {
+		if s, ok := p.(lifecycle.Starter); ok {
+			if err := s.Start(ctx); err != nil {
+				return errors.Wrap(err, "failed to start protocol")
+			}
+		}
+	}
 	if err := bc.lifecycle.OnStart(ctx); err != nil {
 		return err
 	}
@@ -290,17 +298,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 	if tipHeight == 0 {
 		return nil
 	}
-	if bcCtx, ok := protocol.GetBlockchainCtx(ctx); ok {
-		for _, p := range bcCtx.Registry.All() {
-			if s, ok := p.(lifecycle.Starter); ok {
-				if err := s.Start(ctx); err != nil {
-					return errors.Wrap(err, "failed to start protocol")
-				}
-			}
-		}
-	}
-
-	return bc.startExistingBlockchain(ctx)
+	return bc.dao.StartExistingBlockchain(ctx, bc.config.Genesis.BlockGasLimit)
 }
 
 // Stop stops the blockchain.
