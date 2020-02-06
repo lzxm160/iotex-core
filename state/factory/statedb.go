@@ -249,7 +249,7 @@ func (sdb *stateDB) StateAtHeight(height uint64, addr hash.Hash160, state interf
 }
 
 // DeleteTipBlock delete blk
-func (sf *stateDB) DeleteTipBlock(blk *block.Block) error {
+func (sdb *stateDB) DeleteTipBlock(blk *block.Block) error {
 	return nil
 }
 
