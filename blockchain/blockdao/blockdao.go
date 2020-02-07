@@ -384,6 +384,7 @@ func (dao *blockDAO) GetFileIndex(height uint64) ([]byte, error) {
 	defer dao.mutex.RUnlock()
 
 	if dao.htf == nil {
+		fmt.Println("dao.htf == nil////////GetFileIndex:", height)
 		htf, err := db.NewRangeIndex(dao.kvstore, heightToFileBucket, make([]byte, 8))
 		if err != nil {
 			return nil, err
@@ -803,9 +804,11 @@ func (dao *blockDAO) getDBFromHeight(blkHeight uint64) (kvstore db.KVStore, inde
 	if dao.cfg.SplitDBSizeMB == 0 {
 		return dao.kvstore, 0, nil
 	}
+	fmt.Println("getDBFromHeight:806")
 	if blkHeight <= dao.cfg.SplitDBHeight {
 		return dao.kvstore, 0, nil
 	}
+	fmt.Println("getDBFromHeight:810")
 	// get file index
 	value, err := dao.GetFileIndex(blkHeight)
 	if err != nil {
