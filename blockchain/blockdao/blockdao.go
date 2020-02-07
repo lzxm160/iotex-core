@@ -744,10 +744,12 @@ func (dao *blockDAO) deleteTipBlock() error {
 
 // getDBFromHash returns db of this block stored
 func (dao *blockDAO) getDBFromHash(h hash.Hash256) (db.KVStore, uint64, error) {
+	fmt.Println("getDBFromHash:")
 	height, err := dao.getBlockHeight(h)
 	if err != nil {
 		return nil, 0, err
 	}
+	fmt.Println("before getDBFromHeight:", height)
 	return dao.getDBFromHeight(height)
 }
 
