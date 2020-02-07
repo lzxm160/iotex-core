@@ -756,6 +756,7 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 		return dao.kvstore, 0, nil
 	}
 	topIndex := dao.topIndex.Load().(uint64)
+	fmt.Println("/////////////////topIndex:", topIndex)
 	file, dir := getFileNameAndDir(dao.cfg.DbPath)
 	if err != nil {
 		return
