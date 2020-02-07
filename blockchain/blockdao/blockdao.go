@@ -832,6 +832,7 @@ func (dao *blockDAO) getBlockValue(blockNS string, h hash.Hash256) ([]byte, erro
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("////////////index:", index)
 	value, err := whichDB.Get(blockNS, h[:])
 	if errors.Cause(err) == db.ErrNotExist {
 		idx := index - 1
