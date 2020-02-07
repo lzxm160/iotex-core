@@ -8,7 +8,6 @@ package rolldpos
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/pkg/errors"
 
@@ -190,11 +189,6 @@ func (p *Protocol) GetEpochNum(height uint64) uint64 {
 func (p *Protocol) GetEpochHeight(epochNum uint64) uint64 {
 	if epochNum == 0 {
 		return 0
-	}
-	if epochNum == 1 {
-		fmt.Println("p.numDelegates:", p.numDelegates)
-		fmt.Println("p.numSubEpochs:", p.numSubEpochs)
-		return p.numDelegates * p.numSubEpochs
 	}
 	dardanellesEpoch := p.GetEpochNum(p.dardanellesHeight)
 	if !p.dardanellesOn || epochNum <= dardanellesEpoch {
