@@ -136,7 +136,7 @@ type (
 
 // NewBlockDAO instantiates a block DAO
 func NewBlockDAO(kvstore db.KVStore, indexer BlockIndexer, compressBlock bool, cfg config.DB) BlockDAO {
-	fmt.Println("///////////////////NewBlockDAO:", cfg)
+	fmt.Println("///////////////////NewBlockDAO:", cfg.SplitDBSizeMB, ":", cfg.SplitDBHeight)
 	blockDAO := &blockDAO{
 		compressBlock: compressBlock,
 		kvstore:       kvstore,
