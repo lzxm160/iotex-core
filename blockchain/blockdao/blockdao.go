@@ -196,6 +196,7 @@ func (dao *blockDAO) initStores() error {
 	for _, file := range files {
 		name := file.Name()
 		lens := len(name)
+		fmt.Println("::::::::::::::::::::::::", name)
 		if lens < patternLen || !strings.Contains(name, model) {
 			continue
 		}
