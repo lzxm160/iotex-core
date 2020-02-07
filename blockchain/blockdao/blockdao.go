@@ -802,6 +802,7 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 }
 
 func (dao *blockDAO) getDBFromHeight(blkHeight uint64) (kvstore db.KVStore, index uint64, err error) {
+	fmt.Println("start getDBFromHeight:", dao.cfg, ":", blkHeight)
 	fmt.Println("start getDBFromHeight:", dao.cfg.SplitDBSizeMB, ":", blkHeight)
 	if dao.cfg.SplitDBSizeMB == 0 {
 		return dao.kvstore, 0, nil
