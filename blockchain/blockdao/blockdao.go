@@ -390,6 +390,7 @@ func (dao *blockDAO) GetFileIndex(height uint64) ([]byte, error) {
 		}
 		dao.htf = htf
 	}
+	fmt.Println("/////////////////////GetFileIndex:", height)
 	return dao.htf.Get(height)
 }
 
@@ -811,6 +812,7 @@ func (dao *blockDAO) getDBFromHeight(blkHeight uint64) (kvstore db.KVStore, inde
 }
 
 func (dao *blockDAO) getDBFromIndex(idx uint64) (kvstore db.KVStore, index uint64, err error) {
+	fmt.Println("getDBFromIndex:", idx)
 	if idx == 0 {
 		return dao.kvstore, 0, nil
 	}
