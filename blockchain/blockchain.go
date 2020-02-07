@@ -8,6 +8,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -311,6 +312,7 @@ func (bc *blockchain) Stop(ctx context.Context) error {
 }
 
 func (bc *blockchain) BlockHeaderByHeight(height uint64) (*block.Header, error) {
+	fmt.Println("/////////////////////:", height)
 	return bc.dao.HeaderByHeight(height)
 }
 
