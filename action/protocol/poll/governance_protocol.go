@@ -378,7 +378,7 @@ func (p *governanceChainCommitteeProtocol) getGravityHeight(ctx context.Context,
 	if err != nil {
 		return 0, err
 	}
-	fmt.Println(epochNumber, "::::::::::::::", epochHeight, "////////////", blkTime.String())
+	fmt.Println(epochNumber, "::::::::::::::", epochHeight, "////////////", blkTime.String(), ":", blkTime.Unix())
 	log.L().Debug(
 		"get gravity chain height by time",
 		zap.Time("time", blkTime),
