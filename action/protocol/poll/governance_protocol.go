@@ -8,6 +8,7 @@ package poll
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -202,6 +203,7 @@ func (p *governanceChainCommitteeProtocol) CalculateCandidatesByHeight(ctx conte
 		"fetch delegates from gravity chain",
 		zap.Uint64("gravityChainHeight", gravityHeight),
 	)
+	fmt.Println("/////////////gravityHeight:", gravityHeight)
 	return p.candidatesByGravityChainHeight(gravityHeight)
 }
 
@@ -376,6 +378,7 @@ func (p *governanceChainCommitteeProtocol) getGravityHeight(ctx context.Context,
 	if err != nil {
 		return 0, err
 	}
+	fmt.Println(epochNumber, "::::::::::::::", epochHeight, "////////////", blkTime.String())
 	log.L().Debug(
 		"get gravity chain height by time",
 		zap.Time("time", blkTime),

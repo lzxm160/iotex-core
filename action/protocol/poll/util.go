@@ -73,7 +73,7 @@ func validate(ctx context.Context, p Protocol, act action.Action) error {
 	}
 	actionCtx := protocol.MustGetActionCtx(ctx)
 	blkCtx := protocol.MustGetBlockCtx(ctx)
-
+	fmt.Println("//////////////////////validate:", blkCtx.BlockHeight)
 	if blkCtx.Producer.String() != actionCtx.Caller.String() {
 		return errors.New("Only producer could create this protocol")
 	}
