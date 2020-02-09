@@ -766,6 +766,7 @@ func (dao *blockDAO) getTopDB(blkHeight uint64) (kvstore db.KVStore, index uint6
 			return
 		}
 		// db file does not exist, create it
+		fmt.Println("///////////////////:", topIndex, ":", blkHeight)
 		return dao.openDB(topIndex)
 	}
 	// other errors except file does not exist
