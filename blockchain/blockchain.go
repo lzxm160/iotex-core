@@ -297,13 +297,14 @@ func (bc *blockchain) Start(ctx context.Context) error {
 			return err
 		}
 		blk, err := GetTopBlock(ws.GetDB())
+		fmt.Println("get top from checkpoint:", err)
 		if err == nil {
 			log.L().Info("start from checkpoint:", zap.Uint64("height", blk.Height()))
-			err = bc.dao.PutBlock(blk)
-			log.L().Error("bc.dao.PutBlock(blk)", zap.Error(err))
-			if err != nil {
-				return err
-			}
+			//err = bc.dao.PutBlock(blk)
+			//log.L().Error("bc.dao.PutBlock(blk)", zap.Error(err))
+			//if err != nil {
+			//	return err
+			//}
 			startHeight := uint64(1)
 			if blk.Height() > uint64(721) {
 				startHeight = blk.Height() - uint64(721)
