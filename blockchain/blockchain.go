@@ -306,8 +306,8 @@ func (bc *blockchain) Start(ctx context.Context) error {
 			//	return err
 			//}
 			startHeight := uint64(1)
-			if blk.Height() > uint64(721) {
-				startHeight = blk.Height() - uint64(721)
+			if blk.Height() > uint64(720) {
+				startHeight = blk.Height() - uint64(720) + 1
 			}
 			for i := startHeight; i <= blk.Height(); i++ {
 				heightValue := byteutil.Uint64ToBytes(i)

@@ -79,9 +79,9 @@ func (pb *PutBlockToTrieDB) ReceiveBlock(blk *block.Block) error {
 		return err
 	}
 	fmt.Println("checkpoint write block:", blk.Height())
-	if blk.Height() > 721 {
+	if blk.Height() > 720 {
 		fmt.Println("checkpoint del block:", blk.Height())
-		pb.delBlock(blk.Height() - 721)
+		pb.delBlock(blk.Height() - 720)
 	}
 	return nil
 }
