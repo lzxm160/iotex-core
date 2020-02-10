@@ -289,6 +289,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 	}
 	// get blockchain tip height
 	tipHeight := bc.dao.GetTipHeight()
+	fmt.Println("/////////////////////blockchain start:", tipHeight)
 	if tipHeight == 0 {
 		// if have trie.db,start from trie.db
 		ws, err := bc.sf.NewWorkingSet()
