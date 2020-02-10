@@ -59,6 +59,8 @@ type (
 		SimulateExecution(context.Context, address.Address, *action.Execution, evm.GetBlockHash) ([]byte, *action.Receipt, error)
 		Commit(context.Context, *block.Block) error
 		DeleteWorkingSet(*block.Block) error
+		DeleteTipBlock(*block.Block) error
+		PutBlock(context.Context, *block.Block) error
 	}
 
 	// factory implements StateFactory interface, tracks changes to account/contract and batch-commits to DB
@@ -266,6 +268,52 @@ func (sf *factory) Commit(ctx context.Context, blk *block.Block) error {
 	timer := sf.timerFactory.NewTimer("Commit")
 	sf.mutex.Unlock()
 	defer timer.End()
+	return sf.commitBlock(ctx, blk)
+}
+
+// PutBlock persists all changes in RunActions() into the DB
+func (sf *factory) PutBlock(ctx context.Context, blk *block.Block) error {
+	return sf.commitBlock(ctx, blk)
+}
+
+// DeleteTipBlock delete blk
+func (sf *factory) DeleteTipBlock(blk *block.Block) error {
+	return nil
+}
+
+// State returns a confirmed state in the state factory
+func (sf *factory) State(addr hash.Hash160, state interface{}, opts ...protocol.StateOption) error {
+	sf.mutex.RLock()
+	defer sf.mutex.RUnlock()
+
+	return sf.state(addr, state)
+}
+
+// DeleteWorkingSet returns true if it remove ws from workingsets cache successfully
+func (sf *factory) DeleteWorkingSet(blk *block.Block) error {
+	sf.mutex.RLock()
+	defer sf.mutex.RUnlock()
+
+	key := generateWorkingSetCacheKey(blk.Header, blk.Header.ProducerAddress())
+	sf.workingsets.Remove(key)
+	return nil
+}
+
+// StateAtHeight returns a confirmed state in the state factory
+func (sf *factory) StateAtHeight(height uint64, addr hash.Hash160, state interface{}) error {
+	sf.mutex.RLock()
+	defer sf.mutex.RUnlock()
+	if !sf.saveHistory {
+		return ErrNoArchiveData
+	}
+	return sf.stateAtHeight(height, addr, state)
+}
+
+//======================================
+// private trie constructor functions
+//======================================
+
+func (sf *factory) commitBlock(ctx context.Context, blk *block.Block) error {
 	producer, err := address.FromBytes(blk.PublicKey().Hash())
 	if err != nil {
 		return err
@@ -305,38 +353,6 @@ func (sf *factory) Commit(ctx context.Context, blk *block.Block) error {
 
 	return sf.commit(ws)
 }
-
-// State returns a confirmed state in the state factory
-func (sf *factory) State(addr hash.Hash160, state interface{}, opts ...protocol.StateOption) error {
-	sf.mutex.RLock()
-	defer sf.mutex.RUnlock()
-
-	return sf.state(addr, state)
-}
-
-// DeleteWorkingSet returns true if it remove ws from workingsets cache successfully
-func (sf *factory) DeleteWorkingSet(blk *block.Block) error {
-	sf.mutex.RLock()
-	defer sf.mutex.RUnlock()
-
-	key := generateWorkingSetCacheKey(blk.Header, blk.Header.ProducerAddress())
-	sf.workingsets.Remove(key)
-	return nil
-}
-
-// StateAtHeight returns a confirmed state in the state factory
-func (sf *factory) StateAtHeight(height uint64, addr hash.Hash160, state interface{}) error {
-	sf.mutex.RLock()
-	defer sf.mutex.RUnlock()
-	if !sf.saveHistory {
-		return ErrNoArchiveData
-	}
-	return sf.stateAtHeight(height, addr, state)
-}
-
-//======================================
-// private trie constructor functions
-//======================================
 
 func (sf *factory) rootHash() hash.Hash256 {
 	return hash.BytesToHash256(sf.accountTrie.RootHash())

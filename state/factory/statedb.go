@@ -215,43 +215,17 @@ func (sdb *stateDB) Commit(ctx context.Context, blk *block.Block) error {
 	timer := sdb.timerFactory.NewTimer("Commit")
 	sdb.mutex.Unlock()
 	defer timer.End()
-	producer, err := address.FromBytes(blk.PublicKey().Hash())
-	if err != nil {
-		return err
-	}
-	bcCtx := protocol.MustGetBlockchainCtx(ctx)
-	ctx = protocol.WithBlockCtx(ctx,
-		protocol.BlockCtx{
-			BlockHeight:    blk.Height(),
-			BlockTimeStamp: blk.Timestamp(),
-			GasLimit:       bcCtx.Genesis.BlockGasLimit,
-			Producer:       producer,
-		},
-	)
-	key := generateWorkingSetCacheKey(blk.Header, blk.Header.ProducerAddress())
-	ws, isExist, err := sdb.getFromWorkingSets(key)
-	if err != nil {
-		return err
-	}
-	if !isExist {
-		_, ws, err = runActions(ctx, ws, blk.RunnableActions().Actions())
-		if err != nil {
-			log.L().Panic("Failed to update state.", zap.Error(err))
-			return err
-		}
-	}
-	sdb.mutex.Lock()
-	defer sdb.mutex.Unlock()
-	if sdb.currentChainHeight+1 != ws.Version() {
-		// another working set with correct version already committed, do nothing
-		return fmt.Errorf(
-			"current state height %d + 1 doesn't match working set version %d",
-			sdb.currentChainHeight,
-			ws.Version(),
-		)
-	}
+	return sdb.commitBlock(ctx, blk)
+}
 
-	return sdb.commit(ws)
+// Commit persists all changes in RunActions() into the DB
+func (sdb *stateDB) PutBlock(ctx context.Context, blk *block.Block) error {
+	return sdb.commitBlock(ctx, blk)
+}
+
+// DeleteTipBlock delete blk
+func (sdb *stateDB) DeleteTipBlock(blk *block.Block) error {
+	return nil
 }
 
 // State returns a confirmed state in the state factory
@@ -290,6 +264,47 @@ func (sdb *stateDB) StateAtHeight(height uint64, addr hash.Hash160, state interf
 //======================================
 // private trie constructor functions
 //======================================
+
+// commitBlock persists all changes in RunActions() into the DB
+func (sdb *stateDB) commitBlock(ctx context.Context, blk *block.Block) error {
+	producer, err := address.FromBytes(blk.PublicKey().Hash())
+	if err != nil {
+		return err
+	}
+	bcCtx := protocol.MustGetBlockchainCtx(ctx)
+	ctx = protocol.WithBlockCtx(ctx,
+		protocol.BlockCtx{
+			BlockHeight:    blk.Height(),
+			BlockTimeStamp: blk.Timestamp(),
+			GasLimit:       bcCtx.Genesis.BlockGasLimit,
+			Producer:       producer,
+		},
+	)
+	key := generateWorkingSetCacheKey(blk.Header, blk.Header.ProducerAddress())
+	ws, isExist, err := sdb.getFromWorkingSets(key)
+	if err != nil {
+		return err
+	}
+	if !isExist {
+		_, ws, err = runActions(ctx, ws, blk.RunnableActions().Actions())
+		if err != nil {
+			log.L().Panic("Failed to update state.", zap.Error(err))
+			return err
+		}
+	}
+	sdb.mutex.Lock()
+	defer sdb.mutex.Unlock()
+	if sdb.currentChainHeight+1 != ws.Version() {
+		// another working set with correct version already committed, do nothing
+		return fmt.Errorf(
+			"current state height %d + 1 doesn't match working set version %d",
+			sdb.currentChainHeight,
+			ws.Version(),
+		)
+	}
+
+	return sdb.commit(ws)
+}
 
 func (sdb *stateDB) state(ns string, addr hash.Hash160, s interface{}) error {
 	data, err := sdb.dao.Get(ns, addr[:])
