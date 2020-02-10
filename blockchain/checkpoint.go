@@ -27,7 +27,7 @@ var (
 	blockReceipNS = "blockReceipNS"
 	blockTopNS    = "blockTopNS"
 	topBlockKey   = []byte("tbk")
-	epochLength   = uint64(36)
+	epochLength   = uint64(360)
 )
 
 type CheckPointDB struct {
