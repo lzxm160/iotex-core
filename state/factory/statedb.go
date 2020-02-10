@@ -263,7 +263,9 @@ func (sdb *stateDB) State(addr hash.Hash160, state interface{}, opts ...protocol
 	if err != nil {
 		return err
 	}
-
+	if cfg.Height != 0 {
+		return ErrNotSupported
+	}
 	ns := protocol.AccountNameSpace
 	if cfg.Namespace != "" {
 		ns = cfg.Namespace

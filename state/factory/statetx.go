@@ -221,7 +221,9 @@ func (stx *stateTX) State(hash hash.Hash160, s interface{}, opts ...protocol.Sta
 	if err != nil {
 		return err
 	}
-
+	if cfg.Height != 0 {
+		return ErrNotSupported
+	}
 	ns := protocol.AccountNameSpace
 	if cfg.Namespace != "" {
 		ns = cfg.Namespace
