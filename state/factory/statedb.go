@@ -64,6 +64,7 @@ func DefaultStateDBOption() StateDBOption {
 			return errors.New("Invalid empty trie db path")
 		}
 		cfg.DB.DbPath = dbPath // TODO: remove this after moving TrieDBPath from cfg.Chain to cfg.DB
+		fmt.Println("//////////////////DefaultStateDBOption():", cfg.DB.DbPath)
 		sdb.dao = db.NewBoltDB(cfg.DB)
 		sdb.saveHistory = cfg.Chain.EnableHistoryStateDB
 		return nil
