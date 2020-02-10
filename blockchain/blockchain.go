@@ -309,7 +309,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 			if blk.Height() > uint64(721) {
 				startHeight = blk.Height() - uint64(721)
 			}
-			for i := startHeight; i < blk.Height(); i++ {
+			for i := startHeight; i <= blk.Height(); i++ {
 				heightValue := byteutil.Uint64ToBytes(i)
 				blks, err := GetBlock(ws.GetDB(), heightValue)
 				if err == nil {
