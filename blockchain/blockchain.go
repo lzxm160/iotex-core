@@ -8,6 +8,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -302,8 +303,6 @@ func (bc *blockchain) Start(ctx context.Context) error {
 			if err != nil {
 				return err
 			}
-			//bc.tipHeight = blk.Height()
-			//bc.tipHash = blk.HashBlock()
 			startHeight := uint64(1)
 			if blk.Height() > uint64(721) {
 				startHeight = blk.Height() - uint64(721)
@@ -316,6 +315,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 					if err != nil {
 						return err
 					}
+					fmt.Println("blockchain put block:", i)
 				} else {
 					log.L().Error("GetLastEpochBlock", zap.Error(err))
 				}

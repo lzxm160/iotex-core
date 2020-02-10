@@ -7,6 +7,8 @@
 package blockchain
 
 import (
+	"fmt"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -76,7 +78,9 @@ func (pb *PutBlockToTrieDB) ReceiveBlock(blk *block.Block) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("checkpoint write block:", blk.Height())
 	if blk.Height() > 721 {
+		fmt.Println("checkpoint del block:", blk.Height())
 		pb.delBlock(blk.Height() - 721)
 	}
 	return nil
