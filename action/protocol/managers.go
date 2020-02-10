@@ -16,6 +16,14 @@ func NamespaceOption(ns string) StateOption {
 	}
 }
 
+// BlockHeightOption creates an option for given namesapce
+func BlockHeightOption(height uint64) StateOption {
+	return func(sc *StateConfig) error {
+		sc.Height = height
+		return nil
+	}
+}
+
 // CreateStateConfig creates a config for accessing stateDB
 func CreateStateConfig(opts ...StateOption) (*StateConfig, error) {
 	cfg := StateConfig{}
@@ -31,6 +39,7 @@ type (
 	// StateConfig is the config for accessing stateDB
 	StateConfig struct {
 		Namespace string // namespace used by state's storage
+		Height    uint64
 	}
 
 	// StateOption sets parameter for access state
@@ -40,7 +49,6 @@ type (
 	StateReader interface {
 		Height() (uint64, error)
 		State(hash.Hash160, interface{}, ...StateOption) error
-		StateAtHeight(uint64, hash.Hash160, interface{}) error
 	}
 
 	// StateManager defines the stateDB interface atop IoTeX blockchain
