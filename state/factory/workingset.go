@@ -286,7 +286,7 @@ func (ws *workingSet) State(hash hash.Hash160, s interface{}, opts ...protocol.S
 	if err != nil {
 		return err
 	}
-	if cfg.Height != 0 {
+	if cfg.AtHeight {
 		return ws.stateAtHeight(cfg.Height, hash, s)
 	}
 

@@ -17,8 +17,9 @@ func NamespaceOption(ns string) StateOption {
 }
 
 // BlockHeightOption creates an option for given namesapce
-func BlockHeightOption(height uint64) StateOption {
+func BlockHeightOption(atHeight bool, height uint64) StateOption {
 	return func(sc *StateConfig) error {
+		sc.AtHeight = atHeight
 		sc.Height = height
 		return nil
 	}
@@ -39,6 +40,7 @@ type (
 	// StateConfig is the config for accessing stateDB
 	StateConfig struct {
 		Namespace string // namespace used by state's storage
+		AtHeight  bool
 		Height    uint64
 	}
 
