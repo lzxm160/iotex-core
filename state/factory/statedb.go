@@ -84,6 +84,7 @@ func NewStateDB(cfg config.Config, opts ...StateDBOption) (Factory, error) {
 		cfg:                cfg,
 		currentChainHeight: 0,
 	}
+	fmt.Println("statedb cfg:", cfg.DB.DbPath)
 	for _, opt := range opts {
 		if err := opt(&sdb, cfg); err != nil {
 			log.S().Errorf("Failed to execute state factory creation option %p: %v", opt, err)
