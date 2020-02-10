@@ -186,8 +186,11 @@ func New(
 			log.L().Warn("Failed to add subscriber: index builder.", zap.Error(err))
 		}
 	}
-
-	pb := blockchain.NewPutBlockToTrieDB(kvstore)
+	ws, err := sf.NewWorkingSet()
+	if err != nil {
+		return nil, err
+	}
+	pb := blockchain.NewPutBlockToTrieDB(ws.GetDB())
 	if err := chain.AddSubscriber(pb); err != nil {
 		log.L().Warn("Failed to add pb", zap.Error(err))
 	}
