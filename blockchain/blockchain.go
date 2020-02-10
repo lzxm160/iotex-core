@@ -300,14 +300,9 @@ func (bc *blockchain) Start(ctx context.Context) error {
 		fmt.Println("/////////////////////get top from checkpoint:", err)
 		if err == nil {
 			log.L().Info("start from checkpoint:", zap.Uint64("height", blk.Height()))
-			//err = bc.dao.PutBlock(blk)
-			//log.L().Error("bc.dao.PutBlock(blk)", zap.Error(err))
-			//if err != nil {
-			//	return err
-			//}
 			startHeight := uint64(1)
-			if blk.Height() > uint64(720) {
-				startHeight = blk.Height() - uint64(720) + 1
+			if blk.Height() > epochLength {
+				startHeight = blk.Height() - epochLength + 1
 			}
 			for i := startHeight; i <= blk.Height(); i++ {
 				heightValue := byteutil.Uint64ToBytes(i)

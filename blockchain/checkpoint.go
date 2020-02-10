@@ -27,19 +27,21 @@ var (
 	blockReceipNS = "blockReceipNS"
 	blockTopNS    = "blockTopNS"
 	topBlockKey   = []byte("tbk")
+	epochLength   = uint64(36)
 )
 
-type PutBlockToTrieDB struct {
+type CheckPointDB struct {
 	kv db.KVStore
 }
 
-func NewPutBlockToTrieDB(kv db.KVStore) *PutBlockToTrieDB {
-	p := &PutBlockToTrieDB{
+func NewCheckPoint(kv db.KVStore, epochLen uint64) *CheckPointDB {
+	p := &CheckPointDB{
 		kv,
 	}
+	epochLength = epochLen
 	return p
 }
-func (pb *PutBlockToTrieDB) writeBlock(blk *block.Block, key []byte) error {
+func (pb *CheckPointDB) writeBlock(blk *block.Block, key []byte) error {
 	blkHeight := blk.Height()
 	blkSer, err := blk.Serialize()
 	if err != nil {
@@ -64,7 +66,7 @@ func (pb *PutBlockToTrieDB) writeBlock(blk *block.Block, key []byte) error {
 	bat.Put(blockTopNS, topBlockKey, heightValue, "failed to put block")
 	return pb.kv.WriteBatch(bat)
 }
-func (pb *PutBlockToTrieDB) delBlock(height uint64) error {
+func (pb *CheckPointDB) delBlock(height uint64) error {
 	heightKey := byteutil.Uint64ToBytes(height)
 	batch := batch.NewCachedBatch()
 	batch.Delete(blockNS, heightKey, "failed to del block")
@@ -72,7 +74,7 @@ func (pb *PutBlockToTrieDB) delBlock(height uint64) error {
 	return pb.kv.WriteBatch(batch)
 }
 
-func (pb *PutBlockToTrieDB) ReceiveBlock(blk *block.Block) error {
+func (pb *CheckPointDB) ReceiveBlock(blk *block.Block) error {
 	heightKey := byteutil.Uint64ToBytes(blk.Height())
 	err := pb.writeBlock(blk, heightKey)
 	if err != nil {

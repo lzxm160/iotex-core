@@ -11,6 +11,8 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/iotexproject/iotex-core/ioctl/cmd/bc"
+
 	"github.com/golang/protobuf/proto"
 	peerstore "github.com/libp2p/go-libp2p-peerstore"
 	"github.com/pkg/errors"
@@ -190,7 +192,7 @@ func New(
 	if err != nil {
 		return nil, err
 	}
-	pb := blockchain.NewPutBlockToTrieDB(ws.GetDB())
+	pb := blockchain.NewCheckPoint(ws.GetDB(), bc.config.Genesis.NumDelegates*bc.config.Genesis.NumSubEpochs)
 	if err := chain.AddSubscriber(pb); err != nil {
 		log.L().Warn("Failed to add pb", zap.Error(err))
 	}
