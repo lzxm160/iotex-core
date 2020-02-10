@@ -27,7 +27,7 @@ func BlockHeightOption(atHeight bool, height uint64) StateOption {
 
 // CreateStateConfig creates a config for accessing stateDB
 func CreateStateConfig(opts ...StateOption) (*StateConfig, error) {
-	cfg := StateConfig{}
+	cfg := StateConfig{AtHeight: false}
 	for _, opt := range opts {
 		if err := opt(&cfg); err != nil {
 			return nil, errors.Wrap(err, "failed to execute state option")
