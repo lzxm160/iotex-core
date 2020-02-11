@@ -229,6 +229,54 @@ func (sdb *stateDB) Commit(ctx context.Context, blk *block.Block) error {
 	timer := sdb.timerFactory.NewTimer("Commit")
 	sdb.mutex.Unlock()
 	defer timer.End()
+	return sdb.commitBlock(ctx, blk)
+}
+
+// Commit persists all changes in RunActions() into the DB
+func (sdb *stateDB) PutBlock(ctx context.Context, blk *block.Block) error {
+	return sdb.commitBlock(ctx, blk)
+}
+
+// DeleteTipBlock delete blk
+func (sdb *stateDB) DeleteTipBlock(blk *block.Block) error {
+	return nil
+}
+
+// State returns a confirmed state in the state factory
+func (sdb *stateDB) State(addr hash.Hash160, state interface{}, opts ...protocol.StateOption) error {
+	sdb.mutex.Lock()
+	defer sdb.mutex.Unlock()
+
+	cfg, err := protocol.CreateStateConfig(opts...)
+	if err != nil {
+		return err
+	}
+	if cfg.AtHeight {
+		return ErrNotSupported
+	}
+	ns := AccountKVNamespace
+	if cfg.Namespace != "" {
+		ns = cfg.Namespace
+	}
+
+	return sdb.state(ns, addr, state)
+}
+
+// DeleteWorkingSet returns true if it remove ws from workingsets cache successfully
+func (sdb *stateDB) DeleteWorkingSet(blk *block.Block) error {
+	sdb.mutex.Lock()
+	defer sdb.mutex.Unlock()
+
+	key := generateWorkingSetCacheKey(blk.Header, blk.Header.ProducerAddress())
+	sdb.workingsets.Remove(key)
+	return nil
+}
+
+//======================================
+// private trie constructor functions
+//======================================
+
+func (sdb *stateDB) commitBlock(ctx context.Context, blk *block.Block) error {
 	producer, err := address.FromBytes(blk.PublicKey().Hash())
 	if err != nil {
 		return err
@@ -267,40 +315,6 @@ func (sdb *stateDB) Commit(ctx context.Context, blk *block.Block) error {
 
 	return sdb.commit(ws)
 }
-
-// State returns a confirmed state in the state factory
-func (sdb *stateDB) State(addr hash.Hash160, state interface{}, opts ...protocol.StateOption) error {
-	sdb.mutex.Lock()
-	defer sdb.mutex.Unlock()
-
-	cfg, err := protocol.CreateStateConfig(opts...)
-	if err != nil {
-		return err
-	}
-	if cfg.AtHeight {
-		return ErrNotSupported
-	}
-	ns := AccountKVNamespace
-	if cfg.Namespace != "" {
-		ns = cfg.Namespace
-	}
-
-	return sdb.state(ns, addr, state)
-}
-
-// DeleteWorkingSet returns true if it remove ws from workingsets cache successfully
-func (sdb *stateDB) DeleteWorkingSet(blk *block.Block) error {
-	sdb.mutex.Lock()
-	defer sdb.mutex.Unlock()
-
-	key := generateWorkingSetCacheKey(blk.Header, blk.Header.ProducerAddress())
-	sdb.workingsets.Remove(key)
-	return nil
-}
-
-//======================================
-// private trie constructor functions
-//======================================
 
 func (sdb *stateDB) flusherOptions(ctx context.Context, height uint64) []db.KVStoreFlusherOption {
 	opts := []db.KVStoreFlusherOption{}

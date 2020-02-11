@@ -328,6 +328,48 @@ func (sf *factory) Commit(ctx context.Context, blk *block.Block) error {
 	timer := sf.timerFactory.NewTimer("Commit")
 	sf.mutex.Unlock()
 	defer timer.End()
+	return sf.commitBlock(ctx, blk)
+}
+
+// PutBlock persists all changes in RunActions() into the DB
+func (sf *factory) PutBlock(ctx context.Context, blk *block.Block) error {
+	return sf.commitBlock(ctx, blk)
+}
+
+// DeleteTipBlock delete blk
+func (sf *factory) DeleteTipBlock(blk *block.Block) error {
+	return nil
+}
+
+// State returns a confirmed state in the state factory
+func (sf *factory) State(addr hash.Hash160, state interface{}, opts ...protocol.StateOption) error {
+	sf.mutex.RLock()
+	defer sf.mutex.RUnlock()
+	cfg, err := protocol.CreateStateConfig(opts...)
+	if err != nil {
+		return err
+	}
+	if cfg.AtHeight {
+		return sf.stateAtHeight(cfg.Height, addr, state)
+	}
+	return sf.state(addr, state)
+}
+
+// DeleteWorkingSet returns true if it remove ws from workingsets cache successfully
+func (sf *factory) DeleteWorkingSet(blk *block.Block) error {
+	sf.mutex.RLock()
+	defer sf.mutex.RUnlock()
+
+	key := generateWorkingSetCacheKey(blk.Header, blk.Header.ProducerAddress())
+	sf.workingsets.Remove(key)
+	return nil
+}
+
+//======================================
+// private trie constructor functions
+//======================================
+
+func (sf *factory) commitBlock(ctx context.Context, blk *block.Block) error {
 	producer, err := address.FromBytes(blk.PublicKey().Hash())
 	if err != nil {
 		return err
@@ -367,34 +409,6 @@ func (sf *factory) Commit(ctx context.Context, blk *block.Block) error {
 
 	return sf.commit(ws)
 }
-
-// State returns a confirmed state in the state factory
-func (sf *factory) State(addr hash.Hash160, state interface{}, opts ...protocol.StateOption) error {
-	sf.mutex.RLock()
-	defer sf.mutex.RUnlock()
-	cfg, err := protocol.CreateStateConfig(opts...)
-	if err != nil {
-		return err
-	}
-	if cfg.AtHeight {
-		return sf.stateAtHeight(cfg.Height, addr, state)
-	}
-	return sf.state(addr, state)
-}
-
-// DeleteWorkingSet returns true if it remove ws from workingsets cache successfully
-func (sf *factory) DeleteWorkingSet(blk *block.Block) error {
-	sf.mutex.RLock()
-	defer sf.mutex.RUnlock()
-
-	key := generateWorkingSetCacheKey(blk.Header, blk.Header.ProducerAddress())
-	sf.workingsets.Remove(key)
-	return nil
-}
-
-//======================================
-// private trie constructor functions
-//======================================
 
 func (sf *factory) rootHash() hash.Hash256 {
 	return hash.BytesToHash256(sf.accountTrie.RootHash())
