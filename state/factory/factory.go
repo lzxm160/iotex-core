@@ -66,6 +66,8 @@ type (
 		SimulateExecution(context.Context, address.Address, *action.Execution, evm.GetBlockHash) ([]byte, *action.Receipt, error)
 		Commit(context.Context, *block.Block) error
 		DeleteWorkingSet(*block.Block) error
+		DeleteTipBlock(*block.Block) error
+		PutBlock(context.Context, *block.Block) error
 	}
 
 	// factory implements StateFactory interface, tracks changes to account/contract and batch-commits to DB
