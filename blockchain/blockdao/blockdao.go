@@ -195,11 +195,10 @@ func NewBlockDAO(kvstore db.KVStore, compressBlock bool, cfg config.DB, opts ...
 	}
 	blockDAO.timerFactory = timerFactory
 	blockDAO.lifecycle.Add(kvstore)
-	for _, indexer := range blockDAO.indexer {
-		if indexer != nil {
-			blockDAO.lifecycle.Add(indexer)
-		}
+	if blockDAO.indexer[0] != nil {
+		blockDAO.lifecycle.Add(blockDAO.indexer[0])
 	}
+
 	return blockDAO
 }
 
