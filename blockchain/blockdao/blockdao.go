@@ -40,7 +40,6 @@ import (
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/prometheustimer"
 	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
-	"github.com/iotexproject/iotex-core/state/factory"
 )
 
 const (
@@ -125,8 +124,7 @@ type (
 	blockDAO struct {
 		compressBlock bool
 		kvstore       db.KVStore
-		indexer       BlockIndexer
-		sf            BlockIndexer
+		indexer       [2]BlockIndexer
 		htf           db.RangeIndex
 		kvstores      sync.Map //store like map[index]db.KVStore,index from 1...N
 		topIndex      atomic.Value
@@ -147,21 +145,21 @@ type Option func(*blockDAO) error
 // IndexerOption sets dao with BlockIndexer
 func IndexerOption(indexer blockindex.Indexer) Option {
 	return func(dao *blockDAO) error {
-		if dao.indexer != nil {
+		if dao.indexer[0] != nil {
 			return nil
 		}
-		dao.indexer = indexer
+		dao.indexer[0] = indexer
 		return nil
 	}
 }
 
 // FactoryOption sets dao with BlockIndexer
-func FactoryOption(sf factory.Factory) Option {
+func FactoryOption(sf BlockIndexer) Option {
 	return func(dao *blockDAO) error {
-		if dao.sf != nil {
+		if dao.indexer[1] != nil {
 			return nil
 		}
-		dao.sf = sf
+		dao.indexer[1] = sf
 		return nil
 	}
 }
@@ -172,6 +170,7 @@ func NewBlockDAO(kvstore db.KVStore, compressBlock bool, cfg config.DB, opts ...
 		compressBlock: compressBlock,
 		kvstore:       kvstore,
 		cfg:           cfg,
+		indexer:       [2]BlockIndexer{},
 	}
 	for _, opt := range opts {
 		if err := opt(blockDAO); err != nil {
@@ -194,8 +193,10 @@ func NewBlockDAO(kvstore db.KVStore, compressBlock bool, cfg config.DB, opts ...
 	}
 	blockDAO.timerFactory = timerFactory
 	blockDAO.lifecycle.Add(kvstore)
-	if blockDAO.indexer != nil {
-		blockDAO.lifecycle.Add(blockDAO.indexer)
+	for _, indexer := range blockDAO.indexer {
+		if indexer != nil {
+			blockDAO.lifecycle.Add(indexer)
+		}
 	}
 	return blockDAO
 }
@@ -395,10 +396,10 @@ func (dao *blockDAO) PutBlock(blk *block.Block) error {
 		return err
 	}
 	// index the block if there's indexer
-	if dao.indexer == nil {
+	if dao.indexer[0] == nil {
 		return nil
 	}
-	return dao.indexer.PutBlock(protocol.WithCommitCtx(context.Background(), true), blk)
+	return dao.indexer[0].PutBlock(protocol.WithCommitCtx(context.Background(), true), blk)
 }
 
 func (dao *blockDAO) DeleteBlockToTarget(targetHeight uint64) error {
@@ -419,8 +420,8 @@ func (dao *blockDAO) DeleteBlockToTarget(targetHeight uint64) error {
 			return errors.Wrap(err, "failed to get tip block")
 		}
 		// delete block index if there's indexer
-		if dao.indexer != nil {
-			if err := dao.indexer.DeleteTipBlock(blk); err != nil {
+		if dao.indexer[1] != nil {
+			if err := dao.indexer[1].DeleteTipBlock(blk); err != nil {
 				return err
 			}
 		}
