@@ -18,6 +18,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/iotexproject/iotex-core/state/factory"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
@@ -258,30 +260,37 @@ func (dao *blockDAO) StartExistingBlockchain(ctx context.Context, gas uint64) er
 		return errors.New("statefactory cannot be nil")
 	}
 	sf := dao.indexer[1]
-	stateHeight, err := sf.Height()
-	if err != nil {
-		return err
-	}
+	//stateHeight, err := sf.Height()
+	//if err != nil {
+	//	return err
+	//}
 	tipHeight := dao.GetTipHeight()
-	if stateHeight > tipHeight {
-		return errors.New("factory is higher than blockchain")
+	//if stateHeight > tipHeight {
+	//	return errors.New("factory is higher than blockchain")
+	//}
+	//	//
+	//	//for i := stateHeight + 1; i <= tipHeight; i++ {
+	//	//	blk, err := dao.GetBlockByHeight(i)
+	//	//	if err != nil {
+	//	//		return err
+	//	//	}
+	//	//	producer, err := address.FromBytes(blk.PublicKey().Hash())
+	//	//	if err != nil {
+	//	//		return err
+	//	//	}
+	//	//	ctx = dao.contextWithBlock(ctx, producer, blk.Height(), blk.Timestamp(), gas)
+	//	//	if err := sf.PutBlock(ctx, blk); err != nil {
+	//	//		return err
+	//	//	}
+	//	//}
+	if f, ok := sf.(factory.Factory); ok {
+		err := f.Adjust()
+		if err != nil {
+			return errors.Wrap(err, "failed to adjust sf's block")
+		}
 	}
 
-	for i := stateHeight + 1; i <= tipHeight; i++ {
-		blk, err := dao.GetBlockByHeight(i)
-		if err != nil {
-			return err
-		}
-		producer, err := address.FromBytes(blk.PublicKey().Hash())
-		if err != nil {
-			return err
-		}
-		ctx = dao.contextWithBlock(ctx, producer, blk.Height(), blk.Timestamp(), gas)
-		if err := sf.PutBlock(ctx, blk); err != nil {
-			return err
-		}
-	}
-	stateHeight, err = sf.Height()
+	stateHeight, err := sf.Height()
 	if err != nil {
 		return errors.Wrap(err, "failed to get factory's height")
 	}

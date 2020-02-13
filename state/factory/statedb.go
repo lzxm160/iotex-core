@@ -234,6 +234,11 @@ func (sdb *stateDB) PutBlock(ctx context.Context, blk *block.Block) error {
 
 // DeleteTipBlock delete blk
 func (sdb *stateDB) DeleteTipBlock(blk *block.Block) error {
+	return ErrNotSupported
+}
+
+// Adjust adjust chaindb and chainxxx.db
+func (sdb *stateDB) Adjust() error {
 	return nil
 }
 
