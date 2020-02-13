@@ -280,12 +280,6 @@ func (dao *blockDAO) StartExistingBlockchain(ctx context.Context, gas uint64) er
 			return err
 		}
 	}
-	//if f, ok := sf.(factory.Factory); ok {
-	//	err := f.Adjust()
-	//	if err != nil {
-	//		return errors.Wrap(err, "failed to adjust sf's block")
-	//	}
-	//}
 
 	stateHeight, err = sf.Height()
 	if err != nil {

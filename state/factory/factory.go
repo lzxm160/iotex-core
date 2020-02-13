@@ -68,7 +68,6 @@ type (
 		DeleteWorkingSet(*block.Block) error
 		DeleteTipBlock(*block.Block) error
 		PutBlock(context.Context, *block.Block) error
-		Adjust() error
 	}
 
 	// factory implements StateFactory interface, tracks changes to account/contract and batch-commits to DB
@@ -337,11 +336,6 @@ func (sf *factory) PutBlock(ctx context.Context, blk *block.Block) error {
 // DeleteTipBlock delete blk
 func (sf *factory) DeleteTipBlock(blk *block.Block) error {
 	return ErrNotSupported
-}
-
-// Adjust adjust chaindb and chainxxx.db
-func (sf *factory) Adjust() error {
-	return nil
 }
 
 // State returns a confirmed state in the state factory

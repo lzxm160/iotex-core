@@ -237,11 +237,6 @@ func (sdb *stateDB) DeleteTipBlock(blk *block.Block) error {
 	return ErrNotSupported
 }
 
-// Adjust adjust chaindb and chainxxx.db
-func (sdb *stateDB) Adjust() error {
-	return nil
-}
-
 // State returns a confirmed state in the state factory
 func (sdb *stateDB) State(addr hash.Hash160, state interface{}, opts ...protocol.StateOption) error {
 	sdb.mutex.Lock()
