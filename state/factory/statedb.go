@@ -224,7 +224,7 @@ func (sdb *stateDB) SimulateExecution(
 }
 
 // Commit persists all changes in RunActions() into the DB
-func (sdb *stateDB) Commit(ctx context.Context, blk *block.Block) error {
+func (sdb *stateDB) PutBlock(ctx context.Context, blk *block.Block) error {
 	sdb.mutex.Lock()
 	timer := sdb.timerFactory.NewTimer("Commit")
 	sdb.mutex.Unlock()
@@ -233,9 +233,9 @@ func (sdb *stateDB) Commit(ctx context.Context, blk *block.Block) error {
 }
 
 // Commit persists all changes in RunActions() into the DB
-func (sdb *stateDB) PutBlock(ctx context.Context, blk *block.Block) error {
-	return sdb.commitBlock(ctx, blk)
-}
+//func (sdb *stateDB) PutBlock(ctx context.Context, blk *block.Block) error {
+//	return sdb.commitBlock(ctx, blk)
+//}
 
 // DeleteTipBlock delete blk
 func (sdb *stateDB) DeleteTipBlock(blk *block.Block) error {

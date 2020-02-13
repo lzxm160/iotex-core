@@ -64,7 +64,7 @@ type (
 		NewWorkingSet() (WorkingSet, error)
 		Validate(context.Context, *block.Block) error
 		SimulateExecution(context.Context, address.Address, *action.Execution, evm.GetBlockHash) ([]byte, *action.Receipt, error)
-		Commit(context.Context, *block.Block) error
+		//Commit(context.Context, *block.Block) error
 		DeleteWorkingSet(*block.Block) error
 		DeleteTipBlock(*block.Block) error
 		PutBlock(context.Context, *block.Block) error
@@ -325,16 +325,11 @@ func (sf *factory) SimulateExecution(
 }
 
 // Commit persists all changes in RunActions() into the DB
-func (sf *factory) Commit(ctx context.Context, blk *block.Block) error {
+func (sf *factory) PutBlock(ctx context.Context, blk *block.Block) error {
 	sf.mutex.Lock()
 	timer := sf.timerFactory.NewTimer("Commit")
 	sf.mutex.Unlock()
 	defer timer.End()
-	return sf.commitBlock(ctx, blk)
-}
-
-// PutBlock persists all changes in RunActions() into the DB
-func (sf *factory) PutBlock(ctx context.Context, blk *block.Block) error {
 	return sf.commitBlock(ctx, blk)
 }
 
