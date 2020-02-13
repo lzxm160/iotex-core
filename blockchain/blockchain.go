@@ -556,7 +556,7 @@ func (bc *blockchain) commitBlock(ctx context.Context, blk *block.Block) error {
 
 	// commit state/contract changes
 	sfTimer := bc.timerFactory.NewTimer("sf.Commit")
-	err = bc.sf.Commit(ctx, blk)
+	err = bc.sf.PutBlock(ctx, blk)
 	sfTimer.End()
 	// detach working set so it can be freed by GC
 	if err != nil {
