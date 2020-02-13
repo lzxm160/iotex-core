@@ -420,8 +420,8 @@ func (dao *blockDAO) DeleteBlockToTarget(targetHeight uint64) error {
 			return errors.Wrap(err, "failed to get tip block")
 		}
 		// delete block index if there's indexer
-		if dao.indexer[1] != nil {
-			if err := dao.indexer[1].DeleteTipBlock(blk); err != nil {
+		if dao.indexer[0] != nil {
+			if err := dao.indexer[0].DeleteTipBlock(blk); err != nil {
 				return err
 			}
 		}
