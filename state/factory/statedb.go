@@ -232,11 +232,6 @@ func (sdb *stateDB) PutBlock(ctx context.Context, blk *block.Block) error {
 	return sdb.commitBlock(ctx, blk)
 }
 
-// Commit persists all changes in RunActions() into the DB
-//func (sdb *stateDB) PutBlock(ctx context.Context, blk *block.Block) error {
-//	return sdb.commitBlock(ctx, blk)
-//}
-
 // DeleteTipBlock delete blk
 func (sdb *stateDB) DeleteTipBlock(blk *block.Block) error {
 	return nil

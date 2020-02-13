@@ -152,7 +152,7 @@ func TestActPool_validateGenericAction(t *testing.T) {
 		SignAndBuild(identityset.PrivateKey(27))
 	require.NoError(err)
 
-	require.NoError(sf.Commit(ctx, &blk))
+	require.NoError(sf.PutBlock(ctx, &blk))
 	ap.Reset()
 	nTsf, err := testutil.SignedTransfer(addr1, priKey1, uint64(1), big.NewInt(60), []byte{}, uint64(100000), big.NewInt(0))
 	require.NoError(err)
@@ -479,7 +479,7 @@ func TestActPool_removeConfirmedActs(t *testing.T) {
 		SignAndBuild(identityset.PrivateKey(27))
 	require.NoError(err)
 
-	require.NoError(sf.Commit(ctx, &blk))
+	require.NoError(sf.PutBlock(ctx, &blk))
 	ap.removeConfirmedActs()
 	require.Equal(0, len(ap.allActions))
 	require.Nil(ap.accountActs[addr1])
@@ -631,7 +631,7 @@ func TestActPool_Reset(t *testing.T) {
 		SignAndBuild(identityset.PrivateKey(27))
 	require.NoError(err)
 
-	require.NoError(sf.Commit(ctx, &blk))
+	require.NoError(sf.PutBlock(ctx, &blk))
 	//Reset
 	ap1.Reset()
 	ap2.Reset()
@@ -741,7 +741,7 @@ func TestActPool_Reset(t *testing.T) {
 		SignAndBuild(identityset.PrivateKey(27))
 	require.NoError(err)
 
-	require.NoError(sf.Commit(ctx, &blk))
+	require.NoError(sf.PutBlock(ctx, &blk))
 	//Reset
 	ap1.Reset()
 	ap2.Reset()
@@ -843,7 +843,7 @@ func TestActPool_Reset(t *testing.T) {
 		AddActions(actionMap2Slice(pickedActs)...).
 		SignAndBuild(identityset.PrivateKey(27))
 	require.NoError(err)
-	require.NoError(sf.Commit(ctx, &blk))
+	require.NoError(sf.PutBlock(ctx, &blk))
 	//Reset
 	ap1.Reset()
 	// Check confirmed nonce, pending nonce, and pending balance after resetting actpool for each account
@@ -1132,7 +1132,7 @@ func TestActPool_GetSize(t *testing.T) {
 		SignAndBuild(identityset.PrivateKey(27))
 	require.NoError(err)
 
-	require.NoError(sf.Commit(ctx, &blk))
+	require.NoError(sf.PutBlock(ctx, &blk))
 	ap.removeConfirmedActs()
 	require.Equal(uint64(0), ap.GetSize())
 	require.Equal(uint64(0), ap.GetGasSize())
