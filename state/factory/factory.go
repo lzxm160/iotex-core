@@ -13,8 +13,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/iotexproject/iotex-core/blockchain/blockdao"
-
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -70,7 +68,6 @@ type (
 		DeleteWorkingSet(*block.Block) error
 		DeleteTipBlock(*block.Block) error
 		PutBlock(context.Context, *block.Block) error
-		Adjust(blockdao.BlockDAO) error
 	}
 
 	// factory implements StateFactory interface, tracks changes to account/contract and batch-commits to DB
@@ -339,29 +336,6 @@ func (sf *factory) PutBlock(ctx context.Context, blk *block.Block) error {
 // DeleteTipBlock delete blk
 func (sf *factory) DeleteTipBlock(blk *block.Block) error {
 	return ErrNotSupported
-}
-
-// Adjust adjust exist blocks
-func (sf *factory) Adjust(dao blockdao.BlockDAO) error {
-	stateHeight, err := sf.Height()
-	if err != nil {
-		return err
-	}
-	tipHeight := dao.GetTipHeight()
-	if stateHeight > tipHeight {
-		return errors.New("factory is higher than blockchain")
-	}
-
-	for i := stateHeight + 1; i <= tipHeight; i++ {
-		blk, err := dao.GetBlockByHeight(i)
-		if err != nil {
-			return err
-		}
-		if err := sf.commitBlock(context.Background(), blk); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // State returns a confirmed state in the state factory

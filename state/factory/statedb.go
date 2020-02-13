@@ -12,9 +12,6 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/iotexproject/iotex-core/blockchain/blockdao"
-
-	lru "github.com/hashicorp/golang-lru"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -266,29 +263,6 @@ func (sdb *stateDB) DeleteWorkingSet(blk *block.Block) error {
 
 	key := generateWorkingSetCacheKey(blk.Header, blk.Header.ProducerAddress())
 	sdb.workingsets.Remove(key)
-	return nil
-}
-
-// Adjust adjust exist blocks
-func (sdb *stateDB) Adjust(dao blockdao.BlockDAO) error {
-	stateHeight, err := sdb.Height()
-	if err != nil {
-		return err
-	}
-	tipHeight := dao.GetTipHeight()
-	if stateHeight > tipHeight {
-		return errors.New("factory is higher than blockchain")
-	}
-
-	for i := stateHeight + 1; i <= tipHeight; i++ {
-		blk, err := dao.GetBlockByHeight(i)
-		if err != nil {
-			return err
-		}
-		if err := sdb.commitBlock(context.Background(), blk); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
