@@ -254,10 +254,11 @@ func (dao *blockDAO) initStores() error {
 }
 
 func (dao *blockDAO) StartExistingBlockchain(ctx context.Context, gas uint64) error {
-	if dao.sf == nil {
+	if dao.indexer[1] == nil {
 		return errors.New("statefactory cannot be nil")
 	}
-	stateHeight, err := dao.sf.Height()
+	sf := dao.indexer[1]
+	stateHeight, err := sf.Height()
 	if err != nil {
 		return err
 	}
@@ -276,11 +277,11 @@ func (dao *blockDAO) StartExistingBlockchain(ctx context.Context, gas uint64) er
 			return err
 		}
 		ctx = dao.contextWithBlock(ctx, producer, blk.Height(), blk.Timestamp(), gas)
-		if err := dao.sf.PutBlock(ctx, blk); err != nil {
+		if err := sf.PutBlock(ctx, blk); err != nil {
 			return err
 		}
 	}
-	stateHeight, err = dao.sf.Height()
+	stateHeight, err = sf.Height()
 	if err != nil {
 		return errors.Wrap(err, "failed to get factory's height")
 	}
