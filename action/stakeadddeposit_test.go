@@ -38,7 +38,7 @@ func TestDepositSignVerify(t *testing.T) {
 	require.NotNil(selp)
 	require.Equal("080118c0843d22023130da020f080a120231301a077061796c6f6164", hex.EncodeToString(selp.Serialize()))
 	hash := selp.Hash()
-	require.Equal("a324d56f5b50e86aab27c0c6d33f9699f36d3ed8e27967a56e644f582bbd5e2d", hex.EncodeToString(hash[:]))
+	require.Equal("ca8937d6f224a4e4bf93cb5605581de2d26fb0481e1dfc1eef384ee7ccf94b73", hex.EncodeToString(hash[:]))
 	// verify signature
 	require.NoError(Verify(selp))
 }
