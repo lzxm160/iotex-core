@@ -48,7 +48,7 @@ func TestDeposit(t *testing.T) {
 	require.NoError(err)
 
 	ser := ds.Serialize()
-	require.Equal("0a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611202313018e80720012a077061796c6f6164", hex.EncodeToString(ser))
+	require.Equal("080a120231301a077061796c6f6164", hex.EncodeToString(ser))
 
 	require.NoError(err)
 	require.Equal(gaslimit, ds.GasLimit())
