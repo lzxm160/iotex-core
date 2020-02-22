@@ -80,11 +80,10 @@ func TestCreateStake(t *testing.T) {
 
 	gas, err := cs.IntrinsicGas()
 	require.NoError(err)
-	fmt.Println(gas)
-	require.Equal(uint64(10000), gas)
+	require.Equal(uint64(10700), gas)
 	cost, err := cs.Cost()
 	require.NoError(err)
-	require.Equal("100010", cost.Text(10))
+	require.Equal("10700", cost.Text(10))
 
 	proto := cs.Proto()
 	cs2 := &CreateStake{}
