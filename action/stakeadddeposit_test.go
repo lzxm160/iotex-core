@@ -31,7 +31,7 @@ func TestDepositSignVerify(t *testing.T) {
 		SetGasPrice(gasprice).
 		SetAction(ds).Build()
 	h := elp.Hash()
-	require.Equal("219483a7309db9f1c41ac3fa0aadecfbdbeb0448b0dfaee54daec4ec178aa9f1", hex.EncodeToString(h[:]))
+	require.Equal("9089e7eb1afed64fcdbd3c7ee29a6cedab9aa59cf3f7881dfaa3d19f99f09338", hex.EncodeToString(h[:]))
 	// sign
 	selp, err := Sign(elp, senderKey)
 	require.NoError(err)
