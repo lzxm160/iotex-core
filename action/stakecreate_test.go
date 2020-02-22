@@ -31,6 +31,7 @@ var (
 func TestCreateStakeSignVerify(t *testing.T) {
 	require := require.New(t)
 	senderKey := identityset.PrivateKey(27)
+	fmt.Println("pri:", senderKey.HexString())
 
 	cs, err := NewCreateStake(nonce, canName, amount, duration, autoStake, payload, gaslimit, gasprice)
 	require.NoError(err)
@@ -39,12 +40,13 @@ func TestCreateStakeSignVerify(t *testing.T) {
 	elp := bd.SetGasLimit(gaslimit).
 		SetGasPrice(gasprice).
 		SetAction(cs).Build()
-
+	h := elp.Hash()
+	fmt.Println("hash:", hex.EncodeToString(h[:]))
 	// sign
 	selp, err := Sign(elp, senderKey)
 	require.NoError(err)
 	require.NotNil(selp)
-
+	fmt.Println("selp:", hex.EncodeToString(selp.Serialize()))
 	// verify signature
 	require.NoError(Verify(selp))
 }
