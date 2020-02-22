@@ -8,6 +8,7 @@ package action
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -28,6 +29,8 @@ var (
 )
 
 func TestCreateStakeSignVerify(t *testing.T) {
+	test := []byte{10}
+	fmt.Println(test)
 	require := require.New(t)
 	senderKey := identityset.PrivateKey(27)
 	require.Equal("cfa6ef757dee2e50351620dca002d32b9c090cfda55fb81f37f1d26b273743f1", senderKey.HexString())
