@@ -69,7 +69,7 @@ func TestDeposit(t *testing.T) {
 	proto := ds.Proto()
 	ds2 := &DepositToStake{}
 	require.NoError(ds2.LoadProto(proto))
-	require.Equal(amount, ds2.Amount().Text(10))
+	require.Equal(amount, ds2.Amount())
 	require.Equal(payload, ds2.Payload())
 	require.Equal(amount, ds2.Amount())
 	require.Equal(payload, ds2.Payload())
