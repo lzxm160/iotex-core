@@ -51,7 +51,8 @@ func TestCreateStake(t *testing.T) {
 
 	gaslimit := uint64(1000000)
 	gasprice := big.NewInt(10)
-	cs, err := NewCreateStake(0, "can", "10", 1000, true, []byte("payload"), gaslimit, gasprice)
+	canName := "io1xpq62aw85uqzrccg9y5hnryv8ld2nkpycc3gza"
+	cs, err := NewCreateStake(0, canName, "10", 1000, true, []byte("payload"), gaslimit, gasprice)
 	require.NoError(err)
 
 	ser := cs.Serialize()
@@ -95,7 +96,7 @@ func TestCreateStake(t *testing.T) {
 	require.Equal("10", cs2.GasPrice().Text(10))
 	require.Equal(uint64(0), cs2.Nonce())
 
-	require.Equal("can", cs2.Candidate())
+	require.Equal(canName, cs2.Candidate())
 	require.Equal(1000, cs2.Duration())
 	require.True(cs2.AutoStake())
 }
