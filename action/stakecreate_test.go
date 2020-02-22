@@ -8,7 +8,6 @@ package action
 
 import (
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -31,8 +30,7 @@ var (
 func TestCreateStakeSignVerify(t *testing.T) {
 	require := require.New(t)
 	senderKey := identityset.PrivateKey(27)
-	fmt.Println("pri:", senderKey.HexString())
-
+	require.Equal("cfa6ef757dee2e50351620dca002d32b9c090cfda55fb81f37f1d26b273743f1", senderKey.HexString())
 	cs, err := NewCreateStake(nonce, canName, amount, duration, autoStake, payload, gaslimit, gasprice)
 	require.NoError(err)
 
@@ -41,12 +39,12 @@ func TestCreateStakeSignVerify(t *testing.T) {
 		SetGasPrice(gasprice).
 		SetAction(cs).Build()
 	h := elp.Hash()
-	fmt.Println("hash:", hex.EncodeToString(h[:]))
+	require.Equal("219483a7309db9f1c41ac3fa0aadecfbdbeb0448b0dfaee54daec4ec178aa9f1", hex.EncodeToString(h[:]))
 	// sign
 	selp, err := Sign(elp, senderKey)
 	require.NoError(err)
 	require.NotNil(selp)
-	fmt.Println("selp:", hex.EncodeToString(selp.Serialize()))
+	require.Equal("080118c0843d22023130c2023d0a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611202313018e80720012a077061796c6f6164", hex.EncodeToString(selp.Serialize()))
 	// verify signature
 	require.NoError(Verify(selp))
 }
@@ -56,7 +54,7 @@ func TestCreateStake(t *testing.T) {
 	require.NoError(err)
 
 	ser := cs.Serialize()
-	fmt.Println("CreateStake ser:", hex.EncodeToString(ser))
+	require.Equal("0a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611202313018e80720012a077061796c6f6164", hex.EncodeToString(ser))
 
 	require.NoError(err)
 	require.Equal(gaslimit, cs.GasLimit())
