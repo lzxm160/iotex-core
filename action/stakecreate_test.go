@@ -74,10 +74,8 @@ func TestCreateStake(t *testing.T) {
 	require.Equal("10", cs.GasPrice().Text(10))
 	require.Equal(uint64(0), cs.Nonce())
 
-	require.Equal("can", cs.Candidate())
-	dur := cs.Duration()
-	fmt.Println("dur:", dur)
-	require.Equal(uint32(1000), dur)
+	require.Equal(canName, cs.Candidate())
+	require.Equal(uint32(1000), cs.Duration())
 	require.True(cs.AutoStake())
 
 	gas, err := cs.IntrinsicGas()
