@@ -47,35 +47,29 @@ func TestCreateStakeSignVerify(t *testing.T) {
 }
 func TestCreateStake(t *testing.T) {
 	require := require.New(t)
-	senderKey := identityset.PrivateKey(27)
-
 	gaslimit := uint64(1000000)
 	gasprice := big.NewInt(10)
 	canName := "io1xpq62aw85uqzrccg9y5hnryv8ld2nkpycc3gza"
-	cs, err := NewCreateStake(0, canName, "10", 1000, true, []byte("payload"), gaslimit, gasprice)
+	payload := []byte("payload")
+	amount := "10"
+	nonce := uint64(0)
+	duration := uint32(1000)
+	autoStake := true
+	cs, err := NewCreateStake(nonce, canName, amount, duration, autoStake, payload, gaslimit, gasprice)
 	require.NoError(err)
 
 	ser := cs.Serialize()
 	fmt.Println("CreateStake ser:", hex.EncodeToString(ser))
-	bd := &EnvelopeBuilder{}
-	elp := bd.SetGasLimit(gaslimit).
-		SetGasPrice(gasprice).
-		SetAction(cs).Build()
-
-	ser = elp.Serialize()
-	fmt.Println("CreateStake elp ser:", hex.EncodeToString(ser))
-	w := AssembleSealedEnvelope(elp, senderKey.PublicKey(), []byte("lol"))
-	require.Error(Verify(w))
 
 	require.NoError(err)
-	require.Equal("10", cs.Amount().Text(10))
-	require.Equal([]byte("payload"), cs.Payload())
 	require.Equal(gaslimit, cs.GasLimit())
-	require.Equal("10", cs.GasPrice().Text(10))
-	require.Equal(uint64(0), cs.Nonce())
+	require.Equal(gasprice, cs.GasPrice())
+	require.Equal(nonce, cs.Nonce())
 
+	require.Equal(amount, cs.Amount().Text(10))
+	require.Equal(payload, cs.Payload())
 	require.Equal(canName, cs.Candidate())
-	require.Equal(uint32(1000), cs.Duration())
+	require.Equal(duration, cs.Duration())
 	require.True(cs.AutoStake())
 
 	gas, err := cs.IntrinsicGas()
@@ -88,13 +82,9 @@ func TestCreateStake(t *testing.T) {
 	proto := cs.Proto()
 	cs2 := &CreateStake{}
 	require.NoError(cs2.LoadProto(proto))
-	require.Equal("10", cs2.Amount().Text(10))
-	require.Equal([]byte("payload"), cs2.Payload())
-	require.Equal(gaslimit, cs2.GasLimit())
-	require.Equal("10", cs2.GasPrice().Text(10))
-	require.Equal(uint64(0), cs2.Nonce())
-
+	require.Equal(amount, cs2.Amount().Text(10))
+	require.Equal(payload, cs2.Payload())
 	require.Equal(canName, cs2.Candidate())
-	require.Equal(1000, cs2.Duration())
+	require.Equal(duration, cs2.Duration())
 	require.True(cs2.AutoStake())
 }
