@@ -62,7 +62,6 @@ func (sm *moveStake) LoadProto(pbAct *iotextypes.StakeMove) error {
 	if pbAct == nil {
 		return errors.New("empty action Proto ts load")
 	}
-	sm = &moveStake{}
 
 	sm.bucketIndex = pbAct.GetBucketIndex()
 	sm.payload = pbAct.GetPayload()
