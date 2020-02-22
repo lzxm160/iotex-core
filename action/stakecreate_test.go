@@ -17,27 +17,30 @@ import (
 	"github.com/iotexproject/iotex-core/test/identityset"
 )
 
+var (
+	gaslimit  = uint64(1000000)
+	gasprice  = big.NewInt(10)
+	canName   = "io1xpq62aw85uqzrccg9y5hnryv8ld2nkpycc3gza"
+	payload   = []byte("payload")
+	amount    = "10"
+	nonce     = uint64(0)
+	duration  = uint32(1000)
+	autoStake = true
+)
+
 func TestCreateStakeSignVerify(t *testing.T) {
 	require := require.New(t)
-	recipientAddr := identityset.Address(28)
 	senderKey := identityset.PrivateKey(27)
 
-	tsf, err := NewTransfer(0, big.NewInt(10), recipientAddr.String(), []byte{}, uint64(100000), big.NewInt(10))
+	cs, err := NewCreateStake(nonce, canName, amount, duration, autoStake, payload, gaslimit, gasprice)
 	require.NoError(err)
 
-	tsf.Proto()
-
 	bd := &EnvelopeBuilder{}
-	elp := bd.SetGasLimit(uint64(100000)).
-		SetGasPrice(big.NewInt(10)).
-		SetAction(tsf).Build()
+	elp := bd.SetGasLimit(gaslimit).
+		SetGasPrice(gasprice).
+		SetAction(cs).Build()
 
-	elp.Serialize()
-
-	w := AssembleSealedEnvelope(elp, senderKey.PublicKey(), []byte("lol"))
-	require.Error(Verify(w))
-
-	// sign the transfer
+	// sign
 	selp, err := Sign(elp, senderKey)
 	require.NoError(err)
 	require.NotNil(selp)
@@ -47,14 +50,6 @@ func TestCreateStakeSignVerify(t *testing.T) {
 }
 func TestCreateStake(t *testing.T) {
 	require := require.New(t)
-	gaslimit := uint64(1000000)
-	gasprice := big.NewInt(10)
-	canName := "io1xpq62aw85uqzrccg9y5hnryv8ld2nkpycc3gza"
-	payload := []byte("payload")
-	amount := "10"
-	nonce := uint64(0)
-	duration := uint32(1000)
-	autoStake := true
 	cs, err := NewCreateStake(nonce, canName, amount, duration, autoStake, payload, gaslimit, gasprice)
 	require.NoError(err)
 
