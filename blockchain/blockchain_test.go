@@ -34,6 +34,7 @@ import (
 	"github.com/iotexproject/iotex-core/blockchain/genesis"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/pkg/unit"
+	"github.com/iotexproject/iotex-core/pkg/version"
 	"github.com/iotexproject/iotex-core/state/factory"
 	"github.com/iotexproject/iotex-core/test/identityset"
 	"github.com/iotexproject/iotex-core/testutil"
@@ -1190,4 +1191,35 @@ func addCreatorToFactory(sf factory.Factory) error {
 		return err
 	}
 	return sf.Commit(ws)
+}
+
+func TestNativeStaking(t *testing.T) {
+	//execution, err := action.(contractAddr, nonce, amount, gasLimit, gasPrice, data)
+	//if err != nil {
+	//	return action.SealedEnvelope{}, err
+	//}
+	//bd := &action.EnvelopeBuilder{}
+	//elp := bd.SetNonce(nonce).
+	//	SetGasPrice(gasPrice).
+	//	SetGasLimit(gasLimit).
+	//	SetAction(execution).Build()
+	//selp, err := action.Sign(elp, executorPriKey)
+	//if err != nil {
+	//	return action.SealedEnvelope{}, errors.Wrapf(err, "failed to sign execution %v", elp)
+	//}
+	//return selp, nil
+	srcPubKey := identityset.PrivateKey(27).PublicKey()
+	bd := &action.Builder{}
+	act := bd.SetVersion(version.ProtocolVersion).
+		SetNonce(2).
+		SetSourcePublicKey(srcPubKey).
+		SetGasLimit(10003).
+		SetGasPrice(big.NewInt(10004)).
+		Build()
+	type stakeCreate struct {
+		action.AbstractAction
+		amount    *big.Int
+		recipient string
+		payload   []byte
+	}
 }
