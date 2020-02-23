@@ -11,6 +11,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/iotex-core/test/identityset"
@@ -44,6 +45,9 @@ func TestCreateStakeSignVerify(t *testing.T) {
 	selp, err := Sign(elp, senderKey)
 	require.NoError(err)
 	require.NotNil(selp)
+	encoded, err := proto.Marshal(selp.Proto())
+	require.NoError(err)
+	require.Equal("080118c0843d22023130c2023d0a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611202313018e80720012a077061796c6f6164", hex.EncodeToString(encoded))
 	require.Equal("080118c0843d22023130c2023d0a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611202313018e80720012a077061796c6f6164", hex.EncodeToString(selp.Serialize()))
 	hash := selp.Hash()
 	require.Equal("a324d56f5b50e86aab27c0c6d33f9699f36d3ed8e27967a56e644f582bbd5e2d", hex.EncodeToString(hash[:]))
