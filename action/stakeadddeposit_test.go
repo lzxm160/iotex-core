@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"testing"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/iotex-core/test/identityset"
@@ -36,7 +37,9 @@ func TestDepositSignVerify(t *testing.T) {
 	selp, err := Sign(elp, senderKey)
 	require.NoError(err)
 	require.NotNil(selp)
-	require.Equal("080118c0843d22023130da020f080a120231301a077061796c6f6164", hex.EncodeToString(selp.Serialize()))
+	ser, err := proto.Marshal(selp.Proto())
+	require.NoError(err)
+	require.Equal("0a4a080118c0843d22023130c2023d0a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611202313018e80720012a077061796c6f6164124104755ce6d8903f6b3793bddb4ea5d3589d637de2d209ae0ea930815c82db564ee8cc448886f639e8a0c7e94e99a5c1335b583c0bc76ef30dd6a1038ed9da8daf331a415db41c974bc1d8edd59fad54c4eac41250981640c44183c1c3ed9e45873bf15c02f3575de59233aefd7ec6eecfa7254bf4b67501e96bea8a4d54a18b4e0e4fec01", hex.EncodeToString(ser))
 	hash := selp.Hash()
 	require.Equal("ca8937d6f224a4e4bf93cb5605581de2d26fb0481e1dfc1eef384ee7ccf94b73", hex.EncodeToString(hash[:]))
 	// verify signature
