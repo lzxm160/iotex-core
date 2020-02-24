@@ -16,32 +16,6 @@ import (
 	"github.com/iotexproject/iotex-core/test/identityset"
 )
 
-func TestUnstakeSignVerify(t *testing.T) {
-	require := require.New(t)
-	senderKey := identityset.PrivateKey(27)
-	require.Equal("cfa6ef757dee2e50351620dca002d32b9c090cfda55fb81f37f1d26b273743f1", senderKey.HexString())
-
-	stake, err := NewUnstake(nonce, index, payload, gaslimit, gasprice)
-	require.NoError(err)
-
-	bd := &EnvelopeBuilder{}
-	elp := bd.SetGasLimit(gaslimit).
-		SetGasPrice(gasprice).
-		SetAction(stake).Build()
-	h := elp.Hash()
-	require.Equal("9c806c793d5e452ecf944aa18b07fb8ee0b07fa37807b6480d1208bd591c5c92", hex.EncodeToString(h[:]))
-	// sign
-	selp, err := Sign(elp, senderKey)
-	require.NoError(err)
-	require.NotNil(selp)
-	ser, err := proto.Marshal(selp.Proto())
-	require.NoError(err)
-	require.Equal("0a18080118c0843d22023130ca020b080a12077061796c6f6164124104755ce6d8903f6b3793bddb4ea5d3589d637de2d209ae0ea930815c82db564ee8cc448886f639e8a0c7e94e99a5c1335b583c0bc76ef30dd6a1038ed9da8daf331a4100adee39b48e1d3dbbd65298a57c7889709fc4df39987130da306f6997374a184b7e7c232a42f21e89b06e6e7ceab81303c6b7483152d08d19ac829b22eb81e601", hex.EncodeToString(ser))
-	hash := selp.Hash()
-	require.Equal("bed58b64a6c4e959eca60a86f0b2149ce0e1dd527ac5fd26aef725ebf7c22a7d", hex.EncodeToString(hash[:]))
-	// verify signature
-	require.NoError(Verify(selp))
-}
 func TestUnstake(t *testing.T) {
 	require := require.New(t)
 	stake, err := NewUnstake(nonce, index, payload, gaslimit, gasprice)
@@ -70,4 +44,88 @@ func TestUnstake(t *testing.T) {
 	require.NoError(stake2.LoadProto(proto))
 	require.Equal(payload, stake2.Payload())
 	require.Equal(index, stake2.BucketIndex())
+}
+
+func TestUnstakeSignVerify(t *testing.T) {
+	require := require.New(t)
+	senderKey := identityset.PrivateKey(27)
+	require.Equal("cfa6ef757dee2e50351620dca002d32b9c090cfda55fb81f37f1d26b273743f1", senderKey.HexString())
+
+	stake, err := NewUnstake(nonce, index, payload, gaslimit, gasprice)
+	require.NoError(err)
+
+	bd := &EnvelopeBuilder{}
+	elp := bd.SetGasLimit(gaslimit).
+		SetGasPrice(gasprice).
+		SetAction(stake).Build()
+	h := elp.Hash()
+	require.Equal("9c806c793d5e452ecf944aa18b07fb8ee0b07fa37807b6480d1208bd591c5c92", hex.EncodeToString(h[:]))
+	// sign
+	selp, err := Sign(elp, senderKey)
+	require.NoError(err)
+	require.NotNil(selp)
+	ser, err := proto.Marshal(selp.Proto())
+	require.NoError(err)
+	require.Equal("0a18080118c0843d22023130ca020b080a12077061796c6f6164124104755ce6d8903f6b3793bddb4ea5d3589d637de2d209ae0ea930815c82db564ee8cc448886f639e8a0c7e94e99a5c1335b583c0bc76ef30dd6a1038ed9da8daf331a4100adee39b48e1d3dbbd65298a57c7889709fc4df39987130da306f6997374a184b7e7c232a42f21e89b06e6e7ceab81303c6b7483152d08d19ac829b22eb81e601", hex.EncodeToString(ser))
+	hash := selp.Hash()
+	require.Equal("bed58b64a6c4e959eca60a86f0b2149ce0e1dd527ac5fd26aef725ebf7c22a7d", hex.EncodeToString(hash[:]))
+	// verify signature
+	require.NoError(Verify(selp))
+}
+
+func TestWithdraw(t *testing.T) {
+	require := require.New(t)
+	stake, err := NewWithdrawStake(nonce, index, payload, gaslimit, gasprice)
+	require.NoError(err)
+
+	ser := stake.Serialize()
+	require.Equal("080a12077061796c6f6164", hex.EncodeToString(ser))
+
+	require.NoError(err)
+	require.Equal(gaslimit, stake.GasLimit())
+	require.Equal(gasprice, stake.GasPrice())
+	require.Equal(nonce, stake.Nonce())
+
+	require.Equal(payload, stake.Payload())
+	require.Equal(index, stake.BucketIndex())
+
+	gas, err := stake.IntrinsicGas()
+	require.NoError(err)
+	require.Equal(uint64(10700), gas)
+	cost, err := stake.Cost()
+	require.NoError(err)
+	require.Equal("107000", cost.Text(10))
+
+	proto := stake.Proto()
+	stake2 := &Unstake{}
+	require.NoError(stake2.LoadProto(proto))
+	require.Equal(payload, stake2.Payload())
+	require.Equal(index, stake2.BucketIndex())
+}
+
+func TestWithdrawSignVerify(t *testing.T) {
+	require := require.New(t)
+	senderKey := identityset.PrivateKey(27)
+	require.Equal("cfa6ef757dee2e50351620dca002d32b9c090cfda55fb81f37f1d26b273743f1", senderKey.HexString())
+
+	stake, err := NewWithdrawStake(nonce, index, payload, gaslimit, gasprice)
+	require.NoError(err)
+
+	bd := &EnvelopeBuilder{}
+	elp := bd.SetGasLimit(gaslimit).
+		SetGasPrice(gasprice).
+		SetAction(stake).Build()
+	h := elp.Hash()
+	require.Equal("9c806c793d5e452ecf944aa18b07fb8ee0b07fa37807b6480d1208bd591c5c92", hex.EncodeToString(h[:]))
+	// sign
+	selp, err := Sign(elp, senderKey)
+	require.NoError(err)
+	require.NotNil(selp)
+	ser, err := proto.Marshal(selp.Proto())
+	require.NoError(err)
+	require.Equal("0a18080118c0843d22023130ca020b080a12077061796c6f6164124104755ce6d8903f6b3793bddb4ea5d3589d637de2d209ae0ea930815c82db564ee8cc448886f639e8a0c7e94e99a5c1335b583c0bc76ef30dd6a1038ed9da8daf331a4100adee39b48e1d3dbbd65298a57c7889709fc4df39987130da306f6997374a184b7e7c232a42f21e89b06e6e7ceab81303c6b7483152d08d19ac829b22eb81e601", hex.EncodeToString(ser))
+	hash := selp.Hash()
+	require.Equal("bed58b64a6c4e959eca60a86f0b2149ce0e1dd527ac5fd26aef725ebf7c22a7d", hex.EncodeToString(hash[:]))
+	// verify signature
+	require.NoError(Verify(selp))
 }
