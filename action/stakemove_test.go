@@ -66,7 +66,7 @@ func TestChangeCandidateSignVerify(t *testing.T) {
 	require.NoError(err)
 	require.Equal("0a18080118c0843d22023130ea020b080a1a077061796c6f6164124104755ce6d8903f6b3793bddb4ea5d3589d637de2d209ae0ea930815c82db564ee8cc448886f639e8a0c7e94e99a5c1335b583c0bc76ef30dd6a1038ed9da8daf331a412b801345168f97445ed6f86555878451b8d7da09f72814c4159fe571f81aa7310eebfa17a1b3263b42f102861d485aea91424801a91c678e35527b3a19e16cf201", hex.EncodeToString(ser))
 	hash := selp.Hash()
-	require.Equal("8816e8f784a1fce40b54d1cd172bb6976fd9552f1570c73d1d9fcdc5635424a9", hex.EncodeToString(hash[:]))
+	require.Equal("06a692dee28596e28aa0fe2f7eb65a141d25dde7d1451b4eb529a25fe0572a79", hex.EncodeToString(hash[:]))
 	// verify signature
 	require.NoError(Verify(selp))
 }
