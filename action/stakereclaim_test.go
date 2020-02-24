@@ -38,7 +38,7 @@ func TestUnstakeSignVerify(t *testing.T) {
 	require.NoError(err)
 	require.Equal("0a18080118c0843d22023130ca020b080a12077061796c6f6164124104755ce6d8903f6b3793bddb4ea5d3589d637de2d209ae0ea930815c82db564ee8cc448886f639e8a0c7e94e99a5c1335b583c0bc76ef30dd6a1038ed9da8daf331a4100adee39b48e1d3dbbd65298a57c7889709fc4df39987130da306f6997374a184b7e7c232a42f21e89b06e6e7ceab81303c6b7483152d08d19ac829b22eb81e601", hex.EncodeToString(ser))
 	hash := selp.Hash()
-	require.Equal("ca8937d6f224a4e4bf93cb5605581de2d26fb0481e1dfc1eef384ee7ccf94b73", hex.EncodeToString(hash[:]))
+	require.Equal("bed58b64a6c4e959eca60a86f0b2149ce0e1dd527ac5fd26aef725ebf7c22a7d", hex.EncodeToString(hash[:]))
 	// verify signature
 	require.NoError(Verify(selp))
 }
