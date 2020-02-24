@@ -29,7 +29,7 @@ func TestUnstakeSignVerify(t *testing.T) {
 		SetGasPrice(gasprice).
 		SetAction(stake).Build()
 	h := elp.Hash()
-	require.Equal("9089e7eb1afed64fcdbd3c7ee29a6cedab9aa59cf3f7881dfaa3d19f99f09338", hex.EncodeToString(h[:]))
+	require.Equal("9c806c793d5e452ecf944aa18b07fb8ee0b07fa37807b6480d1208bd591c5c92", hex.EncodeToString(h[:]))
 	// sign
 	selp, err := Sign(elp, senderKey)
 	require.NoError(err)
