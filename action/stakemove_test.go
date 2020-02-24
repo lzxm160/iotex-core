@@ -1,4 +1,4 @@
-// Copyright (c) 2019 IoTeX Foundation
+// Copyright (c) 2020 IoTeX Foundation
 // This is an alpha (internal) release and is not suitable for production. This source code is provided 'as is' and no
 // warranties are given as to title or non-infringement, merchantability or fitness for purpose and, to the extent
 // permitted by law, all liability for your use of the code is disclaimed. This source code is governed by Apache
@@ -96,7 +96,7 @@ func TestStakingTransfer(t *testing.T) {
 	require.Equal("107000", cost.Text(10))
 
 	proto := stake.Proto()
-	stake2 := &ChangeCandidate{}
+	stake2 := &TransferStake{}
 	require.NoError(stake2.LoadProto(proto))
 	require.Equal(payload, stake2.Payload())
 	require.Equal(canName, stake2.Name())
