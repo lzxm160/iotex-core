@@ -12,8 +12,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/require"
-
-	"github.com/iotexproject/iotex-core/test/identityset"
 )
 
 func TestUnstake(t *testing.T) {
@@ -48,7 +46,6 @@ func TestUnstake(t *testing.T) {
 
 func TestUnstakeSignVerify(t *testing.T) {
 	require := require.New(t)
-	senderKey := identityset.PrivateKey(27)
 	require.Equal("cfa6ef757dee2e50351620dca002d32b9c090cfda55fb81f37f1d26b273743f1", senderKey.HexString())
 
 	stake, err := NewUnstake(nonce, index, payload, gaslimit, gasprice)
@@ -105,7 +102,7 @@ func TestWithdraw(t *testing.T) {
 
 func TestWithdrawSignVerify(t *testing.T) {
 	require := require.New(t)
-	senderKey := identityset.PrivateKey(27)
+
 	require.Equal("cfa6ef757dee2e50351620dca002d32b9c090cfda55fb81f37f1d26b273743f1", senderKey.HexString())
 
 	stake, err := NewWithdrawStake(nonce, index, payload, gaslimit, gasprice)

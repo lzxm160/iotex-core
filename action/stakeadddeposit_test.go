@@ -17,7 +17,8 @@ import (
 )
 
 var (
-	index = uint64(10)
+	index     = uint64(10)
+	senderKey = identityset.PrivateKey(27)
 )
 
 func TestDeposit(t *testing.T) {
@@ -54,7 +55,6 @@ func TestDeposit(t *testing.T) {
 
 func TestDepositSignVerify(t *testing.T) {
 	require := require.New(t)
-	senderKey := identityset.PrivateKey(27)
 	require.Equal("cfa6ef757dee2e50351620dca002d32b9c090cfda55fb81f37f1d26b273743f1", senderKey.HexString())
 	ds, err := NewDepositToStake(nonce, index, amount, payload, gaslimit, gasprice)
 	require.NoError(err)
