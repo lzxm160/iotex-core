@@ -49,7 +49,7 @@ func TestChangeCandidate(t *testing.T) {
 func TestChangeCandidateSignVerify(t *testing.T) {
 	require := require.New(t)
 	require.Equal("cfa6ef757dee2e50351620dca002d32b9c090cfda55fb81f37f1d26b273743f1", senderKey.HexString())
-	stake, err := NewRestake(nonce, index, duration, autoStake, payload, gaslimit, gasprice)
+	stake, err := NewChangeCandidate(nonce, canName, index, payload, gaslimit, gasprice)
 	require.NoError(err)
 
 	bd := &EnvelopeBuilder{}
