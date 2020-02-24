@@ -20,7 +20,7 @@ func TestRestake(t *testing.T) {
 	require.NoError(err)
 
 	ser := stake.Serialize()
-	require.Equal("080a120231301a077061796c6f6164", hex.EncodeToString(ser))
+	require.Equal("080a10e807180122077061796c6f6164", hex.EncodeToString(ser))
 
 	require.NoError(err)
 	require.Equal(gaslimit, stake.GasLimit())
