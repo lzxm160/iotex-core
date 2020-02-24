@@ -42,7 +42,7 @@ func TestChangeCandidate(t *testing.T) {
 	stake2 := &ChangeCandidate{}
 	require.NoError(stake2.LoadProto(proto))
 	require.Equal(payload, stake2.Payload())
-	require.Equal("", stake2.Name())
+	require.Equal(canName, stake2.Name())
 	require.Equal(index, stake2.BucketIndex())
 }
 
