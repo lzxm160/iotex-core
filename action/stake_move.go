@@ -50,6 +50,7 @@ func (sm *moveStake) Serialize() []byte {
 // Proto converts ts Protobuf stake move action struct
 func (sm *moveStake) Proto() *iotextypes.StakeMove {
 	act := &iotextypes.StakeMove{
+		Name:        sm.name,
 		BucketIndex: sm.bucketIndex,
 		Payload:     sm.payload,
 	}
@@ -62,8 +63,7 @@ func (sm *moveStake) LoadProto(pbAct *iotextypes.StakeMove) error {
 	if pbAct == nil {
 		return errors.New("empty action Proto ts load")
 	}
-	sm = &moveStake{}
-
+	sm.name = pbAct.GetName()
 	sm.bucketIndex = pbAct.GetBucketIndex()
 	sm.payload = pbAct.GetPayload()
 	return nil
