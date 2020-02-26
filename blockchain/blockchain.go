@@ -300,7 +300,7 @@ func (bc *blockchain) Start(ctx context.Context) error {
 	tipHeight := bc.dao.GetTipHeight()
 	if tipHeight == 0 {
 		// if have trie.db,start from trie.db
-		ws, err := bc.sf.NewWorkingSet()
+		ws, err := bc.sf.
 		if err != nil {
 			return err
 		}

@@ -4,7 +4,7 @@
 // permitted by law, all liability for your use of the code is disclaimed. This source code is governed by Apache
 // License 2.0 that can be found in the LICENSE file.
 
-package blockchain
+package factory
 
 import (
 	"github.com/golang/protobuf/proto"
@@ -30,13 +30,13 @@ var (
 
 // CheckPoint is the check point struct
 type CheckPoint struct {
-	kv db.KVStore
+	sf Factory
 }
 
 // NewCheckPoint return new CheckPointDB
-func NewCheckPoint(kv db.KVStore, epochLen uint64) *CheckPoint {
+func NewCheckPoint(sf Factory, epochLen uint64) *CheckPoint {
 	p := &CheckPoint{
-		kv,
+		sf,
 	}
 	epochLength = epochLen
 	return p
