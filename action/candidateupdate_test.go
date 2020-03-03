@@ -33,7 +33,7 @@ func TestCandidateUpdate(t *testing.T) {
 
 	gas, err := cr.IntrinsicGas()
 	require.NoError(err)
-	require.Equal(uint64(10700), gas)
+	require.Equal(uint64(10000), gas)
 	cost, err := cr.Cost()
 	require.NoError(err)
 	require.Equal("107010", cost.Text(10))
