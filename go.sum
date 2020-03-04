@@ -331,6 +331,12 @@ github.com/libp2p/go-testutil v0.0.1 h1:Xg+O0G2HIMfHqBOBDcMS1iSZJ3GEcId4qOxCQvsG
 github.com/libp2p/go-testutil v0.0.1/go.mod h1:iAcJc/DKJQanJ5ws2V+u5ywdL2n12X1WbbEG+Jjy69I=
 github.com/libp2p/go-ws-transport v0.0.2 h1:PtK1AoM16nm96FwPBQoq+4T4t9LdDwOhkB+mdXuGSlg=
 github.com/libp2p/go-ws-transport v0.0.2/go.mod h1:p3bKjDWHEgtuKKj+2OdPYs5dAPIjtpQGHF2tJfGz7Ww=
+github.com/lzxm160/go-p2p v0.2.8 h1:GHPI+pXNxg4YxQ2J7Fb0vm94LDzMcNxH5+J9um6bMhA=
+github.com/lzxm160/go-p2p v0.2.8/go.mod h1:RDVrUSjtHO5G/h1uhPfILcOqR7gRVPYvFnrc2kHyQek=
+github.com/lzxm160/go-p2p v0.2.9 h1:sQ8UMrjR7WPAJPhUt5LkTensvq6ZeY1JCg83Y2OGPT4=
+github.com/lzxm160/go-p2p v0.2.9/go.mod h1:RDVrUSjtHO5G/h1uhPfILcOqR7gRVPYvFnrc2kHyQek=
+github.com/lzxm160/go-p2p v0.2.13 h1:4RsW630EGqrCLEaCzL55lWkUFw1c6/Lfh2AkA2q8BKk=
+github.com/lzxm160/go-p2p v0.2.13/go.mod h1:RDVrUSjtHO5G/h1uhPfILcOqR7gRVPYvFnrc2kHyQek=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/mattn/go-colorable v0.1.1/go.mod h1:FuOcm+DKB9mbwrcAfNl7/TZVBZ6rcnceauSikq3lYCQ=
 github.com/mattn/go-colorable v0.1.2 h1:/bC9yWikZXAL9uJdulbSfyVNIR3n3trXl+v8+1sx8mU=
