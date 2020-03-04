@@ -8,28 +8,38 @@ package action
 
 import (
 	"encoding/hex"
+	"math/big"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	cuNonce           = uint64(10)
+	cuName            = "test"
+	cuOperatorAddrStr = "io1cl6rl2ev5dfa988qmgzg2x4hfazmp9vn2g66ng"
+	cuRewardAddrStr   = "io1juvx5g063eu4ts832nukp4vgcwk2gnc5cu9ayd"
+	cuGasLimit        = uint64(200000)
+	cuGasPrice        = big.NewInt(2000)
+)
+
 func TestCandidateUpdate(t *testing.T) {
 	require := require.New(t)
-	cr, err := NewCandidateUpdate(nonce, canAddress, canAddress, canAddress, gaslimit, gasprice)
+	cr, err := NewCandidateUpdate(cuNonce, cuName, cuOperatorAddrStr, cuRewardAddrStr, cuGasLimit, cuGasPrice)
 	require.NoError(err)
 
 	ser := cr.Serialize()
 	require.Equal("0a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611229696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a61", hex.EncodeToString(ser))
 
 	require.NoError(err)
-	require.Equal(gaslimit, cr.GasLimit())
-	require.Equal(gasprice, cr.GasPrice())
-	require.Equal(nonce, cr.Nonce())
+	require.Equal(cuGasLimit, cr.GasLimit())
+	require.Equal(cuGasPrice, cr.GasPrice())
+	require.Equal(cuNonce, cr.Nonce())
 
-	require.Equal(canAddress, cr.Name())
-	require.Equal(canAddress, cr.OperatorAddress().String())
-	require.Equal(canAddress, cr.RewardAddress().String())
+	require.Equal(cuName, cr.Name())
+	require.Equal(cuOperatorAddrStr, cr.OperatorAddress().String())
+	require.Equal(cuRewardAddrStr, cr.RewardAddress().String())
 
 	gas, err := cr.IntrinsicGas()
 	require.NoError(err)
@@ -41,15 +51,15 @@ func TestCandidateUpdate(t *testing.T) {
 	proto := cr.Proto()
 	cr2 := &CandidateUpdate{}
 	require.NoError(cr2.LoadProto(proto))
-	require.Equal(canAddress, cr2.Name())
-	require.Equal(canAddress, cr2.OperatorAddress().String())
-	require.Equal(canAddress, cr2.RewardAddress().String())
+	require.Equal(cuName, cr2.Name())
+	require.Equal(cuOperatorAddrStr, cr2.OperatorAddress().String())
+	require.Equal(cuRewardAddrStr, cr2.RewardAddress().String())
 }
 
 func TestCandidateUpdateSignVerify(t *testing.T) {
 	require := require.New(t)
 	require.Equal("cfa6ef757dee2e50351620dca002d32b9c090cfda55fb81f37f1d26b273743f1", senderKey.HexString())
-	cr, err := NewCandidateUpdate(nonce, canAddress, canAddress, canAddress, gaslimit, gasprice)
+	cr, err := NewCandidateUpdate(cuNonce, cuName, cuOperatorAddrStr, cuRewardAddrStr, cuGasLimit, cuGasPrice)
 	require.NoError(err)
 
 	bd := &EnvelopeBuilder{}
