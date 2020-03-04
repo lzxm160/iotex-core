@@ -46,7 +46,7 @@ func TestCandidateUpdate(t *testing.T) {
 	require.Equal(uint64(10000), gas)
 	cost, err := cu.Cost()
 	require.NoError(err)
-	require.Equal("100000", cost.Text(10))
+	require.Equal("20000000", cost.Text(10))
 
 	proto := cu.Proto()
 	cu2 := &CandidateUpdate{}
