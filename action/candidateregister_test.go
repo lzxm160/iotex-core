@@ -82,7 +82,7 @@ func TestCandidateRegisterSignVerify(t *testing.T) {
 		SetGasPrice(gasprice).
 		SetAction(cr).Build()
 	h := elp.Hash()
-	require.Equal("f9d55837d0d13600012f25c3f9bd9207d1b38ea14f33918c63204fc6222f8e0e", hex.EncodeToString(h[:]))
+	require.Equal("9aa19b4e481d798ee82822596a6e069e9b2ba44b5997f6d5d6cbafe6792e5e92", hex.EncodeToString(h[:]))
 	// sign
 	selp, err := Sign(elp, senderKey)
 	require.NoError(err)
