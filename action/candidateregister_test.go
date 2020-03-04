@@ -8,33 +8,48 @@ package action
 
 import (
 	"encoding/hex"
+	"math/big"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	crNonce           = uint64(10)
+	crName            = "test"
+	crOperatorAddrStr = "io10a298zmzvrt4guq79a9f4x7qedj59y7ery84he"
+	crRewardAddrStr   = "io13sj9mzpewn25ymheukte4v39hvjdtrfp00mlyv"
+	crOwnerAddrStr    = "io19d0p3ah4g8ww9d7kcxfq87yxe7fnr8rpth5shj"
+	crAmountStr       = "100"
+	crDuration        = uint32(10000)
+	crAutoStake       = false
+	crPayload         = []byte("payload")
+	crGasLimit        = uint64(1000000)
+	crGasPrice        = big.NewInt(1000)
+)
+
 func TestCandidateRegister(t *testing.T) {
 	require := require.New(t)
-	cr, err := NewCandidateRegister(nonce, canAddress, canAddress, canAddress, canAddress, amount.Text(10), duration, autoStake, payload, gaslimit, gasprice)
+	cr, err := NewCandidateRegister(crNonce, crName, crOperatorAddrStr, crRewardAddrStr, crOwnerAddrStr, crAmountStr, crDuration, crAutoStake, crPayload, crGasLimit, crGasPrice)
 	require.NoError(err)
 
 	ser := cr.Serialize()
 	require.Equal("0a81010a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611229696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611202313018e80720012a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a6132077061796c6f6164", hex.EncodeToString(ser))
 
 	require.NoError(err)
-	require.Equal(gaslimit, cr.GasLimit())
-	require.Equal(gasprice, cr.GasPrice())
-	require.Equal(nonce, cr.Nonce())
+	require.Equal(crGasLimit, cr.GasLimit())
+	require.Equal(crGasPrice, cr.GasPrice())
+	require.Equal(crNonce, cr.Nonce())
 
-	require.Equal(canAddress, cr.Name())
-	require.Equal(canAddress, cr.OperatorAddress().String())
-	require.Equal(canAddress, cr.RewardAddress().String())
-	require.Equal(canAddress, cr.OwnerAddress().String())
-	require.Equal(amount, cr.Amount())
-	require.Equal(duration, cr.Duration())
-	require.True(cr.AutoStake())
-	require.Equal(payload, cr.Payload())
+	require.Equal(crName, cr.Name())
+	require.Equal(crOperatorAddrStr, cr.OperatorAddress().String())
+	require.Equal(crRewardAddrStr, cr.RewardAddress().String())
+	require.Equal(crOwnerAddrStr, cr.OwnerAddress().String())
+	require.Equal(crAmountStr, cr.Amount().String())
+	require.Equal(crDuration, cr.Duration())
+	require.Equal(crAutoStake, cr.AutoStake())
+	require.Equal(crPayload, cr.Payload())
 
 	gas, err := cr.IntrinsicGas()
 	require.NoError(err)
@@ -46,20 +61,20 @@ func TestCandidateRegister(t *testing.T) {
 	proto := cr.Proto()
 	cr2 := &CandidateRegister{}
 	require.NoError(cr2.LoadProto(proto))
-	require.Equal(canAddress, cr2.Name())
-	require.Equal(canAddress, cr2.OperatorAddress().String())
-	require.Equal(canAddress, cr2.RewardAddress().String())
-	require.Equal(canAddress, cr2.OwnerAddress().String())
-	require.Equal(amount, cr2.Amount())
-	require.Equal(duration, cr2.Duration())
-	require.True(cr2.AutoStake())
-	require.Equal(payload, cr2.Payload())
+	require.Equal(crName, cr2.Name())
+	require.Equal(crOperatorAddrStr, cr2.OperatorAddress().String())
+	require.Equal(crRewardAddrStr, cr2.RewardAddress().String())
+	require.Equal(crOwnerAddrStr, cr2.OwnerAddress().String())
+	require.Equal(crAmountStr, cr2.Amount().String())
+	require.Equal(crDuration, cr2.Duration())
+	require.Equal(crAutoStake, cr2.AutoStake())
+	require.Equal(crPayload, cr2.Payload())
 }
 
 func TestCandidateRegisterSignVerify(t *testing.T) {
 	require := require.New(t)
 	require.Equal("cfa6ef757dee2e50351620dca002d32b9c090cfda55fb81f37f1d26b273743f1", senderKey.HexString())
-	cr, err := NewCandidateRegister(nonce, canAddress, canAddress, canAddress, canAddress, amount.Text(10), duration, autoStake, payload, gaslimit, gasprice)
+	cr, err := NewCandidateRegister(crNonce, crName, crOperatorAddrStr, crRewardAddrStr, crOwnerAddrStr, crAmountStr, crDuration, crAutoStake, crPayload, crGasLimit, crGasPrice)
 	require.NoError(err)
 
 	bd := &EnvelopeBuilder{}
