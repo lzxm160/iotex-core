@@ -56,7 +56,7 @@ func TestCandidateRegister(t *testing.T) {
 	require.Equal(uint64(10700), gas)
 	cost, err := cr.Cost()
 	require.NoError(err)
-	require.Equal("107010", cost.Text(10))
+	require.Equal("10700100", cost.Text(10))
 
 	proto := cr.Proto()
 	cr2 := &CandidateRegister{}
