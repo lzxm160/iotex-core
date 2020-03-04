@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	cuNonce           = uint64(10)
+	cuNonce           = uint64(20)
 	cuName            = "test"
 	cuOperatorAddrStr = "io1cl6rl2ev5dfa988qmgzg2x4hfazmp9vn2g66ng"
 	cuRewardAddrStr   = "io1juvx5g063eu4ts832nukp4vgcwk2gnc5cu9ayd"
@@ -26,29 +26,29 @@ var (
 
 func TestCandidateUpdate(t *testing.T) {
 	require := require.New(t)
-	cr, err := NewCandidateUpdate(cuNonce, cuName, cuOperatorAddrStr, cuRewardAddrStr, cuGasLimit, cuGasPrice)
+	cu, err := NewCandidateUpdate(cuNonce, cuName, cuOperatorAddrStr, cuRewardAddrStr, cuGasLimit, cuGasPrice)
 	require.NoError(err)
 
-	ser := cr.Serialize()
+	ser := cu.Serialize()
 	require.Equal("0a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611229696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a61", hex.EncodeToString(ser))
 
 	require.NoError(err)
-	require.Equal(cuGasLimit, cr.GasLimit())
-	require.Equal(cuGasPrice, cr.GasPrice())
-	require.Equal(cuNonce, cr.Nonce())
+	require.Equal(cuGasLimit, cu.GasLimit())
+	require.Equal(cuGasPrice, cu.GasPrice())
+	require.Equal(cuNonce, cu.Nonce())
 
-	require.Equal(cuName, cr.Name())
-	require.Equal(cuOperatorAddrStr, cr.OperatorAddress().String())
-	require.Equal(cuRewardAddrStr, cr.RewardAddress().String())
+	require.Equal(cuName, cu.Name())
+	require.Equal(cuOperatorAddrStr, cu.OperatorAddress().String())
+	require.Equal(cuRewardAddrStr, cu.RewardAddress().String())
 
-	gas, err := cr.IntrinsicGas()
+	gas, err := cu.IntrinsicGas()
 	require.NoError(err)
 	require.Equal(uint64(10000), gas)
-	cost, err := cr.Cost()
+	cost, err := cu.Cost()
 	require.NoError(err)
 	require.Equal("100000", cost.Text(10))
 
-	proto := cr.Proto()
+	proto := cu.Proto()
 	cr2 := &CandidateUpdate{}
 	require.NoError(cr2.LoadProto(proto))
 	require.Equal(cuName, cr2.Name())
@@ -59,13 +59,13 @@ func TestCandidateUpdate(t *testing.T) {
 func TestCandidateUpdateSignVerify(t *testing.T) {
 	require := require.New(t)
 	require.Equal("cfa6ef757dee2e50351620dca002d32b9c090cfda55fb81f37f1d26b273743f1", senderKey.HexString())
-	cr, err := NewCandidateUpdate(cuNonce, cuName, cuOperatorAddrStr, cuRewardAddrStr, cuGasLimit, cuGasPrice)
+	cu, err := NewCandidateUpdate(cuNonce, cuName, cuOperatorAddrStr, cuRewardAddrStr, cuGasLimit, cuGasPrice)
 	require.NoError(err)
 
 	bd := &EnvelopeBuilder{}
 	elp := bd.SetGasLimit(gaslimit).
 		SetGasPrice(gasprice).
-		SetAction(cr).Build()
+		SetAction(cu).Build()
 	h := elp.Hash()
 	require.Equal("f332644befa8893fbca97d0e23c72fdc52e8af596c17cd8af72f4a90eb664e20", hex.EncodeToString(h[:]))
 	// sign
