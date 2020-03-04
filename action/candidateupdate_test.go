@@ -30,7 +30,7 @@ func TestCandidateUpdate(t *testing.T) {
 	require.NoError(err)
 
 	ser := cu.Serialize()
-	require.Equal("0a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611229696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a61", hex.EncodeToString(ser))
+	require.Equal("0a04746573741229696f31636c36726c32657635646661393838716d677a673278346866617a6d7039766e326736366e671a29696f316a757678356730363365753474733833326e756b7034766763776b32676e6335637539617964", hex.EncodeToString(ser))
 
 	require.NoError(err)
 	require.Equal(cuGasLimit, cu.GasLimit())
@@ -49,11 +49,11 @@ func TestCandidateUpdate(t *testing.T) {
 	require.Equal("100000", cost.Text(10))
 
 	proto := cu.Proto()
-	cr2 := &CandidateUpdate{}
-	require.NoError(cr2.LoadProto(proto))
-	require.Equal(cuName, cr2.Name())
-	require.Equal(cuOperatorAddrStr, cr2.OperatorAddress().String())
-	require.Equal(cuRewardAddrStr, cr2.RewardAddress().String())
+	cu2 := &CandidateUpdate{}
+	require.NoError(cu2.LoadProto(proto))
+	require.Equal(cuName, cu2.Name())
+	require.Equal(cuOperatorAddrStr, cu2.OperatorAddress().String())
+	require.Equal(cuRewardAddrStr, cu2.RewardAddress().String())
 }
 
 func TestCandidateUpdateSignVerify(t *testing.T) {
