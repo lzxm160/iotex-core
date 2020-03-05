@@ -92,7 +92,9 @@ func TestCandidateRegister(t *testing.T) {
 	require.NotNil(svr.P2PAgent())
 	require.NoError(addCandidateRegister(bc))
 	for _, test := range candidateRegisterTests {
-		c, err := getCandidate(sf, test.signerAddr)
+		owner, err := address.FromString(test.OwnerAddrStr)
+		require.NoError(err)
+		c, err := getCandidate(sf, owner)
 		require.NoError(err)
 		require.Equal(test.Name, c.Name)
 		require.Equal(test.OperatorAddrStr, c.Operator.String())
