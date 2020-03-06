@@ -46,6 +46,7 @@ type candidateRegisterCfg struct {
 	GasPrice        *big.Int
 	signer          crypto.PrivateKey
 	signerAddr      address.Address
+	vote            string
 }
 
 var (
@@ -54,10 +55,12 @@ var (
 			uint64(10), "test1", "io10a298zmzvrt4guq79a9f4x7qedj59y7ery84he", "io13sj9mzpewn25ymheukte4v39hvjdtrfp00mlyv", "io19d0p3ah4g8ww9d7kcxfq87yxe7fnr8rpth5shj", "100", uint32(10000), false, []byte("payload"), uint64(1000000), big.NewInt(1000),
 			identityset.PrivateKey(27),
 			identityset.Address(27),
+			"128",
 		},
 		{
 			uint64(10), "test2", "io14gnqxf9dpkn05g337rl7eyt2nxasphf5m6n0rd", "io1cl6rl2ev5dfa988qmgzg2x4hfazmp9vn2g66ng", "io1fxzh50pa6qc6x5cprgmgw4qrp5vw97zk5pxt3q", "1000", uint32(10000), true, []byte("payload"), uint64(1000000), big.NewInt(1000), identityset.PrivateKey(28),
 			identityset.Address(28),
+			"128",
 		},
 	}
 )
@@ -90,7 +93,7 @@ func TestCandidateRegister(t *testing.T) {
 		require.Equal(test.OperatorAddrStr, c.Operator.String())
 		require.Equal(test.RewardAddrStr, c.Reward.String())
 		require.Equal(test.OwnerAddrStr, c.Owner.String())
-		require.Equal(test.AmountStr, c.Votes.String())
+		require.Equal(test.vote, c.Votes.String())
 		require.Equal(test.AmountStr, c.SelfStake.String())
 	}
 	blk, err := dao.GetBlockByHeight(1)
