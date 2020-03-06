@@ -90,7 +90,7 @@ func TestCandidateRegister(t *testing.T) {
 		require.Equal(test.OperatorAddrStr, c.Operator.String())
 		require.Equal(test.RewardAddrStr, c.Reward.String())
 		require.Equal(test.OwnerAddrStr, c.Owner.String())
-		require.Equal(test.AmountStr, c.Votes.String())
+		require.Equal(test.AmountStr, c.SelfStake.String())
 		require.Equal(test.AmountStr, c.SelfStake.String())
 	}
 	blk, err := dao.GetBlockByHeight(1)
