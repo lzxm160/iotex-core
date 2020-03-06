@@ -11,6 +11,8 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/iotexproject/iotex-core/action/protocol/staking"
+
 	"github.com/golang/protobuf/proto"
 	peerstore "github.com/libp2p/go-libp2p-peerstore"
 	"github.com/pkg/errors"
@@ -337,7 +339,18 @@ func New(
 			return nil, err
 		}
 	}
-
+	stk := staking.NewProtocol(nil, sf, staking.Configuration{
+		VoteCal: staking.VoteWeightCalConsts{
+			DurationLg: 1.2,
+			AutoStake:  1.05,
+			SelfStake:  1.05,
+		},
+	})
+	if stk != nil {
+		if err = stk.Register(registry); err != nil {
+			return nil, err
+		}
+	}
 	return &ChainService{
 		actpool:           actPool,
 		chain:             chain,
