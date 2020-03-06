@@ -339,7 +339,10 @@ func New(
 			return nil, err
 		}
 	}
-	stk := staking.NewProtocol(nil, sf, staking.Configuration{
+	dg := func(ctx context.Context, sm protocol.StateManager, amount *big.Int) error {
+		return nil
+	}
+	stk := staking.NewProtocol(dg, sf, staking.Configuration{
 		VoteCal: staking.VoteWeightCalConsts{
 			DurationLg: 1.2,
 			AutoStake:  1.05,
