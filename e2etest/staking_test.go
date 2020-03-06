@@ -18,9 +18,10 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/stretchr/testify/require"
+
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
-	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
@@ -35,8 +36,9 @@ import (
 )
 
 func TestStakingContract(t *testing.T) {
+	require := require.New(t)
+
 	testReadContract := func(cfg config.Config, t *testing.T) {
-		require := require.New(t)
 		ctx := context.Background()
 
 		// Create a new blockchain
@@ -177,12 +179,18 @@ func TestStakingContract(t *testing.T) {
 	}
 
 	cfg := config.Default
-	testTrieFile, _ := ioutil.TempFile(os.TempDir(), "trie")
+	testTrieFile, err := ioutil.TempFile(os.TempDir(), "trie")
+	require.NoError(err)
 	testTriePath := testTrieFile.Name()
-	testDBFile, _ := ioutil.TempFile(os.TempDir(), "db")
+	require.NoError(testTrieFile.Close())
+	testDBFile, err := ioutil.TempFile(os.TempDir(), "db")
+	require.NoError(err)
 	testDBPath := testDBFile.Name()
-	testIndexFile, _ := ioutil.TempFile(os.TempDir(), "index")
+	require.NoError(testDBFile.Close())
+	testIndexFile, err := ioutil.TempFile(os.TempDir(), "index")
+	require.NoError(err)
 	testIndexPath := testIndexFile.Name()
+	require.NoError(testIndexFile.Close())
 	defer func() {
 		testutil.CleanupPath(t, testTriePath)
 		testutil.CleanupPath(t, testDBPath)
