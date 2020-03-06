@@ -361,14 +361,14 @@ func (p *Protocol) handleRestake(ctx context.Context, act *action.Restake, sm pr
 func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.CandidateRegister, sm protocol.StateManager) (*action.Receipt, error) {
 	actCtx := protocol.MustGetActionCtx(ctx)
 	blkCtx := protocol.MustGetBlockCtx(ctx)
-
+	fmt.Println("handleCandidateRegister364")
 	registrationFee := unit.ConvertIotxToRau(p.config.Register.Fee)
 
 	caller, gasFee, err := fetchCaller(ctx, sm, new(big.Int).Add(act.Amount(), registrationFee))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to fetch caller")
 	}
-
+	fmt.Println("handleCandidateRegister371")
 	owner := actCtx.Caller
 	if act.OwnerAddress() != nil {
 		owner = act.OwnerAddress()
@@ -378,7 +378,7 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to put bucket")
 	}
-
+	fmt.Println("handleCandidateRegister381")
 	c := &Candidate{
 		Owner:              owner,
 		Operator:           act.OperatorAddress(),
@@ -392,7 +392,7 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	if err := putCandidate(sm, c); err != nil {
 		return nil, err
 	}
-
+	fmt.Println("handleCandidateRegister395")
 	// update caller balance
 	if err := caller.SubBalance(new(big.Int).Add(act.Amount(), registrationFee)); err != nil {
 		return nil, errors.Wrapf(err, "failed to update the balance of staker %s", actCtx.Caller.String())
@@ -405,7 +405,7 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("handleCandidateRegister408")
 	p.inMemCandidates.Delete(owner)
 	p.inMemCandidates.Put(c)
 	return receipt, nil
