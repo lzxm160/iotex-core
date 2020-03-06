@@ -7,6 +7,7 @@
 package staking
 
 import (
+	"fmt"
 	"math/big"
 	"strings"
 
@@ -222,6 +223,7 @@ func getCandidate(sr protocol.StateReader, name address.Address) (*Candidate, er
 }
 
 func putCandidate(sm protocol.StateManager, d *Candidate) error {
+	fmt.Println(":::::::::::::", d.Owner.String())
 	key := make([]byte, len(d.Owner.Bytes()))
 	copy(key, d.Owner.Bytes())
 
