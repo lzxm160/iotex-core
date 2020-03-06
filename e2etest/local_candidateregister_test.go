@@ -25,6 +25,7 @@ import (
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/stretchr/testify/require"
 
+	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/p2p"
 	"github.com/iotexproject/iotex-core/server/itx"
 	"github.com/iotexproject/iotex-core/test/identityset"
@@ -63,19 +64,8 @@ var (
 
 func TestCandidateRegister(t *testing.T) {
 	require := require.New(t)
-
-	cfg, err := newTestConfig()
+	cfg, err := newCandidateRegisterCfg(t)
 	require.NoError(err)
-	testTrieFile, _ := ioutil.TempFile(os.TempDir(), triePath)
-	testTriePath := testTrieFile.Name()
-	testDBFile, _ := ioutil.TempFile(os.TempDir(), dBPath)
-	testDBPath := testDBFile.Name()
-	indexDBFile, _ := ioutil.TempFile(os.TempDir(), dBPath)
-	indexDBPath := indexDBFile.Name()
-	cfg.Chain.TrieDBPath = testTriePath
-	cfg.Chain.ChainDBPath = testDBPath
-	cfg.Chain.IndexDBPath = indexDBPath
-
 	// Create server
 	ctx := context.Background()
 	svr, err := itx.NewServer(cfg)
@@ -207,4 +197,23 @@ func getCandidate(sr protocol.StateReader, name address.Address) (*staking.Candi
 	var d staking.Candidate
 	_, err := sr.State(&d, protocol.NamespaceOption(factory.CandidateNameSpace), protocol.KeyOption(key))
 	return &d, err
+}
+
+func newCandidateRegisterCfg(t *testing.T) (config.Config, error) {
+	require := require.New(t)
+	cfg, err := newTestConfig()
+	require.NoError(err)
+	testTrieFile, _ := ioutil.TempFile(os.TempDir(), triePath)
+	testTriePath := testTrieFile.Name()
+	testDBFile, _ := ioutil.TempFile(os.TempDir(), dBPath)
+	testDBPath := testDBFile.Name()
+	indexDBFile, _ := ioutil.TempFile(os.TempDir(), dBPath)
+	indexDBPath := indexDBFile.Name()
+	cfg.Chain.TrieDBPath = testTriePath
+	cfg.Chain.ChainDBPath = testDBPath
+	cfg.Chain.IndexDBPath = indexDBPath
+	for _, test := range candidateRegisterTests {
+		cfg.Genesis.InitBalanceMap[test.signerAddr.String()] = "1000000000"
+	}
+	return cfg, nil
 }
