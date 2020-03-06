@@ -60,7 +60,7 @@ var (
 		{
 			uint64(10), "test2", "io14gnqxf9dpkn05g337rl7eyt2nxasphf5m6n0rd", "io1cl6rl2ev5dfa988qmgzg2x4hfazmp9vn2g66ng", "io1fxzh50pa6qc6x5cprgmgw4qrp5vw97zk5pxt3q", "1000", uint32(10000), true, []byte("payload"), uint64(1000000), big.NewInt(1000), identityset.PrivateKey(28),
 			identityset.Address(28),
-			"128",
+			"1352",
 		},
 	}
 )
