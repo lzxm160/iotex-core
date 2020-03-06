@@ -96,7 +96,7 @@ func TestCreateStakeSignVerify(t *testing.T) {
 func TestCreateStakeNotPossitive(t *testing.T) {
 	require := require.New(t)
 	_, err := NewCreateStake(nonce, canAddress, zero, duration, autoStake, payload, gaslimit, gasprice)
-
+	require.Error(err)
 	_, err = NewCreateStake(nonce, canAddress, negtive, duration, autoStake, payload, gaslimit, gasprice)
 	require.Error(err)
 }
