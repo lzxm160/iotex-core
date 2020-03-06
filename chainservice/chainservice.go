@@ -344,9 +344,9 @@ func New(
 	}
 	stk := staking.NewProtocol(dg, sf, staking.Configuration{
 		VoteCal: staking.VoteWeightCalConsts{
-			DurationLg: 1,
-			AutoStake:  1,
-			SelfStake:  1,
+			DurationLg: 1.5,
+			AutoStake:  1.05,
+			SelfStake:  1.05,
 		},
 	})
 	if stk != nil {
