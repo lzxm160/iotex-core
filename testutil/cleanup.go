@@ -7,6 +7,7 @@
 package testutil
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -15,7 +16,10 @@ import (
 
 // CleanupPath detects the existence of test DB file and removes it if found
 func CleanupPath(t *testing.T, path string) {
-	if fileutil.FileExists(path) && os.RemoveAll(path) != nil {
-		t.Error("Fail to remove testDB file")
+	if fileutil.FileExists(path) {
+		if err := os.Remove(path); err != nil {
+			t.Error("Fail to remove testDB file：", err.Error())
+		}
+		fmt.Println(":cleanup pid:", os.Getuid())
 	}
 }
