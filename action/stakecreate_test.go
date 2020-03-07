@@ -31,8 +31,6 @@ var (
 	autoStake  = true
 	index      = uint64(10)
 	senderKey  = identityset.PrivateKey(27)
-	zero       = "0"
-	negtive    = "-10"
 )
 
 var stakeCreateTestParams = []struct {
@@ -55,7 +53,7 @@ var stakeCreateTestParams = []struct {
 }{
 	// valid test
 	{
-		identityset.PrivateKey(27), uint64(10), "io19d0p3ah4g8ww9d7kcxfq87yxe7fnr8rpth5shj", "100", uint32(10000), true, []byte("payload"), uint64(1000000), big.NewInt(10), "0a5c0a04746573741229696f3130613239387a6d7a7672743467757137396139663478377165646a35397937657279383468651a29696f3133736a396d7a7065776e3235796d6865756b74653476333968766a647472667030306d6c7976120331303018904e2a29696f313964307033616834673877773964376b63786671383779786537666e7238727074683573686a32077061796c6f6164", uint64(10700), "10700100", "769725930ed38023058bb4f01c220feef2e3e40febb36856dfb780c4f7b1ea9b", "0aaa01080118c0843d220431303030fa029a010a5c0a04746573741229696f3130613239387a6d7a7672743467757137396139663478377165646a35397937657279383468651a29696f3133736a396d7a7065776e3235796d6865756b74653476333968766a647472667030306d6c7976120331303018904e2a29696f313964307033616834673877773964376b63786671383779786537666e7238727074683573686a32077061796c6f6164124104755ce6d8903f6b3793bddb4ea5d3589d637de2d209ae0ea930815c82db564ee8cc448886f639e8a0c7e94e99a5c1335b583c0bc76ef30dd6a1038ed9da8daf331a417819b5bcb635e3577acc8ca757f2c3d6afa451c2b6ff8a9179b141ac68e2c50305679e5d09d288da6f0fb52876a86c74deab6a5247edc6d371de5c2f121e159400", "35f53a536e014b32b85df50483ef04849b80ad60635b3b1979c5ba1096b65237", nil,
+		identityset.PrivateKey(27), uint64(10), "io19d0p3ah4g8ww9d7kcxfq87yxe7fnr8rpth5shj", "100", uint32(10000), true, []byte("payload"), uint64(1000000), big.NewInt(10), "0a5c0a04746573741229696f3130613239387a6d7a7672743467757137396139663478377165646a35397937657279383468651a29696f3133736a396d7a7065776e3235796d6865756b74653476333968766a647472667030306d6c7976120331303018904e2a29696f313964307033616834673877773964376b63786671383779786537666e7238727074683573686a32077061796c6f6164", uint64(10700), "10700100", "219483a7309db9f1c41ac3fa0aadecfbdbeb0448b0dfaee54daec4ec178aa9f1", "0a4a080118c0843d22023130c2023d0a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611202313018e80720012a077061796c6f6164124104755ce6d8903f6b3793bddb4ea5d3589d637de2d209ae0ea930815c82db564ee8cc448886f639e8a0c7e94e99a5c1335b583c0bc76ef30dd6a1038ed9da8daf331a415db41c974bc1d8edd59fad54c4eac41250981640c44183c1c3ed9e45873bf15c02f3575de59233aefd7ec6eecfa7254bf4b67501e96bea8a4d54a18b4e0e4fec01", "a324d56f5b50e86aab27c0c6d33f9699f36d3ed8e27967a56e644f582bbd5e2d", nil,
 	},
 	// invalid test
 	{
@@ -69,7 +67,7 @@ var stakeCreateTestParams = []struct {
 func TestCreateStake(t *testing.T) {
 	require := require.New(t)
 	for _, test := range stakeCreateTestParams {
-		stake, err := NewCreateStake(nonce, canAddress, amount.Text(10), duration, autoStake, payload, gaslimit, gasprice)
+		stake, err := NewCreateStake(test.Nonce, test.CanAddress, test.AmountStr, test.Duration, test.AutoStake, test.Payload, test.GasLimit, test.GasPrice)
 		require.Equal(test.Expected, errors.Cause(err))
 
 		if err != nil {
@@ -77,33 +75,33 @@ func TestCreateStake(t *testing.T) {
 		}
 
 		ser := stake.Serialize()
-		require.Equal("0a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611202313018e80720012a077061796c6f6164", hex.EncodeToString(ser))
+		require.Equal(test.Serialize, hex.EncodeToString(ser))
 
 		require.NoError(err)
-		require.Equal(gaslimit, stake.GasLimit())
-		require.Equal(gasprice, stake.GasPrice())
-		require.Equal(nonce, stake.Nonce())
+		require.Equal(test.GasLimit, stake.GasLimit())
+		require.Equal(test.GasPrice, stake.GasPrice())
+		require.Equal(test.Nonce, stake.Nonce())
 
-		require.Equal(amount, stake.Amount())
-		require.Equal(payload, stake.Payload())
-		require.Equal(canAddress, stake.Candidate())
-		require.Equal(duration, stake.Duration())
+		require.Equal(test.AmountStr, stake.Amount().String())
+		require.Equal(test.Payload, stake.Payload())
+		require.Equal(test.CanAddress, stake.Candidate())
+		require.Equal(test.Duration, stake.Duration())
 		require.True(stake.AutoStake())
 
 		gas, err := stake.IntrinsicGas()
 		require.NoError(err)
-		require.Equal(uint64(10700), gas)
+		require.Equal(test.IntrinsicGas, gas)
 		cost, err := stake.Cost()
 		require.NoError(err)
-		require.Equal("107010", cost.Text(10))
+		require.Equal(test.Cost, cost.Text(10))
 
 		proto := stake.Proto()
 		cs2 := &CreateStake{}
 		require.NoError(cs2.LoadProto(proto))
-		require.Equal(amount, cs2.Amount())
-		require.Equal(payload, cs2.Payload())
-		require.Equal(canAddress, cs2.Candidate())
-		require.Equal(duration, cs2.Duration())
+		require.Equal(test.AmountStr, cs2.Amount().String())
+		require.Equal(test.Payload, cs2.Payload())
+		require.Equal(test.CanAddress, cs2.Candidate())
+		require.Equal(test.Duration, cs2.Duration())
 		require.True(cs2.AutoStake())
 	}
 
@@ -112,7 +110,7 @@ func TestCreateStake(t *testing.T) {
 func TestCreateStakeSignVerify(t *testing.T) {
 	require := require.New(t)
 	for _, test := range stakeCreateTestParams {
-		stake, err := NewCreateStake(nonce, canAddress, amount.Text(10), duration, autoStake, payload, gaslimit, gasprice)
+		stake, err := NewCreateStake(test.Nonce, test.CanAddress, test.AmountStr, test.Duration, test.AutoStake, test.Payload, test.GasLimit, test.GasPrice)
 		require.Equal(test.Expected, errors.Cause(err))
 
 		if err != nil {
@@ -120,20 +118,20 @@ func TestCreateStakeSignVerify(t *testing.T) {
 		}
 
 		bd := &EnvelopeBuilder{}
-		elp := bd.SetGasLimit(gaslimit).
-			SetGasPrice(gasprice).
+		elp := bd.SetGasLimit(test.GasLimit).
+			SetGasPrice(test.GasPrice).
 			SetAction(stake).Build()
 		h := elp.Hash()
-		require.Equal("219483a7309db9f1c41ac3fa0aadecfbdbeb0448b0dfaee54daec4ec178aa9f1", hex.EncodeToString(h[:]))
+		require.Equal(test.ElpHash, hex.EncodeToString(h[:]))
 		// sign
 		selp, err := Sign(elp, test.SenderKey)
 		require.NoError(err)
 		require.NotNil(selp)
 		ser, err := proto.Marshal(selp.Proto())
 		require.NoError(err)
-		require.Equal("0a4a080118c0843d22023130c2023d0a29696f3178707136326177383575717a72636367397935686e727976386c64326e6b7079636333677a611202313018e80720012a077061796c6f6164124104755ce6d8903f6b3793bddb4ea5d3589d637de2d209ae0ea930815c82db564ee8cc448886f639e8a0c7e94e99a5c1335b583c0bc76ef30dd6a1038ed9da8daf331a415db41c974bc1d8edd59fad54c4eac41250981640c44183c1c3ed9e45873bf15c02f3575de59233aefd7ec6eecfa7254bf4b67501e96bea8a4d54a18b4e0e4fec01", hex.EncodeToString(ser))
+		require.Equal(test.Sign, hex.EncodeToString(ser))
 		hash := selp.Hash()
-		require.Equal("a324d56f5b50e86aab27c0c6d33f9699f36d3ed8e27967a56e644f582bbd5e2d", hex.EncodeToString(hash[:]))
+		require.Equal(test.SelpHash, hex.EncodeToString(hash[:]))
 		// verify signature
 		require.NoError(Verify(selp))
 	}
