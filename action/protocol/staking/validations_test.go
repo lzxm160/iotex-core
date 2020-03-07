@@ -84,7 +84,8 @@ func TestProtocol_ValidateCreateStake(t *testing.T) {
 		gasLimit  uint64
 		nonce     uint64
 		// expected results
-		errorCause error
+		newError      error
+		validateError error
 	}{
 		{
 			"",
@@ -94,6 +95,7 @@ func TestProtocol_ValidateCreateStake(t *testing.T) {
 			big.NewInt(unit.Qev),
 			10000,
 			1,
+			nil,
 			ErrInvalidCanName,
 		},
 		{
@@ -104,6 +106,7 @@ func TestProtocol_ValidateCreateStake(t *testing.T) {
 			big.NewInt(unit.Qev),
 			10000,
 			1,
+			nil,
 			ErrInvalidCanName,
 		},
 		{
@@ -114,6 +117,7 @@ func TestProtocol_ValidateCreateStake(t *testing.T) {
 			big.NewInt(unit.Qev),
 			10000,
 			1,
+			nil,
 			ErrInvalidCanName,
 		},
 		{
@@ -125,6 +129,7 @@ func TestProtocol_ValidateCreateStake(t *testing.T) {
 			10000,
 			1,
 			action.ErrInvalidAmount,
+			nil,
 		},
 		{
 			candidateName,
@@ -134,6 +139,7 @@ func TestProtocol_ValidateCreateStake(t *testing.T) {
 			big.NewInt(unit.Qev),
 			10000,
 			1,
+			nil,
 			ErrInvalidAmount,
 		},
 		{
@@ -144,6 +150,7 @@ func TestProtocol_ValidateCreateStake(t *testing.T) {
 			big.NewInt(-unit.Qev),
 			10000,
 			1,
+			nil,
 			action.ErrGasPrice,
 		},
 		{
@@ -155,13 +162,17 @@ func TestProtocol_ValidateCreateStake(t *testing.T) {
 			10000,
 			1,
 			nil,
+			nil,
 		},
 	}
 
 	for _, test := range tests {
 		act, err := action.NewCreateStake(test.nonce, test.candName, test.amount, test.duration, test.autoStake,
 			nil, test.gasLimit, test.gasPrice)
-		require.Equal(test.errorCause, errors.Cause(err))
-		require.Equal(test.errorCause, errors.Cause(p.validateCreateStake(context.Background(), act)))
+		require.Equal(test.newError, errors.Cause(err))
+		if err != nil {
+			continue
+		}
+		require.Equal(test.validateError, errors.Cause(p.validateCreateStake(context.Background(), act)))
 	}
 }
