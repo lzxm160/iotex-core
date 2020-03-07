@@ -20,19 +20,6 @@ import (
 	"github.com/iotexproject/iotex-core/test/identityset"
 )
 
-var (
-	gaslimit   = uint64(1000000)
-	gasprice   = big.NewInt(10)
-	canAddress = "io1xpq62aw85uqzrccg9y5hnryv8ld2nkpycc3gza"
-	payload    = []byte("payload")
-	amount     = big.NewInt(10)
-	nonce      = uint64(0)
-	duration   = uint32(1000)
-	autoStake  = true
-	index      = uint64(10)
-	senderKey  = identityset.PrivateKey(27)
-)
-
 var stakeCreateTestParams = []struct {
 	SenderKey    crypto.PrivateKey
 	Nonce        uint64
