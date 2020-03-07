@@ -124,7 +124,7 @@ func TestProtocol_ValidateCreateStake(t *testing.T) {
 			big.NewInt(unit.Qev),
 			10000,
 			1,
-			ErrInvalidAmount,
+			action.ErrInvalidAmount,
 		},
 		{
 			candidateName,
@@ -161,7 +161,7 @@ func TestProtocol_ValidateCreateStake(t *testing.T) {
 	for _, test := range tests {
 		act, err := action.NewCreateStake(test.nonce, test.candName, test.amount, test.duration, test.autoStake,
 			nil, test.gasLimit, test.gasPrice)
-		require.NoError(err)
+		require.Equal(test.errorCause, errors.Cause(err))
 		require.Equal(test.errorCause, errors.Cause(p.validateCreateStake(context.Background(), act)))
 	}
 }
