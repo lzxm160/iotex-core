@@ -229,7 +229,72 @@ func TestProtocol_ValidateWithdrawStake(t *testing.T) {
 	require.Equal(ErrNilAction, errors.Cause(p.validateWithdrawStake(context.Background(), nil)))
 }
 
-func TestProtocol_ValidateChangeCandidate(t *testing.T) {}
+func TestProtocol_ValidateChangeCandidate(t *testing.T) {
+	require := require.New(t)
+
+	p, candidateName := initTestProtocol(t)
+
+	tests := []struct {
+		candName    string
+		bucketIndex uint64
+		payload     []byte
+		gasPrice    *big.Int
+		gasLimit    uint64
+		nonce       uint64
+		// expected results
+		errorCause error
+	}{
+		{
+			candidateName,
+			1,
+			[]byte("100000000000000000000"),
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			nil,
+		},
+		{"12132323",
+			1,
+			[]byte("100000000000000000000"),
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			ErrInvalidCanName,
+		},
+		{"~1",
+			1,
+			[]byte("100000000000000000000"),
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			ErrInvalidCanName,
+		},
+		{"100000000000000000000",
+			1,
+			[]byte("100000000000000000000"),
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			ErrInvalidCanName,
+		},
+		{candidateName,
+			1,
+			[]byte("100000000000000000000"),
+			big.NewInt(-unit.Qev),
+			10000,
+			1,
+			action.ErrGasPrice,
+		},
+	}
+
+	for _, test := range tests {
+		act, err := action.NewChangeCandidate(test.nonce, test.candName, test.bucketIndex, test.payload, test.gasLimit, test.gasPrice)
+		require.NoError(err)
+		require.Equal(test.errorCause, errors.Cause(p.validateChangeCandidate(context.Background(), act)))
+	}
+	// test nil action
+	require.Equal(ErrNilAction, errors.Cause(p.validateChangeCandidate(context.Background(), nil)))
+}
 
 func TestProtocol_ValidateTransferStake(t *testing.T) {}
 
