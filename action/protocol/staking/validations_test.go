@@ -189,7 +189,45 @@ func TestProtocol_ValidateUnstake(t *testing.T) {
 	require.Equal(ErrNilAction, errors.Cause(p.validateUnstake(context.Background(), nil)))
 }
 
-func TestProtocol_ValidateWithdrawStake(t *testing.T) {}
+func TestProtocol_ValidateWithdrawStake(t *testing.T) {
+	require := require.New(t)
+
+	p, _ := initTestProtocol(t)
+
+	tests := []struct {
+		bucketIndex uint64
+		payload     []byte
+		gasPrice    *big.Int
+		gasLimit    uint64
+		nonce       uint64
+		// expected results
+		errorCause error
+	}{
+		{
+			1,
+			[]byte("100000000000000000000"),
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			nil,
+		},
+		{1,
+			[]byte("100000000000000000000"),
+			big.NewInt(-unit.Qev),
+			10000,
+			1,
+			action.ErrGasPrice,
+		},
+	}
+
+	for _, test := range tests {
+		act, err := action.NewWithdrawStake(test.nonce, test.bucketIndex, test.payload, test.gasLimit, test.gasPrice)
+		require.NoError(err)
+		require.Equal(test.errorCause, errors.Cause(p.validateWithdrawStake(context.Background(), act)))
+	}
+	// test nil action
+	require.Equal(ErrNilAction, errors.Cause(p.validateWithdrawStake(context.Background(), nil)))
+}
 
 func TestProtocol_ValidateChangeCandidate(t *testing.T) {}
 
