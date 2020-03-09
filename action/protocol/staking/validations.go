@@ -170,6 +170,7 @@ func (p *Protocol) validateCandidateRegister(ctx context.Context, act *action.Ca
 
 	// cannot collide with existing operator address
 	if p.inMemCandidates.ContainsOperator(act.OperatorAddress()) {
+		fmt.Println("heare")
 		return ErrInvalidOperator
 	}
 	return nil
