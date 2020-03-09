@@ -158,6 +158,7 @@ func (p *Protocol) validateCandidateRegister(ctx context.Context, act *action.Ca
 		}
 		fmt.Println(act.OperatorAddress(), ":::::", c.Operator)
 		if act.OperatorAddress() != c.Operator && p.inMemCandidates.ContainsOperator(act.OperatorAddress()) {
+			fmt.Println("22222")
 			return ErrInvalidOperator
 		}
 		return nil
