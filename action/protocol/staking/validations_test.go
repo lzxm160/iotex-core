@@ -296,7 +296,48 @@ func TestProtocol_ValidateChangeCandidate(t *testing.T) {
 	require.Equal(ErrNilAction, errors.Cause(p.validateChangeCandidate(context.Background(), nil)))
 }
 
-func TestProtocol_ValidateTransferStake(t *testing.T) {}
+func TestProtocol_ValidateTransferStake(t *testing.T) {
+	require := require.New(t)
+
+	p, candidateName := initTestProtocol(t)
+
+	tests := []struct {
+		voterAddress string
+		bucketIndex  uint64
+		payload      []byte
+		gasPrice     *big.Int
+		gasLimit     uint64
+		nonce        uint64
+		// expected results
+		errorCause error
+	}{
+		{
+			candidateName,
+			1,
+			[]byte("100000000000000000000"),
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			nil,
+		},
+		{candidateName,
+			1,
+			[]byte("100000000000000000000"),
+			big.NewInt(-unit.Qev),
+			10000,
+			1,
+			action.ErrGasPrice,
+		},
+	}
+
+	for _, test := range tests {
+		act, err := action.NewTransferStake(test.nonce, test.voterAddress, test.bucketIndex, test.payload, test.gasLimit, test.gasPrice)
+		require.NoError(err)
+		require.Equal(test.errorCause, errors.Cause(p.validateTransferStake(context.Background(), act)))
+	}
+	// test nil action
+	require.Equal(ErrNilAction, errors.Cause(p.validateTransferStake(context.Background(), nil)))
+}
 
 func TestProtocol_ValidateDepositToStake(t *testing.T) {}
 
