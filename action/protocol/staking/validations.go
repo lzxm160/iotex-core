@@ -209,7 +209,7 @@ func (p *Protocol) validateCandidateUpdate(ctx context.Context, act *action.Cand
 	}
 
 	// cannot collide with existing operator address
-	if act.OperatorAddress() != nil && act.OperatorAddress() != c.Operator && p.inMemCandidates.ContainsOperator(act.OperatorAddress()) {
+	if act.OperatorAddress() != nil && !address.Equal(act.OperatorAddress(), c.Operator) && p.inMemCandidates.ContainsOperator(act.OperatorAddress()) {
 		return ErrInvalidOperator
 	}
 	return nil
