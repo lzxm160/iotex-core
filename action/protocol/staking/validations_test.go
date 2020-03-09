@@ -299,8 +299,8 @@ func TestProtocol_ValidateChangeCandidate(t *testing.T) {
 func TestProtocol_ValidateTransferStake(t *testing.T) {
 	require := require.New(t)
 
-	p, candidateName := initTestProtocol(t)
-
+	p, _ := initTestProtocol(t)
+	voterAddress := "io1xpq62aw85uqzrccg9y5hnryv8ld2nkpycc3gza"
 	tests := []struct {
 		voterAddress string
 		bucketIndex  uint64
@@ -312,7 +312,7 @@ func TestProtocol_ValidateTransferStake(t *testing.T) {
 		errorCause error
 	}{
 		{
-			candidateName,
+			voterAddress,
 			1,
 			[]byte("100000000000000000000"),
 			big.NewInt(unit.Qev),
@@ -320,7 +320,7 @@ func TestProtocol_ValidateTransferStake(t *testing.T) {
 			1,
 			nil,
 		},
-		{candidateName,
+		{voterAddress,
 			1,
 			[]byte("100000000000000000000"),
 			big.NewInt(-unit.Qev),
