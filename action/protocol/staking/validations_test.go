@@ -450,7 +450,7 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 		errorCause error
 	}{
 		{
-			"test", identityset.Address(28).String(), identityset.Address(29).String(), can.Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
+			"test", can.Operator.String(), can.Reward.String(), can.Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			nil,
