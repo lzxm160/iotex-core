@@ -531,7 +531,7 @@ func TestProtocol_ValidateCandidateUpdate(t *testing.T) {
 			1,
 			action.ErrGasPrice,
 		},
-		{ctx2, "test", cans[1].Operator.String(), cans[0].Reward.String(), big.NewInt(-unit.Qev),
+		{ctx2, "test", cans[1].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidOperator,
