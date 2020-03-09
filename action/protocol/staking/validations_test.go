@@ -490,7 +490,16 @@ func TestProtocol_ValidateCandidateUpdate(t *testing.T) {
 	require := require.New(t)
 
 	p, cans := initTestProtocol(t)
+	ctx := protocol.WithActionCtx(
+		context.Background(),
+		protocol.ActionCtx{},
+	)
+	ctx2 := protocol.WithActionCtx(
+		context.Background(),
+		protocol.ActionCtx{Caller: cans[0].Owner},
+	)
 	tests := []struct {
+		ctx             context.Context
 		name            string
 		operatorAddrStr string
 		rewardAddrStr   string
@@ -501,42 +510,38 @@ func TestProtocol_ValidateCandidateUpdate(t *testing.T) {
 		errorCause error
 	}{
 		{
-			"test", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
+			ctx2, "test", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
 			10000,
 			1,
 			nil,
 		},
 		{
-			"test", cans[1].Operator.String(), cans[1].Reward.String(), big.NewInt(unit.Qev),
+			ctx, "test", cans[1].Operator.String(), cans[1].Reward.String(), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidOwner,
 		},
-		{"!te", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
+		{ctx2, "!te", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidCanName,
 		},
-		{"test", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(-unit.Qev),
+		{ctx2, "test", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(-unit.Qev),
 			10000,
 			1,
 			action.ErrGasPrice,
 		},
-		{"test", cans[1].Operator.String(), cans[0].Reward.String(), big.NewInt(-unit.Qev),
+		{ctx2, "test", cans[1].Operator.String(), cans[0].Reward.String(), big.NewInt(-unit.Qev),
 			10000,
 			1,
 			ErrInvalidOperator,
 		},
 	}
 
-	ctx := protocol.WithActionCtx(
-		context.Background(),
-		protocol.ActionCtx{},
-	)
 	for _, test := range tests {
 		act, err := action.NewCandidateUpdate(test.nonce, test.name, test.operatorAddrStr, test.rewardAddrStr, test.gasLimit, test.gasPrice)
 		require.NoError(err)
-		require.Equal(test.errorCause, errors.Cause(p.validateCandidateUpdate(ctx, act)))
+		require.Equal(test.errorCause, errors.Cause(p.validateCandidateUpdate(test.ctx, act)))
 	}
 	// test nil action
 	require.Equal(ErrNilAction, errors.Cause(p.validateCandidateUpdate(ctx, nil)))
