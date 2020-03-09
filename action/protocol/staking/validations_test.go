@@ -507,7 +507,7 @@ func initTestProtocol(t *testing.T) (*Protocol, *Candidate, *Candidate) {
 		Owner:              identityset.Address(28),
 		Operator:           identityset.Address(28),
 		Reward:             identityset.Address(29),
-		Name:               "test1",
+		Name:               "test2",
 		Votes:              big.NewInt(2),
 		SelfStakeBucketIdx: 1,
 		SelfStake:          big.NewInt(10),
