@@ -110,7 +110,7 @@ func TestProtocol_ValidateCreateStake(t *testing.T) {
 			ErrInvalidCanName,
 		},
 		{
-			candidateName,
+			candidateName.Name,
 			"1000000000000000000",
 			1,
 			false,
@@ -120,7 +120,7 @@ func TestProtocol_ValidateCreateStake(t *testing.T) {
 			ErrInvalidAmount,
 		},
 		{
-			candidateName,
+			candidateName.Name,
 			"200000000000000000000",
 			1,
 			false,
@@ -130,7 +130,7 @@ func TestProtocol_ValidateCreateStake(t *testing.T) {
 			action.ErrGasPrice,
 		},
 		{
-			candidateName,
+			candidateName.Name,
 			"200000000000000000000",
 			1,
 			false,
@@ -245,7 +245,7 @@ func TestProtocol_ValidateChangeCandidate(t *testing.T) {
 		errorCause error
 	}{
 		{
-			candidateName,
+			candidateName.Name,
 			1,
 			[]byte("100000000000000000000"),
 			big.NewInt(unit.Qev),
@@ -277,7 +277,7 @@ func TestProtocol_ValidateChangeCandidate(t *testing.T) {
 			1,
 			ErrInvalidCanName,
 		},
-		{candidateName,
+		{candidateName.Name,
 			1,
 			[]byte("100000000000000000000"),
 			big.NewInt(-unit.Qev),
@@ -339,20 +339,147 @@ func TestProtocol_ValidateTransferStake(t *testing.T) {
 	require.Equal(ErrNilAction, errors.Cause(p.validateTransferStake(context.Background(), nil)))
 }
 
-func TestProtocol_ValidateDepositToStake(t *testing.T) {}
+func TestProtocol_ValidateDepositToStake(t *testing.T) {
+	require := require.New(t)
 
-func TestProtocol_ValidateRestake(t *testing.T) {}
+	p, _ := initTestProtocol(t)
+	tests := []struct {
+		index    uint64
+		amount   string
+		payload  []byte
+		gasPrice *big.Int
+		gasLimit uint64
+		nonce    uint64
+		// expected results
+		errorCause error
+	}{
+		{
+			1,
+			"10",
+			[]byte("100000000000000000000"),
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			nil,
+		},
+		{1,
+			"10",
+			[]byte("100000000000000000000"),
+			big.NewInt(-unit.Qev),
+			10000,
+			1,
+			action.ErrGasPrice,
+		},
+	}
 
-func TestProtocol_ValidateCandidateRegister(t *testing.T) {}
+	for _, test := range tests {
+		act, err := action.NewDepositToStake(test.nonce, test.index, test.amount, test.payload, test.gasLimit, test.gasPrice)
+		require.NoError(err)
+		require.Equal(test.errorCause, errors.Cause(p.validateDepositToStake(context.Background(), act)))
+	}
+	// test nil action
+	require.Equal(ErrNilAction, errors.Cause(p.validateDepositToStake(context.Background(), nil)))
+}
+
+func TestProtocol_ValidateRestake(t *testing.T) {
+	require := require.New(t)
+
+	p, _ := initTestProtocol(t)
+	tests := []struct {
+		index     uint64
+		duration  uint32
+		autoStake bool
+		payload   []byte
+		gasPrice  *big.Int
+		gasLimit  uint64
+		nonce     uint64
+		// expected results
+		errorCause error
+	}{
+		{
+			1,
+			10,
+			true,
+			[]byte("100000000000000000000"),
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			nil,
+		},
+		{1,
+			10,
+			true,
+			[]byte("100000000000000000000"),
+			big.NewInt(-unit.Qev),
+			10000,
+			1,
+			action.ErrGasPrice,
+		},
+	}
+
+	for _, test := range tests {
+		act, err := action.NewRestake(test.nonce, test.index, test.duration, test.autoStake, test.payload, test.gasLimit, test.gasPrice)
+		require.NoError(err)
+		require.Equal(test.errorCause, errors.Cause(p.validateRestake(context.Background(), act)))
+	}
+	// test nil action
+	require.Equal(ErrNilAction, errors.Cause(p.validateRestake(context.Background(), nil)))
+}
+
+func TestProtocol_ValidateCandidateRegister(t *testing.T) {
+	require := require.New(t)
+
+	p, can := initTestProtocol(t)
+	tests := []struct {
+		name            string
+		operatorAddrStr string
+		rewardAddrStr   string
+		ownerAddrStr    string
+		amountStr       string
+		duration        uint32
+		autoStake       bool
+		payload         []byte
+		gasPrice        *big.Int
+		gasLimit        uint64
+		nonce           uint64
+		// expected results
+		errorCause error
+	}{
+		{
+			"test", "io10a298zmzvrt4guq79a9f4x7qedj59y7ery84he", "io13sj9mzpewn25ymheukte4v39hvjdtrfp00mlyv", can.Owner.String(), "0", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
+			10000,
+			1,
+			nil,
+		},
+		{"!te", "io10a298zmzvrt4guq79a9f4x7qedj59y7ery84he", "io13sj9mzpewn25ymheukte4v39hvjdtrfp00mlyv", "io19d0p3ah4g8ww9d7kcxfq87yxe7fnr8rpth5shj", "0", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
+			10000,
+			1,
+			ErrInvalidCanName,
+		},
+		{"test", "io10a298zmzvrt4guq79a9f4x7qedj59y7ery84he", "io13sj9mzpewn25ymheukte4v39hvjdtrfp00mlyv", "io19d0p3ah4g8ww9d7kcxfq87yxe7fnr8rpth5shj", "0", uint32(10000), false, []byte("payload"), big.NewInt(-unit.Qev),
+			10000,
+			1,
+			action.ErrGasPrice,
+		},
+	}
+
+	for _, test := range tests {
+		act, err := action.NewCandidateRegister(test.nonce, test.name, test.operatorAddrStr, test.rewardAddrStr, test.ownerAddrStr, test.amountStr, test.duration, test.autoStake, test.payload, test.gasLimit, test.gasPrice)
+		require.NoError(err)
+		require.Equal(test.errorCause, errors.Cause(p.validateCandidateRegister(context.Background(), act)))
+	}
+	// test nil action
+	require.Equal(ErrNilAction, errors.Cause(p.validateCandidateRegister(context.Background(), nil)))
+}
 
 func TestProtocol_ValidateCandidateUpdate(t *testing.T) {}
 
-func initTestProtocol(t *testing.T) (*Protocol, string) {
+func initTestProtocol(t *testing.T) (*Protocol, *Candidate) {
 	require := require.New(t)
 	p := NewProtocol(nil, nil, Configuration{
 		MinStakeAmount: unit.ConvertIotxToRau(100),
 	})
 	candidate := testCandidates[0].d.Clone()
 	require.NoError(p.inMemCandidates.Upsert(candidate))
-	return p, candidate.Name
+	return p, candidate
 }
