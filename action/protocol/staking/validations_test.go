@@ -11,16 +11,14 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/iotexproject/iotex-core/test/identityset"
-
-	"github.com/iotexproject/iotex-core/action/protocol"
-
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/iotex-core/action"
+	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/pkg/unit"
+	"github.com/iotexproject/iotex-core/test/identityset"
 )
 
 func TestIsValidCandidateName(t *testing.T) {

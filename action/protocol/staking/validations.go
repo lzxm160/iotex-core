@@ -8,12 +8,11 @@ package staking
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 
-	"github.com/iotexproject/iotex-address/address"
-
 	"github.com/pkg/errors"
+
+	"github.com/iotexproject/iotex-address/address"
 
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
@@ -152,17 +151,13 @@ func (p *Protocol) validateCandidateRegister(ctx context.Context, act *action.Ca
 
 	if c := p.inMemCandidates.GetByOwner(owner); c != nil {
 		// an existing owner, but selfstake is 0
-		fmt.Println(c.SelfStake.String())
 		if c.SelfStake.Cmp(big.NewInt(0)) != 0 {
-
 			return ErrInvalidOwner
 		}
 		if act.Name() != c.Name && p.inMemCandidates.ContainsName(act.Name()) {
 			return ErrInvalidCanName
 		}
-
 		if !address.Equal(act.OperatorAddress(), c.Operator) && p.inMemCandidates.ContainsOperator(act.OperatorAddress()) {
-			fmt.Println(act.OperatorAddress(), ":::::", c.Operator)
 			return ErrInvalidOperator
 		}
 		return nil
@@ -175,7 +170,6 @@ func (p *Protocol) validateCandidateRegister(ctx context.Context, act *action.Ca
 
 	// cannot collide with existing operator address
 	if p.inMemCandidates.ContainsOperator(act.OperatorAddress()) {
-		fmt.Println("heare")
 		return ErrInvalidOperator
 	}
 	return nil
