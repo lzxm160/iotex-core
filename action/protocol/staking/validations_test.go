@@ -446,17 +446,17 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 		errorCause error
 	}{
 		{
-			"test", "io10a298zmzvrt4guq79a9f4x7qedj59y7ery84he", "io13sj9mzpewn25ymheukte4v39hvjdtrfp00mlyv", can.Owner.String(), "0", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
+			"test", "io10a298zmzvrt4guq79a9f4x7qedj59y7ery84he", "io13sj9mzpewn25ymheukte4v39hvjdtrfp00mlyv", can.Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			nil,
 		},
-		{"!te", "io10a298zmzvrt4guq79a9f4x7qedj59y7ery84he", "io13sj9mzpewn25ymheukte4v39hvjdtrfp00mlyv", "io19d0p3ah4g8ww9d7kcxfq87yxe7fnr8rpth5shj", "0", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
+		{"!te", "io10a298zmzvrt4guq79a9f4x7qedj59y7ery84he", "io13sj9mzpewn25ymheukte4v39hvjdtrfp00mlyv", "io19d0p3ah4g8ww9d7kcxfq87yxe7fnr8rpth5shj", "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidCanName,
 		},
-		{"test", "io10a298zmzvrt4guq79a9f4x7qedj59y7ery84he", "io13sj9mzpewn25ymheukte4v39hvjdtrfp00mlyv", "io19d0p3ah4g8ww9d7kcxfq87yxe7fnr8rpth5shj", "0", uint32(10000), false, []byte("payload"), big.NewInt(-unit.Qev),
+		{"test", "io10a298zmzvrt4guq79a9f4x7qedj59y7ery84he", "io13sj9mzpewn25ymheukte4v39hvjdtrfp00mlyv", "io19d0p3ah4g8ww9d7kcxfq87yxe7fnr8rpth5shj", "1", uint32(10000), false, []byte("payload"), big.NewInt(-unit.Qev),
 			10000,
 			1,
 			action.ErrGasPrice,
