@@ -11,6 +11,8 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/iotexproject/iotex-core/test/identityset"
+
 	"github.com/iotexproject/iotex-core/action/protocol"
 
 	"github.com/pkg/errors"
@@ -448,10 +450,16 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 		errorCause error
 	}{
 		{
-			"test", "io10a298zmzvrt4guq79a9f4x7qedj59y7ery84he", "io13sj9mzpewn25ymheukte4v39hvjdtrfp00mlyv", can.Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
+			"test", identityset.Address(28).String(), identityset.Address(29).String(), can.Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			nil,
+		},
+		{
+			"test", identityset.Address(28).String(), identityset.Address(28).String(), can.Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
+			10000,
+			1,
+			ErrInvalidOwner,
 		},
 		{"!te", "io10a298zmzvrt4guq79a9f4x7qedj59y7ery84he", "io13sj9mzpewn25ymheukte4v39hvjdtrfp00mlyv", "io19d0p3ah4g8ww9d7kcxfq87yxe7fnr8rpth5shj", "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
@@ -485,7 +493,15 @@ func initTestProtocol(t *testing.T) (*Protocol, *Candidate) {
 	p := NewProtocol(nil, nil, Configuration{
 		MinStakeAmount: unit.ConvertIotxToRau(100),
 	})
-	candidate := testCandidates[0].d.Clone()
+	candidate := &Candidate{
+		Owner:              identityset.Address(1),
+		Operator:           identityset.Address(11),
+		Reward:             identityset.Address(1),
+		Name:               "test1",
+		Votes:              big.NewInt(2),
+		SelfStakeBucketIdx: 1,
+		SelfStake:          big.NewInt(0),
+	}
 	require.NoError(p.inMemCandidates.Upsert(candidate))
 	return p, candidate
 }
