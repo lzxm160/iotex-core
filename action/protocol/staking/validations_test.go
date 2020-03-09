@@ -11,6 +11,8 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/iotexproject/iotex-core/action/protocol"
+
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -463,13 +465,17 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 		},
 	}
 
+	ctx := protocol.WithActionCtx(
+		context.Background(),
+		protocol.ActionCtx{},
+	)
 	for _, test := range tests {
 		act, err := action.NewCandidateRegister(test.nonce, test.name, test.operatorAddrStr, test.rewardAddrStr, test.ownerAddrStr, test.amountStr, test.duration, test.autoStake, test.payload, test.gasLimit, test.gasPrice)
 		require.NoError(err)
-		require.Equal(test.errorCause, errors.Cause(p.validateCandidateRegister(context.Background(), act)))
+		require.Equal(test.errorCause, errors.Cause(p.validateCandidateRegister(ctx, act)))
 	}
 	// test nil action
-	require.Equal(ErrNilAction, errors.Cause(p.validateCandidateRegister(context.Background(), nil)))
+	require.Equal(ErrNilAction, errors.Cause(p.validateCandidateRegister(ctx, nil)))
 }
 
 func TestProtocol_ValidateCandidateUpdate(t *testing.T) {}
