@@ -8,6 +8,7 @@ package staking
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 
 	"github.com/pkg/errors"
@@ -155,6 +156,7 @@ func (p *Protocol) validateCandidateRegister(ctx context.Context, act *action.Ca
 		if act.Name() != c.Name && p.inMemCandidates.ContainsName(act.Name()) {
 			return ErrInvalidCanName
 		}
+		fmt.Println(act.OperatorAddress, ":::::", c.Operator)
 		if act.OperatorAddress() != c.Operator && p.inMemCandidates.ContainsOperator(act.OperatorAddress()) {
 			return ErrInvalidOperator
 		}
