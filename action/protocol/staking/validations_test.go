@@ -509,7 +509,7 @@ func initTestProtocol(t *testing.T) (*Protocol, *Candidate, *Candidate) {
 		Reward:             identityset.Address(29),
 		Name:               "test2",
 		Votes:              big.NewInt(2),
-		SelfStakeBucketIdx: 1,
+		SelfStakeBucketIdx: 2,
 		SelfStake:          big.NewInt(10),
 	}
 	require.NoError(p.inMemCandidates.Upsert(can2))
