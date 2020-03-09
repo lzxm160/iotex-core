@@ -152,7 +152,9 @@ func (p *Protocol) validateCandidateRegister(ctx context.Context, act *action.Ca
 
 	if c := p.inMemCandidates.GetByOwner(owner); c != nil {
 		// an existing owner, but selfstake is 0
+		fmt.Println(c.SelfStake.String())
 		if c.SelfStake.Cmp(big.NewInt(0)) != 0 {
+
 			return ErrInvalidOwner
 		}
 		if act.Name() != c.Name && p.inMemCandidates.ContainsName(act.Name()) {
