@@ -70,7 +70,7 @@ func TestIsValidCandidateName(t *testing.T) {
 
 func TestProtocol_ValidateCreateStake(t *testing.T) {
 	require := require.New(t)
-	p, candidateName := initTestProtocol(t)
+	p, candidateName, _ := initTestProtocol(t)
 	tests := []struct {
 		// action fields
 		candName  string
@@ -156,7 +156,7 @@ func TestProtocol_ValidateCreateStake(t *testing.T) {
 func TestProtocol_ValidateUnstake(t *testing.T) {
 	require := require.New(t)
 
-	p, _ := initTestProtocol(t)
+	p, _, _ := initTestProtocol(t)
 
 	tests := []struct {
 		bucketIndex uint64
@@ -196,7 +196,7 @@ func TestProtocol_ValidateUnstake(t *testing.T) {
 func TestProtocol_ValidateWithdrawStake(t *testing.T) {
 	require := require.New(t)
 
-	p, _ := initTestProtocol(t)
+	p, _, _ := initTestProtocol(t)
 
 	tests := []struct {
 		bucketIndex uint64
@@ -236,7 +236,7 @@ func TestProtocol_ValidateWithdrawStake(t *testing.T) {
 func TestProtocol_ValidateChangeCandidate(t *testing.T) {
 	require := require.New(t)
 
-	p, candidateName := initTestProtocol(t)
+	p, candidateName, _ := initTestProtocol(t)
 
 	tests := []struct {
 		candName    string
@@ -303,7 +303,7 @@ func TestProtocol_ValidateChangeCandidate(t *testing.T) {
 func TestProtocol_ValidateTransferStake(t *testing.T) {
 	require := require.New(t)
 
-	p, _ := initTestProtocol(t)
+	p, _, _ := initTestProtocol(t)
 	voterAddress := "io1xpq62aw85uqzrccg9y5hnryv8ld2nkpycc3gza"
 	tests := []struct {
 		voterAddress string
@@ -346,7 +346,7 @@ func TestProtocol_ValidateTransferStake(t *testing.T) {
 func TestProtocol_ValidateDepositToStake(t *testing.T) {
 	require := require.New(t)
 
-	p, _ := initTestProtocol(t)
+	p, _, _ := initTestProtocol(t)
 	tests := []struct {
 		index    uint64
 		amount   string
@@ -388,7 +388,7 @@ func TestProtocol_ValidateDepositToStake(t *testing.T) {
 func TestProtocol_ValidateRestake(t *testing.T) {
 	require := require.New(t)
 
-	p, _ := initTestProtocol(t)
+	p, _, _ := initTestProtocol(t)
 	tests := []struct {
 		index     uint64
 		duration  uint32
@@ -433,7 +433,7 @@ func TestProtocol_ValidateRestake(t *testing.T) {
 func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 	require := require.New(t)
 
-	p, can := initTestProtocol(t)
+	p, can1, can2 := initTestProtocol(t)
 	tests := []struct {
 		name            string
 		operatorAddrStr string
@@ -450,23 +450,23 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 		errorCause error
 	}{
 		{
-			"test", can.Operator.String(), can.Reward.String(), can.Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
+			"test", can1.Operator.String(), can1.Reward.String(), can1.Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			nil,
 		},
 		{
-			"test", identityset.Address(28).String(), identityset.Address(28).String(), identityset.Address(29).String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
+			"test", can2.Operator.String(), can2.Reward.String(), can2.Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidOwner,
 		},
-		{"!te", can.Operator.String(), can.Reward.String(), can.Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
+		{"!te", can1.Operator.String(), can1.Reward.String(), can1.Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidCanName,
 		},
-		{"test", can.Operator.String(), can.Reward.String(), can.Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(-unit.Qev),
+		{"test", can1.Operator.String(), can1.Reward.String(), can1.Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(-unit.Qev),
 			10000,
 			1,
 			action.ErrGasPrice,
@@ -488,12 +488,12 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 
 func TestProtocol_ValidateCandidateUpdate(t *testing.T) {}
 
-func initTestProtocol(t *testing.T) (*Protocol, *Candidate) {
+func initTestProtocol(t *testing.T) (*Protocol, *Candidate, *Candidate) {
 	require := require.New(t)
 	p := NewProtocol(nil, nil, Configuration{
 		MinStakeAmount: unit.ConvertIotxToRau(100),
 	})
-	candidate := &Candidate{
+	can1 := &Candidate{
 		Owner:              identityset.Address(1),
 		Operator:           identityset.Address(11),
 		Reward:             identityset.Address(1),
@@ -502,6 +502,16 @@ func initTestProtocol(t *testing.T) (*Protocol, *Candidate) {
 		SelfStakeBucketIdx: 1,
 		SelfStake:          big.NewInt(0),
 	}
-	require.NoError(p.inMemCandidates.Upsert(candidate))
-	return p, candidate
+	require.NoError(p.inMemCandidates.Upsert(can1))
+	can2 := &Candidate{
+		Owner:              identityset.Address(28),
+		Operator:           identityset.Address(28),
+		Reward:             identityset.Address(29),
+		Name:               "test1",
+		Votes:              big.NewInt(2),
+		SelfStakeBucketIdx: 1,
+		SelfStake:          big.NewInt(10),
+	}
+	require.NoError(p.inMemCandidates.Upsert(can2))
+	return p, can1, can2
 }
