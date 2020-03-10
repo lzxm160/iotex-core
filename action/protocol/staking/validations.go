@@ -190,6 +190,7 @@ func (p *Protocol) validateCandidateUpdate(ctx context.Context, act *action.Cand
 	}
 
 	// cannot collide with existing name
+	fmt.Println(act.Name(), ":", c.Name)
 	if len(act.Name()) != 0 && act.Name() != c.Name && p.inMemCandidates.ContainsName(act.Name()) {
 		return ErrInvalidCanName
 	}
