@@ -579,6 +579,7 @@ func initTestProtocol(t *testing.T) (*Protocol, []*Candidate) {
 	require := require.New(t)
 	p := NewProtocol(nil, nil, Configuration{
 		MinStakeAmount: 100,
+		Register:       RegistrationConsts{MinSelfStake: 100},
 	})
 	var cans []*Candidate
 	cans = append(cans, &Candidate{
