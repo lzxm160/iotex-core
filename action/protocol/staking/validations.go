@@ -178,6 +178,7 @@ func (p *Protocol) validateCandidateUpdate(ctx context.Context, act *action.Cand
 	}
 
 	if len(act.Name()) != 0 {
+		fmt.Println(act.Name())
 		if !IsValidCandidateName(act.Name()) {
 			return ErrInvalidCanName
 		}
