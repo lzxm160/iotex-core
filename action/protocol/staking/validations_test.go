@@ -566,10 +566,28 @@ func TestProtocol_ValidateCandidateUpdate(t *testing.T) {
 		errorCause error
 	}{
 		{
-			ctx2, "test", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
+			ctx2, "test1", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
 			10000,
 			1,
 			nil,
+		},
+		// IsValidCandidateName special char
+		{ctx2, "!te", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
+			10000,
+			1,
+			ErrInvalidCanName,
+		},
+		// IsValidCandidateName len>12
+		{ctx2, "100000000000000", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
+			10000,
+			1,
+			ErrInvalidCanName,
+		},
+		// IsValidCandidateName len==0
+		{ctx2, "", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
+			10000,
+			1,
+			ErrInvalidCanName,
 		},
 		{
 			ctx, "test", cans[1].Operator.String(), cans[1].Reward.String(), big.NewInt(unit.Qev),
@@ -577,20 +595,22 @@ func TestProtocol_ValidateCandidateUpdate(t *testing.T) {
 			1,
 			ErrInvalidOwner,
 		},
-		{ctx2, "!te", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
+		// len(act.Name()) != 0 && act.Name() != c.Name && p.inMemCandidates.ContainsName(act.Name()
+		{ctx2, "test", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidCanName,
-		},
-		{ctx2, "test", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(-unit.Qev),
-			10000,
-			1,
-			action.ErrGasPrice,
 		},
 		{ctx2, "test", cans[1].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidOperator,
+		},
+		// ErrGasPrice
+		{ctx2, "test1", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(-unit.Qev),
+			10000,
+			1,
+			action.ErrGasPrice,
 		},
 	}
 
