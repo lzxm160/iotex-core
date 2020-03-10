@@ -483,7 +483,7 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 			ErrInvalidCanName,
 		},
 		// IsValidCandidateName len==0
-		{"0", cans[0].Operator.String(), cans[0].Reward.String(), cans[0].Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
+		{"", cans[0].Operator.String(), cans[0].Reward.String(), cans[0].Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidCanName,
