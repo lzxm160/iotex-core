@@ -500,6 +500,13 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 			1,
 			ErrInvalidAmount,
 		},
+		// act.Name() != c.Name && p.inMemCandidates.ContainsName(act.Name())
+		{
+			"test", cans[0].Operator.String(), cans[0].Reward.String(), cans[0].Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
+			10000,
+			1,
+			ErrInvalidCanName,
+		},
 	}
 
 	ctx := protocol.WithActionCtx(
@@ -596,6 +603,15 @@ func initTestProtocol(t *testing.T) (*Protocol, []*Candidate) {
 		Operator:           identityset.Address(28),
 		Reward:             identityset.Address(29),
 		Name:               "test2",
+		Votes:              big.NewInt(2),
+		SelfStakeBucketIdx: 2,
+		SelfStake:          big.NewInt(10),
+	})
+	cans = append(cans, &Candidate{
+		Owner:              identityset.Address(28),
+		Operator:           identityset.Address(28),
+		Reward:             identityset.Address(29),
+		Name:               "test",
 		Votes:              big.NewInt(2),
 		SelfStakeBucketIdx: 2,
 		SelfStake:          big.NewInt(10),
