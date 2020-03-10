@@ -8,6 +8,7 @@ package staking
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 
 	"github.com/pkg/errors"
@@ -130,6 +131,8 @@ func (p *Protocol) validateCandidateRegister(ctx context.Context, act *action.Ca
 	}
 
 	minSelfStake := unit.ConvertIotxToRau(p.config.Register.MinSelfStake)
+	fmt.Println("minSelfStake:", minSelfStake)
+	fmt.Println("act.Amount():", act.Amount().String())
 	if act.Amount().Cmp(minSelfStake) < 0 {
 		return errors.Wrap(ErrInvalidAmount, "self staking amount is not valid")
 	}
