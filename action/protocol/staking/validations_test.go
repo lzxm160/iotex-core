@@ -523,7 +523,7 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 		},
 		// actCtx.Caller and act.OwnerAddress() is "",p.inMemCandidates.GetByOwner(owner) returns nil，p.inMemCandidates.ContainsOperator(act.OperatorAddress())
 		{
-			"test", cans[0].Operator.String(), cans[0].Reward.String(), "", "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
+			"2222", cans[0].Operator.String(), cans[0].Reward.String(), "", "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidOperator,
