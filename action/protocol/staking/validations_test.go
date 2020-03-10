@@ -502,7 +502,7 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 		},
 		// act.Name() != c.Name && p.inMemCandidates.ContainsName(act.Name())
 		{
-			"test", cans[0].Operator.String(), cans[0].Reward.String(), cans[0].Owner.String(), "1", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
+			"test", cans[0].Operator.String(), cans[0].Reward.String(), cans[0].Owner.String(), "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidCanName,
