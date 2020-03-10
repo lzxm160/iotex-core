@@ -583,6 +583,7 @@ func TestProtocol_ValidateCandidateUpdate(t *testing.T) {
 			1,
 			ErrInvalidCanName,
 		},
+		// only owner can update candidate
 		{
 			ctx, "test", cans[1].Operator.String(), cans[1].Reward.String(), big.NewInt(unit.Qev),
 			10000,
@@ -595,6 +596,7 @@ func TestProtocol_ValidateCandidateUpdate(t *testing.T) {
 			1,
 			ErrInvalidCanName,
 		},
+		// collide with existing operator address
 		{ctx2, "test1", cans[1].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
 			10000,
 			1,
