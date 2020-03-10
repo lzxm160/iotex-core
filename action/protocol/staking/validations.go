@@ -8,6 +8,7 @@ package staking
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 
 	"github.com/pkg/errors"
@@ -155,6 +156,7 @@ func (p *Protocol) validateCandidateRegister(ctx context.Context, act *action.Ca
 
 	// cannot collide with existing name
 	if p.inMemCandidates.ContainsName(act.Name()) {
+		fmt.Println(act.Name())
 		return ErrInvalidCanName
 	}
 
