@@ -498,7 +498,7 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 			1,
 			ErrInvalidAmount,
 		},
-		// Case IV: act.OwnerAddress() != nil,an existing owner, but selfstake is not 0
+		// Case IV: act.OwnerAddress() != nil,existing owner, but selfstake is not 0
 		{
 			ctx, "test2", cans[1].Operator.String(), cans[1].Reward.String(), cans[1].Owner.String(), "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
@@ -533,7 +533,7 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 			1,
 			ErrInvalidOperator,
 		},
-		// Case IX: act.OwnerAddress() == nil,an existing owner, but selfstake is not 0
+		// Case IX: act.OwnerAddress() == nil,existing owner, but selfstake is not 0
 		{
 			ctx2, "test2", cans[1].Operator.String(), cans[1].Reward.String(), "", "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
@@ -607,14 +607,14 @@ func TestProtocol_ValidateCandidateUpdate(t *testing.T) {
 			1,
 			nil,
 		},
-		// IsValidCandidateName special char
-		{ctx2, "!te", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
+		// ErrGasPrice
+		{ctx2, "test1", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(-unit.Qev),
 			10000,
 			1,
-			ErrInvalidCanName,
+			action.ErrGasPrice,
 		},
-		// IsValidCandidateName len>12
-		{ctx2, "100000000000000", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
+		// IsValidCandidateName special char
+		{ctx2, "!te", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidCanName,
@@ -637,12 +637,6 @@ func TestProtocol_ValidateCandidateUpdate(t *testing.T) {
 			10000,
 			1,
 			ErrInvalidOperator,
-		},
-		// ErrGasPrice
-		{ctx2, "test1", cans[0].Operator.String(), cans[0].Reward.String(), big.NewInt(-unit.Qev),
-			10000,
-			1,
-			action.ErrGasPrice,
 		},
 	}
 
