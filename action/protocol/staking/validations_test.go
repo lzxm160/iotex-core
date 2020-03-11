@@ -11,14 +11,13 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/iotexproject/iotex-core/blockchain/genesis"
-
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
+	"github.com/iotexproject/iotex-core/blockchain/genesis"
 	"github.com/iotexproject/iotex-core/pkg/unit"
 	"github.com/iotexproject/iotex-core/test/identityset"
 )
@@ -498,70 +497,70 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 			1,
 			ErrInvalidAmount,
 		},
-		// Case IV: act.OwnerAddress() != nil,existing owner, but selfstake is not 0
+		// Case IV: act.OwnerAddress() is not nil,existing owner, but selfstake is not 0
 		{
 			ctx, "test2", cans[1].Operator.String(), cans[1].Reward.String(), cans[1].Owner.String(), "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidOwner,
 		},
-		// Case V: act.OwnerAddress() != nil,existing candidate, collide with existing name
+		// Case V: act.OwnerAddress() is not,existing candidate, collide with existing name
 		{
 			ctx, "test", cans[0].Operator.String(), cans[0].Reward.String(), cans[0].Owner.String(), "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidCanName,
 		},
-		// Case VI: act.OwnerAddress() != nil,existing candidate, collide with existing operator
+		// Case VI: act.OwnerAddress() is not,existing candidate, collide with existing operator
 		{
 			ctx, "test1", cans[1].Operator.String(), cans[0].Reward.String(), cans[0].Owner.String(), "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidOperator,
 		},
-		// Case VII: act.OwnerAddress() != nil,new candidate, collide with existing name
+		// Case VII: act.OwnerAddress() is not,new candidate, collide with existing name
 		{
 			ctx, "test1", cans[0].Operator.String(), cans[0].Reward.String(), "", "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidCanName,
 		},
-		// Case VIII: act.OwnerAddress() != nil,new candidate, collide with existing operator
+		// Case VIII: act.OwnerAddress() is not,new candidate, collide with existing operator
 		{
 			ctx, "2222", cans[0].Operator.String(), cans[0].Reward.String(), "", "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidOperator,
 		},
-		// Case IX: act.OwnerAddress() == nil,existing owner, but selfstake is not 0
+		// Case IX: act.OwnerAddress() is nil,existing owner, but selfstake is not 0
 		{
 			ctx2, "test2", cans[1].Operator.String(), cans[1].Reward.String(), "", "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidOwner,
 		},
-		// Case X: act.OwnerAddress() == nil,existing candidate, collide with existing name
+		// Case X: act.OwnerAddress() is nil,existing candidate, collide with existing name
 		{
 			ctx3, "test", cans[0].Operator.String(), cans[0].Reward.String(), "", "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidCanName,
 		},
-		// Case XI: act.OwnerAddress() == nil,existing candidate, collide with existing operator
+		// Case XI: act.OwnerAddress() is nil,existing candidate, collide with existing operator
 		{
 			ctx3, "test1", cans[1].Operator.String(), cans[0].Reward.String(), "", "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidOperator,
 		},
-		// Case XII: act.OwnerAddress() == nil,new candidate, collide with existing name
+		// Case XII: act.OwnerAddress() is nil,new candidate, collide with existing name
 		{
 			ctx, "test1", cans[0].Operator.String(), cans[0].Reward.String(), "", "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidCanName,
 		},
-		// Case XIII: act.OwnerAddress() == nil,new candidate, collide with existing operator
+		// Case XIII: act.OwnerAddress() is nil,new candidate, collide with existing operator
 		{
 			ctx, "2222", cans[0].Operator.String(), cans[0].Reward.String(), "", "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
