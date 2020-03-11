@@ -8,7 +8,6 @@ package staking
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 
 	"github.com/pkg/errors"
@@ -139,7 +138,6 @@ func (p *Protocol) validateCandidateRegister(ctx context.Context, act *action.Ca
 	if act.OwnerAddress() != nil {
 		owner = act.OwnerAddress()
 	}
-	fmt.Println("owner:", owner.String())
 	if c := p.inMemCandidates.GetByOwner(owner); c != nil {
 		// an existing owner, but selfstake is 0
 		if c.SelfStake.Cmp(big.NewInt(0)) != 0 {
