@@ -453,7 +453,10 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 		context.Background(),
 		protocol.ActionCtx{Caller: cans[1].Owner},
 	)
-
+	ctx3 := protocol.WithActionCtx(
+		context.Background(),
+		protocol.ActionCtx{Caller: cans[0].Owner},
+	)
 	tests := []struct {
 		ctx             context.Context
 		name            string
@@ -537,14 +540,14 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 		},
 		// Case X: act.OwnerAddress() == nil,existing candidate, collide with existing name
 		{
-			ctx2, "test", cans[0].Operator.String(), cans[0].Reward.String(), "", "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
+			ctx3, "test", cans[0].Operator.String(), cans[0].Reward.String(), "", "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidCanName,
 		},
 		// Case XI: act.OwnerAddress() == nil,existing candidate, collide with existing operator
 		{
-			ctx2, "test1", cans[1].Operator.String(), cans[0].Reward.String(), "", "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
+			ctx3, "test1", cans[1].Operator.String(), cans[0].Reward.String(), "", "100000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 			10000,
 			1,
 			ErrInvalidOperator,
