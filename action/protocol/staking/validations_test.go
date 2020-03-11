@@ -451,7 +451,7 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 	)
 	ctx2 := protocol.WithActionCtx(
 		context.Background(),
-		protocol.ActionCtx{Caller: cans[0].Owner},
+		protocol.ActionCtx{Caller: cans[1].Owner},
 	)
 
 	tests := []struct {
