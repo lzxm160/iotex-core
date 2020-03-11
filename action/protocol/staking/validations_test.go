@@ -568,7 +568,7 @@ func TestProtocol_ValidateCandidateRegister(t *testing.T) {
 	for _, test := range tests {
 		act, err := action.NewCandidateRegister(test.nonce, test.name, test.operatorAddrStr, test.rewardAddrStr, test.ownerAddrStr, test.amountStr, test.duration, test.autoStake, test.payload, test.gasLimit, test.gasPrice)
 		require.NoError(err)
-		require.Equal(test.errorCause, errors.Cause(p.validateCandidateRegister(ctx, act)))
+		require.Equal(test.errorCause, errors.Cause(p.validateCandidateRegister(test.ctx, act)))
 	}
 	// test nil action
 	require.Equal(ErrNilAction, errors.Cause(p.validateCandidateRegister(ctx, nil)))
