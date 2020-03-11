@@ -151,6 +151,8 @@ func TestProtocol_ValidateCreateStake(t *testing.T) {
 		require.NoError(err)
 		require.Equal(test.errorCause, errors.Cause(p.validateCreateStake(context.Background(), act)))
 	}
+	// test nil action
+	require.Equal(ErrNilAction, errors.Cause(p.validateCreateStake(context.Background(), nil)))
 }
 
 func TestProtocol_ValidateUnstake(t *testing.T) {
