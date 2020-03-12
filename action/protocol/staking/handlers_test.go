@@ -221,7 +221,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			BlockTimeStamp: test.blkTimestamp,
 			GasLimit:       test.blkGasLimit,
 		})
-		a, err := action.NewCreateStake(test.nonce, candidateName, "10000000000000000000", 10000, true,
+		a, err := action.NewCreateStake(test.nonce, candidateName, "10000000000000000000", 1, false,
 			nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		_, err = p.handleCreateStake(ctx, a, sm)
