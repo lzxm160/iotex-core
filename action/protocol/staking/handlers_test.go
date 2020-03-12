@@ -30,23 +30,8 @@ import (
 
 func TestProtocol_HandleCreateStake(t *testing.T) {
 	require := require.New(t)
+	sm, p, candidate := initAll(t)
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	sm := newMockStateManager(ctrl)
-	_, err := sm.PutState(
-		&totalBucketCount{count: 0},
-		protocol.NamespaceOption(StakingNameSpace),
-		protocol.KeyOption(TotalBucketKey),
-	)
-	require.NoError(err)
-
-	// create protocol
-	p := NewProtocol(depositGas, sm, genesis.Staking{})
-
-	// set up candidate
-	candidate := testCandidates[0].d.Clone()
-	require.NoError(setupCandidate(p, sm, candidate))
 	candidateName := candidate.Name
 	candidateAddr := candidate.Owner
 
@@ -163,6 +148,135 @@ func TestProtocol_HandleCreateStake(t *testing.T) {
 			require.Equal(test.nonce, caller.Nonce)
 		}
 	}
+}
+
+func TestProtocol_HandleUnstake(t *testing.T) {
+	require := require.New(t)
+	sm, p, candidate := initAll(t)
+
+	//candidateName := candidate.Name
+	candidateAddr := candidate.Owner
+	//candidateIndex:= candidate.SelfStakeBucketIdx
+	stakerAddr := identityset.Address(1)
+	tests := []struct {
+		// action fields
+		initBalance int64
+		index       uint64
+		gasPrice    *big.Int
+		gasLimit    uint64
+		nonce       uint64
+		// block context
+		blkHeight    uint64
+		blkTimestamp time.Time
+		blkGasLimit  uint64
+		// expected result
+		errorCause error
+	}{
+		//{
+		//	10,
+		//	1,
+		//	big.NewInt(unit.Qev),
+		//	10000,
+		//	1,
+		//	1,
+		//	time.Now(),
+		//	10000,
+		//	state.ErrNotEnoughBalance,
+		//},
+		//{
+		//	100,
+		//	1,
+		//	big.NewInt(unit.Qev),
+		//	10000,
+		//	1,
+		//	1,
+		//	time.Now(),
+		//	10000,
+		//	ErrInvalidCanName,
+		//},
+		{
+			100,
+			2,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			nil,
+		},
+	}
+
+	for _, test := range tests {
+		require.NoError(setupAccount(sm, stakerAddr, test.initBalance))
+		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
+			Caller:       stakerAddr,
+			GasPrice:     test.gasPrice,
+			IntrinsicGas: test.gasLimit,
+			Nonce:        test.nonce,
+		})
+		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
+			BlockHeight:    test.blkHeight,
+			BlockTimeStamp: test.blkTimestamp,
+			GasLimit:       test.blkGasLimit,
+		})
+		act, err := action.NewUnstake(test.nonce, test.index,
+			nil, test.gasLimit, test.gasPrice)
+		require.NoError(err)
+		_, err = p.handleUnstake(ctx, act, sm)
+		require.Equal(test.errorCause, errors.Cause(err))
+
+		if test.errorCause == nil {
+			// test bucket index and bucket
+			bucketIndices, err := getCandBucketIndices(sm, candidateAddr)
+			require.NoError(err)
+			require.Equal(test.index, len(*bucketIndices))
+			bucketIndices, err = getVoterBucketIndices(sm, stakerAddr)
+			require.NoError(err)
+			require.Equal(1, len(*bucketIndices))
+			indices := *bucketIndices
+			bucket, err := getBucket(sm, indices[0])
+			require.NoError(err)
+			require.Equal(candidateAddr, bucket.Candidate)
+			require.Equal(stakerAddr, bucket.Owner)
+			require.Equal("0", bucket.StakedAmount.String())
+
+			// test candidate
+			candidate, err := getCandidate(sm, candidateAddr)
+			require.NoError(err)
+			require.LessOrEqual("0", candidate.Votes.String())
+			candidate = p.inMemCandidates.GetByOwner(candidateAddr)
+			require.NotNil(candidate)
+			require.LessOrEqual("0", candidate.Votes.String())
+
+			// test staker's account
+			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(stakerAddr.Bytes()))
+			require.NoError(err)
+			actCost, err := act.Cost()
+			require.NoError(err)
+			require.Equal(unit.ConvertIotxToRau(test.initBalance), big.NewInt(0).Add(caller.Balance, actCost))
+			require.Equal(test.nonce, caller.Nonce)
+		}
+	}
+}
+
+func initAll(t *testing.T) (protocol.StateManager, *Protocol, *Candidate) {
+	require := require.New(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	sm := newMockStateManager(ctrl)
+	_, err := sm.PutState(
+		&totalBucketCount{count: 0},
+		protocol.NamespaceOption(StakingNameSpace),
+		protocol.KeyOption(TotalBucketKey),
+	)
+	require.NoError(err)
+	// create protocol
+	p := NewProtocol(depositGas, sm, genesis.Staking{})
+	// set up candidate
+	candidate := testCandidates[0].d.Clone()
+	require.NoError(setupCandidate(p, sm, candidate))
+	return sm, p, candidate
 }
 
 func setupAccount(sm protocol.StateManager, addr address.Address, balance int64) error {
