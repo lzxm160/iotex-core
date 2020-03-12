@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/iotexproject/iotex-core/blockchain/genesis"
+
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
@@ -22,7 +24,6 @@ import (
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
-	"github.com/iotexproject/iotex-core/blockchain/genesis"
 	"github.com/iotexproject/iotex-core/pkg/unit"
 	"github.com/iotexproject/iotex-core/state"
 	"github.com/iotexproject/iotex-core/test/identityset"
@@ -154,9 +155,9 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 	require := require.New(t)
 	sm, p, candidate := initAll(t)
 
-	//candidateName := candidate.Name
+	candidateName := candidate.Name
 	candidateAddr := candidate.Owner
-	//candidateIndex:= candidate.SelfStakeBucketIdx
+
 	stakerAddr := identityset.Address(1)
 	tests := []struct {
 		// action fields
@@ -220,6 +221,12 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			BlockTimeStamp: test.blkTimestamp,
 			GasLimit:       test.blkGasLimit,
 		})
+		a, err := action.NewCreateStake(test.nonce, candidateName, "10000000000000000000", 10000, true,
+			nil, test.gasLimit, test.gasPrice)
+		require.NoError(err)
+		_, err = p.handleCreateStake(ctx, a, sm)
+		require.NoError(err)
+
 		act, err := action.NewUnstake(test.nonce, test.index,
 			nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
@@ -262,6 +269,40 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 
 func initAll(t *testing.T) (protocol.StateManager, *Protocol, *Candidate) {
 	require := require.New(t)
+	//ctrl := gomock.NewController(t)
+	//defer ctrl.Finish()
+	//sm := newMockStateManager(ctrl)
+	//_, err := sm.PutState(
+	//	&totalBucketCount{count: 0},
+	//	protocol.NamespaceOption(StakingNameSpace),
+	//	protocol.KeyOption(TotalBucketKey),
+	//)
+	//require.NoError(err)
+	//// create protocol
+	//p := NewProtocol(depositGas, sm, genesis.Staking{})
+	//// set up candidate
+	//gasPrice := big.NewInt(10)
+	//gasLimit := uint64(1000000)
+	//nonce := uint64(1)
+	//candidate := testCandidates[0].d.Clone()
+	//candidate1 := testCandidates[1].d.Clone()
+	//require.NoError(setupCandidate(p, sm, candidate))
+	//require.NoError(setupCandidate(p, sm, candidate1))
+	//ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
+	//	Caller:       identityset.Address(27),
+	//	GasPrice:     gasPrice,
+	//	IntrinsicGas: gasLimit,
+	//	Nonce:        nonce,
+	//})
+	//ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
+	//	BlockHeight:    1,
+	//	BlockTimeStamp: time.Now(),
+	//	GasLimit:       gasLimit,
+	//})
+	//act, err := action.NewCreateStake(nonce, candidate1.Name, "100", uint32(10000), true, []byte("payload"), gasLimit, gasPrice)
+	//require.NoError(err)
+	//_, err = p.handleCreateStake(ctx, act, sm)
+	//require.NoError(err)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	sm := newMockStateManager(ctrl)
@@ -271,8 +312,10 @@ func initAll(t *testing.T) (protocol.StateManager, *Protocol, *Candidate) {
 		protocol.KeyOption(TotalBucketKey),
 	)
 	require.NoError(err)
+
 	// create protocol
 	p := NewProtocol(depositGas, sm, genesis.Staking{})
+
 	// set up candidate
 	candidate := testCandidates[0].d.Clone()
 	require.NoError(setupCandidate(p, sm, candidate))
