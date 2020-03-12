@@ -237,10 +237,10 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			// test candidate
 			candidate, err = getCandidate(sm, candidateAddr)
 			require.NoError(err)
-			require.Equal("0", candidate.Votes.String())
+			require.LessOrEqual("0", candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidateAddr)
 			require.NotNil(candidate)
-			require.Equal("0", candidate.Votes.String())
+			require.LessOrEqual("0", candidate.Votes.String())
 		}
 	}
 }
