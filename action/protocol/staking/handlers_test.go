@@ -237,7 +237,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			// test bucket index and bucket
 			bucketIndices, err := getCandBucketIndices(sm, candidateAddr)
 			require.NoError(err)
-			require.Equal(test.index, len(*bucketIndices))
+			require.Equal(1, len(*bucketIndices))
 			bucketIndices, err = getVoterBucketIndices(sm, stakerAddr)
 			require.NoError(err)
 			require.Equal(1, len(*bucketIndices))
