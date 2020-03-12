@@ -174,7 +174,18 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		blkGasLimit  uint64
 		// expected result
 		errorCause error
-	}{
+	}{{
+		"10000000000000000000",
+		10,
+		0,
+		big.NewInt(unit.Qev),
+		10000,
+		1,
+		1,
+		time.Now(),
+		10000,
+		state.ErrNotEnoughBalance,
+	},
 		{
 			"10000000000000000000",
 			100,
@@ -237,10 +248,10 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			// test candidate
 			candidate, err = getCandidate(sm, candidateAddr)
 			require.NoError(err)
-			require.LessOrEqual("0", candidate.Votes.String())
+			require.Equal("2", candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidateAddr)
 			require.NotNil(candidate)
-			require.LessOrEqual("0", candidate.Votes.String())
+			require.Equal("2", candidate.Votes.String())
 		}
 	}
 }
