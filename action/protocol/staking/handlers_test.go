@@ -160,6 +160,8 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 
 	stakerAddr := identityset.Address(1)
 	tests := []struct {
+		// creat stake fields
+		amount string
 		// action fields
 		initBalance int64
 		index       uint64
@@ -196,6 +198,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		//	ErrInvalidCanName,
 		//},
 		{
+			"10000000000000000000",
 			100,
 			0,
 			big.NewInt(unit.Qev),
@@ -221,7 +224,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			BlockTimeStamp: test.blkTimestamp,
 			GasLimit:       test.blkGasLimit,
 		})
-		a, err := action.NewCreateStake(test.nonce, candidateName, "10000000000000000000", 1, false,
+		a, err := action.NewCreateStake(test.nonce, candidateName, test.amount, 1, false,
 			nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		_, err = p.handleCreateStake(ctx, a, sm)
@@ -230,7 +233,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		candidate, err := getCandidate(sm, candidateAddr)
 		require.NoError(err)
 		// before unstake
-		require.Equal("10000000000000000000", candidate.Votes.String())
+		require.Equal(test.amount, candidate.Votes.String())
 
 		act, err := action.NewUnstake(test.nonce, test.index,
 			nil, test.gasLimit, test.gasPrice)
@@ -251,7 +254,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			require.NoError(err)
 			require.Equal(candidateAddr, bucket.Candidate)
 			require.Equal(stakerAddr, bucket.Owner)
-			require.Equal("10000000000000000000", bucket.StakedAmount.String())
+			require.Equal(test.amount, bucket.StakedAmount.String())
 
 			// test candidate
 			candidate, err = getCandidate(sm, candidateAddr)
