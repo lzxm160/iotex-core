@@ -532,7 +532,7 @@ func putBucketAndIndex(sm protocol.StateManager, bucket *VoteBucket) (uint64, er
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to put bucket")
 	}
-
+	fmt.Println("index:", index)
 	if err := putVoterBucketIndex(sm, bucket.Owner, index); err != nil {
 		return 0, errors.Wrap(err, "failed to put bucket index")
 	}
