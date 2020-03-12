@@ -175,28 +175,6 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		// expected result
 		errorCause error
 	}{
-		//{
-		//	10,
-		//	1,
-		//	big.NewInt(unit.Qev),
-		//	10000,
-		//	1,
-		//	1,
-		//	time.Now(),
-		//	10000,
-		//	state.ErrNotEnoughBalance,
-		//},
-		//{
-		//	100,
-		//	1,
-		//	big.NewInt(unit.Qev),
-		//	10000,
-		//	1,
-		//	1,
-		//	time.Now(),
-		//	10000,
-		//	ErrInvalidCanName,
-		//},
 		{
 			"10000000000000000000",
 			100,
@@ -233,76 +211,42 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		candidate, err := getCandidate(sm, candidateAddr)
 		require.NoError(err)
 		// before unstake
-		require.Equal(test.amount, candidate.Votes.String())
-		//
-		//act, err := action.NewUnstake(test.nonce, test.index,
-		//	nil, test.gasLimit, test.gasPrice)
-		//require.NoError(err)
-		//_, err = p.handleUnstake(ctx, act, sm)
-		//require.Equal(test.errorCause, errors.Cause(err))
-		//
-		//if test.errorCause == nil {
-		//	// test bucket index and bucket
-		//	bucketIndices, err := getCandBucketIndices(sm, candidateAddr)
-		//	require.NoError(err)
-		//	require.Equal(1, len(*bucketIndices))
-		//	bucketIndices, err = getVoterBucketIndices(sm, stakerAddr)
-		//	require.NoError(err)
-		//	require.Equal(1, len(*bucketIndices))
-		//	indices := *bucketIndices
-		//	bucket, err := getBucket(sm, indices[0])
-		//	require.NoError(err)
-		//	require.Equal(candidateAddr, bucket.Candidate)
-		//	require.Equal(stakerAddr, bucket.Owner)
-		//	require.Equal(test.amount, bucket.StakedAmount.String())
-		//
-		//	// test candidate
-		//	candidate, err = getCandidate(sm, candidateAddr)
-		//	require.NoError(err)
-		//	require.Equal("0", candidate.Votes.String())
-		//	candidate = p.inMemCandidates.GetByOwner(candidateAddr)
-		//	require.NotNil(candidate)
-		//	require.Equal("0", candidate.Votes.String())
-		//}
+		require.LessOrEqual(test.amount, candidate.Votes.String())
+
+		act, err := action.NewUnstake(test.nonce, test.index,
+			nil, test.gasLimit, test.gasPrice)
+		require.NoError(err)
+		_, err = p.handleUnstake(ctx, act, sm)
+		require.Equal(test.errorCause, errors.Cause(err))
+
+		if test.errorCause == nil {
+			// test bucket index and bucket
+			bucketIndices, err := getCandBucketIndices(sm, candidateAddr)
+			require.NoError(err)
+			require.Equal(1, len(*bucketIndices))
+			bucketIndices, err = getVoterBucketIndices(sm, stakerAddr)
+			require.NoError(err)
+			require.Equal(1, len(*bucketIndices))
+			indices := *bucketIndices
+			bucket, err := getBucket(sm, indices[0])
+			require.NoError(err)
+			require.Equal(candidateAddr, bucket.Candidate)
+			require.Equal(stakerAddr, bucket.Owner)
+			require.Equal(test.amount, bucket.StakedAmount.String())
+
+			// test candidate
+			candidate, err = getCandidate(sm, candidateAddr)
+			require.NoError(err)
+			require.Equal("0", candidate.Votes.String())
+			candidate = p.inMemCandidates.GetByOwner(candidateAddr)
+			require.NotNil(candidate)
+			require.Equal("0", candidate.Votes.String())
+		}
 	}
 }
 
 func initAll(t *testing.T) (protocol.StateManager, *Protocol, *Candidate) {
 	require := require.New(t)
-	//ctrl := gomock.NewController(t)
-	//defer ctrl.Finish()
-	//sm := newMockStateManager(ctrl)
-	//_, err := sm.PutState(
-	//	&totalBucketCount{count: 0},
-	//	protocol.NamespaceOption(StakingNameSpace),
-	//	protocol.KeyOption(TotalBucketKey),
-	//)
-	//require.NoError(err)
-	//// create protocol
-	//p := NewProtocol(depositGas, sm, genesis.Staking{})
-	//// set up candidate
-	//gasPrice := big.NewInt(10)
-	//gasLimit := uint64(1000000)
-	//nonce := uint64(1)
-	//candidate := testCandidates[0].d.Clone()
-	//candidate1 := testCandidates[1].d.Clone()
-	//require.NoError(setupCandidate(p, sm, candidate))
-	//require.NoError(setupCandidate(p, sm, candidate1))
-	//ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
-	//	Caller:       identityset.Address(27),
-	//	GasPrice:     gasPrice,
-	//	IntrinsicGas: gasLimit,
-	//	Nonce:        nonce,
-	//})
-	//ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
-	//	BlockHeight:    1,
-	//	BlockTimeStamp: time.Now(),
-	//	GasLimit:       gasLimit,
-	//})
-	//act, err := action.NewCreateStake(nonce, candidate1.Name, "100", uint32(10000), true, []byte("payload"), gasLimit, gasPrice)
-	//require.NoError(err)
-	//_, err = p.handleCreateStake(ctx, act, sm)
-	//require.NoError(err)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	sm := newMockStateManager(ctrl)
