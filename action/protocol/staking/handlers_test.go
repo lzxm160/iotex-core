@@ -246,23 +246,15 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			require.NoError(err)
 			require.Equal(candidateAddr, bucket.Candidate)
 			require.Equal(stakerAddr, bucket.Owner)
-			require.Equal("0", bucket.StakedAmount.String())
+			require.Equal("10000000000000000000", bucket.StakedAmount.String())
 
 			// test candidate
 			candidate, err := getCandidate(sm, candidateAddr)
 			require.NoError(err)
-			require.LessOrEqual("0", candidate.Votes.String())
+			require.Equal("0", candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidateAddr)
 			require.NotNil(candidate)
-			require.LessOrEqual("0", candidate.Votes.String())
-
-			// test staker's account
-			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(stakerAddr.Bytes()))
-			require.NoError(err)
-			actCost, err := act.Cost()
-			require.NoError(err)
-			require.Equal(unit.ConvertIotxToRau(test.initBalance), big.NewInt(0).Add(caller.Balance, actCost))
-			require.Equal(test.nonce, caller.Nonce)
+			require.Equal("0", candidate.Votes.String())
 		}
 	}
 }
