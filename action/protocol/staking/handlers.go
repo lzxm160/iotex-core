@@ -49,6 +49,8 @@ func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStak
 	if err := candidate.AddVote(weightedVote); err != nil {
 		return nil, errors.Wrapf(err, "failed to add vote for candidate %s", candidate.Owner.String())
 	}
+	fmt.Println("weightedVote:", weightedVote)
+	fmt.Println("candidate:", candidate.Votes.String())
 	if err := putCandidate(sm, candidate); err != nil {
 		return nil, errors.Wrapf(err, "failed to put state of candidate %s", candidate.Owner.String())
 	}
