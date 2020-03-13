@@ -157,6 +157,9 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 
 	candidateName := candidate.Name
 	candidateAddr := candidate.Owner
+	candidate2 := testCandidates[0].d.Clone()
+	require.NoError(setupCandidate(p, sm, candidate2))
+	candidateName2 := candidate.Name
 
 	stakerAddr := identityset.Address(1)
 	tests := []struct {
@@ -231,7 +234,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		{
 			stakerAddr,
 			"10000000000000000000",
-			identityset.Address(34).String(),
+			candidateName2,
 			30,
 			0,
 			big.NewInt(unit.Qev),
