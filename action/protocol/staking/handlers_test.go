@@ -226,22 +226,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			false,
 			ErrFetchBucket,
 		},
-		// for inMemCandidates.GetByOwner
-		{
-			stakerAddr,
-			"10000000000000000000",
-			candidateName,
-			100,
-			0,
-			big.NewInt(unit.Qev),
-			10000,
-			1,
-			1,
-			time.Now(),
-			10000,
-			true,
-			ErrInvalidOwner,
-		},
+
 		// failed to subtract vote for candidate
 		{
 			stakerAddr,
@@ -256,6 +241,22 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			time.Now(),
 			10000,
 			false,
+			ErrInvalidOwner,
+		},
+		// for inMemCandidates.GetByOwner,have to put in the bottom
+		{
+			stakerAddr,
+			"10000000000000000000",
+			candidateName,
+			100,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			true,
 			ErrInvalidOwner,
 		},
 	}
