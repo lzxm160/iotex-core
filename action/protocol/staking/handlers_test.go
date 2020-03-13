@@ -181,19 +181,19 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 	}{
 		// test fetchCaller error ErrNotEnoughBalance
 		// 9990000000000000000+gas（10000000000000000）=10 iotx,no more extra balance
-		//{identityset.Address(34),
-		//	"9990000000000000000",
-		//	candidateName,
-		//	10,
-		//	0,
-		//	big.NewInt(unit.Qev),
-		//	10000,
-		//	1,
-		//	1,
-		//	time.Now(),
-		//	10000,
-		//	state.ErrNotEnoughBalance,
-		//},
+		{identityset.Address(33),
+			"9990000000000000000",
+			identityset.Address(34).String(),
+			10,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			state.ErrNotEnoughBalance,
+		},
 		{
 			stakerAddr,
 			"10000000000000000000",
@@ -259,6 +259,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			require.NotNil(candidate)
 			require.Equal("2", candidate.Votes.String())
 		}
+
 	}
 }
 
