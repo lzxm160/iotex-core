@@ -23,7 +23,6 @@ import (
 	"github.com/iotexproject/iotex-address/address"
 
 	"github.com/iotexproject/iotex-core/ioctl/config"
-	"github.com/iotexproject/iotex-core/testutil"
 )
 
 const (
@@ -34,7 +33,7 @@ func TestAccount(t *testing.T) {
 	r := require.New(t)
 
 	testWallet := filepath.Join(os.TempDir(), testPath)
-	defer testutil.CleanupPath(t, testWallet)
+	//defer testutil.CleanupPath(t, testWallet)
 	config.ReadConfig.Wallet = testWallet
 	fmt.Println(testWallet)
 	ks := keystore.NewKeyStore(config.ReadConfig.Wallet, keystore.StandardScryptN, keystore.StandardScryptP)
