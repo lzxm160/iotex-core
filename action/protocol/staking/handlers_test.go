@@ -245,7 +245,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		{
 			callerAddr,
 			"9990000000000000000",
-			11,
+			10,
 			true,
 			0,
 			big.NewInt(unit.Qev),
