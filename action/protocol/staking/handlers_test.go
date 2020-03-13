@@ -153,20 +153,19 @@ func TestProtocol_HandleCreateStake(t *testing.T) {
 
 func TestProtocol_HandleUnstake(t *testing.T) {
 	require := require.New(t)
-	sm, p, candidate := initAll(t)
-
-	candidateName := candidate.Name
-	candidateAddr := candidate.Owner
-	candidate2 := testCandidates[0].d.Clone()
-	require.NoError(setupCandidate(p, sm, candidate2))
-	candidateName2 := candidate.Name
-	candidateAddr2 := candidate.Owner
-	stakerAddr := identityset.Address(1)
+	//sm, p, candidate := initAll(t)
+	//
+	//candidateName := candidate.Name
+	//candidateAddr := candidate.Owner
+	//candidate2 := testCandidates[0].d.Clone()
+	//require.NoError(setupCandidate(p, sm, candidate2))
+	//candidateName2 := candidate.Name
+	//candidateAddr2 := candidate.Owner
+	callerAddr := identityset.Address(1)
 	tests := []struct {
 		// creat stake fields
 		caller      address.Address
 		amount      string
-		candidate   string
 		initBalance int64
 		selfstaking bool
 		// action fields
@@ -184,9 +183,8 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		errorCause error
 	}{
 		{
-			stakerAddr,
+			callerAddr,
 			"10000000000000000000",
-			candidateName,
 			100,
 			false,
 			0,
@@ -203,7 +201,6 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		// 9990000000000000000+gas（10000000000000000）=10 iotx,no more extra balance
 		{identityset.Address(33),
 			"9990000000000000000",
-			candidateName,
 			10,
 			false,
 			0,
@@ -220,7 +217,6 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		{
 			identityset.Address(33),
 			"10000000000000000000",
-			candidateName,
 			100,
 			false,
 			0,
@@ -236,9 +232,8 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 
 		// failed to subtract vote for candidate
 		{
-			candidateAddr2,
+			callerAddr,
 			"10000000000000000000",
-			candidateName2,
 			20,
 			true,
 			0,
@@ -253,9 +248,8 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		},
 		// for inMemCandidates.GetByOwner,have to put in the bottom
 		{
-			stakerAddr,
+			callerAddr,
 			"10000000000000000000",
-			candidateName,
 			100,
 			false,
 			0,
@@ -271,6 +265,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		sm, p, candidate := initAll(t)
 		require.NoError(setupAccount(sm, test.caller, test.initBalance))
 		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
 			Caller:       test.caller,
@@ -283,7 +278,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			BlockTimeStamp: test.blkTimestamp,
 			GasLimit:       test.blkGasLimit,
 		})
-		a, err := action.NewCreateStake(test.nonce, test.candidate, test.amount, 1, false,
+		a, err := action.NewCreateStake(test.nonce, candidate.Name, test.amount, 1, false,
 			nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		_, err = p.handleCreateStake(ctx, a, sm)
@@ -300,24 +295,24 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 
 		if test.errorCause == nil {
 			// test bucket index and bucket
-			bucketIndices, err := getCandBucketIndices(sm, candidateAddr)
+			bucketIndices, err := getCandBucketIndices(sm, candidate.Owner)
 			require.NoError(err)
 			require.Equal(1, len(*bucketIndices))
-			bucketIndices, err = getVoterBucketIndices(sm, stakerAddr)
+			bucketIndices, err = getVoterBucketIndices(sm, callerAddr)
 			require.NoError(err)
 			require.Equal(1, len(*bucketIndices))
 			indices := *bucketIndices
 			bucket, err := getBucket(sm, indices[0])
 			require.NoError(err)
-			require.Equal(candidateAddr, bucket.Candidate)
-			require.Equal(stakerAddr, bucket.Owner)
+			require.Equal(candidate.Owner, bucket.Candidate)
+			require.Equal(callerAddr, bucket.Owner)
 			require.Equal(test.amount, bucket.StakedAmount.String())
 
 			// test candidate
-			candidate, err = getCandidate(sm, candidateAddr)
+			candidate, err = getCandidate(sm, candidate.Owner)
 			require.NoError(err)
 			require.Equal("2", candidate.Votes.String())
-			candidate = p.inMemCandidates.GetByOwner(candidateAddr)
+			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
 			require.Equal("2", candidate.Votes.String())
 		}
