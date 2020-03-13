@@ -207,7 +207,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		require.NoError(setupAccount(sm, stakerAddr, test.initBalance))
+		require.NoError(setupAccount(sm, test.caller, test.initBalance))
 		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
 			Caller:       test.caller,
 			GasPrice:     test.gasPrice,
