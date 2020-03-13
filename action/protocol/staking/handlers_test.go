@@ -298,9 +298,9 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		act, err := action.NewUnstake(test.nonce, test.index,
 			nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
-		//if test.clear {
-		//	p.inMemCandidates.Delete(test.caller)
-		//}
+		if test.clear {
+			p.inMemCandidates.Delete(test.caller)
+		}
 		_, err = p.handleUnstake(ctx, act, sm)
 		require.Equal(test.errorCause, errors.Cause(err))
 
