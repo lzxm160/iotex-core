@@ -9,9 +9,9 @@ package account
 import (
 	"crypto/ecdsa"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 
@@ -31,7 +31,8 @@ const (
 
 func TestAccount(t *testing.T) {
 	r := require.New(t)
-	testWallet, _ := ioutil.TempDir(os.TempDir(), testPath)
+	//testWallet, _ := ioutil.TempDir(os.TempDir(), testPath)
+	testWallet := filepath.Join(os.TempDir(), testPath)
 	//defer testutil.CleanupPath(t, testWallet)
 	config.ReadConfig.Wallet = testWallet
 	fmt.Println("generate:", testWallet)
