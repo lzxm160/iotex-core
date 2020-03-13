@@ -179,7 +179,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		errorCause error
 	}{
 		// test fetchCaller error when call LoadAccount
-		{identityset.Address(35),
+		{identityset.Address(34),
 			"10000000000000000000",
 			candidateName,
 			100,
