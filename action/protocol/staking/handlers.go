@@ -547,7 +547,7 @@ func putBucketAndIndex(sm protocol.StateManager, bucket *VoteBucket) (uint64, er
 
 func fetchCaller(ctx context.Context, sm protocol.StateReader, amount *big.Int) (*state.Account, *big.Int, error) {
 	actionCtx := protocol.MustGetActionCtx(ctx)
-
+	fmt.Println("fetchCaller caller:", actionCtx.Caller.String())
 	caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(actionCtx.Caller.Bytes()))
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to load the account of caller %s", actionCtx.Caller.String())

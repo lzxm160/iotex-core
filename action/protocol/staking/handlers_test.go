@@ -8,6 +8,7 @@ package staking
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"testing"
 	"time"
@@ -227,14 +228,10 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		_, err = p.handleCreateStake(ctx, a, sm)
 		require.NoError(err)
 
-		candidate, err := getCandidate(sm, candidateAddr)
-		require.NoError(err)
-		// before unstake
-		require.LessOrEqual(test.amount, candidate.Votes.String())
-
 		act, err := action.NewUnstake(test.nonce, test.index,
 			nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
+		fmt.Println("caller before handleUnstake:", test.caller.String())
 		_, err = p.handleUnstake(ctx, act, sm)
 		require.Equal(test.errorCause, errors.Cause(err))
 
