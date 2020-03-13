@@ -179,11 +179,12 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		// expected result
 		errorCause error
 	}{
-		// test fetchCaller error when call LoadAccount
+		// test fetchCaller error ErrNotEnoughBalance
+		// 9990000000000000000+gas（10000000000000000）=1 iotx,no more extra balance
 		{identityset.Address(34),
-			"10000000000000000000",
+			"9990000000000000000",
 			candidateName,
-			2,
+			1,
 			0,
 			big.NewInt(unit.Qev),
 			10000,
