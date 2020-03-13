@@ -179,6 +179,20 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		// expected result
 		errorCause error
 	}{
+		{
+			stakerAddr,
+			"10000000000000000000",
+			candidateName,
+			100,
+			1,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			nil,
+		},
 		// test fetchCaller error ErrNotEnoughBalance
 		// 9990000000000000000+gas（10000000000000000）=10 iotx,no more extra balance
 		{identityset.Address(33),
@@ -207,20 +221,6 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			time.Now(),
 			10000,
 			ErrFetchBucket,
-		},
-		{
-			stakerAddr,
-			"10000000000000000000",
-			candidateName,
-			100,
-			1,
-			big.NewInt(unit.Qev),
-			10000,
-			1,
-			1,
-			time.Now(),
-			10000,
-			nil,
 		},
 	}
 
