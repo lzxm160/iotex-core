@@ -152,6 +152,169 @@ func TestProtocol_HandleCreateStake(t *testing.T) {
 	}
 }
 
+func TestProtocol_HandleUnstake(t *testing.T) {
+	require := require.New(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	callerAddr := identityset.Address(1)
+	tests := []struct {
+		// creat stake fields
+		caller      address.Address
+		amount      string
+		initBalance int64
+		selfstaking bool
+		// action fields
+		index    uint64
+		gasPrice *big.Int
+		gasLimit uint64
+		nonce    uint64
+		// block context
+		blkHeight    uint64
+		blkTimestamp time.Time
+		blkGasLimit  uint64
+		// clear flag for inMemCandidates
+		clear bool
+		// expected result
+		errorCause error
+	}{
+		{
+			callerAddr,
+			"10000000000000000000",
+			100,
+			false,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			false,
+			nil,
+		},
+		// test fetchCaller error ErrNotEnoughBalance
+		// 9990000000000000000+gas（10000000000000000）=10 iotx,no more extra balance
+		//{identityset.Address(33),
+		//	"9990000000000000000",
+		//	10,
+		//	false,
+		//	0,
+		//	big.NewInt(unit.Qev),
+		//	10000,
+		//	1,
+		//	1,
+		//	time.Now(),
+		//	10000,
+		//	false,
+		//	state.ErrNotEnoughBalance,
+		//},
+		//// for bucket.Owner is not equal to actionCtx.Caller
+		//{
+		//	identityset.Address(33),
+		//	"10000000000000000000",
+		//	100,
+		//	false,
+		//	0,
+		//	big.NewInt(unit.Qev),
+		//	10000,
+		//	1,
+		//	1,
+		//	time.Now(),
+		//	10000,
+		//	false,
+		//	ErrFetchBucket,
+		//},
+		//
+		//// failed to subtract vote for candidate
+		//{
+		//	callerAddr,
+		//	"10000000000000000000",
+		//	20,
+		//	true,
+		//	0,
+		//	big.NewInt(unit.Qev),
+		//	10000,
+		//	1,
+		//	1,
+		//	time.Now(),
+		//	10000,
+		//	false,
+		//	ErrInvalidAmount,
+		//},
+		//// for inMemCandidates.GetByOwner,have to put in the bottom
+		//{
+		//	callerAddr,
+		//	"10000000000000000000",
+		//	100,
+		//	false,
+		//	0,
+		//	big.NewInt(unit.Qev),
+		//	10000,
+		//	1,
+		//	1,
+		//	time.Now(),
+		//	10000,
+		//	true,
+		//	ErrInvalidOwner,
+		//},
+	}
+
+	for _, test := range tests {
+		sm, p, candidate := initAll(t, ctrl)
+		require.NoError(setupAccount(sm, test.caller, test.initBalance))
+		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
+			Caller:       test.caller,
+			GasPrice:     test.gasPrice,
+			IntrinsicGas: test.gasLimit,
+			Nonce:        test.nonce,
+		})
+		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
+			BlockHeight:    test.blkHeight,
+			BlockTimeStamp: test.blkTimestamp,
+			GasLimit:       test.blkGasLimit,
+		})
+		a, err := action.NewCreateStake(test.nonce, candidate.Name, test.amount, 1, false,
+			nil, test.gasLimit, test.gasPrice)
+		require.NoError(err)
+		_, err = p.handleCreateStake(ctx, a, sm)
+		require.NoError(err)
+
+		//act, err := action.NewUnstake(test.nonce, test.index,
+		//	nil, test.gasLimit, test.gasPrice)
+		//require.NoError(err)
+		//if test.clear {
+		//	p.inMemCandidates.Delete(test.caller)
+		//}
+		//_, err = p.handleUnstake(ctx, act, sm)
+		//require.Equal(test.errorCause, errors.Cause(err))
+
+		if test.errorCause == nil {
+			// test bucket index and bucket
+			bucketIndices, err := getCandBucketIndices(sm, candidate.Owner)
+			require.NoError(err)
+			require.Equal(1, len(*bucketIndices))
+			bucketIndices, err = getVoterBucketIndices(sm, candidate.Owner)
+			require.NoError(err)
+			require.Equal(1, len(*bucketIndices))
+			indices := *bucketIndices
+			bucket, err := getBucket(sm, indices[0])
+			require.NoError(err)
+			require.Equal(candidate.Owner.String(), bucket.Candidate.String())
+			require.Equal(test.caller.String(), bucket.Owner.String())
+			require.Equal(test.amount, bucket.StakedAmount.String())
+
+			// test candidate
+			candidate, err = getCandidate(sm, candidate.Owner)
+			require.NoError(err)
+			require.Equal("2", candidate.Votes.String())
+			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
+			require.NotNil(candidate)
+			require.Equal("2", candidate.Votes.String())
+		}
+
+	}
+}
+
 func initAll(t *testing.T, ctrl *gomock.Controller) (protocol.StateManager, *Protocol, *Candidate) {
 	require := require.New(t)
 	sm := newMockStateManager(ctrl)
