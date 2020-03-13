@@ -244,7 +244,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		// failed to subtract vote for candidate
 		{
 			callerAddr,
-			"9990000000000000000",
+			"9980000000000000000",
 			10,
 			true,
 			0,
