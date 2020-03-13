@@ -50,6 +50,9 @@ func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStak
 
 	// update candidate
 	weightedVote := p.calculateVoteWeight(bucket, false)
+	fmt.Println("handleCreateStake candidate.SelfStake：", candidate.SelfStake.String())
+	fmt.Println("handleCreateStake candidate.Votes：", candidate.Votes.String())
+	fmt.Println("handleCreateStake weightedVote：", weightedVote.String())
 	if err := candidate.AddVote(weightedVote); err != nil {
 		return nil, errors.Wrapf(err, "failed to add vote for candidate %s", candidate.Owner.String())
 	}
