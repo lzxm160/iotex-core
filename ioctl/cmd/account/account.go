@@ -361,6 +361,7 @@ func listSm2Account() ([]string, error) {
 				if err := validator.ValidateAddress(addr); err == nil {
 					sm2Accounts = append(sm2Accounts, addr)
 				}
+				fmt.Println(addr, ":", err)
 			}
 		}
 	}
