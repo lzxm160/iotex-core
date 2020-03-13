@@ -9,13 +9,14 @@ package account
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"os"
-	"path/filepath"
 	"strconv"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/iotexproject/iotex-core/testutil"
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/go-pkgs/crypto"
@@ -31,9 +32,8 @@ const (
 
 func TestAccount(t *testing.T) {
 	r := require.New(t)
-
-	testWallet := filepath.Join(os.TempDir(), testPath)
-	//defer testutil.CleanupPath(t, testWallet)
+	testWallet, _ := ioutil.TempDir(os.TempDir(), testPath)
+	defer testutil.CleanupPath(t, testWallet)
 	config.ReadConfig.Wallet = testWallet
 	fmt.Println(testWallet)
 	ks := keystore.NewKeyStore(config.ReadConfig.Wallet, keystore.StandardScryptN, keystore.StandardScryptP)
