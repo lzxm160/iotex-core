@@ -244,8 +244,8 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		// failed to subtract vote for candidate
 		{
 			callerAddr,
-			"10000000000000000000",
-			20,
+			"9990000000000000000",
+			11,
 			true,
 			0,
 			big.NewInt(unit.Qev),
