@@ -33,7 +33,7 @@ func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStak
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to fetch caller")
 	}
-
+	fmt.Println("total pay:", gasFee.Add(gasFee, act.Amount()).String())
 	// Create new bucket and bucket index
 	candidate := p.inMemCandidates.GetByName(act.Candidate())
 	if candidate == nil {

@@ -191,7 +191,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
-			accountutil.ErrLoadAccount,
+			state.ErrNotEnoughBalance,
 		},
 		{
 			stakerAddr,
