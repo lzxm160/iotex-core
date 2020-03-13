@@ -25,6 +25,11 @@ import (
 	"github.com/iotexproject/iotex-core/state"
 )
 
+var (
+	// ErrFetchBucket is the error when call fetchBucket
+	ErrFetchBucket = errors.New("fetchBucket error")
+)
+
 func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStake, sm protocol.StateManager) (*action.Receipt, error) {
 	actionCtx := protocol.MustGetActionCtx(ctx)
 	blkCtx := protocol.MustGetBlockCtx(ctx)
@@ -520,8 +525,8 @@ func (p *Protocol) fetchBucket(
 		return nil, errors.Wrapf(err, "failed to fetch bucket by index %d", index)
 	}
 	if checkOwner && !address.Equal(bucket.Owner, actionCtx.Caller) {
-		return nil, fmt.Errorf("bucket owner does not match action caller, bucket owner %s, action caller %s",
-			bucket.Owner.String(), actionCtx.Caller.String())
+		return nil, errors.Wrap(ErrFetchBucket, fmt.Sprintf("bucket owner does not match action caller, bucket owner %s, action caller %s",
+			bucket.Owner.String(), actionCtx.Caller.String()))
 	}
 	if !allowSelfStaking && p.inMemCandidates.ContainsSelfStakingBucket(index) {
 		return nil, errors.New("self staking bucket cannot be processed")
