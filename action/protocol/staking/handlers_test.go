@@ -33,21 +33,7 @@ func TestProtocol_HandleCreateStake(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	sm := newMockStateManager(ctrl)
-	_, err := sm.PutState(
-		&totalBucketCount{count: 0},
-		protocol.NamespaceOption(StakingNameSpace),
-		protocol.KeyOption(TotalBucketKey),
-	)
-	require.NoError(err)
-
-	// create protocol
-	p, err := NewProtocol(depositGas, sm, genesis.Default.Staking)
-	require.NoError(err)
-
-	// set up candidate
-	candidate := testCandidates[0].d.Clone()
-	require.NoError(setupCandidate(p, sm, candidate))
+	sm, p, candidate := initAll(t, ctrl)
 	candidateName := candidate.Name
 	candidateAddr := candidate.Owner
 
@@ -164,6 +150,26 @@ func TestProtocol_HandleCreateStake(t *testing.T) {
 			require.Equal(test.nonce, caller.Nonce)
 		}
 	}
+}
+
+func initAll(t *testing.T, ctrl *gomock.Controller) (protocol.StateManager, *Protocol, *Candidate) {
+	require := require.New(t)
+	sm := newMockStateManager(ctrl)
+	_, err := sm.PutState(
+		&totalBucketCount{count: 0},
+		protocol.NamespaceOption(StakingNameSpace),
+		protocol.KeyOption(TotalBucketKey),
+	)
+	require.NoError(err)
+
+	// create protocol
+	p, err := NewProtocol(depositGas, sm, genesis.Default.Staking)
+	require.NoError(err)
+
+	// set up candidate
+	candidate := testCandidates[0].d.Clone()
+	require.NoError(setupCandidate(p, sm, candidate))
+	return sm, p, candidate
 }
 
 func setupAccount(sm protocol.StateManager, addr address.Address, balance int64) error {
