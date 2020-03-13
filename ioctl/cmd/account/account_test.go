@@ -35,7 +35,7 @@ func TestAccount(t *testing.T) {
 	testWallet, _ := ioutil.TempDir(os.TempDir(), testPath)
 	defer testutil.CleanupPath(t, testWallet)
 	config.ReadConfig.Wallet = testWallet
-	fmt.Println(testWallet)
+	fmt.Println("generate:", testWallet)
 	ks := keystore.NewKeyStore(config.ReadConfig.Wallet, keystore.StandardScryptN, keystore.StandardScryptP)
 	r.NotNil(ks)
 
@@ -56,14 +56,16 @@ func TestAccount(t *testing.T) {
 	r.NoError(err)
 	r.False(IsSignerExist(addr2.String()))
 	filePath := sm2KeyPath(addr2)
+	fmt.Println("storeKey:", config.ReadConfig.Wallet)
 	addrString, err := storeKey(account2.HexString(), config.ReadConfig.Wallet, passwd)
 	r.NoError(err)
 	r.Equal(addr2.String(), addrString)
 	r.True(IsSignerExist(addr2.String()))
+	fmt.Println("findSm2PemFile:", config.ReadConfig.Wallet)
 	path, err := findSm2PemFile(addr2)
 	r.NoError(err)
 	r.Equal(filePath, path)
-
+	fmt.Println("before listSm2Account:", config.ReadConfig.Wallet)
 	accounts, err := listSm2Account()
 	r.NoError(err)
 	r.Equal(1, len(accounts))
