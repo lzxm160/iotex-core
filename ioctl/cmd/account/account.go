@@ -350,6 +350,7 @@ func findSm2PemFile(addr address.Address) (string, error) {
 func listSm2Account() ([]string, error) {
 	sm2Accounts := make([]string, 0)
 	files, err := ioutil.ReadDir(config.ReadConfig.Wallet)
+	fmt.Println(config.ReadConfig.Wallet)
 	if err != nil {
 		return nil, output.NewError(output.ReadFileError, "failed to read files in wallet", err)
 	}

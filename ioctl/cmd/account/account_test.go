@@ -8,6 +8,7 @@ package account
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -35,7 +36,7 @@ func TestAccount(t *testing.T) {
 	testWallet := filepath.Join(os.TempDir(), testPath)
 	defer testutil.CleanupPath(t, testWallet)
 	config.ReadConfig.Wallet = testWallet
-
+	fmt.Println(testWallet)
 	ks := keystore.NewKeyStore(config.ReadConfig.Wallet, keystore.StandardScryptN, keystore.StandardScryptP)
 	r.NotNil(ks)
 
