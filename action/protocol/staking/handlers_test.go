@@ -208,6 +208,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			10000,
 			state.ErrNotEnoughBalance,
 		},
+		// for bucket.Owner is not equal to actionCtx.Caller
 		{
 			identityset.Address(33),
 			"10000000000000000000",
@@ -221,6 +222,21 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			time.Now(),
 			10000,
 			ErrFetchBucket,
+		},
+		// for inMemCandidates.GetByOwner
+		{
+			stakerAddr,
+			"10000000000000000000",
+			candidateName,
+			100,
+			2,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			ErrInvalidOwner,
 		},
 	}
 
