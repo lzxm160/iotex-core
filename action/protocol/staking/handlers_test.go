@@ -244,7 +244,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			time.Now(),
 			10000,
 			false,
-			ErrInvalidOwner,
+			ErrInvalidAmount,
 		},
 		// for inMemCandidates.GetByOwner,have to put in the bottom
 		{
