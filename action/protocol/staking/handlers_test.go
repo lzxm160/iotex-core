@@ -161,7 +161,9 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 	stakerAddr := identityset.Address(1)
 	tests := []struct {
 		// creat stake fields
+		caller address.Address
 		amount string
+
 		// action fields
 		candidate   string
 		initBalance int64
@@ -175,7 +177,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		blkGasLimit  uint64
 		// expected result
 		errorCause error
-	}{{
+	}{{stakerAddr,
 		"10000000000000000000",
 		"xxx",
 		100,
@@ -189,6 +191,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		ErrInvalidCanName,
 	},
 		{
+			identityset.Address(30),
 			"10000000000000000000",
 			candidateName,
 			100,
@@ -199,7 +202,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
-			nil,
+			accountutil.ErrLoadAccount,
 		},
 	}
 
