@@ -209,7 +209,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			state.ErrNotEnoughBalance,
 		},
 		{
-			stakerAddr,
+			identityset.Address(33),
 			"10000000000000000000",
 			candidateName,
 			100,
