@@ -177,19 +177,21 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		blkGasLimit  uint64
 		// expected result
 		errorCause error
-	}{{identityset.Address(30),
-		"10000000000000000000",
-		candidateName,
-		100,
-		0,
-		big.NewInt(unit.Qev),
-		10000,
-		1,
-		1,
-		time.Now(),
-		10000,
-		accountutil.ErrLoadAccount,
-	},
+	}{
+		// test fetchCaller error when call LoadAccount
+		{identityset.Address(30),
+			"10000000000000000000",
+			candidateName,
+			100,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			accountutil.ErrLoadAccount,
+		},
 		{
 			stakerAddr,
 			"10000000000000000000",
