@@ -199,7 +199,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		// 9990000000000000000+gas（10000000000000000）=10 iotx,no more extra balance
 		{identityset.Address(33),
 			"9990000000000000000",
-			identityset.Address(34).String(),
+			candidateName,
 			10,
 			0,
 			big.NewInt(unit.Qev),
