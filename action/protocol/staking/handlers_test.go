@@ -231,7 +231,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		{
 			stakerAddr,
 			"10000000000000000000",
-			candidateName,
+			identityset.Address(34).String(),
 			30,
 			0,
 			big.NewInt(unit.Qev),
