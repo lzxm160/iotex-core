@@ -183,7 +183,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		{identityset.Address(34),
 			"10000000000000000000",
 			candidateName,
-			100,
+			2,
 			0,
 			big.NewInt(unit.Qev),
 			10000,
