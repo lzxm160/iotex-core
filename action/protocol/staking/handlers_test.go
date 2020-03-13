@@ -304,8 +304,8 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			indices := *bucketIndices
 			bucket, err := getBucket(sm, indices[0])
 			require.NoError(err)
-			require.Equal(candidate.Owner, bucket.Candidate)
-			require.Equal(callerAddr, bucket.Owner)
+			require.Equal(candidate.Owner.String(), bucket.Candidate.String())
+			require.Equal(test.caller.String(), bucket.Owner.String())
 			require.Equal(test.amount, bucket.StakedAmount.String())
 
 			// test candidate
