@@ -231,7 +231,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			"10000000000000000000",
 			100,
 			false,
-			1,
+			0,
 			big.NewInt(unit.Qev),
 			10000,
 			1,
