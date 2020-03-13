@@ -168,6 +168,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		amount      string
 		candidate   string
 		initBalance int64
+		selfstaking bool
 		// action fields
 		index    uint64
 		gasPrice *big.Int
@@ -187,6 +188,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			"10000000000000000000",
 			candidateName,
 			100,
+			false,
 			0,
 			big.NewInt(unit.Qev),
 			10000,
@@ -203,6 +205,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			"9990000000000000000",
 			candidateName,
 			10,
+			false,
 			0,
 			big.NewInt(unit.Qev),
 			10000,
@@ -219,6 +222,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			"10000000000000000000",
 			candidateName,
 			100,
+			false,
 			0,
 			big.NewInt(unit.Qev),
 			10000,
@@ -233,9 +237,10 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		// failed to subtract vote for candidate
 		{
 			candidateAddr2,
-			"9989000000000000000",
+			"9999000000000000000",
 			candidateName2,
 			10,
+			true,
 			0,
 			big.NewInt(unit.Qev),
 			10000,
@@ -252,6 +257,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			"10000000000000000000",
 			candidateName,
 			100,
+			false,
 			0,
 			big.NewInt(unit.Qev),
 			10000,
