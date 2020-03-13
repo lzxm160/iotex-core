@@ -8,7 +8,6 @@ package staking
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"testing"
 	"time"
@@ -243,6 +242,22 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			true,
 			ErrInvalidOwner,
 		},
+		// failed to subtract vote for candidate
+		{
+			stakerAddr,
+			"10000000000000000000",
+			candidateName,
+			100,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			true,
+			ErrInvalidOwner,
+		},
 	}
 
 	for _, test := range tests {
@@ -267,7 +282,6 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		act, err := action.NewUnstake(test.nonce, test.index,
 			nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
-		fmt.Println("caller before handleUnstake:", test.caller.String())
 		if test.clear {
 			p.inMemCandidates.Delete(test.caller)
 		}
