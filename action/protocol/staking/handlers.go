@@ -103,7 +103,7 @@ func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, sm pr
 		return nil, errors.Wrap(ErrInvalidOwner, "cannot find candidate in candidate center")
 	}
 	weightedVote := p.calculateVoteWeight(bucket, p.inMemCandidates.ContainsSelfStakingBucket(act.BucketIndex()))
-	fmt.Println(candidate.Votes.String(), ":", weightedVote.String())
+	fmt.Println(candidate.Votes.String(), "///////////", weightedVote.String())
 	if err := candidate.SubVote(weightedVote); err != nil {
 		return nil, errors.Wrapf(err, "failed to subtract vote for candidate %s", bucket.Candidate.String())
 	}
