@@ -162,20 +162,21 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 	stakerAddr := identityset.Address(1)
 	tests := []struct {
 		// creat stake fields
-		caller address.Address
-		amount string
-
-		// action fields
+		caller      address.Address
+		amount      string
 		candidate   string
 		initBalance int64
-		index       uint64
-		gasPrice    *big.Int
-		gasLimit    uint64
-		nonce       uint64
+		// action fields
+		index    uint64
+		gasPrice *big.Int
+		gasLimit uint64
+		nonce    uint64
 		// block context
 		blkHeight    uint64
 		blkTimestamp time.Time
 		blkGasLimit  uint64
+		// clear flag for inMemCandidates
+		clear bool
 		// expected result
 		errorCause error
 	}{
@@ -191,6 +192,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
+			false,
 			nil,
 		},
 		// test fetchCaller error ErrNotEnoughBalance
@@ -206,6 +208,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
+			false,
 			state.ErrNotEnoughBalance,
 		},
 		// for bucket.Owner is not equal to actionCtx.Caller
@@ -221,6 +224,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
+			false,
 			ErrFetchBucket,
 		},
 		// for inMemCandidates.GetByOwner
@@ -229,13 +233,14 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			"10000000000000000000",
 			candidateName,
 			100,
-			2,
+			1,
 			big.NewInt(unit.Qev),
 			10000,
 			1,
 			1,
 			time.Now(),
 			10000,
+			true,
 			ErrInvalidOwner,
 		},
 	}
@@ -253,7 +258,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			BlockTimeStamp: test.blkTimestamp,
 			GasLimit:       test.blkGasLimit,
 		})
-		a, err := action.NewCreateStake(test.nonce, candidateName, test.amount, 1, false,
+		a, err := action.NewCreateStake(test.nonce, test.candidate, test.amount, 1, false,
 			nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		_, err = p.handleCreateStake(ctx, a, sm)
@@ -263,6 +268,9 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		fmt.Println("caller before handleUnstake:", test.caller.String())
+		if test.clear {
+			p.inMemCandidates.Delete(test.caller)
+		}
 		_, err = p.handleUnstake(ctx, act, sm)
 		require.Equal(test.errorCause, errors.Cause(err))
 
