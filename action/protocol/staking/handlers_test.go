@@ -160,7 +160,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 	candidate2 := testCandidates[0].d.Clone()
 	require.NoError(setupCandidate(p, sm, candidate2))
 	candidateName2 := candidate.Name
-
+	candidateAddr2 := candidate.Owner
 	stakerAddr := identityset.Address(1)
 	tests := []struct {
 		// creat stake fields
@@ -232,7 +232,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 
 		// failed to subtract vote for candidate
 		{
-			stakerAddr,
+			candidateAddr2,
 			"10000000000000000000",
 			candidateName2,
 			30,
