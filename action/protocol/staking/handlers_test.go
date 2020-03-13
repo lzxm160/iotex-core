@@ -255,7 +255,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
-			true,
+			false,
 			ErrInvalidOwner,
 		},
 	}
