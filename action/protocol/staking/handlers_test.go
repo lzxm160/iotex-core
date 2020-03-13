@@ -163,6 +163,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		// creat stake fields
 		amount string
 		// action fields
+		candidate   string
 		initBalance int64
 		index       uint64
 		gasPrice    *big.Int
@@ -176,6 +177,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		errorCause error
 	}{{
 		"10000000000000000000",
+		"xxx",
 		10,
 		0,
 		big.NewInt(unit.Qev),
@@ -184,10 +186,11 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		1,
 		time.Now(),
 		10000,
-		state.ErrNotEnoughBalance,
+		ErrInvalidCanName,
 	},
 		{
 			"10000000000000000000",
+			candidateName,
 			100,
 			0,
 			big.NewInt(unit.Qev),
