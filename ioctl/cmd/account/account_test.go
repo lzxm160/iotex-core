@@ -15,6 +15,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/iotexproject/iotex-core/testutil"
+
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/stretchr/testify/require"
 
@@ -31,9 +33,9 @@ const (
 
 func TestAccount(t *testing.T) {
 	r := require.New(t)
-	//testWallet, _ := ioutil.TempDir(os.TempDir(), testPath)
+
 	testWallet := filepath.Join(os.TempDir(), testPath)
-	//defer testutil.CleanupPath(t, testWallet)
+	defer testutil.CleanupPath(t, testWallet)
 	config.ReadConfig.Wallet = testWallet
 	fmt.Println("generate:", testWallet)
 	ks := keystore.NewKeyStore(config.ReadConfig.Wallet, keystore.StandardScryptN, keystore.StandardScryptP)
