@@ -68,6 +68,8 @@ func TestProtocol_HandleCreateStake(t *testing.T) {
 			10000,
 			state.ErrNotEnoughBalance,
 		},
+		//action.NewCreateStake(test.nonce, candidate.Name, test.amount, 1, false,
+		//nil, test.gasLimit, test.gasPrice)
 		{
 			100,
 			"notExist",
