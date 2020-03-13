@@ -177,9 +177,9 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		blkGasLimit  uint64
 		// expected result
 		errorCause error
-	}{{stakerAddr,
+	}{{identityset.Address(30),
 		"10000000000000000000",
-		"xxx",
+		candidateName,
 		100,
 		0,
 		big.NewInt(unit.Qev),
@@ -188,10 +188,10 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		1,
 		time.Now(),
 		10000,
-		ErrInvalidCanName,
+		accountutil.ErrLoadAccount,
 	},
 		{
-			identityset.Address(30),
+			stakerAddr,
 			"10000000000000000000",
 			candidateName,
 			100,
@@ -202,14 +202,14 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
-			accountutil.ErrLoadAccount,
+			nil,
 		},
 	}
 
 	for _, test := range tests {
 		require.NoError(setupAccount(sm, stakerAddr, test.initBalance))
 		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
-			Caller:       stakerAddr,
+			Caller:       test.caller,
 			GasPrice:     test.gasPrice,
 			IntrinsicGas: test.gasLimit,
 			Nonce:        test.nonce,
