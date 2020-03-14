@@ -193,7 +193,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			nil,
 		},
 		// test fetchCaller error ErrNotEnoughBalance
-		// 9990000000000000000+gas£¨10000000000000000£©=10 iotx,no more extra balance
+		// 9990000000000000000+gas(10000000000000000)=10 iotx,no more extra balance
 		{
 			callerAddr,
 			"9990000000000000000",
