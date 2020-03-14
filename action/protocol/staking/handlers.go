@@ -24,6 +24,10 @@ import (
 	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/state"
 )
+var (
+	// ErrFetchBucket is the error when call fetchBucket
+	ErrFetchBucket = errors.New("fetchBucket error")
+)
 
 const (
 	// HandleCreateStake is the handler name of createStake
@@ -120,6 +124,7 @@ func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, sm pr
 		return nil, errors.Wrap(ErrInvalidOwner, "cannot find candidate in candidate center")
 	}
 	weightedVote := p.calculateVoteWeight(bucket, p.inMemCandidates.ContainsSelfStakingBucket(act.BucketIndex()))
+	fmt.Println(candidate.Votes.String(), "///////////", weightedVote.String())
 	if err := candidate.SubVote(weightedVote); err != nil {
 		return nil, errors.Wrapf(err, "failed to subtract vote for candidate %s", bucket.Candidate.String())
 	}
@@ -558,8 +563,8 @@ func (p *Protocol) fetchBucket(
 		return nil, errors.Wrapf(err, "failed to fetch bucket by index %d", index)
 	}
 	if checkOwner && !address.Equal(bucket.Owner, actionCtx.Caller) {
-		return nil, fmt.Errorf("bucket owner does not match action caller, bucket owner %s, action caller %s",
-			bucket.Owner.String(), actionCtx.Caller.String())
+		return nil, errors.Wrap(ErrFetchBucket, fmt.Sprintf("bucket owner does not match action caller, bucket owner %s, action caller %s",
+			bucket.Owner.String(), actionCtx.Caller.String()))
 	}
 	if !allowSelfStaking && p.inMemCandidates.ContainsSelfStakingBucket(index) {
 		return nil, errors.New("self staking bucket cannot be processed")
