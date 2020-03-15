@@ -290,6 +290,8 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		if test.newProtocol {
 			sm, p, candidate, _ = initAll(t, ctrl)
 			ctx = initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
+		} else {
+			candidate = candidate2
 		}
 
 		act, err := action.NewUnstake(test.nonce, test.index,
