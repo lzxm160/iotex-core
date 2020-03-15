@@ -24,6 +24,7 @@ import (
 	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
 	"github.com/iotexproject/iotex-core/state"
 )
+
 var (
 	// ErrFetchBucket is the error when call fetchBucket
 	ErrFetchBucket = errors.New("fetchBucket error")
@@ -562,6 +563,7 @@ func (p *Protocol) fetchBucket(
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to fetch bucket by index %d", index)
 	}
+	fmt.Println(bucket.Owner, ":", actionCtx.Caller)
 	if checkOwner && !address.Equal(bucket.Owner, actionCtx.Caller) {
 		return nil, errors.Wrap(ErrFetchBucket, fmt.Sprintf("bucket owner does not match action caller, bucket owner %s, action caller %s",
 			bucket.Owner.String(), actionCtx.Caller.String()))
