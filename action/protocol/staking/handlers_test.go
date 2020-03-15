@@ -227,7 +227,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		},
 		// for bucket.Owner is not equal to actionCtx.Caller
 		{
-			identityset.Address(33),
+			identityset.Address(1),
 			"10000000000000000000",
 			100,
 			false,
@@ -277,9 +277,9 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 
 	for _, test := range tests {
 		sm, p, candidate := initAll(t, ctrl)
-		require.NoError(setupAccount(sm, test.caller, test.initBalance))
+		require.NoError(setupAccount(sm, callerAddr, test.initBalance))
 		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
-			Caller:       test.caller,
+			Caller:       callerAddr,
 			GasPrice:     test.gasPrice,
 			IntrinsicGas: test.gasLimit,
 			Nonce:        test.nonce,
