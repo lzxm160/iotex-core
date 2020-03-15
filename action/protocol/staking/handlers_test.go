@@ -8,6 +8,7 @@ package staking
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"testing"
 	"time"
@@ -293,7 +294,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		} else {
 			candidate = candidate2
 		}
-
+		fmt.Println(candidate.Name)
 		act, err := action.NewUnstake(test.nonce, test.index,
 			nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
