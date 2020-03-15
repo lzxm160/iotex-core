@@ -28,6 +28,10 @@ import (
 var (
 	// ErrFetchBucket is the error when call fetchBucket
 	ErrFetchBucket = errors.New("fetchBucket error")
+	// ErrNotUnstaked is the error when bucket has not been unstaked
+	ErrNotUnstaked = errors.New("bucket has not been unstaked")
+	// ErrNotReadyWithdraw is the error when not ready withdraw
+	ErrNotReadyWithdraw = errors.New("stake is not ready to withdraw")
 )
 
 const (
@@ -164,11 +168,11 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 
 	// check unstake time
 	if bucket.UnstakeStartTime.Unix() == 0 {
-		return nil, errors.New("bucket has not been unstaked")
+		return nil, ErrNotUnstaked
 	}
 	if blkCtx.BlockTimeStamp.Before(bucket.UnstakeStartTime.Add(p.config.WithdrawWaitingPeriod)) {
-		return nil, fmt.Errorf("stake is not ready to withdraw, current time %s, required time %s",
-			blkCtx.BlockTimeStamp, bucket.UnstakeStartTime.Add(p.config.WithdrawWaitingPeriod))
+		return nil, errors.Wrap(ErrNotReadyWithdraw, fmt.Sprintf("stake is not ready to withdraw, current time %s, required time %s",
+			blkCtx.BlockTimeStamp, bucket.UnstakeStartTime.Add(p.config.WithdrawWaitingPeriod)))
 	}
 
 	// delete bucket and bucket index
