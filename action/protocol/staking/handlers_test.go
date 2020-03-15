@@ -36,8 +36,8 @@ func TestProtocol_HandleAll(t *testing.T) {
 	defer ctrl.Finish()
 	sm, p, candidate, candidate2 := initAll(t, ctrl)
 	ctx := initCreateStake(t, sm, identityset.Address(2), 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
-	candidateName := candidate.Name
-	candidateAddr := candidate.Owner
+	//candidateName := candidate.Name
+	//candidateAddr := candidate.Owner
 	stakerAddr := identityset.Address(1)
 	tests := []struct {
 		caller address.Address
@@ -67,7 +67,7 @@ func TestProtocol_HandleAll(t *testing.T) {
 		{
 			stakerAddr,
 			100,
-			candidateName,
+			candidate2.Name,
 			"10000000000000000000",
 			1,
 			false,
@@ -86,7 +86,7 @@ func TestProtocol_HandleAll(t *testing.T) {
 		{
 			stakerAddr,
 			10,
-			candidateName,
+			candidate2.Name,
 			"10000000000000000000",
 			1,
 			false,
@@ -133,33 +133,42 @@ func TestProtocol_HandleAll(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		require.NoError(setupAccount(sm, stakerAddr, test.initBalance))
-		act, err := action.NewCreateStake(test.nonce, test.candName, test.amount, test.duration, test.autoStake,
+		if test.newProtocol {
+			sm, p, candidate, _ = initAll(t, ctrl)
+		} else {
+			candidate = candidate2
+		}
+		ctx = initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
+		// for handleUnstake
+		act, err := action.NewUnstake(test.nonce, test.index,
 			nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
-		_, err = p.handleCreateStake(ctx, act, sm)
+		if test.clear {
+			p.inMemCandidates.Delete(test.caller)
+		}
+		_, err = p.handleUnstake(ctx, act, sm)
 		require.Equal(test.errorCause, errors.Cause(err))
 
 		if test.errorCause == nil {
 			// test bucket index and bucket
-			bucketIndices, err := getCandBucketIndices(sm, candidateAddr)
+			bucketIndices, err := getCandBucketIndices(sm, candidate.Owner)
 			require.NoError(err)
 			require.Equal(1, len(*bucketIndices))
-			bucketIndices, err = getVoterBucketIndices(sm, stakerAddr)
+			bucketIndices, err = getVoterBucketIndices(sm, test.caller)
 			require.NoError(err)
 			require.Equal(1, len(*bucketIndices))
 			indices := *bucketIndices
 			bucket, err := getBucket(sm, indices[0])
 			require.NoError(err)
-			require.Equal(candidateAddr, bucket.Candidate)
-			require.Equal(stakerAddr, bucket.Owner)
+			require.Equal(candidate.Owner, bucket.Candidate)
+			require.Equal(test.caller, bucket.Owner)
 			require.Equal(test.amount, bucket.StakedAmount.String())
 
 			// test candidate
-			candidate, err := getCandidate(sm, candidateAddr)
+			candidate, err := getCandidate(sm, candidate.Owner)
 			require.NoError(err)
 			require.LessOrEqual(test.amount, candidate.Votes.String())
-			candidate = p.inMemCandidates.GetByOwner(candidateAddr)
+			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
 			require.LessOrEqual(test.amount, candidate.Votes.String())
 
