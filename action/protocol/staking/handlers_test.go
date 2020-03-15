@@ -227,7 +227,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		},
 		// for bucket.Owner is not equal to actionCtx.Caller
 		{
-			identityset.Address(1),
+			identityset.Address(11),
 			"10000000000000000000",
 			100,
 			false,
