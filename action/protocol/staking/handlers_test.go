@@ -237,11 +237,11 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		},
 		// for bucket.Owner is not equal to actionCtx.Caller
 		{
-			identityset.Address(11),
+			identityset.Address(12),
 			"10000000000000000000",
 			100,
 			false,
-			1,
+			0,
 			big.NewInt(unit.Qev),
 			10000,
 			1,
@@ -290,10 +290,10 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 	for _, test := range tests {
 		if test.newProtocol {
 			sm, p, candidate, _ = initAll(t, ctrl)
-			ctx = initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
 		} else {
 			candidate = candidate2
 		}
+		ctx = initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
 		fmt.Println(candidate.Name)
 		act, err := action.NewUnstake(test.nonce, test.index,
 			nil, test.gasLimit, test.gasPrice)
