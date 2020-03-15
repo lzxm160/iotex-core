@@ -218,23 +218,6 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			true,
 			state.ErrNotEnoughBalance,
 		},
-		// getbucket ErrStateNotExist
-		{
-			identityset.Address(33),
-			"10000000000000000000",
-			100,
-			false,
-			1,
-			big.NewInt(unit.Qev),
-			10000,
-			1,
-			1,
-			time.Now(),
-			10000,
-			false,
-			true,
-			state.ErrStateNotExist,
-		},
 		// for bucket.Owner is not equal to actionCtx.Caller
 		{
 			identityset.Address(12),
@@ -252,13 +235,13 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			false,
 			ErrFetchBucket,
 		},
-		// failed to subtract vote for candidate
+		// updateBucket getbucket ErrStateNotExist
 		{
-			callerAddr,
-			"9980000000000000000",
-			10,
-			true,
-			0,
+			identityset.Address(33),
+			"10000000000000000000",
+			100,
+			false,
+			1,
 			big.NewInt(unit.Qev),
 			10000,
 			1,
@@ -267,9 +250,27 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			10000,
 			false,
 			true,
-			ErrInvalidAmount,
+			state.ErrStateNotExist,
 		},
-		// for inMemCandidates.GetByOwner,have to put in the bottom
+
+		// failed to subtract vote for candidate
+		//{
+		//	callerAddr,
+		//	"9980000000000000000",
+		//	10,
+		//	true,
+		//	0,
+		//	big.NewInt(unit.Qev),
+		//	10000,
+		//	1,
+		//	1,
+		//	time.Now(),
+		//	10000,
+		//	false,
+		//	true,
+		//	ErrInvalidAmount,
+		//},
+		// for inMemCandidates.GetByOwner
 		{
 			callerAddr,
 			"10000000000000000000",
