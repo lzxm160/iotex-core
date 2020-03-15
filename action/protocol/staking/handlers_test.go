@@ -33,7 +33,7 @@ func TestProtocol_HandleCreateStake(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	sm, p, candidate := initAll(t, ctrl)
+	sm, p, candidate, _ := initAll(t, ctrl)
 	candidateName := candidate.Name
 	candidateAddr := candidate.Owner
 
@@ -156,6 +156,10 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 	require := require.New(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+
+	sm, p, candidate, candidate2 := initAll(t, ctrl)
+	ctx := initCreateStake(t, sm, identityset.Address(2), 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
+
 	callerAddr := identityset.Address(1)
 	tests := []struct {
 		// creat stake fields
@@ -174,6 +178,8 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		blkGasLimit  uint64
 		// clear flag for inMemCandidates
 		clear bool
+		// need new p
+		newProtocol bool
 		// expected result
 		errorCause error
 	}{
@@ -190,6 +196,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			time.Now(),
 			10000,
 			false,
+			true,
 			nil,
 		},
 		// test fetchCaller error ErrNotEnoughBalance
@@ -207,6 +214,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			time.Now(),
 			10000,
 			false,
+			true,
 			state.ErrNotEnoughBalance,
 		},
 		// getbucket ErrStateNotExist
@@ -223,6 +231,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			time.Now(),
 			10000,
 			false,
+			true,
 			state.ErrStateNotExist,
 		},
 		// for bucket.Owner is not equal to actionCtx.Caller
@@ -238,6 +247,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
+			false,
 			false,
 			ErrFetchBucket,
 		},
@@ -271,29 +281,16 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			time.Now(),
 			10000,
 			true,
+			true,
 			ErrInvalidOwner,
 		},
 	}
 
 	for _, test := range tests {
-		sm, p, candidate := initAll(t, ctrl)
-		require.NoError(setupAccount(sm, callerAddr, test.initBalance))
-		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
-			Caller:       callerAddr,
-			GasPrice:     test.gasPrice,
-			IntrinsicGas: test.gasLimit,
-			Nonce:        test.nonce,
-		})
-		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
-			BlockHeight:    test.blkHeight,
-			BlockTimeStamp: test.blkTimestamp,
-			GasLimit:       test.blkGasLimit,
-		})
-		a, err := action.NewCreateStake(test.nonce, candidate.Name, test.amount, 1, false,
-			nil, test.gasLimit, test.gasPrice)
-		require.NoError(err)
-		_, err = p.handleCreateStake(ctx, a, sm)
-		require.NoError(err)
+		if test.newProtocol {
+			sm, p, candidate, _ = initAll(t, ctrl)
+			ctx = initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
+		}
 
 		act, err := action.NewUnstake(test.nonce, test.index,
 			nil, test.gasLimit, test.gasPrice)
@@ -331,7 +328,29 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 	}
 }
 
-func initAll(t *testing.T, ctrl *gomock.Controller) (protocol.StateManager, *Protocol, *Candidate) {
+func initCreateStake(t *testing.T, sm protocol.StateManager, callerAddr address.Address, initBalance int64, gasPrice *big.Int, gasLimit uint64, nonce uint64, blkHeight uint64, blkTimestamp time.Time, blkGasLimit uint64, p *Protocol, candidate *Candidate, amount string) context.Context {
+	require := require.New(t)
+	require.NoError(setupAccount(sm, callerAddr, initBalance))
+	ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
+		Caller:       callerAddr,
+		GasPrice:     gasPrice,
+		IntrinsicGas: gasLimit,
+		Nonce:        nonce,
+	})
+	ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
+		BlockHeight:    blkHeight,
+		BlockTimeStamp: blkTimestamp,
+		GasLimit:       blkGasLimit,
+	})
+	a, err := action.NewCreateStake(nonce, candidate.Name, amount, 1, false,
+		nil, gasLimit, gasPrice)
+	require.NoError(err)
+	_, err = p.handleCreateStake(ctx, a, sm)
+	require.NoError(err)
+	return ctx
+}
+
+func initAll(t *testing.T, ctrl *gomock.Controller) (protocol.StateManager, *Protocol, *Candidate, *Candidate) {
 	require := require.New(t)
 	sm := newMockStateManager(ctrl)
 	_, err := sm.PutState(
@@ -348,7 +367,9 @@ func initAll(t *testing.T, ctrl *gomock.Controller) (protocol.StateManager, *Pro
 	// set up candidate
 	candidate := testCandidates[0].d.Clone()
 	require.NoError(setupCandidate(p, sm, candidate))
-	return sm, p, candidate
+	candidate2 := testCandidates[1].d.Clone()
+	require.NoError(setupCandidate(p, sm, candidate2))
+	return sm, p, candidate, candidate2
 }
 
 func setupAccount(sm protocol.StateManager, addr address.Address, balance int64) error {
