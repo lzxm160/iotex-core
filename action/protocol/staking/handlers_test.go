@@ -636,7 +636,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		errorCause error
 	}{
 		{
-			identityset.Address(1),
+			identityset.Address(3),
 			"10000000000000000000",
 			100,
 			true,
