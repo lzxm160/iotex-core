@@ -427,12 +427,13 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	if act.OwnerAddress() != nil {
 		owner = act.OwnerAddress()
 	}
+	fmt.Println("430xxxxx")
 	bucket := NewVoteBucket(owner, owner, act.Amount(), act.Duration(), blkCtx.BlockTimeStamp, act.AutoStake())
 	bucketIdx, err := putBucketAndIndex(sm, bucket)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to put bucket")
 	}
-
+	fmt.Println("436xxxxx")
 	c := &Candidate{
 		Owner:              owner,
 		Operator:           act.OperatorAddress(),
@@ -446,7 +447,7 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	if err := putCandidate(sm, c); err != nil {
 		return nil, err
 	}
-
+	fmt.Println("450xxxxx")
 	// update caller balance
 	if err := caller.SubBalance(act.Amount()); err != nil {
 		return nil, errors.Wrapf(err, "failed to update the balance of staker %s", actCtx.Caller.String())
@@ -455,7 +456,7 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	if err := accountutil.StoreAccount(sm, actCtx.Caller.String(), caller); err != nil {
 		return nil, errors.Wrapf(err, "failed to store account %s", actCtx.Caller.String())
 	}
-
+	fmt.Println("459xxxxx")
 	// put registrationFee to reward pool
 	if err := p.depositGas(ctx, sm, registrationFee); err != nil {
 		return nil, errors.Wrap(err, "failed to deposit gas")
