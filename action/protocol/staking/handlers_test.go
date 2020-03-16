@@ -501,14 +501,6 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	defer ctrl.Finish()
 
 	sm, p, _, candidate := initAll(t, ctrl)
-	//t1 := time.Now().Add(time.Hour).UTC()
-	//t2 := time.Now().UTC()
-	//fmt.Println(t1)
-	//fmt.Println(t2)
-	now := time.Now()
-	adjust := now.Add(p.config.WithdrawWaitingPeriod).UTC()
-	fmt.Println("adjust:", adjust)
-	fmt.Println("adjust:", adjust.UTC())
 	tests := []struct {
 		// creat stake fields
 		caller      address.Address
@@ -523,6 +515,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 		// block context
 		blkHeight    uint64
 		blkTimestamp time.Time
+		ctxTimestamp time.Time
 		blkGasLimit  uint64
 		// if unstake
 		unstake bool
@@ -541,6 +534,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			1,
 			1,
 			time.Now(),
+			time.Now(),
 			10000,
 			false,
 			ErrNotUnstaked,
@@ -557,6 +551,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			1,
 			1,
 			time.Now(),
+			time.Now(),
 			10000,
 			true,
 			ErrNotReadyWithdraw,
@@ -572,7 +567,8 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			1,
 			1,
-			adjust,
+			time.Now(),
+			time.Now().Add(p.config.WithdrawWaitingPeriod * 2),
 			10000,
 			true,
 			nil,
@@ -592,7 +588,19 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 		withdraw, err := action.NewWithdrawStake(test.nonce, test.index,
 			nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
-
+		actionCtx := protocol.MustGetActionCtx(ctx)
+		blkCtx := protocol.MustGetBlockCtx(ctx)
+		ctx = protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
+			Caller:       actionCtx.Caller,
+			GasPrice:     actionCtx.GasPrice,
+			IntrinsicGas: actionCtx.IntrinsicGas,
+			Nonce:        actionCtx.Nonce,
+		})
+		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
+			BlockHeight:    blkCtx.BlockHeight,
+			BlockTimeStamp: test.ctxTimestamp,
+			GasLimit:       blkCtx.GasLimit,
+		})
 		_, err = p.handleWithdrawStake(ctx, withdraw, sm)
 		require.Equal(test.errorCause, errors.Cause(err))
 
