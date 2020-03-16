@@ -397,7 +397,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			identityset.Address(28).String(),
 			identityset.Address(29).String(),
 			identityset.Address(30).String(),
-			"0",
+			"1",
 			uint32(10000),
 			false,
 			[]byte("payload"),
