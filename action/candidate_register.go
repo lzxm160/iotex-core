@@ -7,6 +7,7 @@
 package action
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/golang/protobuf/proto"
@@ -209,6 +210,10 @@ func (cr *CandidateRegister) Cost() (*big.Int, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get intrinsic gas for the CandidateRegister creates")
 	}
+	fmt.Println("cr.GasPrice()：", cr.GasPrice())
+	fmt.Println("intrinsicGas:", intrinsicGas)
 	fee := big.NewInt(0).Mul(cr.GasPrice(), big.NewInt(0).SetUint64(intrinsicGas))
+	fmt.Println("fee:", fee)
+	fmt.Println("cr.Amount():", cr.Amount())
 	return big.NewInt(0).Add(cr.Amount(), fee), nil
 }
