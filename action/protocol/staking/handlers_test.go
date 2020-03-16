@@ -499,8 +499,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	require := require.New(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	sm, p, _, candidate := initAll(t, ctrl)
+	caller := identityset.Address(1)
 	tests := []struct {
 		// creat stake fields
 		caller      address.Address
@@ -524,7 +523,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	}{
 		// check unstake time
 		{
-			candidate.Owner,
+			caller,
 			"10000000000000000000",
 			100,
 			false,
@@ -541,7 +540,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 		},
 		// check ErrNotReadyWithdraw
 		{
-			candidate.Owner,
+			caller,
 			"10000000000000000000",
 			100,
 			false,
@@ -558,7 +557,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 		},
 		// nil
 		{
-			candidate.Owner,
+			caller,
 			"10000000000000000000",
 			100,
 			false,
@@ -568,7 +567,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			1,
 			1,
 			time.Now(),
-			time.Now().Add(p.config.WithdrawWaitingPeriod * 2),
+			time.Now().Add(time.Hour * 500),
 			10000,
 			true,
 			nil,
@@ -576,6 +575,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		sm, p, _, candidate := initAll(t, ctrl)
 		ctx := initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
 		if test.unstake {
 			act, err := action.NewUnstake(test.nonce, test.index,
