@@ -461,13 +461,13 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	if err := p.depositGas(ctx, sm, registrationFee); err != nil {
 		return nil, errors.Wrap(err, "failed to deposit gas")
 	}
-
+	fmt.Println("464xxxxx")
 	log := p.createLog(ctx, HandleCandidateRegister, owner, actCtx.Caller, byteutil.Uint64ToBytes(bucketIdx))
 	receipt, err := p.settleAction(ctx, sm, gasFee, log)
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("470xxxxx")
 	if err := p.inMemCandidates.Upsert(c); err != nil {
 		return nil, err
 	}
