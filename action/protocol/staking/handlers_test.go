@@ -493,9 +493,8 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	defer ctrl.Finish()
 
 	sm, p, _, candidate := initAll(t, ctrl)
-	ctx := initCreateStake(t, sm, identityset.Address(1), 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate, "10000000000000000000")
+	ctx := initCreateStake(t, sm, candidate.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate, "10000000000000000000")
 
-	callerAddr := identityset.Address(1)
 	tests := []struct {
 		// creat stake fields
 		caller      address.Address
@@ -518,7 +517,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	}{
 		// check unstake time
 		{
-			callerAddr,
+			candidate.Owner,
 			"10000000000000000000",
 			100,
 			false,
