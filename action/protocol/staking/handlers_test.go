@@ -690,7 +690,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			require.NoError(err)
 			require.Equal(2, len(*bucketIndices))
 			indices := *bucketIndices
-			bucket, err := getBucket(sm, indices[0])
+			bucket, err := getBucket(sm, indices[1])
 			require.NoError(err)
 			require.Equal(candidate2.Owner.String(), bucket.Candidate.String())
 			require.Equal(test.caller.String(), bucket.Owner.String())
