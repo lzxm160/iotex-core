@@ -611,7 +611,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			require.Equal(2, len(*bucketIndices))
 			bucketIndices, err = getVoterBucketIndices(sm, candidate.Owner)
 			require.NoError(err)
-			require.Equal(1, len(*bucketIndices))
+			require.Equal(2, len(*bucketIndices))
 			indices := *bucketIndices
 			bucket, err := getBucket(sm, indices[0])
 			require.NoError(err)
