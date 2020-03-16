@@ -390,7 +390,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			ErrInvalidSelfStkIndex,
 		},
 		{
-			1000,
+			101,
 			identityset.Address(27),
 			uint64(10),
 			"test",
