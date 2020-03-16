@@ -457,12 +457,12 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			// test staker's account
 			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.Sender.Bytes()))
 			require.NoError(err)
-			//actCost, err := act.Cost()
-			//require.NoError(err)
+			actCost, err := act.Cost()
+			require.NoError(err)
 			cuCost, err := cu.Cost()
 			require.NoError(err)
 			total := big.NewInt(0)
-			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, cuCost).Add(total, p.config.RegistrationConsts.Fee))
+			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, cuCost).Add(total, p.config.RegistrationConsts.Fee))
 			require.Equal(test.Nonce, caller.Nonce)
 		}
 	}
