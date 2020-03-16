@@ -672,7 +672,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 	for _, test := range tests {
 		sm, p, candidate, candidate2 := initAll(t, ctrl)
 		ctx := initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
-		ctx = initCreateStake(t, sm, candidate2.Owner, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
+		ctx = initCreateStake(t, sm, candidate.Owner, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
 
 		act, err := action.NewChangeCandidate(test.nonce, candidate2.Name, 0,
 			nil, test.gasLimit, test.gasPrice)
