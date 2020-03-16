@@ -636,7 +636,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		errorCause error
 	}{
 		{
-			identityset.Address(3),
+			identityset.Address(2),
 			"10000000000000000000",
 			100,
 			true,
@@ -688,7 +688,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 	for _, test := range tests {
 		sm, p, candidate, candidate2 := initAll(t, ctrl)
 		ctx := initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
-		ctx = initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate2, test.amount)
+		//ctx = initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate2, test.amount)
 
 		act, err := action.NewChangeCandidate(test.nonce, candidate.Name, test.index,
 			nil, test.gasLimit, test.gasPrice)
