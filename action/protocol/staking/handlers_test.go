@@ -612,13 +612,10 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sm, p, candidate, candidate2 := initAll(t, ctrl)
-	ctx := initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
 	callerAddr := identityset.Address(1)
 	tests := []struct {
 		// creat stake fields
 		caller      address.Address
-		changeTo    string
 		amount      string
 		initBalance int64
 		selfstaking bool
@@ -640,7 +637,6 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 	}{
 		{
 			callerAddr,
-			candidate2.Name,
 			"10000000000000000000",
 			100,
 			false,
@@ -657,7 +653,6 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		},
 		{
 			callerAddr,
-			candidate2.Name,
 			"10000000000000000000",
 			100,
 			false,
@@ -675,9 +670,11 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		ctx = initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
+		sm, p, candidate, candidate2 := initAll(t, ctrl)
+		ctx := initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
+		ctx = initCreateStake(t, sm, candidate2.Owner, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
 
-		act, err := action.NewChangeCandidate(test.nonce, test.changeTo, 0,
+		act, err := action.NewChangeCandidate(test.nonce, candidate2.Name, 0,
 			nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 
