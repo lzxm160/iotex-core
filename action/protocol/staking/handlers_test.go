@@ -312,7 +312,6 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sm, p, _, _ := initAll(t, ctrl)
 	tests := []struct {
 		initBalance     int64
 		Sender          address.Address
@@ -364,6 +363,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		sm, p, _, _ := initAll(t, ctrl)
 		require.NoError(setupAccount(sm, test.Sender, test.initBalance))
 		act, err := action.NewCandidateRegister(test.Nonce, test.Name, test.OperatorAddrStr, test.RewardAddrStr, test.OwnerAddrStr, test.AmountStr, test.Duration, test.AutoStake, test.Payload, test.GasLimit, test.GasPrice)
 		require.NoError(err)
