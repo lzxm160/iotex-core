@@ -501,7 +501,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	defer ctrl.Finish()
 
 	sm, p, _, candidate := initAll(t, ctrl)
-
+	adjust := time.Now().Add(p.config.WithdrawWaitingPeriod)
 	tests := []struct {
 		// creat stake fields
 		caller      address.Address
@@ -565,7 +565,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			1,
 			1,
-			time.Now().Add(time.Hour * 338).UTC(),
+			adjust,
 			10000,
 			true,
 			nil,
