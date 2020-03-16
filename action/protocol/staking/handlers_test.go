@@ -499,7 +499,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	require := require.New(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	caller := identityset.Address(1)
+	caller := identityset.Address(2)
 	tests := []struct {
 		// creat stake fields
 		caller      address.Address
