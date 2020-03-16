@@ -428,6 +428,11 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			IntrinsicGas: intrinsic,
 			Nonce:        test.Nonce,
 		})
+		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
+			BlockHeight:    1,
+			BlockTimeStamp: time.Now(),
+			GasLimit:       test.BlkGasLimit,
+		})
 		receipt, err := p.handleCandidateUpdate(ctx, cu, sm)
 		require.Equal(test.Expected, errors.Cause(err))
 
