@@ -400,7 +400,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			"1",
 			uint32(10000),
 			false,
-			[]byte("payload"),
+			nil,
 			uint64(1000000),
 			uint64(1000000),
 			big.NewInt(1000),
