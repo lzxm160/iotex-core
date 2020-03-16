@@ -576,7 +576,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		ctx := initCreateStake(t, sm, candidate.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, test.blkTimestamp, 10000, p, candidate, "10000000000000000000")
+		ctx := initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
 		if test.unstake {
 			act, err := action.NewUnstake(test.nonce, test.index,
 				nil, test.gasLimit, test.gasPrice)
