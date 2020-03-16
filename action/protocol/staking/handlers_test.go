@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-proto/golang/iotextypes"
+
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -425,8 +427,94 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			BlockTimeStamp: time.Now(),
 			GasLimit:       test.BlkGasLimit,
 		})
-		_, err = p.handleCandidateRegister(ctx, act, sm)
+		receipt, err := p.handleCandidateRegister(ctx, act, sm)
 		require.Equal(test.Expected, errors.Cause(err))
+
+		if test.Expected == nil {
+			require.Equal(uint64(iotextypes.ReceiptStatus_Success), receipt.Status)
+
+			// test candidate
+			candidate, err := getCandidate(sm, act.OwnerAddress())
+			require.NoError(err)
+			require.LessOrEqual("0", candidate.Votes.String())
+			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
+			require.NotNil(candidate)
+			require.LessOrEqual("0", candidate.Votes.String())
+
+			// test staker's account
+			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.Sender.Bytes()))
+			require.NoError(err)
+			actCost, err := act.Cost()
+			require.NoError(err)
+			require.Equal(unit.ConvertIotxToRau(test.initBalance), big.NewInt(0).Add(caller.Balance, actCost))
+			require.Equal(test.Nonce, caller.Nonce)
+		}
+	}
+}
+
+func TestProtocol_handleCandidateUpdate(t *testing.T) {
+	require := require.New(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	sm, p, _, _ := initAll(t, ctrl)
+	tests := []struct {
+		initBalance     int64
+		Sender          address.Address
+		Nonce           uint64
+		Name            string
+		OperatorAddrStr string
+		RewardAddrStr   string
+		OwnerAddrStr    string
+		AmountStr       string
+		Duration        uint32
+		AutoStake       bool
+		Payload         []byte
+		GasLimit        uint64
+		BlkGasLimit     uint64
+		GasPrice        *big.Int
+		newProtocol     bool
+		Expected        error
+	}{
+		{
+			1000,
+			identityset.Address(27),
+			uint64(10),
+			"test",
+			identityset.Address(28).String(),
+			identityset.Address(29).String(),
+			identityset.Address(30).String(),
+			"100",
+			uint32(10000),
+			false,
+			[]byte("payload"),
+			uint64(1000000),
+			uint64(1000000),
+			big.NewInt(1000),
+			true,
+			nil,
+		},
+	}
+
+	for _, test := range tests {
+		if test.newProtocol {
+			sm, p, _, _ = initAll(t, ctrl)
+		}
+		require.NoError(setupAccount(sm, test.Sender, test.initBalance))
+		act, err := action.NewCandidateRegister(test.Nonce, test.Name, test.OperatorAddrStr, test.RewardAddrStr, test.OwnerAddrStr, test.AmountStr, test.Duration, test.AutoStake, test.Payload, test.GasLimit, test.GasPrice)
+		require.NoError(err)
+		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
+			Caller:       test.Sender,
+			GasPrice:     test.GasPrice,
+			IntrinsicGas: test.GasLimit,
+			Nonce:        test.Nonce,
+		})
+		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
+			BlockHeight:    1,
+			BlockTimeStamp: time.Now(),
+			GasLimit:       test.BlkGasLimit,
+		})
+		_, err = p.handleCandidateRegister(ctx, act, sm)
+		require.NoError(err)
 
 		if test.Expected == nil {
 
