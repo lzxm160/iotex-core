@@ -314,6 +314,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 
 	sm, p, _, _ := initAll(t, ctrl)
 	tests := []struct {
+		initBalance     int64
 		Sender          address.Address
 		Nonce           uint64
 		Name            string
@@ -329,6 +330,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 		Expected        error
 	}{
 		{
+			1000,
 			identityset.Address(27),
 			uint64(10),
 			"test",
@@ -346,6 +348,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		require.NoError(setupAccount(sm, test.Sender, test.initBalance))
 		act, err := action.NewCandidateRegister(test.Nonce, test.Name, test.OperatorAddrStr, test.RewardAddrStr, test.OwnerAddrStr, test.AmountStr, test.Duration, test.AutoStake, test.Payload, test.GasLimit, test.GasPrice)
 		require.NoError(err)
 		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{

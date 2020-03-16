@@ -417,7 +417,7 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 
 	registrationFee := new(big.Int).Set(p.config.RegistrationConsts.Fee)
-
+	fmt.Println(registrationFee.String())
 	caller, gasFee, err := fetchCaller(ctx, sm, new(big.Int).Add(act.Amount(), registrationFee))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to fetch caller")
