@@ -487,6 +487,14 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 	}
 }
 
+func TestUTCTime(t *testing.T) {
+	t1 := time.Now().Add(time.Hour)
+	t2 := time.Now().UTC()
+	fmt.Println(t1)
+	fmt.Println(t2)
+	fmt.Println(t1.Before(t2))
+}
+
 func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	require := require.New(t)
 	ctrl := gomock.NewController(t)
