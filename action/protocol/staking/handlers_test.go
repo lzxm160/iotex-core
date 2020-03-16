@@ -403,7 +403,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			nil,
 			uint64(1000000),
 			uint64(1000000),
-			big.NewInt(1000),
+			big.NewInt(1),
 			true,
 			nil,
 		},
