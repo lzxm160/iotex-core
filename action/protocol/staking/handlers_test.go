@@ -565,7 +565,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			1,
 			1,
-			time.Now().Add(time.Hour * 338),
+			time.Now().Add(time.Hour * 338).UTC(),
 			10000,
 			true,
 			nil,
