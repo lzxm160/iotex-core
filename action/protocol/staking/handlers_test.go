@@ -287,16 +287,18 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
 			require.LessOrEqual("0", candidate.Votes.String())
+			require.Equal(test.Name, candidate.Name)
+			require.Equal(test.OperatorAddrStr, candidate.Operator.String())
+			require.Equal(test.RewardAddrStr, candidate.Reward.String())
+			require.Equal(test.OwnerAddrStr, candidate.Owner.String())
+			require.Equal(test.AmountStr, candidate.Votes.String())
+			require.Equal(test.Duration, candidate.SelfStake.String())
 
 			// test staker's account
 			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.Sender.Bytes()))
 			require.NoError(err)
 			actCost, err := act.Cost()
 			require.NoError(err)
-			fmt.Println(caller.Balance)
-			fmt.Println(actCost)
-			fmt.Println(p.config.RegistrationConsts.Fee)
-			fmt.Println(act.Amount())
 			total := big.NewInt(0)
 			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, p.config.RegistrationConsts.Fee))
 			require.Equal(test.Nonce, caller.Nonce)
@@ -325,7 +327,11 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		BlkGasLimit     uint64
 		GasPrice        *big.Int
 		newProtocol     bool
-		Expected        error
+		// candidate update
+		updateName     string
+		updateOperator string
+		updateReward   string
+		Expected       error
 	}{
 		{
 			1000,
@@ -343,6 +349,51 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			uint64(1000000),
 			big.NewInt(1000),
 			true,
+			"update",
+			identityset.Address(31).String(),
+			identityset.Address(32).String(),
+			ErrInvalidOwner,
+		},
+		{
+			1000,
+			identityset.Address(27),
+			uint64(10),
+			"test",
+			identityset.Address(28).String(),
+			identityset.Address(29).String(),
+			identityset.Address(27).String(),
+			"100",
+			uint32(10000),
+			false,
+			[]byte("payload"),
+			uint64(1000000),
+			uint64(1000000),
+			big.NewInt(1000),
+			true,
+			"update",
+			identityset.Address(31).String(),
+			identityset.Address(32).String(),
+			nil,
+		},
+		{
+			1000,
+			identityset.Address(27),
+			uint64(10),
+			"test",
+			identityset.Address(28).String(),
+			identityset.Address(29).String(),
+			identityset.Address(27).String(),
+			"100",
+			uint32(10000),
+			false,
+			[]byte("payload"),
+			uint64(1000000),
+			uint64(1000000),
+			big.NewInt(1000),
+			true,
+			"",
+			"",
+			"",
 			nil,
 		},
 	}
@@ -355,7 +406,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		act, err := action.NewCandidateRegister(test.Nonce, test.Name, test.OperatorAddrStr, test.RewardAddrStr, test.OwnerAddrStr, test.AmountStr, test.Duration, test.AutoStake, test.Payload, test.GasLimit, test.GasPrice)
 		require.NoError(err)
 		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
-			Caller:       test.Sender,
+			Caller:       identityset.Address(27),
 			GasPrice:     test.GasPrice,
 			IntrinsicGas: test.GasLimit,
 			Nonce:        test.Nonce,
@@ -367,10 +418,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		})
 		_, err = p.handleCandidateRegister(ctx, act, sm)
 		require.NoError(err)
-		updateName := "update"
-		updateOperator := identityset.Address(31).String()
-		updateReward := identityset.Address(32).String()
-		cu, err := action.NewCandidateUpdate(test.Nonce, updateName, updateOperator, updateReward, test.GasLimit, test.GasPrice)
+		cu, err := action.NewCandidateUpdate(test.Nonce, test.updateName, test.updateOperator, test.updateReward, test.GasLimit, test.GasPrice)
 		require.NoError(err)
 		_, err = p.handleCandidateUpdate(ctx, cu, sm)
 		require.Equal(test.Expected, errors.Cause(err))
