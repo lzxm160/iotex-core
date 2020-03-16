@@ -555,7 +555,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 				nil, test.gasLimit, test.gasPrice)
 			require.NoError(err)
 			_, err = p.handleUnstake(ctx, act, sm)
-			require.Equal(test.errorCause, errors.Cause(err))
+			require.NoError(err)
 		}
 
 		withdraw, err := action.NewWithdrawStake(test.nonce, test.index,
