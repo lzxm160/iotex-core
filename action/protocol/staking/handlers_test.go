@@ -639,7 +639,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			identityset.Address(2),
 			"10000000000000000000",
 			100,
-			false,
+			true,
 			1,
 			big.NewInt(unit.Qev),
 			10000,
