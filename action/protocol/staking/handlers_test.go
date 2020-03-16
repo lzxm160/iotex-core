@@ -292,7 +292,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			require.Equal(test.RewardAddrStr, candidate.Reward.String())
 			require.Equal(test.OwnerAddrStr, candidate.Owner.String())
 			require.Equal(test.AmountStr, candidate.Votes.String())
-			require.Equal(test.Duration, candidate.SelfStake.String())
+			require.Equal(test.AmountStr, candidate.SelfStake.String())
 
 			// test staker's account
 			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.Sender.Bytes()))
