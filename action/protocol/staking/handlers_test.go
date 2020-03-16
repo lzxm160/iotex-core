@@ -405,10 +405,11 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		require.NoError(setupAccount(sm, test.Sender, test.initBalance))
 		act, err := action.NewCandidateRegister(test.Nonce, test.Name, test.OperatorAddrStr, test.RewardAddrStr, test.OwnerAddrStr, test.AmountStr, test.Duration, test.AutoStake, test.Payload, test.GasLimit, test.GasPrice)
 		require.NoError(err)
+		intrinsic, _ := act.IntrinsicGas()
 		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
 			Caller:       identityset.Address(27),
 			GasPrice:     test.GasPrice,
-			IntrinsicGas: test.GasLimit,
+			IntrinsicGas: intrinsic,
 			Nonce:        test.Nonce,
 		})
 		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
@@ -420,11 +421,43 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		require.NoError(err)
 		cu, err := action.NewCandidateUpdate(test.Nonce, test.updateName, test.updateOperator, test.updateReward, test.GasLimit, test.GasPrice)
 		require.NoError(err)
-		_, err = p.handleCandidateUpdate(ctx, cu, sm)
+		intrinsic, _ = cu.IntrinsicGas()
+		ctx = protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
+			Caller:       identityset.Address(27),
+			GasPrice:     test.GasPrice,
+			IntrinsicGas: intrinsic,
+			Nonce:        test.Nonce,
+		})
+		receipt, err := p.handleCandidateUpdate(ctx, cu, sm)
 		require.Equal(test.Expected, errors.Cause(err))
 
 		if test.Expected == nil {
+			require.Equal(uint64(iotextypes.ReceiptStatus_Success), receipt.Status)
 
+			// test candidate
+			candidate, err := getCandidate(sm, act.OwnerAddress())
+			require.NoError(err)
+			require.LessOrEqual("0", candidate.Votes.String())
+			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
+			require.NotNil(candidate)
+			require.LessOrEqual("0", candidate.Votes.String())
+			require.Equal(test.updateName, candidate.Name)
+			require.Equal(test.updateOperator, candidate.Operator.String())
+			require.Equal(test.updateReward, candidate.Reward.String())
+			require.Equal(test.OwnerAddrStr, candidate.Owner.String())
+			require.Equal(test.AmountStr, candidate.Votes.String())
+			require.Equal(test.AmountStr, candidate.SelfStake.String())
+
+			// test staker's account
+			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.Sender.Bytes()))
+			require.NoError(err)
+			actCost, err := act.Cost()
+			require.NoError(err)
+			cuCost, err := cu.Cost()
+			require.NoError(err)
+			total := big.NewInt(0)
+			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, cuCost).Add(total, p.config.RegistrationConsts.Fee))
+			require.Equal(test.Nonce, caller.Nonce)
 		}
 	}
 }
