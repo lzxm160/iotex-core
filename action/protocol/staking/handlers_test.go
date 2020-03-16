@@ -330,6 +330,22 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 		Expected        error
 	}{
 		{
+			100,
+			identityset.Address(27),
+			uint64(10),
+			"test",
+			"io10a298zmzvrt4guq79a9f4x7qedj59y7ery84he",
+			"io13sj9mzpewn25ymheukte4v39hvjdtrfp00mlyv",
+			"io19d0p3ah4g8ww9d7kcxfq87yxe7fnr8rpth5shj",
+			"100",
+			uint32(10000),
+			false,
+			[]byte("payload"),
+			uint64(1000000),
+			big.NewInt(1000),
+			state.ErrNotEnoughBalance,
+		},
+		{
 			1000,
 			identityset.Address(27),
 			uint64(10),
@@ -343,7 +359,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			[]byte("payload"),
 			uint64(1000000),
 			big.NewInt(1000),
-			nil,
+			ErrInvalidOperator,
 		},
 	}
 
