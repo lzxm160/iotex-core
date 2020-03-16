@@ -488,7 +488,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 }
 
 func TestUTCTime(t *testing.T) {
-	t1 := time.Now().Add(time.Hour)
+	t1 := time.Now().Add(time.Hour).UTC()
 	t2 := time.Now().UTC()
 	fmt.Println(t1)
 	fmt.Println(t2)
