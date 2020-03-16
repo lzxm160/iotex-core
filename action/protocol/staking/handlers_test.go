@@ -487,14 +487,6 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 	}
 }
 
-func TestUTCTime(t *testing.T) {
-	t1 := time.Now().Add(time.Hour).UTC()
-	t2 := time.Now().UTC()
-	fmt.Println(t1)
-	fmt.Println(t2)
-	fmt.Println(t1.Before(t2))
-}
-
 func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	require := require.New(t)
 	ctrl := gomock.NewController(t)
@@ -610,6 +602,93 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			require.Error(err)
 			_, err = getVoterBucketIndices(sm, candidate.Owner)
 			require.Error(err)
+		}
+
+	}
+}
+
+func TestProtocol_HandleChangeCandidate(t *testing.T) {
+	require := require.New(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	sm, p, candidate, candidate2 := initAll(t, ctrl)
+	ctx := initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
+	callerAddr := identityset.Address(1)
+	tests := []struct {
+		// creat stake fields
+		caller      address.Address
+		changeTo    string
+		amount      string
+		initBalance int64
+		selfstaking bool
+		// action fields
+		index    uint64
+		gasPrice *big.Int
+		gasLimit uint64
+		nonce    uint64
+		// block context
+		blkHeight    uint64
+		blkTimestamp time.Time
+		blkGasLimit  uint64
+		// clear flag for inMemCandidates
+		clear bool
+		// need new p
+		newProtocol bool
+		// expected result
+		errorCause error
+	}{
+		{
+			callerAddr,
+			candidate2.Name,
+			"10000000000000000000",
+			100,
+			false,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			false,
+			true,
+			nil,
+		},
+	}
+
+	for _, test := range tests {
+		ctx = initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
+
+		act, err := action.NewChangeCandidate(test.nonce, test.changeTo, 0,
+			nil, test.gasLimit, test.gasPrice)
+		require.NoError(err)
+
+		_, err = p.handleChangeCandidate(ctx, act, sm)
+		require.Equal(test.errorCause, errors.Cause(err))
+
+		if test.errorCause == nil {
+			// test bucket index and bucket
+			bucketIndices, err := getCandBucketIndices(sm, candidate.Owner)
+			require.NoError(err)
+			require.Equal(1, len(*bucketIndices))
+			bucketIndices, err = getVoterBucketIndices(sm, candidate.Owner)
+			require.NoError(err)
+			require.Equal(1, len(*bucketIndices))
+			indices := *bucketIndices
+			bucket, err := getBucket(sm, indices[0])
+			require.NoError(err)
+			require.Equal(candidate.Owner.String(), bucket.Candidate.String())
+			require.Equal(test.caller.String(), bucket.Owner.String())
+			require.Equal(test.amount, bucket.StakedAmount.String())
+
+			// test candidate
+			candidate, err = getCandidate(sm, candidate.Owner)
+			require.NoError(err)
+			require.Equal("2", candidate.Votes.String())
+			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
+			require.NotNil(candidate)
+			require.Equal("2", candidate.Votes.String())
 		}
 
 	}
