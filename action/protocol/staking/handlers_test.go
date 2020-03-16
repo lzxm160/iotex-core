@@ -683,21 +683,21 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 
 		if test.errorCause == nil {
 			// test bucket index and bucket
-			bucketIndices, err := getCandBucketIndices(sm, candidate.Owner)
+			bucketIndices, err := getCandBucketIndices(sm, candidate2.Owner)
 			require.NoError(err)
 			require.Equal(1, len(*bucketIndices))
-			bucketIndices, err = getVoterBucketIndices(sm, candidate.Owner)
+			bucketIndices, err = getVoterBucketIndices(sm, candidate2.Owner)
 			require.NoError(err)
 			require.Equal(1, len(*bucketIndices))
 			indices := *bucketIndices
 			bucket, err := getBucket(sm, indices[0])
 			require.NoError(err)
-			require.Equal(candidate.Owner.String(), bucket.Candidate.String())
+			require.Equal(candidate2.Owner.String(), bucket.Candidate.String())
 			require.Equal(test.caller.String(), bucket.Owner.String())
 			require.Equal(test.amount, bucket.StakedAmount.String())
 
 			// test candidate
-			candidate, err = getCandidate(sm, candidate.Owner)
+			candidate, err = getCandidate(sm, candidate2.Owner)
 			require.NoError(err)
 			require.Equal("2", candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
