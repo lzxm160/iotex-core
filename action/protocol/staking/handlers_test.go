@@ -451,7 +451,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			fmt.Println(p.config.RegistrationConsts.Fee)
 			fmt.Println(act.Amount())
 			total := big.NewInt(0)
-			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, p.config.RegistrationConsts.Fee).Add(total, act.Amount()))
+			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, p.config.RegistrationConsts.Fee).Add(total, unit.ConvertIotxToRau(act.Amount().Int64())))
 			require.Equal(test.Nonce, caller.Nonce)
 		}
 	}
