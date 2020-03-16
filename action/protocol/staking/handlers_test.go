@@ -688,7 +688,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			require.Equal(1, len(*bucketIndices))
 			bucketIndices, err = getVoterBucketIndices(sm, candidate2.Owner)
 			require.NoError(err)
-			require.Equal(1, len(*bucketIndices))
+			require.Equal(2, len(*bucketIndices))
 			indices := *bucketIndices
 			bucket, err := getBucket(sm, indices[0])
 			require.NoError(err)
