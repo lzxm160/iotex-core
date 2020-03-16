@@ -506,9 +506,9 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	//fmt.Println(t1)
 	//fmt.Println(t2)
 	now := time.Now()
-	adjust := now.Add(time.Hour).UTC()
-	fmt.Println(adjust)
-	fmt.Println(adjust.UTC())
+	adjust := now.Add(p.config.WithdrawWaitingPeriod).UTC()
+	fmt.Println("adjust:", adjust)
+	fmt.Println("adjust:", adjust.UTC())
 	tests := []struct {
 		// creat stake fields
 		caller      address.Address
