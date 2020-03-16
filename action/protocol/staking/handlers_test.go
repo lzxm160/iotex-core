@@ -501,7 +501,8 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	defer ctrl.Finish()
 
 	sm, p, _, candidate := initAll(t, ctrl)
-	adjust := time.Now().Add(p.config.WithdrawWaitingPeriod)
+	now := time.Now()
+	adjust := now.Add(p.config.WithdrawWaitingPeriod)
 	fmt.Println(adjust)
 	fmt.Println(adjust.UTC())
 	tests := []struct {
