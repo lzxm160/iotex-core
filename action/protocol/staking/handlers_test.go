@@ -368,7 +368,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			true,
 			action.ErrHitGasLimit,
 		},
-		// Upsert,collision
+		// Upsert,check collision
 		{
 			1000,
 			identityset.Address(27),
@@ -385,7 +385,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			uint64(1000000),
 			big.NewInt(1000),
 			false,
-			ErrInvalidOperator,
+			ErrInvalidSelfStkIndex,
 		},
 		{
 			1000,
