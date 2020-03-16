@@ -311,7 +311,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 	require := require.New(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
+	sm, p, _, _ := initAll(t, ctrl)
 	tests := []struct {
 		initBalance     int64
 		Sender          address.Address
@@ -327,6 +327,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 		GasLimit        uint64
 		BlkGasLimit     uint64
 		GasPrice        *big.Int
+		newProtocol     bool
 		Expected        error
 	}{
 		// fetchCaller,ErrNotEnoughBalance
@@ -345,6 +346,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			uint64(1000000),
 			uint64(1000000),
 			big.NewInt(1000),
+			true,
 			state.ErrNotEnoughBalance,
 		},
 		// settleAction,ErrHitGasLimit
@@ -363,7 +365,27 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			uint64(1000000),
 			uint64(1000),
 			big.NewInt(1000),
+			true,
 			action.ErrHitGasLimit,
+		},
+		// Upsert,collision
+		{
+			1000,
+			identityset.Address(27),
+			uint64(10),
+			"test",
+			identityset.Address(28).String(),
+			identityset.Address(29).String(),
+			identityset.Address(30).String(),
+			"100",
+			uint32(10000),
+			false,
+			[]byte("payload"),
+			uint64(1000000),
+			uint64(1000000),
+			big.NewInt(1000),
+			false,
+			ErrInvalidOperator,
 		},
 		{
 			1000,
@@ -380,12 +402,15 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			uint64(1000000),
 			uint64(1000000),
 			big.NewInt(1000),
+			true,
 			nil,
 		},
 	}
 
 	for _, test := range tests {
-		sm, p, _, _ := initAll(t, ctrl)
+		if test.newProtocol {
+			sm, p, _, _ = initAll(t, ctrl)
+		}
 		require.NoError(setupAccount(sm, test.Sender, test.initBalance))
 		act, err := action.NewCandidateRegister(test.Nonce, test.Name, test.OperatorAddrStr, test.RewardAddrStr, test.OwnerAddrStr, test.AmountStr, test.Duration, test.AutoStake, test.Payload, test.GasLimit, test.GasPrice)
 		require.NoError(err)
