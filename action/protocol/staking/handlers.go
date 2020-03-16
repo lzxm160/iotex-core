@@ -170,9 +170,9 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 	if bucket.UnstakeStartTime.Unix() == 0 {
 		return nil, ErrNotUnstaked
 	}
-	fmt.Println(blkCtx.BlockTimeStamp.String())
-	fmt.Println(bucket.UnstakeStartTime.String())
-	fmt.Println(bucket.UnstakeStartTime.Add(p.config.WithdrawWaitingPeriod).String())
+	fmt.Println(blkCtx.BlockTimeStamp)
+	fmt.Println(bucket.UnstakeStartTime)
+	fmt.Println(bucket.UnstakeStartTime.Add(p.config.WithdrawWaitingPeriod))
 	if blkCtx.BlockTimeStamp.Before(bucket.UnstakeStartTime.Add(p.config.WithdrawWaitingPeriod)) {
 		return nil, errors.Wrap(ErrNotReadyWithdraw, fmt.Sprintf("stake is not ready to withdraw, current time %s, required time %s",
 			blkCtx.BlockTimeStamp, bucket.UnstakeStartTime.Add(p.config.WithdrawWaitingPeriod)))
