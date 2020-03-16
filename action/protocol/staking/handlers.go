@@ -422,7 +422,7 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to fetch caller")
 	}
-
+	fmt.Println("handleCandidateRegister gasFee:", gasFee)
 	owner := actCtx.Caller
 	if act.OwnerAddress() != nil {
 		owner = act.OwnerAddress()
@@ -449,6 +449,8 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	}
 	fmt.Println("450xxxxx")
 	// update caller balance
+	fmt.Println("caller.Balance:", caller.Balance)
+	fmt.Println("act.Amount():", act.Amount())
 	if err := caller.SubBalance(act.Amount()); err != nil {
 		return nil, errors.Wrapf(err, "failed to update the balance of staker %s", actCtx.Caller.String())
 	}
