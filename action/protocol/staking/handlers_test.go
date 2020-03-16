@@ -493,7 +493,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	defer ctrl.Finish()
 
 	sm, p, _, candidate := initAll(t, ctrl)
-	ctx := initCreateStake(t, sm, candidate.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate, "10000000000000000000")
+	ctx := initCreateStake(t, sm, candidate.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now().Add(time.Minute), 10000, p, candidate, "10000000000000000000")
 
 	tests := []struct {
 		// creat stake fields
@@ -530,6 +530,22 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			false,
 			ErrNotUnstaked,
+		},
+		// check ErrNotReadyWithdraw
+		{
+			candidate.Owner,
+			"10000000000000000000",
+			100,
+			false,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			true,
+			ErrNotReadyWithdraw,
 		},
 	}
 
