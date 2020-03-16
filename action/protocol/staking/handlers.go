@@ -574,7 +574,7 @@ func (p *Protocol) fetchBucket(
 			bucket.Owner.String(), actionCtx.Caller.String()))
 	}
 	if !allowSelfStaking && p.inMemCandidates.ContainsSelfStakingBucket(index) {
-		return nil, errors.New("self staking bucket cannot be processed")
+		return nil, errors.Wrap(ErrFetchBucket, "self staking bucket cannot be processed")
 	}
 	return bucket, nil
 }

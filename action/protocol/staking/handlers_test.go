@@ -639,6 +639,22 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			identityset.Address(1),
 			"10000000000000000000",
 			100,
+			false,
+			1,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			true,
+			true,
+			nil,
+		},
+		{
+			identityset.Address(1),
+			"10000000000000000000",
+			100,
 			true,
 			1,
 			big.NewInt(unit.Qev),
@@ -649,7 +665,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			10000,
 			false,
 			true,
-			nil,
+			ErrFetchBucket,
 		},
 		{
 			callerAddr,
@@ -693,7 +709,10 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		act, err := action.NewChangeCandidate(test.nonce, candidate2.Name, test.index,
 			nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
-
+		if test.clear {
+			cc := p.inMemCandidates.GetBySelfStakingIndex(test.index)
+			p.inMemCandidates.Delete(cc.Owner)
+		}
 		_, err = p.handleChangeCandidate(ctx, act, sm)
 		require.Equal(test.errorCause, errors.Cause(err))
 
