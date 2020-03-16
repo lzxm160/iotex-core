@@ -325,9 +325,11 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 		AutoStake       bool
 		Payload         []byte
 		GasLimit        uint64
+		BlkGasLimit     uint64
 		GasPrice        *big.Int
 		Expected        error
 	}{
+		// fetchCaller,ErrNotEnoughBalance
 		{
 			100,
 			identityset.Address(27),
@@ -341,8 +343,27 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			false,
 			[]byte("payload"),
 			uint64(1000000),
+			uint64(1000000),
 			big.NewInt(1000),
 			state.ErrNotEnoughBalance,
+		},
+		// settleAction,ErrHitGasLimit
+		{
+			1000,
+			identityset.Address(27),
+			uint64(10),
+			"test",
+			identityset.Address(28).String(),
+			identityset.Address(29).String(),
+			identityset.Address(30).String(),
+			"100",
+			uint32(10000),
+			false,
+			[]byte("payload"),
+			uint64(1000000),
+			uint64(1000),
+			big.NewInt(1000),
+			action.ErrHitGasLimit,
 		},
 		{
 			1000,
@@ -357,8 +378,9 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			false,
 			[]byte("payload"),
 			uint64(1000000),
+			uint64(1000000),
 			big.NewInt(1000),
-			ErrInvalidOperator,
+			nil,
 		},
 	}
 
@@ -376,7 +398,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
 			BlockHeight:    1,
 			BlockTimeStamp: time.Now(),
-			GasLimit:       test.GasLimit,
+			GasLimit:       test.BlkGasLimit,
 		})
 		_, err = p.handleCandidateRegister(ctx, act, sm)
 		require.Equal(test.Expected, errors.Cause(err))
