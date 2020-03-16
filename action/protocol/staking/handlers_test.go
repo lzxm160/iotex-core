@@ -307,6 +307,67 @@ func TestProtocol_HandleCreateStake(t *testing.T) {
 	}
 }
 
+func TestProtocol_HandleCandidateRegister(t *testing.T) {
+	require := require.New(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	sm, p, _, _ := initAll(t, ctrl)
+	tests := []struct {
+		Sender          address.Address
+		Nonce           uint64
+		Name            string
+		OperatorAddrStr string
+		RewardAddrStr   string
+		OwnerAddrStr    string
+		AmountStr       string
+		Duration        uint32
+		AutoStake       bool
+		Payload         []byte
+		GasLimit        uint64
+		GasPrice        *big.Int
+		Expected        error
+	}{
+		{
+			identityset.Address(27),
+			uint64(10),
+			"test",
+			"io10a298zmzvrt4guq79a9f4x7qedj59y7ery84he",
+			"io13sj9mzpewn25ymheukte4v39hvjdtrfp00mlyv",
+			"io19d0p3ah4g8ww9d7kcxfq87yxe7fnr8rpth5shj",
+			"100",
+			uint32(10000),
+			false,
+			[]byte("payload"),
+			uint64(1000000),
+			big.NewInt(1000),
+			nil,
+		},
+	}
+
+	for _, test := range tests {
+		act, err := action.NewCandidateRegister(test.Nonce, test.Name, test.OperatorAddrStr, test.RewardAddrStr, test.OwnerAddrStr, test.AmountStr, test.Duration, test.AutoStake, test.Payload, test.GasLimit, test.GasPrice)
+		require.NoError(err)
+		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
+			Caller:       test.Sender,
+			GasPrice:     test.GasPrice,
+			IntrinsicGas: test.GasLimit,
+			Nonce:        test.Nonce,
+		})
+		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
+			BlockHeight:    1,
+			BlockTimeStamp: time.Now(),
+			GasLimit:       test.GasLimit,
+		})
+		_, err = p.handleCandidateRegister(ctx, act, sm)
+		require.Equal(test.Expected, errors.Cause(err))
+
+		if test.Expected == nil {
+
+		}
+	}
+}
+
 func TestProtocol_HandleUnstake(t *testing.T) {
 	require := require.New(t)
 	ctrl := gomock.NewController(t)
@@ -650,6 +711,22 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			true,
 			true,
 			nil,
+		},
+		{
+			identityset.Address(1),
+			"10000000000000000000",
+			100,
+			false,
+			1,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			true,
+			true,
+			ErrInvalidOwner,
 		},
 		{
 			identityset.Address(1),
