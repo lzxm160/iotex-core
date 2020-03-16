@@ -416,10 +416,11 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 		require.NoError(setupAccount(sm, test.Sender, test.initBalance))
 		act, err := action.NewCandidateRegister(test.Nonce, test.Name, test.OperatorAddrStr, test.RewardAddrStr, test.OwnerAddrStr, test.AmountStr, test.Duration, test.AutoStake, test.Payload, test.GasLimit, test.GasPrice)
 		require.NoError(err)
+		IntrinsicGas, _ := act.IntrinsicGas()
 		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
 			Caller:       test.Sender,
 			GasPrice:     test.GasPrice,
-			IntrinsicGas: test.GasLimit,
+			IntrinsicGas: IntrinsicGas,
 			Nonce:        test.Nonce,
 		})
 		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
