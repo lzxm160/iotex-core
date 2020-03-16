@@ -367,6 +367,13 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		})
 		_, err = p.handleCandidateRegister(ctx, act, sm)
 		require.NoError(err)
+		updateName := "update"
+		updateOperator := identityset.Address(31).String()
+		updateReward := identityset.Address(32).String()
+		cu, err := action.NewCandidateUpdate(test.Nonce, updateName, updateOperator, updateReward, test.GasLimit, test.GasPrice)
+		require.NoError(err)
+		_, err = p.handleCandidateUpdate(ctx, cu, sm)
+		require.Equal(test.Expected, errors.Cause(err))
 
 		if test.Expected == nil {
 
