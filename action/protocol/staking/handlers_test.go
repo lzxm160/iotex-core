@@ -565,7 +565,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			1,
 			1,
-			time.Now().Add(p.config.WithdrawWaitingPeriod * 2),
+			time.Now().Add(time.Hour * 338),
 			10000,
 			true,
 			nil,
