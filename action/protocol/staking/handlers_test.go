@@ -375,28 +375,6 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			identityset.Address(32).String(),
 			nil,
 		},
-		// test nothing change
-		{
-			1000,
-			identityset.Address(27),
-			uint64(10),
-			"test",
-			identityset.Address(28).String(),
-			identityset.Address(29).String(),
-			identityset.Address(27).String(),
-			"100",
-			uint32(10000),
-			false,
-			[]byte("payload"),
-			uint64(1000000),
-			uint64(1000000),
-			big.NewInt(1000),
-			true,
-			"",
-			"",
-			"",
-			nil,
-		},
 	}
 
 	for _, test := range tests {
