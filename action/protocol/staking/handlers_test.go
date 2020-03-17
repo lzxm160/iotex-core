@@ -494,7 +494,17 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 
 			// test candidate
 			candidate, err := getCandidate(sm, act.OwnerAddress())
-			require.NoError(err)
+			if act.OwnerAddress() == nil {
+				require.Nil(candidate)
+				require.Equal(ErrNilParameters, errors.Cause(err))
+				candidate, err = getCandidate(sm, test.Sender)
+				require.NoError(err)
+				require.Equal(test.Sender.String(), candidate.Owner.String())
+			} else {
+				require.NotNil(candidate)
+				require.NoError(err)
+				require.Equal(test.OwnerAddrStr, candidate.Owner.String())
+			}
 			require.LessOrEqual("0", candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
