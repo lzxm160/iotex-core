@@ -899,6 +899,106 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 	}
 }
 
+func TestProtocol_HandleTransferStake(t *testing.T) {
+	require := require.New(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	tests := []struct {
+		// creat stake fields
+		caller      address.Address
+		amount      string
+		initBalance int64
+		selfstaking bool
+		// action fields
+		index    uint64
+		gasPrice *big.Int
+		gasLimit uint64
+		nonce    uint64
+		// block context
+		blkHeight    uint64
+		blkTimestamp time.Time
+		blkGasLimit  uint64
+		// NewTransferStake fields
+		to      address.Address
+		payload []byte
+		// clear flag for inMemCandidates
+		clear bool
+		// need new p
+		newProtocol bool
+		// expected result
+		errorCause error
+	}{
+		{
+			identityset.Address(1),
+			"10000000000000000000",
+			100,
+			false,
+			1,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			identityset.Address(33),
+			nil,
+			true,
+			true,
+			nil,
+		},
+	}
+
+	for _, test := range tests {
+		sm, p, candidate, _ := initAll(t, ctrl)
+		//ctx := initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
+		ctx := initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
+
+		act, err := action.NewTransferStake(test.nonce, test.to.String(), test.index, test.payload, test.gasLimit, test.gasPrice)
+		require.NoError(err)
+		require.NoError(err)
+		if test.clear {
+			cc := p.inMemCandidates.GetBySelfStakingIndex(test.index)
+			p.inMemCandidates.Delete(cc.Owner)
+		}
+		_, err = p.handleTransferStake(ctx, act, sm)
+		require.Equal(test.errorCause, errors.Cause(err))
+
+		if test.errorCause == nil {
+			// test bucket index and bucket
+			bucketIndices, err := getCandBucketIndices(sm, candidate.Owner)
+			require.NoError(err)
+			require.Equal(1, len(*bucketIndices))
+			bucketIndices, err = getVoterBucketIndices(sm, test.to)
+			require.NoError(err)
+			require.Equal(1, len(*bucketIndices))
+			indices := *bucketIndices
+			bucket, err := getBucket(sm, indices[0])
+			require.NoError(err)
+			require.Equal(candidate.Owner, bucket.Candidate)
+			require.Equal(candidate.Owner, bucket.Owner)
+			require.Equal(test.amount, bucket.StakedAmount.String())
+
+			// test candidate
+			candidate, err := getCandidate(sm, candidate.Owner)
+			require.NoError(err)
+			require.LessOrEqual(test.amount, candidate.Votes.String())
+			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
+			require.NotNil(candidate)
+			require.LessOrEqual(test.amount, candidate.Votes.String())
+
+			// test staker's account
+			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
+			require.NoError(err)
+			actCost, err := act.Cost()
+			require.NoError(err)
+			require.Equal(unit.ConvertIotxToRau(test.initBalance), big.NewInt(0).Add(caller.Balance, actCost))
+			require.Equal(test.nonce, caller.Nonce)
+		}
+
+	}
+}
+
 func initCreateStake(t *testing.T, sm protocol.StateManager, callerAddr address.Address, initBalance int64, gasPrice *big.Int, gasLimit uint64, nonce uint64, blkHeight uint64, blkTimestamp time.Time, blkGasLimit uint64, p *Protocol, candidate *Candidate, amount string) context.Context {
 	require := require.New(t)
 	require.NoError(setupAccount(sm, callerAddr, initBalance))
