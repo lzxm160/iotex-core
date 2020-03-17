@@ -512,7 +512,6 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			require.Equal(test.updateName, candidate.Name)
 			require.Equal(test.updateOperator, candidate.Operator.String())
 			require.Equal(test.updateReward, candidate.Reward.String())
-			require.Equal(test.OwnerAddrStr, candidate.Owner.String())
 			require.LessOrEqual(test.AmountStr, candidate.Votes.String())
 			require.Equal(test.AmountStr, candidate.SelfStake.String())
 
