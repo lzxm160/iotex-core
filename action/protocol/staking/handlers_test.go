@@ -1139,7 +1139,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			bucket, err := getBucket(sm, indices[0])
 			require.NoError(err)
 			require.Equal(candi.Owner, bucket.Candidate)
-			require.Equal(test.caller, bucket.Owner.String())
+			require.Equal(test.caller.String(), bucket.Owner.String())
 			require.Equal(test.amount, bucket.StakedAmount.String())
 
 			// test candidate
