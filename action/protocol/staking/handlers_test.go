@@ -305,9 +305,12 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 				require.Nil(candidate)
 				require.Equal(ErrNilParameters, errors.Cause(err))
 				candidate, err = getCandidate(sm, test.Sender)
+				require.NoError(err)
+				require.Equal(test.Sender, candidate.Owner.String())
 			} else {
 				require.NotNil(candidate)
 				require.NoError(err)
+				require.Equal(test.OwnerAddrStr, candidate.Owner.String())
 			}
 			require.LessOrEqual("0", candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
@@ -316,7 +319,6 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			require.Equal(test.Name, candidate.Name)
 			require.Equal(test.OperatorAddrStr, candidate.Operator.String())
 			require.Equal(test.RewardAddrStr, candidate.Reward.String())
-			require.Equal(test.OwnerAddrStr, candidate.Owner.String())
 			require.Equal(test.AmountStr, candidate.Votes.String())
 			require.Equal(test.AmountStr, candidate.SelfStake.String())
 
