@@ -1033,6 +1033,143 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 	}
 }
 
+func TestProtocol_HandleRestake(t *testing.T) {
+	require := require.New(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	tests := []struct {
+		// creat stake fields
+		caller      address.Address
+		amount      string
+		initBalance int64
+		selfstaking bool
+		// action fields
+		index    uint64
+		gasPrice *big.Int
+		gasLimit uint64
+		nonce    uint64
+		// block context
+		blkHeight    uint64
+		blkTimestamp time.Time
+		blkGasLimit  uint64
+		// NewRestake fields
+		duration  uint32
+		autoStake bool
+		payload   []byte
+		// clear flag for inMemCandidates
+		clear bool
+		// need new p
+		newProtocol bool
+		// expected result
+		errorCause error
+	}{
+		{
+			identityset.Address(1),
+			"10000000000000000000",
+			100,
+			false,
+			1,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			1,
+			true,
+			nil,
+			true,
+			true,
+			state.ErrStateNotExist,
+		},
+		{
+			identityset.Address(1),
+			"10000000000000000000",
+			100,
+			false,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			1,
+			true,
+			nil,
+			true,
+			true,
+			nil,
+		},
+	}
+
+	for _, test := range tests {
+		sm, p, candi, _ := initAll(t, ctrl)
+		ctx, createCost := initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candi, test.amount)
+
+		act, err := action.NewRestake(test.nonce, test.index, test.duration, test.autoStake, test.payload, test.gasLimit, test.gasPrice)
+		require.NoError(err)
+		intrinsic, err := act.IntrinsicGas()
+		require.NoError(err)
+
+		ctx = protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
+			Caller:       test.caller,
+			GasPrice:     test.gasPrice,
+			IntrinsicGas: intrinsic,
+			Nonce:        test.nonce,
+		})
+		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
+			BlockHeight:    1,
+			BlockTimeStamp: time.Now(),
+			GasLimit:       10000000,
+		})
+		_, err = p.handleRestake(ctx, act, sm)
+		require.Equal(test.errorCause, errors.Cause(err))
+
+		if test.errorCause == nil {
+			// test bucket index and bucket
+			bucketIndices, err := getCandBucketIndices(sm, candi.Owner)
+			require.NoError(err)
+			require.Equal(1, len(*bucketIndices))
+			bucketIndices, err = getVoterBucketIndices(sm, test.caller)
+			require.NoError(err)
+			require.Equal(1, len(*bucketIndices))
+			indices := *bucketIndices
+			bucket, err := getBucket(sm, indices[0])
+			require.NoError(err)
+			require.Equal(candi.Owner, bucket.Candidate)
+			require.Equal(test.caller, bucket.Owner.String())
+			require.Equal(test.amount, bucket.StakedAmount.String())
+
+			// test candidate
+			candidate, err := getCandidate(sm, candi.Owner)
+			require.NoError(err)
+			require.LessOrEqual(test.amount, candidate.Votes.String())
+			candidate = p.inMemCandidates.GetByOwner(candi.Owner)
+			require.NotNil(candidate)
+			require.LessOrEqual(test.amount, candidate.Votes.String())
+			require.LessOrEqual("0", candidate.Votes.String())
+			require.Equal(candi.Name, candidate.Name)
+			require.Equal(candi.Operator, candidate.Operator)
+			require.Equal(candi.Reward, candidate.Reward)
+			require.Equal(candi.Owner, candidate.Owner)
+			require.LessOrEqual(test.amount, candidate.Votes.String())
+			require.LessOrEqual(test.amount, candidate.SelfStake.String())
+			// test staker's account
+			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
+			require.NoError(err)
+			actCost, err := act.Cost()
+			require.NoError(err)
+			require.Equal(test.nonce, caller.Nonce)
+			total := big.NewInt(0)
+			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, createCost))
+
+		}
+
+	}
+}
+
 func initCreateStake(t *testing.T, sm protocol.StateManager, callerAddr address.Address, initBalance int64, gasPrice *big.Int, gasLimit uint64, nonce uint64, blkHeight uint64, blkTimestamp time.Time, blkGasLimit uint64, p *Protocol, candidate *Candidate, amount string) (context.Context, *big.Int) {
 	require := require.New(t)
 	require.NoError(setupAccount(sm, callerAddr, initBalance))
