@@ -753,24 +753,6 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			1,
 			state.ErrStateNotExist,
 		},
-		// for inMemCandidates.GetByOwner,ErrInvalidOwner
-		{
-			identityset.Address(2),
-			"10000000000000000000",
-			100,
-			false,
-			0,
-			big.NewInt(unit.Qev),
-			10000,
-			1,
-			1,
-			time.Now(),
-			time.Now(),
-			10000,
-			true,
-			0,
-			ErrInvalidOwner,
-		},
 		// check unstake time
 		{
 			identityset.Address(2),
