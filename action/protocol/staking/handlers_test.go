@@ -746,7 +746,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			time.Now(),
 			time.Now(),
 			10000,
-			true,
+			false,
 			ErrFetchBucket,
 		},
 		// updateBucket getbucket ErrStateNotExist
