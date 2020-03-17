@@ -363,7 +363,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 	}{
 		{
 			// fetchCaller ErrNotEnoughBalance
-			101,
+			100,
 			identityset.Address(27),
 			uint64(10),
 			"test",
