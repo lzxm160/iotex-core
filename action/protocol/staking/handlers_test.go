@@ -734,7 +734,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 		},
 		// for bucket.Owner is not equal to actionCtx.Caller
 		{
-			identityset.Address(2),
+			identityset.Address(23),
 			"10000000000000000000",
 			100,
 			false,
@@ -746,7 +746,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			time.Now(),
 			time.Now(),
 			10000,
-			false,
+			true,
 			ErrFetchBucket,
 		},
 		// updateBucket getbucket ErrStateNotExist
