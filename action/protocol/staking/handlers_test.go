@@ -398,6 +398,11 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		})
 		_, err = p.handleCandidateRegister(ctx, act, sm)
 		require.NoError(err)
+		if test.Expected == nil {
+			candidate, err := getCandidate(sm, act.OwnerAddress())
+			require.NoError(err)
+			fmt.Println(candidate.Votes.String())
+		}
 		cu, err := action.NewCandidateUpdate(test.Nonce, test.updateName, test.updateOperator, test.updateReward, test.GasLimit, test.GasPrice)
 		require.NoError(err)
 		intrinsic, _ = cu.IntrinsicGas()
