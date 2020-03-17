@@ -694,9 +694,8 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	require := require.New(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	caller := identityset.Address(2)
 	tests := []struct {
-		// creat stake fields
+		// create stake fields
 		caller      address.Address
 		amount      string
 		initBalance int64
@@ -716,9 +715,77 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 		// expected result
 		errorCause error
 	}{
+		// fetchCaller ErrNotEnoughBalance
+		{
+			identityset.Address(12),
+			"9990000000000000000",
+			10,
+			false,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			time.Now(),
+			10000,
+			true,
+			state.ErrNotEnoughBalance,
+		},
+		// for bucket.Owner is not equal to actionCtx.Caller
+		{
+			identityset.Address(12),
+			"10000000000000000000",
+			100,
+			false,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			time.Now(),
+			10000,
+			false,
+			ErrFetchBucket,
+		},
+		// updateBucket getbucket ErrStateNotExist
+		{
+			identityset.Address(33),
+			"10000000000000000000",
+			100,
+			false,
+			1,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			time.Now(),
+			10000,
+			true,
+			state.ErrStateNotExist,
+		},
+		// for inMemCandidates.GetByOwner,ErrInvalidOwner
+		{
+			identityset.Address(33),
+			"10000000000000000000",
+			100,
+			false,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			time.Now(),
+			10000,
+			true,
+			ErrInvalidOwner,
+		},
 		// check unstake time
 		{
-			caller,
+			identityset.Address(2),
 			"10000000000000000000",
 			100,
 			false,
@@ -735,7 +802,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 		},
 		// check ErrNotReadyWithdraw
 		{
-			caller,
+			identityset.Address(2),
 			"10000000000000000000",
 			100,
 			false,
@@ -752,7 +819,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 		},
 		// nil
 		{
-			caller,
+			identityset.Address(2),
 			"10000000000000000000",
 			100,
 			false,
