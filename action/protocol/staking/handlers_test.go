@@ -975,10 +975,10 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		act, err := action.NewTransferStake(test.nonce, test.to.String(), test.index, test.payload, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		require.NoError(err)
-		if test.clear {
-			cc := p.inMemCandidates.GetBySelfStakingIndex(test.index)
-			p.inMemCandidates.Delete(cc.Owner)
-		}
+		//if test.clear {
+		//	cc := p.inMemCandidates.GetBySelfStakingIndex(test.index)
+		//	p.inMemCandidates.Delete(cc.Owner)
+		//}
 		_, err = p.handleTransferStake(ctx, act, sm)
 		require.Equal(test.errorCause, errors.Cause(err))
 
