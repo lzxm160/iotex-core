@@ -361,8 +361,8 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		updateReward   string
 		Expected       error
 	}{
+		// fetchCaller ErrNotEnoughBalance
 		{
-			// fetchCaller ErrNotEnoughBalance
 			110,
 			identityset.Address(27),
 			uint64(10),
@@ -383,8 +383,8 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			identityset.Address(32).String(),
 			state.ErrNotEnoughBalance,
 		},
+		// only owner can update candidate
 		{
-			// only owner can update candidate
 			1000,
 			identityset.Address(27),
 			uint64(10),
@@ -405,8 +405,8 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			identityset.Address(32).String(),
 			ErrInvalidOwner,
 		},
+		// owner address is nil
 		{
-			// owner address is nil
 			1000,
 			identityset.Address(27),
 			uint64(10),
@@ -560,24 +560,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		// expected result
 		errorCause error
 	}{
-		{
-			callerAddr,
-			"10000000000000000000",
-			100,
-			false,
-			0,
-			big.NewInt(unit.Qev),
-			10000,
-			1,
-			1,
-			time.Now(),
-			10000,
-			false,
-			true,
-			nil,
-		},
-		// test fetchCaller error ErrNotEnoughBalance
-		// 9990000000000000000+gas(10000000000000000)=10 iotx,no more extra balance
+		// fetchCaller ErrNotEnoughBalance
 		{
 			callerAddr,
 			"9990000000000000000",
@@ -628,25 +611,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			true,
 			state.ErrStateNotExist,
 		},
-
-		// failed to subtract vote for candidate
-		//{
-		//	callerAddr,
-		//	"9980000000000000000",
-		//	10,
-		//	true,
-		//	0,
-		//	big.NewInt(unit.Qev),
-		//	10000,
-		//	1,
-		//	1,
-		//	time.Now(),
-		//	10000,
-		//	false,
-		//	true,
-		//	ErrInvalidAmount,
-		//},
-		// for inMemCandidates.GetByOwner
+		// for inMemCandidates.GetByOwner,ErrInvalidOwner
 		{
 			callerAddr,
 			"10000000000000000000",
@@ -662,6 +627,22 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			true,
 			true,
 			ErrInvalidOwner,
+		},
+		{
+			callerAddr,
+			"10000000000000000000",
+			100,
+			false,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			false,
+			true,
+			nil,
 		},
 	}
 
