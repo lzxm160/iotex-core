@@ -25,6 +25,17 @@ import (
 	"github.com/iotexproject/iotex-core/state"
 )
 
+var (
+	// ErrFetchBucket is the error when call fetchBucket
+	ErrFetchBucket = errors.New("fetchBucket error")
+	// ErrNotUnstaked is the error when bucket has not been unstaked
+	ErrNotUnstaked = errors.New("bucket has not been unstaked")
+	// ErrNotReadyWithdraw is the error when not ready withdraw
+	ErrNotReadyWithdraw = errors.New("stake is not ready to withdraw")
+	// ErrNilParameters is the error when parameter is nil
+	ErrNilParameters = errors.New("parameter is nil")
+)
+
 const (
 	// HandleCreateStake is the handler name of createStake
 	HandleCreateStake = "createStake"
@@ -158,11 +169,11 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 
 	// check unstake time
 	if bucket.UnstakeStartTime.Unix() == 0 {
-		return nil, errors.New("bucket has not been unstaked")
+		return nil, ErrNotUnstaked
 	}
 	if blkCtx.BlockTimeStamp.Before(bucket.UnstakeStartTime.Add(p.config.WithdrawWaitingPeriod)) {
-		return nil, fmt.Errorf("stake is not ready to withdraw, current time %s, required time %s",
-			blkCtx.BlockTimeStamp, bucket.UnstakeStartTime.Add(p.config.WithdrawWaitingPeriod))
+		return nil, errors.Wrap(ErrNotReadyWithdraw, fmt.Sprintf("stake is not ready to withdraw, current time %s, required time %s",
+			blkCtx.BlockTimeStamp, bucket.UnstakeStartTime.Add(p.config.WithdrawWaitingPeriod)))
 	}
 
 	// delete bucket and bucket index
@@ -558,11 +569,11 @@ func (p *Protocol) fetchBucket(
 		return nil, errors.Wrapf(err, "failed to fetch bucket by index %d", index)
 	}
 	if checkOwner && !address.Equal(bucket.Owner, actionCtx.Caller) {
-		return nil, fmt.Errorf("bucket owner does not match action caller, bucket owner %s, action caller %s",
-			bucket.Owner.String(), actionCtx.Caller.String())
+		return nil, errors.Wrap(ErrFetchBucket, fmt.Sprintf("bucket owner does not match action caller, bucket owner %s, action caller %s",
+			bucket.Owner.String(), actionCtx.Caller.String()))
 	}
 	if !allowSelfStaking && p.inMemCandidates.ContainsSelfStakingBucket(index) {
-		return nil, errors.New("self staking bucket cannot be processed")
+		return nil, errors.Wrap(ErrFetchBucket, "self staking bucket cannot be processed")
 	}
 	return bucket, nil
 }
