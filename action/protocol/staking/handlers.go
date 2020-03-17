@@ -32,6 +32,8 @@ var (
 	ErrNotUnstaked = errors.New("bucket has not been unstaked")
 	// ErrNotReadyWithdraw is the error when not ready withdraw
 	ErrNotReadyWithdraw = errors.New("stake is not ready to withdraw")
+	// ErrNilParameters is the error when parameter is nil
+	ErrNilParameters = errors.New("parameter is nil")
 )
 
 const (
