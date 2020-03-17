@@ -729,7 +729,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			time.Now(),
 			time.Now(),
 			10000,
-			true,
+			false,
 			state.ErrNotEnoughBalance,
 		},
 		// for bucket.Owner is not equal to actionCtx.Caller
