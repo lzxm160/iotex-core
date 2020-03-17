@@ -717,7 +717,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	}{
 		// fetchCaller ErrNotEnoughBalance
 		{
-			identityset.Address(12),
+			identityset.Address(2),
 			"9990000000000000000",
 			10,
 			false,
@@ -734,7 +734,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 		},
 		// for bucket.Owner is not equal to actionCtx.Caller
 		{
-			identityset.Address(12),
+			identityset.Address(2),
 			"10000000000000000000",
 			100,
 			false,
@@ -751,7 +751,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 		},
 		// updateBucket getbucket ErrStateNotExist
 		{
-			identityset.Address(33),
+			identityset.Address(2),
 			"10000000000000000000",
 			100,
 			false,
@@ -768,7 +768,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 		},
 		// for inMemCandidates.GetByOwner,ErrInvalidOwner
 		{
-			identityset.Address(33),
+			identityset.Address(2),
 			"10000000000000000000",
 			100,
 			false,
@@ -838,6 +838,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 
 	for _, test := range tests {
 		sm, p, _, candidate := initAll(t, ctrl)
+		require.NoError(setupAccount(sm, test.caller, test.initBalance))
 		ctx, _ := initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
 		if test.unstake {
 			act, err := action.NewUnstake(test.nonce, test.index,
