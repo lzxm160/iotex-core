@@ -844,6 +844,20 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			act, err := action.NewUnstake(test.nonce, test.index,
 				nil, test.gasLimit, test.gasPrice)
 			require.NoError(err)
+			intrinsic, err := act.IntrinsicGas()
+			require.NoError(err)
+			ctx = protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
+				Caller:       test.caller,
+				GasPrice:     test.gasPrice,
+				IntrinsicGas: intrinsic,
+				Nonce:        test.nonce,
+			})
+			ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
+				BlockHeight:    1,
+				BlockTimeStamp: time.Now(),
+				GasLimit:       1000000,
+			})
+
 			_, err = p.handleUnstake(ctx, act, sm)
 			require.NoError(err)
 		}
