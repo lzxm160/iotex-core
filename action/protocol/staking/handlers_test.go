@@ -306,7 +306,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 				require.Equal(ErrNilParameters, errors.Cause(err))
 				candidate, err = getCandidate(sm, test.Sender)
 				require.NoError(err)
-				require.Equal(test.Sender, candidate.Owner.String())
+				require.Equal(test.Sender.String(), candidate.Owner.String())
 			} else {
 				require.NotNil(candidate)
 				require.NoError(err)
