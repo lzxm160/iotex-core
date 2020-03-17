@@ -712,6 +712,8 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 		blkGasLimit  uint64
 		// if unstake
 		unstake bool
+		// withdraw fields
+		withdrawIndex uint64
 		// expected result
 		errorCause error
 	}{
@@ -730,6 +732,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			time.Now(),
 			10000,
 			true,
+			0,
 			state.ErrNotEnoughBalance,
 		},
 		// updateBucket getbucket ErrStateNotExist
@@ -738,7 +741,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			"10000000000000000000",
 			100,
 			false,
-			1,
+			0,
 			big.NewInt(unit.Qev),
 			10000,
 			1,
@@ -747,6 +750,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			time.Now(),
 			10000,
 			true,
+			1,
 			state.ErrStateNotExist,
 		},
 		// for inMemCandidates.GetByOwner,ErrInvalidOwner
@@ -764,6 +768,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			time.Now(),
 			10000,
 			true,
+			0,
 			ErrInvalidOwner,
 		},
 		// check unstake time
@@ -781,6 +786,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			time.Now(),
 			10000,
 			false,
+			0,
 			ErrNotUnstaked,
 		},
 		// check ErrNotReadyWithdraw
@@ -798,6 +804,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			time.Now(),
 			10000,
 			true,
+			0,
 			ErrNotReadyWithdraw,
 		},
 		// nil
@@ -815,6 +822,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			time.Now().Add(time.Hour * 500),
 			10000,
 			true,
+			0,
 			nil,
 		},
 	}
@@ -845,7 +853,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			require.NoError(err)
 		}
 
-		withdraw, err := action.NewWithdrawStake(test.nonce, test.index,
+		withdraw, err := action.NewWithdrawStake(test.nonce, test.withdrawIndex,
 			nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		actionCtx := protocol.MustGetActionCtx(ctx)
