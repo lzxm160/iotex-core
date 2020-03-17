@@ -398,11 +398,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		})
 		_, err = p.handleCandidateRegister(ctx, act, sm)
 		require.NoError(err)
-		if test.Expected == nil {
-			candidate, err := getCandidate(sm, act.OwnerAddress())
-			require.NoError(err)
-			fmt.Println(candidate.Votes.String())
-		}
+
 		cu, err := action.NewCandidateUpdate(test.Nonce, test.updateName, test.updateOperator, test.updateReward, test.GasLimit, test.GasPrice)
 		require.NoError(err)
 		intrinsic, _ = cu.IntrinsicGas()
@@ -434,7 +430,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			require.Equal(test.updateOperator, candidate.Operator.String())
 			require.Equal(test.updateReward, candidate.Reward.String())
 			require.Equal(test.OwnerAddrStr, candidate.Owner.String())
-			require.Equal(test.AmountStr, candidate.Votes.String())
+			require.LessOrEqual(test.AmountStr, candidate.Votes.String())
 			require.Equal(test.AmountStr, candidate.SelfStake.String())
 
 			// test staker's account
