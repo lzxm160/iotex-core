@@ -732,23 +732,6 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			true,
 			state.ErrNotEnoughBalance,
 		},
-		// for bucket.Owner is not equal to actionCtx.Caller
-		{
-			identityset.Address(23),
-			"10000000000000000000",
-			100,
-			false,
-			0,
-			big.NewInt(unit.Qev),
-			10000,
-			1,
-			1,
-			time.Now(),
-			time.Now(),
-			10000,
-			false,
-			ErrFetchBucket,
-		},
 		// updateBucket getbucket ErrStateNotExist
 		{
 			identityset.Address(2),
