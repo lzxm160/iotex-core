@@ -1071,10 +1071,6 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		// NewTransferStake fields
 		to      address.Address
 		payload []byte
-		// clear flag for inMemCandidates
-		clear bool
-		// need new p
-		newProtocol bool
 		// expected result
 		errorCause error
 	}{
@@ -1093,8 +1089,6 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			10000,
 			identityset.Address(2),
 			nil,
-			false,
-			false,
 			state.ErrNotEnoughBalance,
 		},
 		// fetchBucket,bucket.Owner not equal to actionCtx.Caller
@@ -1112,8 +1106,6 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			10000,
 			identityset.Address(2),
 			nil,
-			false,
-			true,
 			ErrFetchBucket,
 		},
 		{
@@ -1130,8 +1122,6 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			10000,
 			identityset.Address(2),
 			nil,
-			true,
-			true,
 			nil,
 		},
 	}
