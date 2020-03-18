@@ -1080,7 +1080,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			10,
 			0,
 			big.NewInt(unit.Qev),
-			10000,
+			1000000,
 			1,
 			1,
 			time.Now(),
