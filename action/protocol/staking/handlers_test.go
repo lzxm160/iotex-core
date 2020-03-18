@@ -1001,7 +1001,9 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 
 	for _, test := range tests {
 		sm, p, candidate, candidate2 := initAll(t, ctrl)
+		// candidate2 vote self,index 0
 		initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
+		// candidate vote self,index 1
 		initCreateStake(t, sm, candidate.Owner, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
 
 		act, err := action.NewChangeCandidate(test.nonce, test.candidateName, test.index, nil, test.gasLimit, test.gasPrice)
@@ -1028,10 +1030,10 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 
 		if test.errorCause == nil {
 			// test bucket index and bucket
-			bucketIndices, err := getCandBucketIndices(sm, candidate2.Owner)
+			bucketIndices, err := getCandBucketIndices(sm, candidate.Owner)
 			require.NoError(err)
 			require.Equal(1, len(*bucketIndices))
-			bucketIndices, err = getVoterBucketIndices(sm, candidate2.Owner)
+			bucketIndices, err = getVoterBucketIndices(sm, candidate.Owner)
 			require.NoError(err)
 			require.Equal(2, len(*bucketIndices))
 			indices := *bucketIndices
