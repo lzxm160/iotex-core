@@ -1076,7 +1076,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		{
 			identityset.Address(2),
 			"9990000000000000000",
-			10,
+			1,
 			0,
 			big.NewInt(unit.Qev),
 			10000,
@@ -1135,7 +1135,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 
 	for _, test := range tests {
 		sm, p, candi, candidate2 := initAll(t, ctrl)
-		initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
+		initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, fmt.Sprintf("%d", test.initBalance))
 		//_, createCost := initCreateStake(t, sm, candi.Owner, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candi, test.amount)
 		fmt.Println("candi.Owner.String()", candi.Owner.String())
 		fmt.Println("candidate2.Owner.String()", candidate2.Owner.String())
