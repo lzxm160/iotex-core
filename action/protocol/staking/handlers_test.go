@@ -1116,13 +1116,13 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			true,
 			state.ErrStateNotExist,
 		},
-		// fetchBucket
+		// fetchBucket,bucket.Owner not equal to actionCtx.Caller
 		{
 			identityset.Address(1),
 			"10000000000000000000",
 			100,
 			true,
-			1,
+			0,
 			big.NewInt(unit.Qev),
 			10000,
 			1,
@@ -1140,14 +1140,14 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			"10000000000000000000",
 			100,
 			false,
-			0,
+			1,
 			big.NewInt(unit.Qev),
 			10000,
 			1,
 			1,
 			time.Now(),
 			10000,
-			identityset.Address(33),
+			identityset.Address(2),
 			nil,
 			true,
 			true,
@@ -1156,7 +1156,8 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		sm, p, candi, _ := initAll(t, ctrl)
+		sm, p, candi, candidate2 := initAll(t, ctrl)
+		initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
 		ctx, createCost := initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candi, test.amount)
 
 		act, err := action.NewTransferStake(test.nonce, test.to.String(), test.index, test.payload, test.gasLimit, test.gasPrice)
