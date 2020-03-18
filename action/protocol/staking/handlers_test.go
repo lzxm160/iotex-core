@@ -901,7 +901,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			10000,
 			false,
 			1,
-			"testname",
+			candidate2.Name,
 			big.NewInt(unit.Qev),
 			10000,
 			1,
