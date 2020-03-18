@@ -980,7 +980,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			ErrFetchBucket,
 		},
 		{
-			identityset.Address(1),
+			identityset.Address(2),
 			"10000000000000000000",
 			100,
 			false,
