@@ -630,6 +630,8 @@ func fetchCaller(ctx context.Context, sm protocol.StateReader, amount *big.Int) 
 	}
 	gasFee := big.NewInt(0).Mul(actionCtx.GasPrice, big.NewInt(0).SetUint64(actionCtx.IntrinsicGas))
 	// check caller's balance
+	fmt.Println(big.NewInt(0).Add(amount, gasFee).String())
+	fmt.Println(caller.Balance.String())
 	if big.NewInt(0).Add(amount, gasFee).Cmp(caller.Balance) == 1 {
 		return nil, nil, errors.Wrapf(
 			state.ErrNotEnoughBalance,
