@@ -1075,10 +1075,43 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		errorCause error
 	}{
 		// fetchCaller state.ErrNotEnoughBalance
+		//{
+		//	identityset.Address(1),
+		//	"9999990000000000000000",
+		//	10000,
+		//	false,
+		//	1,
+		//	big.NewInt(unit.Qev),
+		//	10000,
+		//	1,
+		//	1,
+		//	time.Now(),
+		//	10000,
+		//	identityset.Address(2),
+		//	nil,
+		//	state.ErrNotEnoughBalance,
+		//},
+		//// fetchBucket,bucket.Owner not equal to actionCtx.Caller
+		//{
+		//	identityset.Address(1),
+		//	"10000000000000000000",
+		//	100,
+		//	true,
+		//	0,
+		//	big.NewInt(unit.Qev),
+		//	10000,
+		//	1,
+		//	1,
+		//	time.Now(),
+		//	10000,
+		//	identityset.Address(2),
+		//	nil,
+		//	ErrFetchBucket,
+		//},
 		{
 			identityset.Address(1),
-			"9999990000000000000000",
-			10000,
+			"10000000000000000000",
+			100,
 			false,
 			1,
 			big.NewInt(unit.Qev),
@@ -1087,40 +1120,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
-			identityset.Address(2),
-			nil,
-			state.ErrNotEnoughBalance,
-		},
-		// fetchBucket,bucket.Owner not equal to actionCtx.Caller
-		{
 			identityset.Address(1),
-			"10000000000000000000",
-			100,
-			true,
-			0,
-			big.NewInt(unit.Qev),
-			10000,
-			1,
-			1,
-			time.Now(),
-			10000,
-			identityset.Address(2),
-			nil,
-			ErrFetchBucket,
-		},
-		{
-			identityset.Address(1),
-			"10000000000000000000",
-			100,
-			false,
-			0,
-			big.NewInt(unit.Qev),
-			10000,
-			1,
-			1,
-			time.Now(),
-			10000,
-			identityset.Address(2),
 			nil,
 			nil,
 		},
@@ -1129,7 +1129,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 	for _, test := range tests {
 		sm, p, candi, candidate2 := initAll(t, ctrl)
 		initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
-		ctx, createCost := initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candi, test.amount)
+		_, createCost := initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candi, test.amount)
 		fmt.Println("candi.Owner.String()", candi.Owner.String())
 		fmt.Println("candidate2.Owner.String()", candidate2.Owner.String())
 		act, err := action.NewTransferStake(test.nonce, test.to.String(), test.index, test.payload, test.gasLimit, test.gasPrice)
@@ -1137,7 +1137,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		intrinsic, err := act.IntrinsicGas()
 		require.NoError(err)
 
-		ctx = protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
+		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
 			Caller:       test.caller,
 			GasPrice:     test.gasPrice,
 			IntrinsicGas: intrinsic,
