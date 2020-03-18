@@ -981,7 +981,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		},
 		// change from 0 to candidate2
 		{
-			identityset.Address(1),
+			identityset.Address(2),
 			"10000000000000000000",
 			100,
 			false,
@@ -1001,11 +1001,24 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 
 	for _, test := range tests {
 		sm, p, candidate, candidate2 := initAll(t, ctrl)
-		ctx, _ := initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
-		ctx, _ = initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
+		initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
+		initCreateStake(t, sm, candidate.Owner, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
 
 		act, err := action.NewChangeCandidate(test.nonce, test.candidateName, test.index, nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
+		intrinsic, err := act.IntrinsicGas()
+		require.NoError(err)
+		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
+			Caller:       test.caller,
+			GasPrice:     test.gasPrice,
+			IntrinsicGas: intrinsic,
+			Nonce:        test.nonce,
+		})
+		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
+			BlockHeight:    1,
+			BlockTimeStamp: time.Now(),
+			GasLimit:       1000000,
+		})
 		if test.clear {
 			cc := p.inMemCandidates.GetBySelfStakingIndex(test.index)
 			p.inMemCandidates.Delete(cc.Owner)
