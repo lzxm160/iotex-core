@@ -1097,25 +1097,6 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			false,
 			state.ErrNotEnoughBalance,
 		},
-		// fetchCaller ErrStateNotExist
-		{
-			identityset.Address(1),
-			"10000000000000000000",
-			100,
-			false,
-			1,
-			big.NewInt(unit.Qev),
-			10000,
-			1,
-			1,
-			time.Now(),
-			10000,
-			identityset.Address(2),
-			nil,
-			true,
-			true,
-			state.ErrStateNotExist,
-		},
 		// fetchBucket,bucket.Owner not equal to actionCtx.Caller
 		{
 			identityset.Address(1),
