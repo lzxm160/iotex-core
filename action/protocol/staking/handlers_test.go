@@ -1128,7 +1128,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
-			identityset.Address(2),
+			identityset.Address(3),
 			nil,
 		},
 	}
