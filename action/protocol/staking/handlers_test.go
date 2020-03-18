@@ -1091,7 +1091,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			false,
 			state.ErrNotEnoughBalance,
 		},
-		// fetchBucket,bucket.Owner not equal to actionCtx.Caller
+		// identityset.Address(1) not in inMemCandidates
 		{
 			identityset.Address(1),
 			"10000000000000000000",
@@ -1108,7 +1108,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			false,
 			state.ErrStateNotExist,
 		},
-		// identityset.Address(1) not in inMemCandidates
+		// fetchBucket,bucket.Owner not equal to actionCtx.Caller
 		{
 			identityset.Address(1),
 			"10000000000000000000",
@@ -1139,7 +1139,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			10000,
 			identityset.Address(2),
 			1,
-			false,
+			true,
 			ErrFetchBucket,
 		},
 		{
