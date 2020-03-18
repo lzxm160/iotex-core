@@ -870,7 +870,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	callerAddr := identityset.Address(1)
+	candidate2 := testCandidates[1].d.Clone()
 	tests := []struct {
 		// creat stake fields
 		caller      address.Address
@@ -878,10 +878,11 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		initBalance int64
 		selfstaking bool
 		// action fields
-		index    uint64
-		gasPrice *big.Int
-		gasLimit uint64
-		nonce    uint64
+		index         uint64
+		candidateName string
+		gasPrice      *big.Int
+		gasLimit      uint64
+		nonce         uint64
 		// block context
 		blkHeight    uint64
 		blkTimestamp time.Time
@@ -899,6 +900,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			100,
 			false,
 			1,
+			"testname",
 			big.NewInt(unit.Qev),
 			10000,
 			1,
@@ -907,7 +909,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			10000,
 			true,
 			true,
-			nil,
+			ErrInvalidCanName,
 		},
 		{
 			identityset.Address(1),
@@ -915,6 +917,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			100,
 			false,
 			1,
+			candidate2.Name,
 			big.NewInt(unit.Qev),
 			10000,
 			1,
@@ -931,6 +934,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			100,
 			true,
 			1,
+			candidate2.Name,
 			big.NewInt(unit.Qev),
 			10000,
 			1,
@@ -942,11 +946,12 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			ErrFetchBucket,
 		},
 		{
-			callerAddr,
+			identityset.Address(1),
 			"10000000000000000000",
 			100,
 			false,
 			1,
+			candidate2.Name,
 			big.NewInt(unit.Qev),
 			10000,
 			1,
@@ -958,11 +963,12 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			ErrFetchBucket,
 		},
 		{
-			callerAddr,
+			identityset.Address(1),
 			"10000000000000000000",
 			100,
 			false,
 			0,
+			candidate2.Name,
 			big.NewInt(unit.Qev),
 			10000,
 			1,
@@ -972,6 +978,23 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			false,
 			true,
 			ErrFetchBucket,
+		},
+		{
+			identityset.Address(1),
+			"10000000000000000000",
+			100,
+			false,
+			1,
+			candidate2.Name,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			true,
+			true,
+			nil,
 		},
 	}
 
@@ -980,7 +1003,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		ctx, _ := initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
 		ctx, _ = initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
 
-		act, err := action.NewChangeCandidate(test.nonce, candidate2.Name, test.index,
+		act, err := action.NewChangeCandidate(test.nonce, test.candidateName, test.index,
 			nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		if test.clear {
