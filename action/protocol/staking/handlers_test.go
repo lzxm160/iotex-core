@@ -1241,7 +1241,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 		// clear flag for inMemCandidates
 		clear bool
 		// need new p
-		newProtocol bool
+		newAccount bool
 		// expected result
 		errorCause error
 	}{
@@ -1342,12 +1342,13 @@ func TestProtocol_HandleRestake(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		if test.newProtocol {
-			sm, p, candidate, _ = initAll(t, ctrl)
+		if test.newAccount {
+			//sm, p, candidate, _ = initAll(t, ctrl)
+			require.NoError(setupAccount(sm, test.caller, test.initBalance))
 		} else {
 			candidate = candidate2
 		}
-		//require.NoError(setupAccount(sm, test.caller, test.initBalance))
+
 		act, err := action.NewRestake(test.nonce, test.index, test.duration, test.autoStake, nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		if test.clear {
