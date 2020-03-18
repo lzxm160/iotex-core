@@ -894,6 +894,24 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		// expected result
 		errorCause error
 	}{
+		// fetchCaller state.ErrNotEnoughBalance
+		{
+			identityset.Address(1),
+			"10000000000000000000",
+			10,
+			false,
+			1,
+			"testname",
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			true,
+			true,
+			state.ErrNotEnoughBalance,
+		},
 		{
 			identityset.Address(1),
 			"10000000000000000000",
