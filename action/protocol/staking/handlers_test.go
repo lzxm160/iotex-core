@@ -992,7 +992,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
-			true,
+			false,
 			true,
 			nil,
 		},
