@@ -1068,7 +1068,8 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		blkTimestamp time.Time
 		blkGasLimit  uint64
 		// NewTransferStake fields
-		to address.Address
+		to            address.Address
+		toInitBalance uint64
 		// expected result
 		errorCause error
 	}{
@@ -1085,6 +1086,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			time.Now(),
 			10000,
 			identityset.Address(1),
+			1,
 			state.ErrNotEnoughBalance,
 		},
 		// fetchBucket,bucket.Owner not equal to actionCtx.Caller
@@ -1100,6 +1102,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			time.Now(),
 			10000,
 			identityset.Address(2),
+			1,
 			ErrFetchBucket,
 		},
 		// fetchBucket,inMemCandidates.ContainsSelfStakingBucket is false
@@ -1115,6 +1118,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			time.Now(),
 			10000,
 			identityset.Address(2),
+			1,
 			ErrFetchBucket,
 		},
 		{
@@ -1129,6 +1133,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			time.Now(),
 			10000,
 			identityset.Address(1),
+			1,
 			nil,
 		},
 	}
@@ -1139,7 +1144,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		//_, createCost := initCreateStake(t, sm, candi.Owner, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candi, test.amount)
 		fmt.Println("candi.Owner.String()", candi.Owner.String())
 		fmt.Println("candidate2.Owner.String()", candidate2.Owner.String())
-		require.NoError(setupAccount(sm, test.caller, test.initBalance))
+		require.NoError(setupAccount(sm, test.caller, int64(test.toInitBalance)))
 		act, err := action.NewTransferStake(test.nonce, test.to.String(), test.index, nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		intrinsic, err := act.IntrinsicGas()
