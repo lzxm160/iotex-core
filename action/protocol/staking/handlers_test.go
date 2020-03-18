@@ -1103,20 +1103,20 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			ErrFetchBucket,
 		},
 		// fetchBucket,inMemCandidates.ContainsSelfStakingBucket is false
-		//{
-		//	identityset.Address(1),
-		//	"10000000000000000000",
-		//	100,
-		//	1,
-		//	big.NewInt(unit.Qev),
-		//	10000,
-		//	1,
-		//	1,
-		//	time.Now(),
-		//	10000,
-		//	identityset.Address(2),
-		//	ErrFetchBucket,
-		//},
+		{
+			identityset.Address(1),
+			"10000000000000000000",
+			100,
+			1,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			identityset.Address(2),
+			ErrFetchBucket,
+		},
 		{
 			identityset.Address(2),
 			"10000000000000000000",
@@ -1139,6 +1139,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		//_, createCost := initCreateStake(t, sm, candi.Owner, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candi, test.amount)
 		fmt.Println("candi.Owner.String()", candi.Owner.String())
 		fmt.Println("candidate2.Owner.String()", candidate2.Owner.String())
+		require.NoError(setupAccount(sm, test.caller, test.initBalance))
 		act, err := action.NewTransferStake(test.nonce, test.to.String(), test.index, nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		intrinsic, err := act.IntrinsicGas()
