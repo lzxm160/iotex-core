@@ -1218,7 +1218,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 	defer ctrl.Finish()
 
 	sm, p, candidate, candidate2 := initAll(t, ctrl)
-	ctx, _ := initCreateStake(t, sm, identityset.Address(2), 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
+	initCreateStake(t, sm, identityset.Address(2), 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
 
 	callerAddr := identityset.Address(1)
 	tests := []struct {
@@ -1348,7 +1348,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 		} else {
 			candidate = candidate2
 		}
-		require.NoError(setupAccount(sm, test.caller, test.initBalance))
+		//require.NoError(setupAccount(sm, test.caller, test.initBalance))
 		act, err := action.NewRestake(test.nonce, test.index, test.duration, test.autoStake, nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		if test.clear {
@@ -1356,7 +1356,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 		}
 		intrinsic, err := act.IntrinsicGas()
 		require.NoError(err)
-		ctx = protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
+		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
 			Caller:       test.caller,
 			GasPrice:     test.gasPrice,
 			IntrinsicGas: intrinsic,
