@@ -569,10 +569,12 @@ func (p *Protocol) fetchBucket(
 		return nil, errors.Wrapf(err, "failed to fetch bucket by index %d", index)
 	}
 	if checkOwner && !address.Equal(bucket.Owner, actionCtx.Caller) {
+		fmt.Println("fetchBucket:", bucket.Owner.String(), ":", actionCtx.Caller.String())
 		return nil, errors.Wrap(ErrFetchBucket, fmt.Sprintf("bucket owner does not match action caller, bucket owner %s, action caller %s",
 			bucket.Owner.String(), actionCtx.Caller.String()))
 	}
 	if !allowSelfStaking && p.inMemCandidates.ContainsSelfStakingBucket(index) {
+		fmt.Println("fetchBucket:", index)
 		return nil, errors.Wrap(ErrFetchBucket, "self staking bucket cannot be processed")
 	}
 	return bucket, nil
