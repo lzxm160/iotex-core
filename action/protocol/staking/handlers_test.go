@@ -1262,7 +1262,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			1,
 			true,
 			false,
-			true,
+			false,
 			state.ErrNotEnoughBalance,
 		},
 		// for bucket.Owner is not equal to actionCtx.Caller
@@ -1319,7 +1319,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			1,
 			true,
 			true,
-			true,
+			false,
 			ErrInvalidOwner,
 		},
 		{
@@ -1337,7 +1337,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			1,
 			true,
 			false,
-			true,
+			false,
 			nil,
 		},
 	}
