@@ -897,7 +897,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		// fetchCaller state.ErrNotEnoughBalance
 		{
 			identityset.Address(1),
-			"99990000000000000000",
+			"999990000000000000000",
 			10,
 			false,
 			1,
