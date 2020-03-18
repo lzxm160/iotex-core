@@ -1217,6 +1217,10 @@ func TestProtocol_HandleRestake(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	sm, p, candidate, candidate2 := initAll(t, ctrl)
+	ctx, _ := initCreateStake(t, sm, identityset.Address(2), 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
+
+	callerAddr := identityset.Address(1)
 	tests := []struct {
 		// creat stake fields
 		caller      address.Address
@@ -1232,10 +1236,9 @@ func TestProtocol_HandleRestake(t *testing.T) {
 		blkHeight    uint64
 		blkTimestamp time.Time
 		blkGasLimit  uint64
-		// NewRestake fields
+		// restake fields
 		duration  uint32
 		autoStake bool
-		payload   []byte
 		// clear flag for inMemCandidates
 		clear bool
 		// need new p
@@ -1243,12 +1246,13 @@ func TestProtocol_HandleRestake(t *testing.T) {
 		// expected result
 		errorCause error
 	}{
+		// fetchCaller ErrNotEnoughBalance
 		{
-			identityset.Address(1),
-			"10000000000000000000",
-			100,
+			callerAddr,
+			"9990000000000000000",
+			10,
 			false,
-			1,
+			0,
 			big.NewInt(unit.Qev),
 			10000,
 			1,
@@ -1257,13 +1261,13 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			10000,
 			1,
 			true,
-			nil,
+			false,
 			true,
-			true,
-			state.ErrStateNotExist,
+			state.ErrNotEnoughBalance,
 		},
+		// for bucket.Owner is not equal to actionCtx.Caller
 		{
-			identityset.Address(1),
+			identityset.Address(12),
 			"10000000000000000000",
 			100,
 			false,
@@ -1276,78 +1280,248 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			10000,
 			1,
 			true,
-			nil,
+			false,
+			false,
+			ErrFetchBucket,
+		},
+		// updateBucket getbucket ErrStateNotExist
+		{
+			identityset.Address(33),
+			"10000000000000000000",
+			100,
+			false,
+			1,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			1,
 			true,
+			false,
+			true,
+			state.ErrStateNotExist,
+		},
+		// for inMemCandidates.GetByOwner,ErrInvalidOwner
+		{
+			callerAddr,
+			"10000000000000000000",
+			100,
+			false,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			1,
+			true,
+			true,
+			true,
+			ErrInvalidOwner,
+		},
+		{
+			callerAddr,
+			"10000000000000000000",
+			100,
+			false,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			1,
+			true,
+			false,
 			true,
 			nil,
 		},
 	}
 
 	for _, test := range tests {
-		sm, p, candi, _ := initAll(t, ctrl)
-		ctx, createCost := initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candi, test.amount)
+		if test.newProtocol {
+			sm, p, candidate, _ = initAll(t, ctrl)
+		} else {
+			candidate = candidate2
+		}
 
-		act, err := action.NewRestake(test.nonce, test.index, test.duration, test.autoStake, test.payload, test.gasLimit, test.gasPrice)
+		act, err := action.NewRestake(test.nonce, test.index, test.duration, test.autoStake, nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
-		intrinsic, err := act.IntrinsicGas()
-		require.NoError(err)
-
-		ctx = protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
-			Caller:       test.caller,
-			GasPrice:     test.gasPrice,
-			IntrinsicGas: intrinsic,
-			Nonce:        test.nonce,
-		})
-		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
-			BlockHeight:    1,
-			BlockTimeStamp: time.Now(),
-			GasLimit:       10000000,
-		})
+		if test.clear {
+			p.inMemCandidates.Delete(test.caller)
+		}
 		_, err = p.handleRestake(ctx, act, sm)
 		require.Equal(test.errorCause, errors.Cause(err))
 
 		if test.errorCause == nil {
 			// test bucket index and bucket
-			bucketIndices, err := getCandBucketIndices(sm, candi.Owner)
+			bucketIndices, err := getCandBucketIndices(sm, candidate.Owner)
 			require.NoError(err)
 			require.Equal(1, len(*bucketIndices))
-			bucketIndices, err = getVoterBucketIndices(sm, test.caller)
+			bucketIndices, err = getVoterBucketIndices(sm, candidate.Owner)
 			require.NoError(err)
 			require.Equal(1, len(*bucketIndices))
 			indices := *bucketIndices
 			bucket, err := getBucket(sm, indices[0])
 			require.NoError(err)
-			require.Equal(candi.Owner, bucket.Candidate)
+			require.Equal(candidate.Owner.String(), bucket.Candidate.String())
 			require.Equal(test.caller.String(), bucket.Owner.String())
 			require.Equal(test.amount, bucket.StakedAmount.String())
 
 			// test candidate
-			candidate, err := getCandidate(sm, candi.Owner)
+			candidate, err = getCandidate(sm, candidate.Owner)
 			require.NoError(err)
-			require.LessOrEqual(test.amount, candidate.Votes.String())
-			candidate = p.inMemCandidates.GetByOwner(candi.Owner)
+			require.Equal("2", candidate.Votes.String())
+			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.LessOrEqual(test.amount, candidate.Votes.String())
-			require.LessOrEqual("0", candidate.Votes.String())
-			require.Equal(candi.Name, candidate.Name)
-			require.Equal(candi.Operator, candidate.Operator)
-			require.Equal(candi.Reward, candidate.Reward)
-			require.Equal(candi.Owner, candidate.Owner)
-			require.LessOrEqual(test.amount, candidate.Votes.String())
-			require.LessOrEqual(test.amount, candidate.SelfStake.String())
-			// test staker's account
-			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
-			require.NoError(err)
-			actCost, err := act.Cost()
-			require.NoError(err)
-			require.Equal(test.nonce, caller.Nonce)
-			total := big.NewInt(0)
-			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, createCost))
-
+			require.Equal("2", candidate.Votes.String())
 		}
 
 	}
 }
+
+//func TestProtocol_HandleRestake(t *testing.T) {
+//	require := require.New(t)
+//	ctrl := gomock.NewController(t)
+//	defer ctrl.Finish()
+//
+//	tests := []struct {
+//		// creat stake fields
+//		caller      address.Address
+//		amount      string
+//		initBalance int64
+//		selfstaking bool
+//		// action fields
+//		index    uint64
+//		gasPrice *big.Int
+//		gasLimit uint64
+//		nonce    uint64
+//		// block context
+//		blkHeight    uint64
+//		blkTimestamp time.Time
+//		blkGasLimit  uint64
+//		// NewRestake fields
+//		duration  uint32
+//		autoStake bool
+//		payload   []byte
+//		// clear flag for inMemCandidates
+//		clear bool
+//		// need new p
+//		newProtocol bool
+//		// expected result
+//		errorCause error
+//	}{
+//		{
+//			identityset.Address(1),
+//			"10000000000000000000",
+//			100,
+//			false,
+//			1,
+//			big.NewInt(unit.Qev),
+//			10000,
+//			1,
+//			1,
+//			time.Now(),
+//			10000,
+//			1,
+//			true,
+//			nil,
+//			true,
+//			true,
+//			state.ErrStateNotExist,
+//		},
+//		{
+//			identityset.Address(1),
+//			"10000000000000000000",
+//			100,
+//			false,
+//			0,
+//			big.NewInt(unit.Qev),
+//			10000,
+//			1,
+//			1,
+//			time.Now(),
+//			10000,
+//			1,
+//			true,
+//			nil,
+//			true,
+//			true,
+//			nil,
+//		},
+//	}
+//
+//	for _, test := range tests {
+//		sm, p, candi, _ := initAll(t, ctrl)
+//		ctx, createCost := initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candi, test.amount)
+//
+//		act, err := action.NewRestake(test.nonce, test.index, test.duration, test.autoStake, test.payload, test.gasLimit, test.gasPrice)
+//		require.NoError(err)
+//		intrinsic, err := act.IntrinsicGas()
+//		require.NoError(err)
+//
+//		ctx = protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
+//			Caller:       test.caller,
+//			GasPrice:     test.gasPrice,
+//			IntrinsicGas: intrinsic,
+//			Nonce:        test.nonce,
+//		})
+//		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
+//			BlockHeight:    1,
+//			BlockTimeStamp: time.Now(),
+//			GasLimit:       10000000,
+//		})
+//		_, err = p.handleRestake(ctx, act, sm)
+//		require.Equal(test.errorCause, errors.Cause(err))
+//
+//		if test.errorCause == nil {
+//			// test bucket index and bucket
+//			bucketIndices, err := getCandBucketIndices(sm, candi.Owner)
+//			require.NoError(err)
+//			require.Equal(1, len(*bucketIndices))
+//			bucketIndices, err = getVoterBucketIndices(sm, test.caller)
+//			require.NoError(err)
+//			require.Equal(1, len(*bucketIndices))
+//			indices := *bucketIndices
+//			bucket, err := getBucket(sm, indices[0])
+//			require.NoError(err)
+//			require.Equal(candi.Owner, bucket.Candidate)
+//			require.Equal(test.caller.String(), bucket.Owner.String())
+//			require.Equal(test.amount, bucket.StakedAmount.String())
+//
+//			// test candidate
+//			candidate, err := getCandidate(sm, candi.Owner)
+//			require.NoError(err)
+//			require.LessOrEqual(test.amount, candidate.Votes.String())
+//			candidate = p.inMemCandidates.GetByOwner(candi.Owner)
+//			require.NotNil(candidate)
+//			require.LessOrEqual(test.amount, candidate.Votes.String())
+//			require.LessOrEqual("0", candidate.Votes.String())
+//			require.Equal(candi.Name, candidate.Name)
+//			require.Equal(candi.Operator, candidate.Operator)
+//			require.Equal(candi.Reward, candidate.Reward)
+//			require.Equal(candi.Owner, candidate.Owner)
+//			require.LessOrEqual(test.amount, candidate.Votes.String())
+//			require.LessOrEqual(test.amount, candidate.SelfStake.String())
+//			// test staker's account
+//			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
+//			require.NoError(err)
+//			actCost, err := act.Cost()
+//			require.NoError(err)
+//			require.Equal(test.nonce, caller.Nonce)
+//			total := big.NewInt(0)
+//			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, createCost))
+//
+//		}
+//
+//	}
+//}
+
+func TestProtocol_HandleDepositToStake(t *testing.T) {}
 
 func initCreateStake(t *testing.T, sm protocol.StateManager, callerAddr address.Address, initBalance int64, gasPrice *big.Int, gasLimit uint64, nonce uint64, blkHeight uint64, blkTimestamp time.Time, blkGasLimit uint64, p *Protocol, candidate *Candidate, amount string) (context.Context, *big.Int) {
 	require := require.New(t)
