@@ -1108,6 +1108,23 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		//	nil,
 		//	ErrFetchBucket,
 		//},
+		// fetchBucket,inMemCandidates.ContainsSelfStakingBucket is false
+		//{
+		//	identityset.Address(1),
+		//	"10000000000000000000",
+		//	100,
+		//	true,
+		//	1,
+		//	big.NewInt(unit.Qev),
+		//	10000,
+		//	1,
+		//	1,
+		//	time.Now(),
+		//	10000,
+		//	identityset.Address(2),
+		//	nil,
+		//	ErrFetchBucket,
+		//},
 		{
 			identityset.Address(1),
 			"10000000000000000000",
@@ -1122,7 +1139,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			10000,
 			identityset.Address(2),
 			nil,
-			nil,
+			ErrFetchBucket,
 		},
 	}
 
