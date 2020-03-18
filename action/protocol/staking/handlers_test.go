@@ -1058,7 +1058,6 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		caller      address.Address
 		amount      string
 		initBalance int64
-		selfstaking bool
 		// action fields
 		index    uint64
 		gasPrice *big.Int
@@ -1069,67 +1068,59 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		blkTimestamp time.Time
 		blkGasLimit  uint64
 		// NewTransferStake fields
-		to      address.Address
-		payload []byte
+		to address.Address
 		// expected result
 		errorCause error
 	}{
 		// fetchCaller state.ErrNotEnoughBalance
-		//{
-		//	identityset.Address(1),
-		//	"9999990000000000000000",
-		//	10000,
-		//	false,
-		//	1,
-		//	big.NewInt(unit.Qev),
-		//	10000,
-		//	1,
-		//	1,
-		//	time.Now(),
-		//	10000,
-		//	identityset.Address(2),
-		//	nil,
-		//	state.ErrNotEnoughBalance,
-		//},
-		//// fetchBucket,bucket.Owner not equal to actionCtx.Caller
-		//{
-		//	identityset.Address(1),
-		//	"10000000000000000000",
-		//	100,
-		//	true,
-		//	0,
-		//	big.NewInt(unit.Qev),
-		//	10000,
-		//	1,
-		//	1,
-		//	time.Now(),
-		//	10000,
-		//	identityset.Address(2),
-		//	nil,
-		//	ErrFetchBucket,
-		//},
-		// fetchBucket,inMemCandidates.ContainsSelfStakingBucket is false
-		//{
-		//	identityset.Address(1),
-		//	"10000000000000000000",
-		//	100,
-		//	true,
-		//	1,
-		//	big.NewInt(unit.Qev),
-		//	10000,
-		//	1,
-		//	1,
-		//	time.Now(),
-		//	10000,
-		//	identityset.Address(2),
-		//	nil,
-		//	ErrFetchBucket,
-		//},
+		{
+			identityset.Address(1),
+			"9999990000000000000000",
+			10000,
+			1,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			identityset.Address(2),
+			state.ErrNotEnoughBalance,
+		},
+		// fetchBucket,bucket.Owner not equal to actionCtx.Caller
 		{
 			identityset.Address(1),
 			"10000000000000000000",
 			100,
-			true,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			identityset.Address(2),
+			ErrFetchBucket,
+		},
+		// fetchBucket,inMemCandidates.ContainsSelfStakingBucket is false
+		{
+			identityset.Address(1),
+			"10000000000000000000",
+			100,
+			1,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			identityset.Address(2),
+			ErrFetchBucket,
+		},
+		{
+			identityset.Address(1),
+			"10000000000000000000",
+			100,
 			1,
 			big.NewInt(unit.Qev),
 			10000,
@@ -1139,7 +1130,6 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			10000,
 			identityset.Address(2),
 			nil,
-			ErrFetchBucket,
 		},
 	}
 
