@@ -1076,7 +1076,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		{
 			identityset.Address(2),
 			"9990000000000000000",
-			1,
+			10,
 			0,
 			big.NewInt(unit.Qev),
 			10000,
