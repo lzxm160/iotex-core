@@ -980,11 +980,11 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			ErrFetchBucket,
 		},
 		{
-			identityset.Address(2),
+			candidate2.Owner,
 			"10000000000000000000",
 			100,
 			false,
-			1,
+			0,
 			candidate2.Name,
 			big.NewInt(unit.Qev),
 			10000,
@@ -1003,8 +1003,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		ctx, _ := initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
 		ctx, _ = initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
 
-		act, err := action.NewChangeCandidate(test.nonce, test.candidateName, test.index,
-			nil, test.gasLimit, test.gasPrice)
+		act, err := action.NewChangeCandidate(test.nonce, test.candidateName, test.index, nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		if test.clear {
 			cc := p.inMemCandidates.GetBySelfStakingIndex(test.index)
