@@ -1173,7 +1173,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 
 		if test.errorCause == nil {
 			// test bucket index and bucket
-			bucketIndices, err := getCandBucketIndices(sm, candi.Owner)
+			bucketIndices, err := getCandBucketIndices(sm, candidate2.Owner)
 			require.NoError(err)
 			require.Equal(1, len(*bucketIndices))
 			bucketIndices, err = getVoterBucketIndices(sm, test.to)
