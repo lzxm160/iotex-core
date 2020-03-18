@@ -1030,14 +1030,14 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 
 		if test.errorCause == nil {
 			// test bucket index and bucket
-			bucketIndices, err := getCandBucketIndices(sm, candidate.Owner)
+			bucketIndices, err := getCandBucketIndices(sm, test.caller)
 			require.NoError(err)
 			require.Equal(1, len(*bucketIndices))
-			bucketIndices, err = getVoterBucketIndices(sm, candidate.Owner)
+			bucketIndices, err = getVoterBucketIndices(sm, test.caller)
 			require.NoError(err)
-			require.Equal(2, len(*bucketIndices))
+			require.Equal(1, len(*bucketIndices))
 			indices := *bucketIndices
-			bucket, err := getBucket(sm, indices[1])
+			bucket, err := getBucket(sm, indices[0])
 			require.NoError(err)
 			require.Equal(test.caller.String(), bucket.Candidate.String())
 			require.Equal(test.caller.String(), bucket.Owner.String())
