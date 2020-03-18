@@ -1348,12 +1348,25 @@ func TestProtocol_HandleRestake(t *testing.T) {
 		} else {
 			candidate = candidate2
 		}
-
+		require.NoError(setupAccount(sm, test.caller, test.initBalance))
 		act, err := action.NewRestake(test.nonce, test.index, test.duration, test.autoStake, nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		if test.clear {
 			p.inMemCandidates.Delete(test.caller)
 		}
+		intrinsic, err := act.IntrinsicGas()
+		require.NoError(err)
+		ctx = protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
+			Caller:       test.caller,
+			GasPrice:     test.gasPrice,
+			IntrinsicGas: intrinsic,
+			Nonce:        test.nonce,
+		})
+		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
+			BlockHeight:    1,
+			BlockTimeStamp: time.Now(),
+			GasLimit:       10000000,
+		})
 		_, err = p.handleRestake(ctx, act, sm)
 		require.Equal(test.errorCause, errors.Cause(err))
 
