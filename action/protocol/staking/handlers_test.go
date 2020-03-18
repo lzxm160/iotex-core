@@ -1062,12 +1062,18 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			require.Equal(test.amount, bucket.StakedAmount.String())
 
 			// test candidate
-			candidate, err = getCandidate(sm, candidate2.Owner)
+			candidate, err := getCandidate(sm, candidate2.Owner)
+			require.NotNil(candidate)
 			require.NoError(err)
-			require.Equal("20000000000000000003", candidate.Votes.String())
+			require.LessOrEqual("20000000000000000003", candidate.Votes.String())
+			require.Equal(test.candidateName, candidate.Name)
+			require.Equal(candidate2.Operator.String(), candidate.Operator.String())
+			require.Equal(candidate2.Reward.String(), candidate.Reward.String())
+			require.Equal(test.caller.String(), candidate.Owner.String())
+			require.Equal(test.amount, candidate.SelfStake.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.Equal("20000000000000000003", candidate.Votes.String())
+			require.LessOrEqual("20000000000000000003", candidate.Votes.String())
 		}
 
 	}
