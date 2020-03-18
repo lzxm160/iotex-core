@@ -898,7 +898,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		{
 			identityset.Address(1),
 			"9999990000000000000000",
-			1000,
+			10000,
 			false,
 			1,
 			"testname",
