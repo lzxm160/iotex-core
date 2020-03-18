@@ -1130,7 +1130,8 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		sm, p, candi, candidate2 := initAll(t, ctrl)
 		initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
 		ctx, createCost := initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candi, test.amount)
-
+		fmt.Println("candi.Owner.String()", candi.Owner.String())
+		fmt.Println("candidate2.Owner.String()", candidate2.Owner.String())
 		act, err := action.NewTransferStake(test.nonce, test.to.String(), test.index, test.payload, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		intrinsic, err := act.IntrinsicGas()
