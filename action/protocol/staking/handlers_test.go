@@ -979,8 +979,9 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			true,
 			ErrFetchBucket,
 		},
+		// change from 0 to candidate2
 		{
-			candidate2.Owner,
+			identityset.Address(1),
 			"10000000000000000000",
 			100,
 			false,
