@@ -1046,10 +1046,10 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			// test candidate
 			candidate, err = getCandidate(sm, candidate2.Owner)
 			require.NoError(err)
-			require.Equal("2", candidate.Votes.String())
+			require.Equal("20000000000000000003", candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.Equal("2", candidate.Votes.String())
+			require.Equal("20000000000000000003", candidate.Votes.String())
 		}
 
 	}
