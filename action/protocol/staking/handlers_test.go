@@ -1193,7 +1193,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			candidate = p.inMemCandidates.GetByOwner(candi.Owner)
 			require.NotNil(candidate)
 			require.LessOrEqual(test.amount, candidate.Votes.Uint64())
-			require.LessOrEqual("0", candidate.Votes.Uint64())
+			require.LessOrEqual(0, candidate.Votes.Uint64())
 			require.Equal(candi.Name, candidate.Name)
 			require.Equal(candi.Operator, candidate.Operator)
 			require.Equal(candi.Reward, candidate.Reward)
