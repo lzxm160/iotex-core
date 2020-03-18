@@ -1070,6 +1070,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		// NewTransferStake fields
 		to            address.Address
 		toInitBalance uint64
+		init          bool
 		// expected result
 		errorCause error
 	}{
@@ -1087,6 +1088,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			10000,
 			identityset.Address(1),
 			1,
+			false,
 			state.ErrNotEnoughBalance,
 		},
 		// fetchBucket,bucket.Owner not equal to actionCtx.Caller
@@ -1103,6 +1105,24 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			10000,
 			identityset.Address(2),
 			1,
+			false,
+			state.ErrStateNotExist,
+		},
+		// identityset.Address(1) not in inMemCandidates
+		{
+			identityset.Address(1),
+			"10000000000000000000",
+			1000,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			identityset.Address(2),
+			1,
+			true,
 			ErrFetchBucket,
 		},
 		// fetchBucket,inMemCandidates.ContainsSelfStakingBucket is false
@@ -1119,6 +1139,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			10000,
 			identityset.Address(2),
 			1,
+			false,
 			ErrFetchBucket,
 		},
 		{
@@ -1134,6 +1155,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			10000,
 			identityset.Address(1),
 			1,
+			false,
 			nil,
 		},
 	}
@@ -1141,10 +1163,12 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 	for _, test := range tests {
 		sm, p, candi, candidate2 := initAll(t, ctrl)
 		initCreateStake(t, sm, candidate2.Owner, test.initBalance, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, test.amount)
-		//_, createCost := initCreateStake(t, sm, candi.Owner, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candi, test.amount)
-		fmt.Println("candi.Owner.String()", candi.Owner.String())
-		fmt.Println("candidate2.Owner.String()", candidate2.Owner.String())
-		require.NoError(setupAccount(sm, identityset.Address(1), 1))
+		if test.init {
+			initCreateStake(t, sm, candi.Owner, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candi, test.amount)
+		} else {
+			require.NoError(setupAccount(sm, identityset.Address(1), 1))
+		}
+
 		act, err := action.NewTransferStake(test.nonce, test.to.String(), test.index, nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		intrinsic, err := act.IntrinsicGas()
