@@ -1075,8 +1075,8 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		// fetchCaller state.ErrNotEnoughBalance
 		{
 			identityset.Address(2),
-			"9999990000000000000000",
-			10000,
+			"9990000000000000000",
+			10,
 			0,
 			big.NewInt(unit.Qev),
 			10000,
