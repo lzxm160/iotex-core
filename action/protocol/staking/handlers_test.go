@@ -1182,7 +1182,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			indices := *bucketIndices
 			bucket, err := getBucket(sm, indices[0])
 			require.NoError(err)
-			require.Equal(candi.Owner, bucket.Candidate)
+			require.Equal(candidate2.Owner, bucket.Candidate)
 			require.Equal(test.to.String(), bucket.Owner.String())
 			require.Equal(test.amount, bucket.StakedAmount.String())
 
