@@ -1278,7 +1278,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			1,
 			true,
 			false,
-			false,
+			true,
 			ErrFetchBucket,
 		},
 		// updateBucket getbucket ErrStateNotExist
