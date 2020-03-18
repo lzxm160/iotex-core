@@ -1217,8 +1217,6 @@ func TestProtocol_HandleRestake(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	callerAddr := identityset.Address(2)
-	sm, p, candidate, candidate2 := initAll(t, ctrl)
-	initCreateStake(t, sm, callerAddr, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
 
 	tests := []struct {
 		// creat stake fields
@@ -1342,8 +1340,10 @@ func TestProtocol_HandleRestake(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		sm, p, candidate, candidate2 := initAll(t, ctrl)
+		initCreateStake(t, sm, candidate2.Owner, test.initBalance, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, test.amount)
+
 		if test.newAccount {
-			//sm, p, candidate, _ = initAll(t, ctrl)
 			require.NoError(setupAccount(sm, test.caller, test.initBalance))
 		} else {
 			candidate = candidate2
