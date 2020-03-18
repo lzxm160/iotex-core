@@ -1216,11 +1216,10 @@ func TestProtocol_HandleRestake(t *testing.T) {
 	require := require.New(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
+	callerAddr := identityset.Address(2)
 	sm, p, candidate, candidate2 := initAll(t, ctrl)
-	initCreateStake(t, sm, identityset.Address(2), 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
+	initCreateStake(t, sm, callerAddr, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
 
-	callerAddr := identityset.Address(1)
 	tests := []struct {
 		// creat stake fields
 		caller      address.Address
