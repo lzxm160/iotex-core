@@ -813,7 +813,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			false,
 			0,
 			ErrNotUnstaked,
-			iotextypes.ReceiptStatus_Success,
+			iotextypes.ReceiptStatus_ErrWithdrawBeforeUnstake,
 		},
 		// check ErrNotReadyWithdraw
 		{
