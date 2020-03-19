@@ -380,6 +380,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		updateName     string
 		updateOperator string
 		updateReward   string
+		err            error
 		status         iotextypes.ReceiptStatus
 	}{
 		// fetchCaller ErrNotEnoughBalance
@@ -402,6 +403,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			"update",
 			identityset.Address(31).String(),
 			identityset.Address(32).String(),
+			nil,
 			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
 		// only owner can update candidate
@@ -424,7 +426,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			"update",
 			identityset.Address(31).String(),
 			identityset.Address(32).String(),
-			//ErrInvalidOwner,
+			ErrInvalidOwner,
 			iotextypes.ReceiptStatus_Success,
 		},
 		// owner address is nil
@@ -447,6 +449,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			"update",
 			identityset.Address(31).String(),
 			identityset.Address(32).String(),
+			nil,
 			iotextypes.ReceiptStatus_Success,
 		},
 		{
@@ -468,6 +471,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			"update",
 			identityset.Address(31).String(),
 			identityset.Address(32).String(),
+			nil,
 			iotextypes.ReceiptStatus_Success,
 		},
 	}
@@ -509,9 +513,14 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			GasLimit:       test.blkGasLimit,
 		})
 		r, err := p.handleCandidateUpdate(ctx, cu, sm)
-		require.Equal(uint64(test.status), r.Status)
+		if err != nil {
+			require.Equal(test.err, errors.Cause(err))
+		}
+		if r != nil {
+			require.Equal(uint64(test.status), r.Status)
+		}
 
-		if test.status == iotextypes.ReceiptStatus_Success {
+		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
 			require.Equal(uint64(iotextypes.ReceiptStatus_Success), r.Status)
 
 			// test candidate
