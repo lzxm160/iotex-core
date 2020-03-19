@@ -359,7 +359,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 	require := require.New(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	sm, p, _, _ := initAll(t, ctrl)
+	//sm, p, _, _ := initAll(t, ctrl)
 	tests := []struct {
 		initBalance     int64
 		caller          address.Address
@@ -384,74 +384,74 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		status         iotextypes.ReceiptStatus
 	}{
 		// fetchCaller ErrNotEnoughBalance
-		//{
-		//	110,
-		//	identityset.Address(27),
-		//	uint64(10),
-		//	"test",
-		//	identityset.Address(28).String(),
-		//	identityset.Address(29).String(),
-		//	identityset.Address(27).String(),
-		//	"9999999999989300000",
-		//	uint32(10000),
-		//	false,
-		//	[]byte("payload"),
-		//	uint64(1000000),
-		//	uint64(1000000),
-		//	big.NewInt(1000),
-		//	true,
-		//	"update",
-		//	identityset.Address(31).String(),
-		//	identityset.Address(32).String(),
-		//	nil,
-		//	iotextypes.ReceiptStatus_ErrNotEnoughBalance,
-		//},
-		//// only owner can update candidate
-		//{
-		//	1000,
-		//	identityset.Address(27),
-		//	uint64(10),
-		//	"test",
-		//	identityset.Address(28).String(),
-		//	identityset.Address(29).String(),
-		//	identityset.Address(30).String(),
-		//	"100",
-		//	uint32(10000),
-		//	false,
-		//	[]byte("payload"),
-		//	uint64(1000000),
-		//	uint64(1000000),
-		//	big.NewInt(1000),
-		//	true,
-		//	"update",
-		//	identityset.Address(31).String(),
-		//	identityset.Address(32).String(),
-		//	ErrInvalidOwner,
-		//	iotextypes.ReceiptStatus_Success,
-		//},
-		//// owner address is nil
-		//{
-		//	1000,
-		//	identityset.Address(27),
-		//	uint64(10),
-		//	"test",
-		//	identityset.Address(28).String(),
-		//	identityset.Address(29).String(),
-		//	"",
-		//	"100",
-		//	uint32(10000),
-		//	false,
-		//	[]byte("payload"),
-		//	uint64(1000000),
-		//	uint64(1000000),
-		//	big.NewInt(1000),
-		//	true,
-		//	"update",
-		//	identityset.Address(31).String(),
-		//	identityset.Address(32).String(),
-		//	nil,
-		//	iotextypes.ReceiptStatus_ErrCandidateNotExist,
-		//},
+		{
+			110,
+			identityset.Address(27),
+			uint64(10),
+			"test",
+			identityset.Address(28).String(),
+			identityset.Address(29).String(),
+			identityset.Address(27).String(),
+			"9999999999989300000",
+			uint32(10000),
+			false,
+			[]byte("payload"),
+			uint64(1000000),
+			uint64(1000000),
+			big.NewInt(1000),
+			true,
+			"update",
+			identityset.Address(31).String(),
+			identityset.Address(32).String(),
+			nil,
+			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
+		},
+		// only owner can update candidate
+		{
+			1000,
+			identityset.Address(27),
+			uint64(10),
+			"test",
+			identityset.Address(28).String(),
+			identityset.Address(29).String(),
+			identityset.Address(30).String(),
+			"100",
+			uint32(10000),
+			false,
+			[]byte("payload"),
+			uint64(1000000),
+			uint64(1000000),
+			big.NewInt(1000),
+			true,
+			"update",
+			identityset.Address(31).String(),
+			identityset.Address(32).String(),
+			ErrInvalidOwner,
+			iotextypes.ReceiptStatus_Success,
+		},
+		// owner address is nil
+		{
+			1000,
+			identityset.Address(27),
+			uint64(10),
+			"test",
+			identityset.Address(28).String(),
+			identityset.Address(29).String(),
+			"",
+			"100",
+			uint32(10000),
+			false,
+			[]byte("payload"),
+			uint64(1000000),
+			uint64(1000000),
+			big.NewInt(1000),
+			true,
+			"update",
+			identityset.Address(31).String(),
+			identityset.Address(32).String(),
+			nil,
+			iotextypes.ReceiptStatus_ErrCandidateNotExist,
+		},
 		// owner address is nil
 		{
 			1000,
@@ -500,9 +500,9 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		if test.newProtocol {
-			sm, p, _, _ = initAll(t, ctrl)
-		}
+		//if test.newProtocol {
+		sm, p, _, _ := initAll(t, ctrl)
+		//}
 		require.NoError(setupAccount(sm, test.caller, test.initBalance))
 		act, err := action.NewCandidateRegister(test.nonce, test.name, test.operatorAddrStr, test.rewardAddrStr, test.ownerAddrStr, test.amountStr, test.duration, test.autoStake, test.payload, test.gasLimit, test.gasPrice)
 		require.NoError(err)
