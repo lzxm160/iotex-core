@@ -477,7 +477,6 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 
 	for _, test := range tests {
 		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
 		sm, p, _, _ := initAll(t, ctrl)
 
 		require.NoError(setupAccount(sm, test.caller, test.initBalance))
@@ -558,6 +557,8 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, cuCost).Add(total, p.config.RegistrationConsts.Fee))
 			require.Equal(test.nonce, caller.Nonce)
 		}
+
+		ctrl.Finish()
 	}
 }
 
