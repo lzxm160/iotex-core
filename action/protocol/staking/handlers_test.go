@@ -1170,7 +1170,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			1,
 			true,
 			ErrFetchBucket,
-			iotextypes.ReceiptStatus_Success,
+			iotextypes.ReceiptStatus_ErrUnauthorizedOperator,
 		},
 		// fetchBucket,inMemCandidates.ContainsSelfStakingBucket is false
 		{
