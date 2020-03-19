@@ -1641,10 +1641,10 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			candidate, err = getCandidate(sm, candidate.Owner)
 			require.NoError(err)
 			fmt.Println(candidate.Votes.String())
-			require.Equal(uint64(20760356803384785176), candidate.Votes.Uint64())
+			require.Equal("20760356803384785176", candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.Equal(uint64(20760356803384785176), candidate.Votes.Uint64())
+			require.Equal("20760356803384785176", candidate.Votes.String())
 		}
 	}
 }
