@@ -1547,7 +1547,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			false,
 			true,
 			ErrFetchBucket,
-			iotextypes.ReceiptStatus_ErrUnauthorizedOperator,
+			iotextypes.ReceiptStatus_ErrInvalidBucketType,
 		},
 		// updateBucket getbucket ErrStateNotExist
 		{
