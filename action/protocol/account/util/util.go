@@ -18,11 +18,6 @@ import (
 	"github.com/iotexproject/iotex-core/state"
 )
 
-var (
-	// ErrLoadAccount is the error when call LoadAccount
-	ErrLoadAccount = errors.New("LoadAccount error")
-)
-
 type noncer interface {
 	Nonce() uint64
 }
@@ -66,7 +61,7 @@ func LoadAccount(sm protocol.StateReader, addrHash hash.Hash160) (*state.Account
 			account = state.EmptyAccount()
 			return &account, nil
 		}
-		return nil, errors.Wrap(ErrLoadAccount, err.Error())
+		return nil, err
 	}
 	return &account, nil
 }

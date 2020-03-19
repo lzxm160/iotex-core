@@ -8,9 +8,12 @@ package staking
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"testing"
 	"time"
+
+	"github.com/iotexproject/iotex-core/state"
 
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
@@ -173,21 +176,21 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 	sm, p, _, _ := initAll(t, ctrl)
 	tests := []struct {
 		initBalance     int64
-		Sender          address.Address
-		Nonce           uint64
-		Name            string
-		OperatorAddrStr string
-		RewardAddrStr   string
-		OwnerAddrStr    string
-		AmountStr       string
-		Duration        uint32
-		AutoStake       bool
-		Payload         []byte
-		GasLimit        uint64
-		BlkGasLimit     uint64
-		GasPrice        *big.Int
+		caller          address.Address
+		nonce           uint64
+		name            string
+		operatorAddrStr string
+		rewardAddrStr   string
+		ownerAddrStr    string
+		amountStr       string
+		duration        uint32
+		autoStake       bool
+		payload         []byte
+		gasLimit        uint64
+		blkGasLimit     uint64
+		gasPrice        *big.Int
 		newProtocol     bool
-		Expected        error
+		status          iotextypes.ReceiptStatus
 	}{
 		// fetchCaller,ErrNotEnoughBalance
 		{
@@ -206,7 +209,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			uint64(1000000),
 			big.NewInt(1000),
 			true,
-			state.ErrNotEnoughBalance,
+			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
 		// settleAction,ErrHitGasLimit
 		{
@@ -289,58 +292,56 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 		if test.newProtocol {
 			sm, p, _, _ = initAll(t, ctrl)
 		}
-		require.NoError(setupAccount(sm, test.Sender, test.initBalance))
-		act, err := action.NewCandidateRegister(test.Nonce, test.Name, test.OperatorAddrStr, test.RewardAddrStr, test.OwnerAddrStr, test.AmountStr, test.Duration, test.AutoStake, test.Payload, test.GasLimit, test.GasPrice)
+		require.NoError(setupAccount(sm, test.caller, test.initBalance))
+		act, err := action.NewCandidateRegister(test.nonce, test.name, test.operatorAddrStr, test.rewardAddrStr, test.ownerAddrStr, test.amountStr, test.duration, test.autoStake, test.payload, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		IntrinsicGas, _ := act.IntrinsicGas()
 		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
-			Caller:       test.Sender,
-			GasPrice:     test.GasPrice,
+			Caller:       test.caller,
+			GasPrice:     test.gasPrice,
 			IntrinsicGas: IntrinsicGas,
-			Nonce:        test.Nonce,
+			Nonce:        test.nonce,
 		})
 		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
 			BlockHeight:    1,
 			BlockTimeStamp: time.Now(),
-			GasLimit:       test.BlkGasLimit,
+			GasLimit:       test.blkGasLimit,
 		})
-		receipt, err := p.handleCandidateRegister(ctx, act, sm)
-		require.Equal(test.Expected, errors.Cause(err))
+		r, err := p.handleCandidateRegister(ctx, act, sm)
+		require.Equal(uint64(test.status), r.Status)
 
-		if test.Expected == nil {
-			require.Equal(uint64(iotextypes.ReceiptStatus_Success), receipt.Status)
-
+		if test.status == iotextypes.ReceiptStatus_Success {
 			// test candidate
 			candidate, err := getCandidate(sm, act.OwnerAddress())
 			if act.OwnerAddress() == nil {
 				require.Nil(candidate)
 				require.Equal(ErrNilParameters, errors.Cause(err))
-				candidate, err = getCandidate(sm, test.Sender)
+				candidate, err = getCandidate(sm, test.caller)
 				require.NoError(err)
-				require.Equal(test.Sender.String(), candidate.Owner.String())
+				require.Equal(test.caller.String(), candidate.Owner.String())
 			} else {
 				require.NotNil(candidate)
 				require.NoError(err)
-				require.Equal(test.OwnerAddrStr, candidate.Owner.String())
+				require.Equal(test.ownerAddrStr, candidate.Owner.String())
 			}
 			require.LessOrEqual("0", candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
 			require.LessOrEqual("0", candidate.Votes.String())
-			require.Equal(test.Name, candidate.Name)
-			require.Equal(test.OperatorAddrStr, candidate.Operator.String())
-			require.Equal(test.RewardAddrStr, candidate.Reward.String())
-			require.Equal(test.AmountStr, candidate.Votes.String())
-			require.Equal(test.AmountStr, candidate.SelfStake.String())
+			require.Equal(test.name, candidate.Name)
+			require.Equal(test.operatorAddrStr, candidate.Operator.String())
+			require.Equal(test.rewardAddrStr, candidate.Reward.String())
+			require.Equal(test.amountStr, candidate.Votes.String())
+			require.Equal(test.amountStr, candidate.SelfStake.String())
 
 			// test staker's account
-			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.Sender.Bytes()))
+			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
 			require.NoError(err)
 			actCost, err := act.Cost()
 			require.NoError(err)
 			total := big.NewInt(0)
 			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, p.config.RegistrationConsts.Fee))
-			require.Equal(test.Nonce, caller.Nonce)
+			require.Equal(test.nonce, caller.Nonce)
 		}
 	}
 }
@@ -352,25 +353,25 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 	sm, p, _, _ := initAll(t, ctrl)
 	tests := []struct {
 		initBalance     int64
-		Sender          address.Address
-		Nonce           uint64
-		Name            string
-		OperatorAddrStr string
-		RewardAddrStr   string
-		OwnerAddrStr    string
-		AmountStr       string
-		Duration        uint32
-		AutoStake       bool
-		Payload         []byte
-		GasLimit        uint64
-		BlkGasLimit     uint64
-		GasPrice        *big.Int
+		caller          address.Address
+		nonce           uint64
+		name            string
+		operatorAddrStr string
+		rewardAddrStr   string
+		ownerAddrStr    string
+		amountStr       string
+		duration        uint32
+		autoStake       bool
+		payload         []byte
+		gasLimit        uint64
+		blkGasLimit     uint64
+		gasPrice        *big.Int
 		newProtocol     bool
 		// candidate update
 		updateName     string
 		updateOperator string
 		updateReward   string
-		Expected       error
+		status         iotextypes.ReceiptStatus
 	}{
 		// fetchCaller ErrNotEnoughBalance
 		{
@@ -465,25 +466,25 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		if test.newProtocol {
 			sm, p, _, _ = initAll(t, ctrl)
 		}
-		require.NoError(setupAccount(sm, test.Sender, test.initBalance))
-		act, err := action.NewCandidateRegister(test.Nonce, test.Name, test.OperatorAddrStr, test.RewardAddrStr, test.OwnerAddrStr, test.AmountStr, test.Duration, test.AutoStake, test.Payload, test.GasLimit, test.GasPrice)
+		require.NoError(setupAccount(sm, test.caller, test.initBalance))
+		act, err := action.NewCandidateRegister(test.nonce, test.name, test.operatorAddrStr, test.rewardAddrStr, test.ownerAddrStr, test.amountStr, test.duration, test.autoStake, test.payload, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		intrinsic, _ := act.IntrinsicGas()
 		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
 			Caller:       identityset.Address(27),
-			GasPrice:     test.GasPrice,
+			GasPrice:     test.gasPrice,
 			IntrinsicGas: intrinsic,
-			Nonce:        test.Nonce,
+			Nonce:        test.nonce,
 		})
 		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
 			BlockHeight:    1,
 			BlockTimeStamp: time.Now(),
-			GasLimit:       test.BlkGasLimit,
+			GasLimit:       test.blkGasLimit,
 		})
 		_, err = p.handleCandidateRegister(ctx, act, sm)
 		require.NoError(err)
 
-		cu, err := action.NewCandidateUpdate(test.Nonce, test.updateName, test.updateOperator, test.updateReward, test.GasLimit, test.GasPrice)
+		cu, err := action.NewCandidateUpdate(test.nonce, test.updateName, test.updateOperator, test.updateReward, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		intrinsic, _ = cu.IntrinsicGas()
 		ctx = protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
@@ -497,10 +498,10 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			BlockTimeStamp: time.Now(),
 			GasLimit:       test.BlkGasLimit,
 		})
-		receipt, err := p.handleCandidateUpdate(ctx, cu, sm)
-		require.Equal(test.Expected, errors.Cause(err))
+		r, err := p.handleCandidateUpdate(ctx, cu, sm)
+		require.Equal(uint64(test.status), r.Status)
 
-		if test.Expected == nil {
+		if test.status == iotextypes.ReceiptStatus_Success {
 			require.Equal(uint64(iotextypes.ReceiptStatus_Success), receipt.Status)
 
 			// test candidate
@@ -569,7 +570,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		// need new p
 		newProtocol bool
 		// expected result
-		errorCause error
+		status iotextypes.ReceiptStatus
 	}{
 		// fetchCaller ErrNotEnoughBalance
 		{
@@ -672,9 +673,9 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			p.inMemCandidates.Delete(test.caller)
 		}
 		_, err = p.handleUnstake(ctx, act, sm)
-		require.Equal(test.errorCause, errors.Cause(err))
+		require.Equal(uint64(test.status), r.Status)
 
-		if test.errorCause == nil {
+		if test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			bucketIndices, err := getCandBucketIndices(sm, candidate.Owner)
 			require.NoError(err)
@@ -726,7 +727,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 		// withdraw fields
 		withdrawIndex uint64
 		// expected result
-		errorCause error
+		status iotextypes.ReceiptStatus
 	}{
 		// fetchCaller ErrNotEnoughBalance
 		{
@@ -862,10 +863,10 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			BlockTimeStamp: test.ctxTimestamp,
 			GasLimit:       blkCtx.GasLimit,
 		})
-		_, err = p.handleWithdrawStake(ctx, withdraw, sm)
-		require.Equal(test.errorCause, errors.Cause(err))
+		r, err = p.handleWithdrawStake(ctx, withdraw, sm)
+		require.Equal(uint64(test.status), r.Status)
 
-		if test.errorCause == nil {
+		if test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			_, err := getCandBucketIndices(sm, candidate.Owner)
 			require.Error(err)
@@ -903,7 +904,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		// need new p
 		newProtocol bool
 		// expected result
-		errorCause error
+		status iotextypes.ReceiptStatus
 	}{
 		// ErrInvalidCanName
 		{
@@ -1023,10 +1024,10 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			cc := p.inMemCandidates.GetBySelfStakingIndex(test.index)
 			p.inMemCandidates.Delete(cc.Owner)
 		}
-		_, err = p.handleChangeCandidate(ctx, act, sm)
-		require.Equal(test.errorCause, errors.Cause(err))
+		r, err = p.handleChangeCandidate(ctx, act, sm)
+		require.Equal(uint64(test.status), r.Status)
 
-		if test.errorCause == nil {
+		if test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			bucketIndices, err := getCandBucketIndices(sm, test.caller)
 			require.NoError(err)
@@ -1083,7 +1084,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		toInitBalance uint64
 		init          bool
 		// expected result
-		errorCause error
+		status iotextypes.ReceiptStatus
 	}{
 		// fetchCaller state.ErrNotEnoughBalance
 		{
@@ -1179,10 +1180,10 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			BlockTimeStamp: time.Now(),
 			GasLimit:       10000000,
 		})
-		_, err = p.handleTransferStake(ctx, act, sm)
-		require.Equal(test.errorCause, errors.Cause(err))
+		r, err = p.handleTransferStake(ctx, act, sm)
+		require.Equal(uint64(test.status), r.Status)
 
-		if test.errorCause == nil {
+		if test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			bucketIndices, err := getCandBucketIndices(sm, candidate2.Owner)
 			require.NoError(err)
@@ -1251,7 +1252,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 		// need new p
 		newAccount bool
 		// expected result
-		errorCause error
+		status iotextypes.ReceiptStatus
 	}{
 		// fetchCaller ErrNotEnoughBalance
 		{
@@ -1377,10 +1378,10 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			BlockTimeStamp: time.Now(),
 			GasLimit:       10000000,
 		})
-		_, err = p.handleRestake(ctx, act, sm)
-		require.Equal(test.errorCause, errors.Cause(err))
+		r, err = p.handleRestake(ctx, act, sm)
+		require.Equal(uint64(test.status), r.Status)
 
-		if test.errorCause == nil {
+		if test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			bucketIndices, err := getCandBucketIndices(sm, candidate.Owner)
 			require.NoError(err)
