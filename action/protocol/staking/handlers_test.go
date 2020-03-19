@@ -696,9 +696,14 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			p.inMemCandidates.Delete(test.caller)
 		}
 		r, err := p.handleUnstake(ctx, act, sm)
-		require.Equal(uint64(test.status), r.Status)
+		if err != nil {
+			require.Equal(test.err, errors.Cause(err))
+		}
+		if r != nil {
+			require.Equal(uint64(test.status), r.Status)
+		}
 
-		if test.status == iotextypes.ReceiptStatus_Success {
+		if err != nil && test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			bucketIndices, err := getCandBucketIndices(sm, candidate.Owner)
 			require.NoError(err)
