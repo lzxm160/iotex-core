@@ -794,7 +794,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			true,
 			1,
 			state.ErrStateNotExist,
-			iotextypes.ReceiptStatus_Success,
+			iotextypes.ReceiptStatus_ErrInvalidBucketIndex,
 		},
 		// check unstake time
 		{
