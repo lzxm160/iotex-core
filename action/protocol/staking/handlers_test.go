@@ -703,7 +703,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			require.Equal(uint64(test.status), r.Status)
 		}
 
-		if err != nil && test.status == iotextypes.ReceiptStatus_Success {
+		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			bucketIndices, err := getCandBucketIndices(sm, candidate.Owner)
 			require.NoError(err)
@@ -905,7 +905,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			require.Equal(uint64(test.status), r.Status)
 		}
 
-		if err != nil && test.status == iotextypes.ReceiptStatus_Success {
+		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			_, err := getCandBucketIndices(sm, candidate.Owner)
 			require.Error(err)
@@ -1077,7 +1077,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			require.Equal(uint64(test.status), r.Status)
 		}
 
-		if err != nil && test.status == iotextypes.ReceiptStatus_Success {
+		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			bucketIndices, err := getCandBucketIndices(sm, test.caller)
 			require.NoError(err)
@@ -1242,7 +1242,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			require.Equal(uint64(test.status), r.Status)
 		}
 
-		if err != nil && test.status == iotextypes.ReceiptStatus_Success {
+		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			bucketIndices, err := getCandBucketIndices(sm, candidate2.Owner)
 			require.NoError(err)
@@ -1311,6 +1311,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 		// need new p
 		newAccount bool
 		// expected result
+		err    error
 		status iotextypes.ReceiptStatus
 	}{
 		// fetchCaller ErrNotEnoughBalance
@@ -1330,6 +1331,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			true,
 			false,
 			false,
+			nil,
 			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
 		// for bucket.Owner is not equal to actionCtx.Caller
@@ -1349,7 +1351,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			true,
 			false,
 			true,
-			//ErrFetchBucket,
+			ErrFetchBucket,
 			iotextypes.ReceiptStatus_Success,
 		},
 		// updateBucket getbucket ErrStateNotExist
@@ -1369,7 +1371,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			true,
 			false,
 			true,
-			//state.ErrStateNotExist,
+			state.ErrStateNotExist,
 			iotextypes.ReceiptStatus_Success,
 		},
 		// for inMemCandidates.GetByOwner,ErrInvalidOwner
@@ -1389,7 +1391,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			true,
 			true,
 			false,
-			//ErrInvalidOwner,
+			ErrInvalidOwner,
 			iotextypes.ReceiptStatus_Success,
 		},
 		{
@@ -1408,6 +1410,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			true,
 			false,
 			false,
+			nil,
 			iotextypes.ReceiptStatus_Success,
 		},
 	}
@@ -1441,9 +1444,14 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			GasLimit:       10000000,
 		})
 		r, err := p.handleRestake(ctx, act, sm)
-		require.Equal(uint64(test.status), r.Status)
+		if err != nil {
+			require.Equal(test.err, errors.Cause(err))
+		}
+		if r != nil {
+			require.Equal(uint64(test.status), r.Status)
+		}
 
-		if test.status == iotextypes.ReceiptStatus_Success {
+		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			bucketIndices, err := getCandBucketIndices(sm, candidate.Owner)
 			require.NoError(err)
