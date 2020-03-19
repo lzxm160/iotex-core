@@ -456,7 +456,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			identityset.Address(27),
 			uint64(10),
 			"test",
-			identityset.Address(28).String(),
+			identityset.Address(27).String(),
 			identityset.Address(29).String(),
 			identityset.Address(27).String(),
 			"100",
