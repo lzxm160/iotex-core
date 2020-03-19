@@ -460,7 +460,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			"test",
 			identityset.Address(28).String(),
 			identityset.Address(29).String(),
-			"",
+			identityset.Address(27).String(),
 			"100",
 			uint32(10000),
 			false,
@@ -525,7 +525,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		require.NoError(err)
 		intrinsic, _ = cu.IntrinsicGas()
 		ctx = protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
-			Caller:       identityset.Address(27),
+			Caller:       test.caller,
 			GasPrice:     test.gasPrice,
 			IntrinsicGas: intrinsic,
 			Nonce:        test.nonce,
