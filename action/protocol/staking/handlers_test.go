@@ -1469,10 +1469,10 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			// test candidate
 			candidate, err = getCandidate(sm, candidate.Owner)
 			require.NoError(err)
-			require.LessOrEqual(2, candidate.Votes.Uint64())
+			require.Equal(uint64(2), candidate.Votes.Uint64())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.LessOrEqual(2, candidate.Votes.Uint64())
+			require.Equal(uint64(2), candidate.Votes.Uint64())
 		}
 
 	}
