@@ -1001,7 +1001,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			false,
 			true,
 			ErrFetchBucket,
-			iotextypes.ReceiptStatus_ErrCandidateNotExist,
+			iotextypes.ReceiptStatus_ErrInvalidBucketType,
 		},
 		// ErrInvalidOwner
 		{
