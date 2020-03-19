@@ -459,6 +459,7 @@ func (p *Protocol) handleRestake(ctx context.Context, act *action.Restake, sm pr
 	// update candidate
 	fmt.Println("prevWeightedVotes:", prevWeightedVotes.String())
 	fmt.Println("candidate.SelfStake.String():", candidate.SelfStake.String())
+	fmt.Println("candidate.Votes.String():", candidate.Votes.String())
 	if err := candidate.SubVote(prevWeightedVotes); err != nil {
 		return nil, errors.Wrapf(err, "failed to subtract vote for candidate %s", bucket.Candidate.String())
 	}
@@ -468,6 +469,7 @@ func (p *Protocol) handleRestake(ctx context.Context, act *action.Restake, sm pr
 	}
 	fmt.Println("weightedVotes:", weightedVotes.String())
 	fmt.Println("candidate.SelfStake.String():", candidate.SelfStake.String())
+	fmt.Println("candidate.Votes.String():", candidate.Votes.String())
 	if err := putCandidate(sm, candidate); err != nil {
 		return nil, errors.Wrapf(err, "failed to put state of candidate %s", bucket.Candidate.String())
 	}
