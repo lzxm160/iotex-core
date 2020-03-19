@@ -313,7 +313,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 		})
 		r, err := p.handleCandidateRegister(ctx, act, sm)
 		if err != nil {
-			require.Equal(err, errors.Cause(err))
+			require.Equal(test.err, errors.Cause(err))
 		}
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
