@@ -357,7 +357,8 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 
 func TestProtocol_handleCandidateUpdate(t *testing.T) {
 	require := require.New(t)
-
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 	tests := []struct {
 		initBalance     int64
 		caller          address.Address
@@ -428,28 +429,28 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		//	iotextypes.ReceiptStatus_Success,
 		//},
 		// owner address is nil
-		{
-			1000,
-			identityset.Address(27),
-			uint64(10),
-			"test",
-			identityset.Address(28).String(),
-			identityset.Address(29).String(),
-			"",
-			"100",
-			uint32(10000),
-			false,
-			[]byte("payload"),
-			uint64(1000000),
-			uint64(1000000),
-			big.NewInt(1000),
-			true,
-			"update",
-			identityset.Address(31).String(),
-			identityset.Address(32).String(),
-			nil,
-			iotextypes.ReceiptStatus_ErrCandidateNotExist,
-		},
+		//{
+		//	1000,
+		//	identityset.Address(27),
+		//	uint64(10),
+		//	"test",
+		//	identityset.Address(28).String(),
+		//	identityset.Address(29).String(),
+		//	"",
+		//	"100",
+		//	uint32(10000),
+		//	false,
+		//	[]byte("payload"),
+		//	uint64(1000000),
+		//	uint64(1000000),
+		//	big.NewInt(1000),
+		//	true,
+		//	"update",
+		//	identityset.Address(31).String(),
+		//	identityset.Address(32).String(),
+		//	nil,
+		//	iotextypes.ReceiptStatus_ErrCandidateNotExist,
+		//},
 		{
 			1000,
 			identityset.Address(27),
@@ -475,7 +476,6 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		ctrl := gomock.NewController(t)
 		sm, p, _, _ := initAll(t, ctrl)
 
 		require.NoError(setupAccount(sm, test.caller, test.initBalance))
@@ -556,8 +556,6 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, cuCost).Add(total, p.config.RegistrationConsts.Fee))
 			require.Equal(test.nonce, caller.Nonce)
 		}
-
-		ctrl.Finish()
 	}
 }
 
