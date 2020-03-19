@@ -1104,7 +1104,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			require.Equal("1200000000000000000000000", candidate.SelfStake.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.Equal("10000000000000000003", candidate.Votes.String())
+			require.Equal("20000000000000000003", candidate.Votes.String())
 		}
 	}
 }
