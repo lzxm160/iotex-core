@@ -537,7 +537,7 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("handleCandidateUpdate Upsert:", c.Owner.String())
 	if err := p.inMemCandidates.Upsert(c); err != nil {
 		return nil, err
 	}
@@ -557,6 +557,7 @@ func (p *Protocol) handleCandidateUpdate(ctx context.Context, act *action.Candid
 	}
 
 	// only owner can update candidate
+	fmt.Println("handleCandidateUpdate actCtx.Caller:", actCtx.Caller)
 	c := p.inMemCandidates.GetByOwner(actCtx.Caller)
 	if c == nil {
 		log.L().Debug("Error when updating candidate", zap.Error(ErrInvalidOwner))
