@@ -564,7 +564,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 	defer ctrl.Finish()
 
 	sm, p, candidate, candidate2 := initAll(t, ctrl)
-	ctx, _ := initCreateStake(t, sm, identityset.Address(2), 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
+	ctx, _ := initCreateStake(t, sm, identityset.Address(2), 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000", false)
 
 	callerAddr := identityset.Address(1)
 	tests := []struct {
@@ -687,7 +687,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		} else {
 			candidate = candidate2
 		}
-		ctx, _ = initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
+		ctx, _ = initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount, false)
 		fmt.Println(candidate.Name)
 		act, err := action.NewUnstake(test.nonce, test.index,
 			nil, test.gasLimit, test.gasPrice)
@@ -858,7 +858,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	for _, test := range tests {
 		sm, p, _, candidate := initAll(t, ctrl)
 		require.NoError(setupAccount(sm, test.caller, test.initBalance))
-		ctx, _ := initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
+		ctx, _ := initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount, false)
 		if test.unstake {
 			act, err := action.NewUnstake(test.nonce, test.index,
 				nil, test.gasLimit, test.gasPrice)
@@ -1046,9 +1046,9 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 	for _, test := range tests {
 		sm, p, candidate, candidate2 := initAll(t, ctrl)
 		// candidate2 vote self,index 0
-		initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000")
+		initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000", false)
 		// candidate vote self,index 1
-		initCreateStake(t, sm, candidate.Owner, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount)
+		initCreateStake(t, sm, candidate.Owner, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount, false)
 
 		act, err := action.NewChangeCandidate(test.nonce, test.candidateName, test.index, nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
@@ -1211,9 +1211,9 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 
 	for _, test := range tests {
 		sm, p, candi, candidate2 := initAll(t, ctrl)
-		_, createCost := initCreateStake(t, sm, candidate2.Owner, test.initBalance, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, fmt.Sprintf("%d", test.amount))
+		_, createCost := initCreateStake(t, sm, candidate2.Owner, test.initBalance, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, fmt.Sprintf("%d", test.amount), false)
 		if test.init {
-			initCreateStake(t, sm, candi.Owner, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candi, fmt.Sprintf("%d", test.amount))
+			initCreateStake(t, sm, candi.Owner, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candi, fmt.Sprintf("%d", test.amount), false)
 		} else {
 			require.NoError(setupAccount(sm, identityset.Address(1), 1))
 		}
@@ -1521,7 +1521,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			time.Now(),
 			10000,
 			1,
-			true,
+			false,
 			false,
 			false,
 			nil,
@@ -1541,10 +1541,10 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			time.Now(),
 			10000,
 			1,
-			true,
+			false,
 			false,
 			true,
-			ErrFetchBucket,
+			nil,
 			iotextypes.ReceiptStatus_ErrInvalidBucketIndex,
 		},
 		// fetchBucket ReceiptStatus_ErrInvalidBucketType
@@ -1561,10 +1561,10 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			time.Now(),
 			10000,
 			1,
+			false,
 			true,
 			true,
-			true,
-			state.ErrStateNotExist,
+			nil,
 			iotextypes.ReceiptStatus_ErrInvalidBucketType,
 		},
 		{
@@ -1590,7 +1590,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 
 	for _, test := range tests {
 		sm, p, candidate, _ := initAll(t, ctrl)
-		initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate, test.amount)
+		initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate, test.amount, test.autoStake)
 
 		if test.newAccount {
 			require.NoError(setupAccount(sm, test.caller, test.initBalance))
@@ -1648,10 +1648,10 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 	}
 }
 
-func initCreateStake(t *testing.T, sm protocol.StateManager, callerAddr address.Address, initBalance int64, gasPrice *big.Int, gasLimit uint64, nonce uint64, blkHeight uint64, blkTimestamp time.Time, blkGasLimit uint64, p *Protocol, candidate *Candidate, amount string) (context.Context, *big.Int) {
+func initCreateStake(t *testing.T, sm protocol.StateManager, callerAddr address.Address, initBalance int64, gasPrice *big.Int, gasLimit uint64, nonce uint64, blkHeight uint64, blkTimestamp time.Time, blkGasLimit uint64, p *Protocol, candidate *Candidate, amount string, autoStake bool) (context.Context, *big.Int) {
 	require := require.New(t)
 	require.NoError(setupAccount(sm, callerAddr, initBalance))
-	a, err := action.NewCreateStake(nonce, candidate.Name, amount, 1, false,
+	a, err := action.NewCreateStake(nonce, candidate.Name, amount, 1, autoStake,
 		nil, gasLimit, gasPrice)
 	require.NoError(err)
 	intrinsic, err := a.IntrinsicGas()
