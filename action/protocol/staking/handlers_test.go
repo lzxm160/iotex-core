@@ -963,7 +963,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			true,
 			true,
 			ErrInvalidCanName,
-			iotextypes.ReceiptStatus_Success,
+			iotextypes.ReceiptStatus_ErrCandidateNotExist,
 		},
 		// fetchCaller state.ErrNotEnoughBalance
 		{
@@ -1001,7 +1001,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			false,
 			true,
 			ErrFetchBucket,
-			iotextypes.ReceiptStatus_Success,
+			iotextypes.ReceiptStatus_ErrCandidateNotExist,
 		},
 		// ErrInvalidOwner
 		{
