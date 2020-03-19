@@ -624,7 +624,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			false,
 			false,
 			ErrFetchBucket,
-			iotextypes.ReceiptStatus_Success,
+			iotextypes.ReceiptStatus_ErrCandidateNotExist,
 		},
 		// updateBucket getbucket ErrStateNotExist
 		{
@@ -642,7 +642,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			false,
 			true,
 			state.ErrStateNotExist,
-			iotextypes.ReceiptStatus_Success,
+			iotextypes.ReceiptStatus_ErrCandidateNotExist,
 		},
 		// for inMemCandidates.GetByOwner,ErrInvalidOwner
 		{
@@ -660,7 +660,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			true,
 			true,
 			ErrInvalidOwner,
-			iotextypes.ReceiptStatus_Success,
+			iotextypes.ReceiptStatus_ErrCandidateNotExist,
 		},
 		{
 			callerAddr,
