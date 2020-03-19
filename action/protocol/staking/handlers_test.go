@@ -1188,7 +1188,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			1,
 			true,
 			ErrFetchBucket,
-			iotextypes.ReceiptStatus_Success,
+			iotextypes.ReceiptStatus_ErrInvalidBucketType,
 		},
 		{
 			identityset.Address(2),
