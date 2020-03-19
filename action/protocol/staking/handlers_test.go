@@ -506,7 +506,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		require.NoError(err)
 		intrinsic, _ := act.IntrinsicGas()
 		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
-			Caller:       identityset.Address(27),
+			Caller:       test.caller,
 			GasPrice:     test.gasPrice,
 			IntrinsicGas: intrinsic,
 			Nonce:        test.nonce,
