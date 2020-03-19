@@ -213,6 +213,28 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			nil,
 			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
+		// owner address is nil
+		{
+			101,
+			identityset.Address(27),
+			uint64(10),
+			"test",
+			identityset.Address(28).String(),
+			identityset.Address(29).String(),
+			"",
+			"1",
+			uint32(10000),
+			false,
+			nil,
+			uint64(1000000),
+			uint64(1000000),
+			big.NewInt(1),
+			true,
+			nil,
+			iotextypes.ReceiptStatus_Success,
+		},
+		// caller.SubBalance,ErrNotEnoughBalance,cannot happen because fetchcaller already check
+
 		// settleAction,ErrHitGasLimit
 		{
 			1000,
@@ -251,26 +273,6 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			big.NewInt(1000),
 			false,
 			ErrInvalidSelfStkIndex,
-			iotextypes.ReceiptStatus_Success,
-		},
-		// owner address is nil
-		{
-			101,
-			identityset.Address(27),
-			uint64(10),
-			"test",
-			identityset.Address(28).String(),
-			identityset.Address(29).String(),
-			"",
-			"1",
-			uint32(10000),
-			false,
-			nil,
-			uint64(1000000),
-			uint64(1000000),
-			big.NewInt(1),
-			true,
-			nil,
 			iotextypes.ReceiptStatus_Success,
 		},
 		{
@@ -335,10 +337,10 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 				require.NoError(err)
 				require.Equal(test.ownerAddrStr, candidate.Owner.String())
 			}
-			require.LessOrEqual("0", candidate.Votes.String())
+			require.Equal("0", candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.LessOrEqual("0", candidate.Votes.String())
+			require.Equal("0", candidate.Votes.String())
 			require.Equal(test.name, candidate.Name)
 			require.Equal(test.operatorAddrStr, candidate.Operator.String())
 			require.Equal(test.rewardAddrStr, candidate.Reward.String())
@@ -1371,7 +1373,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			true,
 			false,
 			true,
-			state.ErrStateNotExist,
+			nil,
 			iotextypes.ReceiptStatus_ErrInvalidBucketIndex,
 		},
 		// for inMemCandidates.GetByOwner,ErrInvalidOwner
