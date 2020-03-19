@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-core/state"
+
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -499,7 +501,6 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		cu, err := action.NewCandidateUpdate(test.nonce, test.updateName, test.updateOperator, test.updateReward, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		intrinsic, _ = cu.IntrinsicGas()
-		fmt.Println("test.caller:", test.caller)
 		ctx = protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
 			Caller:       test.caller,
 			GasPrice:     test.gasPrice,
@@ -520,8 +521,6 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		}
 
 		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
-			require.Equal(uint64(iotextypes.ReceiptStatus_Success), r.Status)
-
 			// test candidate
 			candidate, err := getCandidate(sm, act.OwnerAddress())
 			if act.OwnerAddress() == nil {
@@ -587,6 +586,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		clear bool
 		// need new p
 		newProtocol bool
+		err         error
 		// expected result
 		status iotextypes.ReceiptStatus
 	}{
@@ -605,6 +605,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			10000,
 			false,
 			true,
+			nil,
 			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
 		// for bucket.Owner is not equal to actionCtx.Caller
@@ -622,7 +623,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			10000,
 			false,
 			false,
-			//ErrFetchBucket,
+			ErrFetchBucket,
 			iotextypes.ReceiptStatus_Success,
 		},
 		// updateBucket getbucket ErrStateNotExist
@@ -640,7 +641,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			10000,
 			false,
 			true,
-			//state.ErrStateNotExist,
+			state.ErrStateNotExist,
 			iotextypes.ReceiptStatus_Success,
 		},
 		// for inMemCandidates.GetByOwner,ErrInvalidOwner
@@ -658,7 +659,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			10000,
 			true,
 			true,
-			//ErrInvalidOwner,
+			ErrInvalidOwner,
 			iotextypes.ReceiptStatus_Success,
 		},
 		{
@@ -675,6 +676,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			10000,
 			false,
 			true,
+			nil,
 			iotextypes.ReceiptStatus_Success,
 		},
 	}
