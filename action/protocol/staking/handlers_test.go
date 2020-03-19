@@ -428,29 +428,29 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			ErrInvalidOwner,
 			iotextypes.ReceiptStatus_Success,
 		},
-		// owner address is nil
-		//{
-		//	1000,
-		//	identityset.Address(27),
-		//	uint64(10),
-		//	"test",
-		//	identityset.Address(28).String(),
-		//	identityset.Address(29).String(),
-		//	"",
-		//	"100",
-		//	uint32(10000),
-		//	false,
-		//	[]byte("payload"),
-		//	uint64(1000000),
-		//	uint64(1000000),
-		//	big.NewInt(1000),
-		//	true,
-		//	"update",
-		//	identityset.Address(31).String(),
-		//	identityset.Address(32).String(),
-		//	nil,
-		//	iotextypes.ReceiptStatus_ErrCandidateNotExist,
-		//},
+		// ReceiptStatus_ErrCandidateNotExist
+		{
+			1000,
+			identityset.Address(28),
+			uint64(10),
+			"test",
+			identityset.Address(28).String(),
+			identityset.Address(29).String(),
+			"",
+			"100",
+			uint32(10000),
+			false,
+			[]byte("payload"),
+			uint64(1000000),
+			uint64(1000000),
+			big.NewInt(1000),
+			true,
+			"update",
+			identityset.Address(31).String(),
+			identityset.Address(32).String(),
+			nil,
+			iotextypes.ReceiptStatus_ErrCandidateNotExist,
+		},
 		{
 			1000,
 			identityset.Address(27),
@@ -478,12 +478,12 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 	for _, test := range tests {
 		sm, p, _, _ := initAll(t, ctrl)
 
-		require.NoError(setupAccount(sm, test.caller, test.initBalance))
+		require.NoError(setupAccount(sm, identityset.Address(27), test.initBalance))
 		act, err := action.NewCandidateRegister(test.nonce, test.name, test.operatorAddrStr, test.rewardAddrStr, test.ownerAddrStr, test.amountStr, test.duration, test.autoStake, test.payload, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		intrinsic, _ := act.IntrinsicGas()
 		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
-			Caller:       test.caller,
+			Caller:       identityset.Address(27),
 			GasPrice:     test.gasPrice,
 			IntrinsicGas: intrinsic,
 			Nonce:        test.nonce,
