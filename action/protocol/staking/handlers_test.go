@@ -457,7 +457,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		// upsert,collision
 		{
 			1000,
-			identityset.Address(27),
+			identityset.Address(28),
 			uint64(10),
 			"test",
 			identityset.Address(28).String(),
