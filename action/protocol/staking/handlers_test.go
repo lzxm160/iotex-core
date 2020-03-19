@@ -755,6 +755,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 		// withdraw fields
 		withdrawIndex uint64
 		// expected result
+		err    error
 		status iotextypes.ReceiptStatus
 	}{
 		// fetchCaller ErrNotEnoughBalance
@@ -773,6 +774,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			true,
 			0,
+			nil,
 			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
 		// updateBucket getbucket ErrStateNotExist
@@ -791,7 +793,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			true,
 			1,
-			//state.ErrStateNotExist,
+			state.ErrStateNotExist,
 			iotextypes.ReceiptStatus_Success,
 		},
 		// check unstake time
@@ -810,7 +812,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			false,
 			0,
-			//ErrNotUnstaked,
+			ErrNotUnstaked,
 			iotextypes.ReceiptStatus_Success,
 		},
 		// check ErrNotReadyWithdraw
@@ -829,7 +831,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			true,
 			0,
-			//ErrNotReadyWithdraw,
+			ErrNotReadyWithdraw,
 			iotextypes.ReceiptStatus_Success,
 		},
 		// nil
@@ -848,6 +850,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			true,
 			0,
+			nil,
 			iotextypes.ReceiptStatus_Success,
 		},
 	}
@@ -895,9 +898,14 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			GasLimit:       blkCtx.GasLimit,
 		})
 		r, err := p.handleWithdrawStake(ctx, withdraw, sm)
-		require.Equal(uint64(test.status), r.Status)
+		if err != nil {
+			require.Equal(test.err, errors.Cause(err))
+		}
+		if r != nil {
+			require.Equal(uint64(test.status), r.Status)
+		}
 
-		if test.status == iotextypes.ReceiptStatus_Success {
+		if err != nil && test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			_, err := getCandBucketIndices(sm, candidate.Owner)
 			require.Error(err)
