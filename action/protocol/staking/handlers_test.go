@@ -1484,7 +1484,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 	tests := []struct {
 		// creat stake fields
 		caller      address.Address
-		amount      string
+		amount      uint64
 		initBalance int64
 		selfstaking bool
 		// action fields
@@ -1510,7 +1510,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 		// fetchCaller ErrNotEnoughBalance
 		{
 			identityset.Address(1),
-			"9990000000000000000",
+			9990000000000000000,
 			10,
 			false,
 			0,
@@ -1530,7 +1530,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 		// fetchBucket ReceiptStatus_ErrInvalidBucketIndex
 		{
 			identityset.Address(12),
-			"10000000000000000000",
+			10000000000000000000,
 			100,
 			false,
 			1,
@@ -1550,7 +1550,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 		// fetchBucket ReceiptStatus_ErrInvalidBucketType
 		{
 			identityset.Address(33),
-			"10000000000000000000",
+			10000000000000000000,
 			100,
 			false,
 			0,
@@ -1569,7 +1569,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 		},
 		{
 			identityset.Address(1),
-			"10000000000000000000",
+			10000000000000000000,
 			100,
 			false,
 			0,
@@ -1590,13 +1590,13 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 
 	for _, test := range tests {
 		sm, p, candidate, _ := initAll(t, ctrl)
-		initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate, test.amount, test.autoStake)
+		initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate, fmt.Sprintf("%d", test.amount), test.autoStake)
 
 		if test.newAccount {
 			require.NoError(setupAccount(sm, test.caller, test.initBalance))
 		}
 
-		act, err := action.NewDepositToStake(test.nonce, test.index, test.amount, nil, test.gasLimit, test.gasPrice)
+		act, err := action.NewDepositToStake(test.nonce, test.index, fmt.Sprintf("%d", test.amount), nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		if test.clear {
 			p.inMemCandidates.Delete(test.caller)
@@ -1635,7 +1635,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			require.NoError(err)
 			require.Equal(candidate.Owner.String(), bucket.Candidate.String())
 			require.Equal(test.caller.String(), bucket.Owner.String())
-			require.Equal(test.amount, bucket.StakedAmount.String())
+			require.Equal(test.amount*2, bucket.StakedAmount.Uint64())
 
 			// test candidate
 			candidate, err = getCandidate(sm, candidate.Owner)
