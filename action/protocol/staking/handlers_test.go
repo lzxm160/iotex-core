@@ -477,7 +477,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 
 	for _, test := range tests {
 		sm, p, _, _ := initAll(t, ctrl)
-
+		require.NoError(setupAccount(sm, identityset.Address(28), test.initBalance))
 		require.NoError(setupAccount(sm, identityset.Address(27), test.initBalance))
 		act, err := action.NewCandidateRegister(test.nonce, test.name, test.operatorAddrStr, test.rewardAddrStr, test.ownerAddrStr, test.amountStr, test.duration, test.autoStake, test.payload, test.gasLimit, test.gasPrice)
 		require.NoError(err)
