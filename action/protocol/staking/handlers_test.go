@@ -212,25 +212,25 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
 		// settleAction,ErrHitGasLimit
-		//{
-		//	1000,
-		//	identityset.Address(27),
-		//	uint64(10),
-		//	"test",
-		//	identityset.Address(28).String(),
-		//	identityset.Address(29).String(),
-		//	identityset.Address(30).String(),
-		//	"100",
-		//	uint32(10000),
-		//	false,
-		//	[]byte("payload"),
-		//	uint64(1000000),
-		//	uint64(1000),
-		//	big.NewInt(1000),
-		//	true,
-		//	action.ErrHitGasLimit,
-		//	iotextypes.ReceiptStatus_Success,
-		//},
+		{
+			1000,
+			identityset.Address(27),
+			uint64(10),
+			"test",
+			identityset.Address(28).String(),
+			identityset.Address(29).String(),
+			identityset.Address(30).String(),
+			"100",
+			uint32(10000),
+			false,
+			[]byte("payload"),
+			uint64(1000000),
+			uint64(1000),
+			big.NewInt(1000),
+			true,
+			action.ErrHitGasLimit,
+			iotextypes.ReceiptStatus_Success,
+		},
 		//// Upsert,check collision
 		//{
 		//	1000,
@@ -312,9 +312,14 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			GasLimit:       test.blkGasLimit,
 		})
 		r, err := p.handleCandidateRegister(ctx, act, sm)
-		require.Equal(uint64(test.status), r.Status)
+		if err != nil {
+			require.Equal(err, errors.Cause(err))
+		}
+		if r != nil {
+			require.Equal(uint64(test.status), r.Status)
+		}
 
-		if test.status == iotextypes.ReceiptStatus_Success {
+		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
 			// test candidate
 			candidate, err := getCandidate(sm, act.OwnerAddress())
 			if act.OwnerAddress() == nil {
