@@ -659,6 +659,8 @@ func (p *Protocol) fetchBucket(
 		}
 		return nil, fetchErr
 	}
+	fmt.Println("bucket.Owner:", bucket.Owner)
+	fmt.Println("actionCtx.Caller:", actionCtx.Caller)
 	if checkOwner && !address.Equal(bucket.Owner, actionCtx.Caller) {
 		fetchErr := &fetchError{
 			err: fmt.Errorf("bucket owner does not match action caller, bucket owner %s, action caller %s",
