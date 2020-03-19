@@ -832,7 +832,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			true,
 			0,
 			ErrNotReadyWithdraw,
-			iotextypes.ReceiptStatus_Success,
+			iotextypes.ReceiptStatus_ErrWithdrawBeforeMaturity,
 		},
 		// nil
 		{
