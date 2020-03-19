@@ -1547,26 +1547,6 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			ErrFetchBucket,
 			iotextypes.ReceiptStatus_ErrInvalidBucketIndex,
 		},
-		// fetchBucket bucket.Owner is not equal to actionCtx.Caller
-		{
-			identityset.Address(12),
-			"10000000000000000000",
-			100,
-			false,
-			0,
-			big.NewInt(unit.Qev),
-			10000,
-			1,
-			1,
-			time.Now(),
-			10000,
-			1,
-			true,
-			false,
-			true,
-			ErrFetchBucket,
-			iotextypes.ReceiptStatus_ErrUnauthorizedOperator,
-		},
 		// fetchBucket ReceiptStatus_ErrInvalidBucketType
 		{
 			identityset.Address(33),
