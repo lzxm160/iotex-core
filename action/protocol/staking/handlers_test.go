@@ -624,7 +624,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			false,
 			false,
 			ErrFetchBucket,
-			iotextypes.ReceiptStatus_ErrCandidateNotExist,
+			iotextypes.ReceiptStatus_ErrUnauthorizedOperator,
 		},
 		// updateBucket getbucket ErrStateNotExist
 		{
