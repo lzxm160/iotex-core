@@ -13,8 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iotexproject/iotex-core/state"
-
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -228,7 +226,8 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			uint64(1000),
 			big.NewInt(1000),
 			true,
-			action.ErrHitGasLimit,
+			//action.ErrHitGasLimit,
+			nil,
 		},
 		// Upsert,check collision
 		{
@@ -247,7 +246,8 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			uint64(1000000),
 			big.NewInt(1000),
 			false,
-			ErrInvalidSelfStkIndex,
+			//ErrInvalidSelfStkIndex,
+			nil,
 		},
 		// owner address is nil
 		{
@@ -393,7 +393,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			"update",
 			identityset.Address(31).String(),
 			identityset.Address(32).String(),
-			state.ErrNotEnoughBalance,
+			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
 		// only owner can update candidate
 		{
@@ -415,7 +415,8 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			"update",
 			identityset.Address(31).String(),
 			identityset.Address(32).String(),
-			ErrInvalidOwner,
+			//ErrInvalidOwner,
+			nil,
 		},
 		// owner address is nil
 		{
@@ -489,33 +490,33 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		intrinsic, _ = cu.IntrinsicGas()
 		ctx = protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
 			Caller:       identityset.Address(27),
-			GasPrice:     test.GasPrice,
+			GasPrice:     test.gasPrice,
 			IntrinsicGas: intrinsic,
-			Nonce:        test.Nonce,
+			Nonce:        test.nonce,
 		})
 		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
 			BlockHeight:    1,
 			BlockTimeStamp: time.Now(),
-			GasLimit:       test.BlkGasLimit,
+			GasLimit:       test.blkGasLimit,
 		})
 		r, err := p.handleCandidateUpdate(ctx, cu, sm)
 		require.Equal(uint64(test.status), r.Status)
 
 		if test.status == iotextypes.ReceiptStatus_Success {
-			require.Equal(uint64(iotextypes.ReceiptStatus_Success), receipt.Status)
+			require.Equal(uint64(iotextypes.ReceiptStatus_Success), r.Status)
 
 			// test candidate
 			candidate, err := getCandidate(sm, act.OwnerAddress())
 			if act.OwnerAddress() == nil {
 				require.Nil(candidate)
 				require.Equal(ErrNilParameters, errors.Cause(err))
-				candidate, err = getCandidate(sm, test.Sender)
+				candidate, err = getCandidate(sm, test.caller)
 				require.NoError(err)
-				require.Equal(test.Sender.String(), candidate.Owner.String())
+				require.Equal(test.caller.String(), candidate.Owner.String())
 			} else {
 				require.NotNil(candidate)
 				require.NoError(err)
-				require.Equal(test.OwnerAddrStr, candidate.Owner.String())
+				require.Equal(test.ownerAddrStr, candidate.Owner.String())
 			}
 			require.LessOrEqual("0", candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
@@ -524,11 +525,11 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			require.Equal(test.updateName, candidate.Name)
 			require.Equal(test.updateOperator, candidate.Operator.String())
 			require.Equal(test.updateReward, candidate.Reward.String())
-			require.LessOrEqual(test.AmountStr, candidate.Votes.String())
-			require.Equal(test.AmountStr, candidate.SelfStake.String())
+			require.LessOrEqual(test.amountStr, candidate.Votes.String())
+			require.Equal(test.amountStr, candidate.SelfStake.String())
 
 			// test staker's account
-			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.Sender.Bytes()))
+			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
 			require.NoError(err)
 			actCost, err := act.Cost()
 			require.NoError(err)
@@ -536,7 +537,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			require.NoError(err)
 			total := big.NewInt(0)
 			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, cuCost).Add(total, p.config.RegistrationConsts.Fee))
-			require.Equal(test.Nonce, caller.Nonce)
+			require.Equal(test.nonce, caller.Nonce)
 		}
 	}
 }
@@ -587,7 +588,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			10000,
 			false,
 			true,
-			state.ErrNotEnoughBalance,
+			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
 		// for bucket.Owner is not equal to actionCtx.Caller
 		{
@@ -604,7 +605,8 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			10000,
 			false,
 			false,
-			ErrFetchBucket,
+			//ErrFetchBucket,
+			nil,
 		},
 		// updateBucket getbucket ErrStateNotExist
 		{
@@ -621,7 +623,8 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			10000,
 			false,
 			true,
-			state.ErrStateNotExist,
+			//state.ErrStateNotExist,
+			nil,
 		},
 		// for inMemCandidates.GetByOwner,ErrInvalidOwner
 		{
@@ -638,7 +641,8 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			10000,
 			true,
 			true,
-			ErrInvalidOwner,
+			//ErrInvalidOwner,
+			nil,
 		},
 		{
 			callerAddr,
@@ -672,7 +676,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		if test.clear {
 			p.inMemCandidates.Delete(test.caller)
 		}
-		_, err = p.handleUnstake(ctx, act, sm)
+		r, err := p.handleUnstake(ctx, act, sm)
 		require.Equal(uint64(test.status), r.Status)
 
 		if test.status == iotextypes.ReceiptStatus_Success {
@@ -745,7 +749,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			true,
 			0,
-			state.ErrNotEnoughBalance,
+			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
 		// updateBucket getbucket ErrStateNotExist
 		{
@@ -763,7 +767,8 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			true,
 			1,
-			state.ErrStateNotExist,
+			//state.ErrStateNotExist,
+			nil,
 		},
 		// check unstake time
 		{
@@ -781,7 +786,8 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			false,
 			0,
-			ErrNotUnstaked,
+			//ErrNotUnstaked,
+			nil,
 		},
 		// check ErrNotReadyWithdraw
 		{
@@ -799,7 +805,8 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			true,
 			0,
-			ErrNotReadyWithdraw,
+			//ErrNotReadyWithdraw,
+			nil,
 		},
 		// nil
 		{
@@ -863,7 +870,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			BlockTimeStamp: test.ctxTimestamp,
 			GasLimit:       blkCtx.GasLimit,
 		})
-		r, err = p.handleWithdrawStake(ctx, withdraw, sm)
+		r, err := p.handleWithdrawStake(ctx, withdraw, sm)
 		require.Equal(uint64(test.status), r.Status)
 
 		if test.status == iotextypes.ReceiptStatus_Success {
@@ -922,7 +929,8 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			10000,
 			true,
 			true,
-			ErrInvalidCanName,
+			//ErrInvalidCanName,
+			nil,
 		},
 		// fetchCaller state.ErrNotEnoughBalance
 		{
@@ -940,7 +948,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			10000,
 			true,
 			true,
-			state.ErrNotEnoughBalance,
+			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
 		// fetchBucket
 		{
@@ -958,7 +966,8 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			10000,
 			false,
 			true,
-			ErrFetchBucket,
+			//ErrFetchBucket,
+			nil,
 		},
 		// ErrInvalidOwner
 		{
@@ -976,7 +985,8 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			10000,
 			true,
 			true,
-			ErrInvalidOwner,
+			//ErrInvalidOwner,
+			nil,
 		},
 		// change from 0 to candidate2
 		{
@@ -1024,7 +1034,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			cc := p.inMemCandidates.GetBySelfStakingIndex(test.index)
 			p.inMemCandidates.Delete(cc.Owner)
 		}
-		r, err = p.handleChangeCandidate(ctx, act, sm)
+		r, err := p.handleChangeCandidate(ctx, act, sm)
 		require.Equal(uint64(test.status), r.Status)
 
 		if test.status == iotextypes.ReceiptStatus_Success {
@@ -1101,7 +1111,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			identityset.Address(1),
 			1,
 			false,
-			state.ErrNotEnoughBalance,
+			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
 		// fetchBucket,bucket.Owner not equal to actionCtx.Caller
 		{
@@ -1118,7 +1128,8 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			identityset.Address(2),
 			1,
 			true,
-			ErrFetchBucket,
+			//ErrFetchBucket,
+			nil,
 		},
 		// fetchBucket,inMemCandidates.ContainsSelfStakingBucket is false
 		{
@@ -1135,7 +1146,8 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			identityset.Address(2),
 			1,
 			true,
-			ErrFetchBucket,
+			//ErrFetchBucket,
+			nil,
 		},
 		{
 			identityset.Address(2),
@@ -1180,7 +1192,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			BlockTimeStamp: time.Now(),
 			GasLimit:       10000000,
 		})
-		r, err = p.handleTransferStake(ctx, act, sm)
+		r, err := p.handleTransferStake(ctx, act, sm)
 		require.Equal(uint64(test.status), r.Status)
 
 		if test.status == iotextypes.ReceiptStatus_Success {
@@ -1271,7 +1283,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			true,
 			false,
 			false,
-			state.ErrNotEnoughBalance,
+			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
 		// for bucket.Owner is not equal to actionCtx.Caller
 		{
@@ -1290,7 +1302,8 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			true,
 			false,
 			true,
-			ErrFetchBucket,
+			//ErrFetchBucket,
+			nil,
 		},
 		// updateBucket getbucket ErrStateNotExist
 		{
@@ -1309,7 +1322,8 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			true,
 			false,
 			true,
-			state.ErrStateNotExist,
+			//state.ErrStateNotExist,
+			nil,
 		},
 		// for inMemCandidates.GetByOwner,ErrInvalidOwner
 		{
@@ -1328,7 +1342,8 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			true,
 			true,
 			false,
-			ErrInvalidOwner,
+			//ErrInvalidOwner,
+			nil,
 		},
 		{
 			callerAddr,
@@ -1378,7 +1393,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			BlockTimeStamp: time.Now(),
 			GasLimit:       10000000,
 		})
-		r, err = p.handleRestake(ctx, act, sm)
+		r, err := p.handleRestake(ctx, act, sm)
 		require.Equal(uint64(test.status), r.Status)
 
 		if test.status == iotextypes.ReceiptStatus_Success {
