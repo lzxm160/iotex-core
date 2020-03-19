@@ -1352,7 +1352,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			false,
 			true,
 			ErrFetchBucket,
-			iotextypes.ReceiptStatus_Success,
+			iotextypes.ReceiptStatus_ErrUnauthorizedOperator,
 		},
 		// updateBucket getbucket ErrStateNotExist
 		{
@@ -1372,7 +1372,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			false,
 			true,
 			state.ErrStateNotExist,
-			iotextypes.ReceiptStatus_Success,
+			iotextypes.ReceiptStatus_ErrInvalidBucketIndex,
 		},
 		// for inMemCandidates.GetByOwner,ErrInvalidOwner
 		{
