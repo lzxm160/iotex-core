@@ -1133,6 +1133,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		toInitBalance uint64
 		init          bool
 		// expected result
+		err    error
 		status iotextypes.ReceiptStatus
 	}{
 		// fetchCaller state.ErrNotEnoughBalance
@@ -1150,6 +1151,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			identityset.Address(1),
 			1,
 			false,
+			nil,
 			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
 		// fetchBucket,bucket.Owner not equal to actionCtx.Caller
@@ -1167,7 +1169,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			identityset.Address(2),
 			1,
 			true,
-			//ErrFetchBucket,
+			ErrFetchBucket,
 			iotextypes.ReceiptStatus_Success,
 		},
 		// fetchBucket,inMemCandidates.ContainsSelfStakingBucket is false
@@ -1185,7 +1187,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			identityset.Address(2),
 			1,
 			true,
-			//ErrFetchBucket,
+			ErrFetchBucket,
 			iotextypes.ReceiptStatus_Success,
 		},
 		{
@@ -1202,6 +1204,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			identityset.Address(1),
 			1,
 			false,
+			nil,
 			iotextypes.ReceiptStatus_Success,
 		},
 	}
@@ -1232,9 +1235,14 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			GasLimit:       10000000,
 		})
 		r, err := p.handleTransferStake(ctx, act, sm)
-		require.Equal(uint64(test.status), r.Status)
+		if err != nil {
+			require.Equal(test.err, errors.Cause(err))
+		}
+		if r != nil {
+			require.Equal(uint64(test.status), r.Status)
+		}
 
-		if test.status == iotextypes.ReceiptStatus_Success {
+		if err != nil && test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			bucketIndices, err := getCandBucketIndices(sm, candidate2.Owner)
 			require.NoError(err)
