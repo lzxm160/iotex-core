@@ -537,7 +537,7 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("handleCandidateUpdate Upsert:", c.Owner.String())
+	fmt.Println("handleCandidateRegister Upsert:", c.Owner.String())
 	if err := p.inMemCandidates.Upsert(c); err != nil {
 		return nil, err
 	}
