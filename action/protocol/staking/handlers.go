@@ -27,6 +27,10 @@ import (
 	"github.com/iotexproject/iotex-core/state"
 )
 
+var (
+	// ErrNilParameters is the error when parameter is nil
+	ErrNilParameters = errors.New("parameter is nil")
+)
 const (
 	// HandleCreateStake is the handler name of createStake
 	HandleCreateStake = "createStake"

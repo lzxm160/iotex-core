@@ -623,7 +623,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			10000,
 			false,
 			false,
-			ErrFetchBucket,
+			nil,
 			iotextypes.ReceiptStatus_ErrUnauthorizedOperator,
 		},
 		// updateBucket getbucket ErrStateNotExist
@@ -812,7 +812,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			false,
 			0,
-			ErrNotUnstaked,
+			nil,
 			iotextypes.ReceiptStatus_ErrWithdrawBeforeUnstake,
 		},
 		// check ErrNotReadyWithdraw
@@ -831,7 +831,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			true,
 			0,
-			ErrNotReadyWithdraw,
+			nil,
 			iotextypes.ReceiptStatus_ErrWithdrawBeforeMaturity,
 		},
 		// nil
@@ -1000,7 +1000,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			10000,
 			false,
 			true,
-			ErrFetchBucket,
+			nil,
 			iotextypes.ReceiptStatus_ErrInvalidBucketType,
 		},
 		// ErrInvalidOwner
@@ -1169,7 +1169,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			identityset.Address(2),
 			1,
 			true,
-			ErrFetchBucket,
+			nil,
 			iotextypes.ReceiptStatus_ErrUnauthorizedOperator,
 		},
 		// fetchBucket,inMemCandidates.ContainsSelfStakingBucket is false
@@ -1187,7 +1187,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			identityset.Address(2),
 			1,
 			true,
-			ErrFetchBucket,
+			nil,
 			iotextypes.ReceiptStatus_ErrInvalidBucketType,
 		},
 		{
@@ -1351,7 +1351,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			true,
 			false,
 			true,
-			ErrFetchBucket,
+			nil,
 			iotextypes.ReceiptStatus_ErrUnauthorizedOperator,
 		},
 		// updateBucket getbucket ErrStateNotExist
