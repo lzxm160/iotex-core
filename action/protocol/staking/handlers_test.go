@@ -1481,8 +1481,6 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 	require := require.New(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	callerAddr := identityset.Address(2)
-
 	tests := []struct {
 		// creat stake fields
 		caller      address.Address
@@ -1511,7 +1509,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 	}{
 		// fetchCaller ErrNotEnoughBalance
 		{
-			callerAddr,
+			identityset.Address(1),
 			"9990000000000000000",
 			10,
 			false,
@@ -1571,7 +1569,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 		},
 		// for inMemCandidates.GetByOwner,ErrInvalidOwner
 		{
-			callerAddr,
+			identityset.Address(1),
 			"10000000000000000000",
 			100,
 			false,
@@ -1590,7 +1588,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			iotextypes.ReceiptStatus_ErrInvalidBucketType,
 		},
 		{
-			callerAddr,
+			identityset.Address(1),
 			"10000000000000000000",
 			100,
 			false,
@@ -1611,14 +1609,14 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		sm, p, candidate, candidate2 := initAll(t, ctrl)
-		initCreateStake(t, sm, candidate2.Owner, test.initBalance, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, test.amount)
+		sm, p, candidate, _ := initAll(t, ctrl)
+		initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate, test.amount)
 
-		if test.newAccount {
-			require.NoError(setupAccount(sm, test.caller, test.initBalance))
-		} else {
-			candidate = candidate2
-		}
+		//if test.newAccount {
+		//	require.NoError(setupAccount(sm, test.caller, test.initBalance))
+		//} else {
+		//	candidate = candidate2
+		//}
 
 		act, err := action.NewDepositToStake(test.nonce, test.index, test.amount, nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
