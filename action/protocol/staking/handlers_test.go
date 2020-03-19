@@ -1640,6 +1640,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			// test candidate
 			candidate, err = getCandidate(sm, candidate.Owner)
 			require.NoError(err)
+			fmt.Println(candidate.Votes.String())
 			require.Equal(uint64(10380178401692392590), candidate.Votes.Uint64())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
