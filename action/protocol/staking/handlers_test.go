@@ -943,6 +943,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		// need new p
 		newProtocol bool
 		// expected result
+		err    error
 		status iotextypes.ReceiptStatus
 	}{
 		// ErrInvalidCanName
@@ -961,7 +962,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			10000,
 			true,
 			true,
-			//ErrInvalidCanName,
+			ErrInvalidCanName,
 			iotextypes.ReceiptStatus_Success,
 		},
 		// fetchCaller state.ErrNotEnoughBalance
@@ -980,6 +981,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			10000,
 			true,
 			true,
+			nil,
 			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
 		// fetchBucket
@@ -998,7 +1000,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			10000,
 			false,
 			true,
-			//ErrFetchBucket,
+			ErrFetchBucket,
 			iotextypes.ReceiptStatus_Success,
 		},
 		// ErrInvalidOwner
@@ -1017,7 +1019,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			10000,
 			true,
 			true,
-			//ErrInvalidOwner,
+			ErrInvalidOwner,
 			iotextypes.ReceiptStatus_Success,
 		},
 		// change from 0 to candidate2
@@ -1036,6 +1038,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			10000,
 			false,
 			true,
+			nil,
 			iotextypes.ReceiptStatus_Success,
 		},
 	}
@@ -1067,9 +1070,14 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			p.inMemCandidates.Delete(cc.Owner)
 		}
 		r, err := p.handleChangeCandidate(ctx, act, sm)
-		require.Equal(uint64(test.status), r.Status)
+		if err != nil {
+			require.Equal(test.err, errors.Cause(err))
+		}
+		if r != nil {
+			require.Equal(uint64(test.status), r.Status)
+		}
 
-		if test.status == iotextypes.ReceiptStatus_Success {
+		if err != nil && test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			bucketIndices, err := getCandBucketIndices(sm, test.caller)
 			require.NoError(err)
