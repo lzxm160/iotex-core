@@ -426,7 +426,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			identityset.Address(31).String(),
 			identityset.Address(32).String(),
 			ErrInvalidOwner,
-			iotextypes.ReceiptStatus_Success,
+			iotextypes.ReceiptStatus_ErrCandidateNotExist,
 		},
 		//// ReceiptStatus_ErrCandidateNotExist
 		//{
