@@ -357,8 +357,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 
 func TestProtocol_handleCandidateUpdate(t *testing.T) {
 	require := require.New(t)
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+
 	tests := []struct {
 		initBalance     int64
 		caller          address.Address
@@ -477,6 +476,8 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
 		sm, p, _, _ := initAll(t, ctrl)
 
 		require.NoError(setupAccount(sm, test.caller, test.initBalance))
