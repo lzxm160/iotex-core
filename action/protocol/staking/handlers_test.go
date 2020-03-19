@@ -234,7 +234,6 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			iotextypes.ReceiptStatus_Success,
 		},
 		// caller.SubBalance,ErrNotEnoughBalance,cannot happen because fetchcaller already check
-
 		// settleAction,ErrHitGasLimit
 		{
 			1000,
@@ -429,10 +428,10 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			"update",
 			identityset.Address(31).String(),
 			identityset.Address(32).String(),
-			ErrInvalidOwner,
+			nil,
 			iotextypes.ReceiptStatus_ErrCandidateNotExist,
 		},
-		// ReceiptStatus_ErrCandidateNotExist
+		// name,operator,reward all empty
 		{
 			1000,
 			identityset.Address(28),
@@ -449,11 +448,34 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			uint64(1000000),
 			big.NewInt(1000),
 			true,
-			"update",
-			identityset.Address(31).String(),
-			identityset.Address(32).String(),
+			"",
+			"",
+			"",
 			nil,
-			iotextypes.ReceiptStatus_ErrCandidateNotExist,
+			iotextypes.ReceiptStatus_Success,
+		},
+		// upsert,collision
+		{
+			1000,
+			identityset.Address(27),
+			uint64(10),
+			"test",
+			identityset.Address(28).String(),
+			identityset.Address(29).String(),
+			"",
+			"100",
+			uint32(10000),
+			false,
+			[]byte("payload"),
+			uint64(1000000),
+			uint64(1000000),
+			big.NewInt(1000),
+			true,
+			"test2",
+			"",
+			"",
+			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		{
 			1000,
