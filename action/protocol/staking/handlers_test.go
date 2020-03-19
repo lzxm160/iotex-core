@@ -1096,7 +1096,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			candidate, err := getCandidate(sm, candidate2.Owner)
 			require.NotNil(candidate)
 			require.NoError(err)
-			require.Equal("10000000000000000003", candidate.Votes.String())
+			require.Equal("20000000000000000003", candidate.Votes.String())
 			require.Equal(test.candidateName, candidate.Name)
 			require.Equal(candidate2.Operator.String(), candidate.Operator.String())
 			require.Equal(candidate2.Reward.String(), candidate.Reward.String())
