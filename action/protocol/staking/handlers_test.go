@@ -1477,7 +1477,200 @@ func TestProtocol_HandleRestake(t *testing.T) {
 	}
 }
 
-func TestProtocol_HandleDepositToStake(t *testing.T) {}
+func TestProtocol_HandleDepositToStake(t *testing.T) {
+	require := require.New(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	callerAddr := identityset.Address(2)
+
+	tests := []struct {
+		// creat stake fields
+		caller      address.Address
+		amount      string
+		initBalance int64
+		selfstaking bool
+		// action fields
+		index    uint64
+		gasPrice *big.Int
+		gasLimit uint64
+		nonce    uint64
+		// block context
+		blkHeight    uint64
+		blkTimestamp time.Time
+		blkGasLimit  uint64
+		// restake fields
+		duration  uint32
+		autoStake bool
+		// clear flag for inMemCandidates
+		clear bool
+		// need new p
+		newAccount bool
+		// expected result
+		err    error
+		status iotextypes.ReceiptStatus
+	}{
+		// fetchCaller ErrNotEnoughBalance
+		{
+			callerAddr,
+			"9990000000000000000",
+			10,
+			false,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			1,
+			true,
+			false,
+			false,
+			nil,
+			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
+		},
+		// for bucket.Owner is not equal to actionCtx.Caller
+		{
+			identityset.Address(12),
+			"10000000000000000000",
+			100,
+			false,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			1,
+			true,
+			false,
+			true,
+			ErrFetchBucket,
+			iotextypes.ReceiptStatus_ErrUnauthorizedOperator,
+		},
+		// updateBucket getbucket ErrStateNotExist
+		{
+			identityset.Address(33),
+			"10000000000000000000",
+			100,
+			false,
+			1,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			1,
+			true,
+			false,
+			true,
+			state.ErrStateNotExist,
+			iotextypes.ReceiptStatus_ErrInvalidBucketIndex,
+		},
+		// for inMemCandidates.GetByOwner,ErrInvalidOwner
+		{
+			callerAddr,
+			"10000000000000000000",
+			100,
+			false,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			1,
+			true,
+			true,
+			false,
+			ErrInvalidOwner,
+			iotextypes.ReceiptStatus_Success,
+		},
+		{
+			callerAddr,
+			"10000000000000000000",
+			100,
+			false,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			1,
+			true,
+			false,
+			false,
+			nil,
+			iotextypes.ReceiptStatus_Success,
+		},
+	}
+
+	for _, test := range tests {
+		sm, p, candidate, candidate2 := initAll(t, ctrl)
+		initCreateStake(t, sm, candidate2.Owner, test.initBalance, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, test.amount)
+
+		if test.newAccount {
+			require.NoError(setupAccount(sm, test.caller, test.initBalance))
+		} else {
+			candidate = candidate2
+		}
+
+		act, err := action.NewDepositToStake(test.nonce, test.index, test.amount, nil, test.gasLimit, test.gasPrice)
+		require.NoError(err)
+		if test.clear {
+			p.inMemCandidates.Delete(test.caller)
+		}
+		intrinsic, err := act.IntrinsicGas()
+		require.NoError(err)
+		ctx := protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
+			Caller:       test.caller,
+			GasPrice:     test.gasPrice,
+			IntrinsicGas: intrinsic,
+			Nonce:        test.nonce,
+		})
+		ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
+			BlockHeight:    1,
+			BlockTimeStamp: time.Now(),
+			GasLimit:       10000000,
+		})
+		r, err := p.handleDepositToStake(ctx, act, sm)
+		if err != nil {
+			require.Equal(test.err, errors.Cause(err))
+		}
+		if r != nil {
+			require.Equal(uint64(test.status), r.Status)
+		}
+
+		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
+			// test bucket index and bucket
+			bucketIndices, err := getCandBucketIndices(sm, candidate.Owner)
+			require.NoError(err)
+			require.Equal(1, len(*bucketIndices))
+			bucketIndices, err = getVoterBucketIndices(sm, candidate.Owner)
+			require.NoError(err)
+			require.Equal(1, len(*bucketIndices))
+			indices := *bucketIndices
+			bucket, err := getBucket(sm, indices[0])
+			require.NoError(err)
+			require.Equal(candidate.Owner.String(), bucket.Candidate.String())
+			require.Equal(test.caller.String(), bucket.Owner.String())
+			require.Equal(test.amount, bucket.StakedAmount.String())
+
+			// test candidate
+			candidate, err = getCandidate(sm, candidate.Owner)
+			require.NoError(err)
+			require.Equal(uint64(10380178401692392590), candidate.Votes.Uint64())
+			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
+			require.NotNil(candidate)
+			require.Equal(uint64(10380178401692392590), candidate.Votes.Uint64())
+		}
+	}
+}
 
 func initCreateStake(t *testing.T, sm protocol.StateManager, callerAddr address.Address, initBalance int64, gasPrice *big.Int, gasLimit uint64, nonce uint64, blkHeight uint64, blkTimestamp time.Time, blkGasLimit uint64, p *Protocol, candidate *Candidate, amount string) (context.Context, *big.Int) {
 	require := require.New(t)
