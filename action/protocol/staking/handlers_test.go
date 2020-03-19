@@ -1585,7 +1585,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			true,
 			false,
 			ErrInvalidOwner,
-			iotextypes.ReceiptStatus_ErrInvalidBucketType,
+			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
 		{
 			identityset.Address(1),
