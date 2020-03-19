@@ -27,6 +27,17 @@ import (
 	"github.com/iotexproject/iotex-core/state"
 )
 
+var (
+	// ErrFetchBucket is the error when call fetchBucket
+	ErrFetchBucket = errors.New("fetchBucket error")
+	// ErrNotUnstaked is the error when bucket has not been unstaked
+	ErrNotUnstaked = errors.New("bucket has not been unstaked")
+	// ErrNotReadyWithdraw is the error when not ready withdraw
+	ErrNotReadyWithdraw = errors.New("stake is not ready to withdraw")
+	// ErrNilParameters is the error when parameter is nil
+	ErrNilParameters = errors.New("parameter is nil")
+)
+
 const (
 	// HandleCreateStake is the handler name of createStake
 	HandleCreateStake = "createStake"
