@@ -227,7 +227,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			big.NewInt(1000),
 			true,
 			//action.ErrHitGasLimit,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		// Upsert,check collision
 		{
@@ -247,7 +247,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			big.NewInt(1000),
 			false,
 			//ErrInvalidSelfStkIndex,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		// owner address is nil
 		{
@@ -266,7 +266,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			uint64(1000000),
 			big.NewInt(1),
 			true,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		{
 			101,
@@ -284,7 +284,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			uint64(1000000),
 			big.NewInt(1),
 			true,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 	}
 
@@ -416,7 +416,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			identityset.Address(31).String(),
 			identityset.Address(32).String(),
 			//ErrInvalidOwner,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		// owner address is nil
 		{
@@ -438,7 +438,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			"update",
 			identityset.Address(31).String(),
 			identityset.Address(32).String(),
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		{
 			1000,
@@ -459,7 +459,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			"update",
 			identityset.Address(31).String(),
 			identityset.Address(32).String(),
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 	}
 
@@ -606,7 +606,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			false,
 			false,
 			//ErrFetchBucket,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		// updateBucket getbucket ErrStateNotExist
 		{
@@ -624,7 +624,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			false,
 			true,
 			//state.ErrStateNotExist,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		// for inMemCandidates.GetByOwner,ErrInvalidOwner
 		{
@@ -642,7 +642,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			true,
 			true,
 			//ErrInvalidOwner,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		{
 			callerAddr,
@@ -658,7 +658,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			10000,
 			false,
 			true,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 	}
 
@@ -768,7 +768,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			true,
 			1,
 			//state.ErrStateNotExist,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		// check unstake time
 		{
@@ -787,7 +787,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			false,
 			0,
 			//ErrNotUnstaked,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		// check ErrNotReadyWithdraw
 		{
@@ -806,7 +806,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			true,
 			0,
 			//ErrNotReadyWithdraw,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		// nil
 		{
@@ -824,7 +824,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			true,
 			0,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 	}
 
@@ -930,7 +930,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			true,
 			true,
 			//ErrInvalidCanName,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		// fetchCaller state.ErrNotEnoughBalance
 		{
@@ -967,7 +967,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			false,
 			true,
 			//ErrFetchBucket,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		// ErrInvalidOwner
 		{
@@ -986,7 +986,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			true,
 			true,
 			//ErrInvalidOwner,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		// change from 0 to candidate2
 		{
@@ -1004,7 +1004,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			10000,
 			false,
 			true,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 	}
 
@@ -1129,7 +1129,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			1,
 			true,
 			//ErrFetchBucket,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		// fetchBucket,inMemCandidates.ContainsSelfStakingBucket is false
 		{
@@ -1147,7 +1147,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			1,
 			true,
 			//ErrFetchBucket,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		{
 			identityset.Address(2),
@@ -1163,7 +1163,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			identityset.Address(1),
 			1,
 			false,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 	}
 
@@ -1303,7 +1303,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			false,
 			true,
 			//ErrFetchBucket,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		// updateBucket getbucket ErrStateNotExist
 		{
@@ -1323,7 +1323,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			false,
 			true,
 			//state.ErrStateNotExist,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		// for inMemCandidates.GetByOwner,ErrInvalidOwner
 		{
@@ -1343,7 +1343,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			true,
 			false,
 			//ErrInvalidOwner,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 		{
 			callerAddr,
@@ -1361,7 +1361,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			true,
 			false,
 			false,
-			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
 	}
 
