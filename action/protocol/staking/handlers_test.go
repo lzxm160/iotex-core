@@ -1612,11 +1612,9 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 		sm, p, candidate, _ := initAll(t, ctrl)
 		initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate, test.amount)
 
-		//if test.newAccount {
-		//	require.NoError(setupAccount(sm, test.caller, test.initBalance))
-		//} else {
-		//	candidate = candidate2
-		//}
+		if test.newAccount {
+			require.NoError(setupAccount(sm, test.caller, test.initBalance))
+		}
 
 		act, err := action.NewDepositToStake(test.nonce, test.index, test.amount, nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
