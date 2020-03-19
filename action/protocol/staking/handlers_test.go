@@ -359,7 +359,6 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 	require := require.New(t)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	//sm, p, _, _ := initAll(t, ctrl)
 	tests := []struct {
 		initBalance     int64
 		caller          address.Address
@@ -500,9 +499,8 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		//if test.newProtocol {
 		sm, p, _, _ := initAll(t, ctrl)
-		//}
+
 		require.NoError(setupAccount(sm, test.caller, test.initBalance))
 		act, err := action.NewCandidateRegister(test.nonce, test.name, test.operatorAddrStr, test.rewardAddrStr, test.ownerAddrStr, test.amountStr, test.duration, test.autoStake, test.payload, test.gasLimit, test.gasPrice)
 		require.NoError(err)
@@ -524,6 +522,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		cu, err := action.NewCandidateUpdate(test.nonce, test.updateName, test.updateOperator, test.updateReward, test.gasLimit, test.gasPrice)
 		require.NoError(err)
 		intrinsic, _ = cu.IntrinsicGas()
+		fmt.Println("test.caller:", test.caller)
 		ctx = protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
 			Caller:       test.caller,
 			GasPrice:     test.gasPrice,
