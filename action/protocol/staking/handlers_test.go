@@ -1587,7 +1587,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			true,
 			false,
 			ErrInvalidOwner,
-			iotextypes.ReceiptStatus_Success,
+			iotextypes.ReceiptStatus_ErrInvalidBucketType,
 		},
 		{
 			callerAddr,
