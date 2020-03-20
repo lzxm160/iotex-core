@@ -958,7 +958,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			require.NoError(err)
 			withdrawCost, err := withdraw.Cost()
 			require.NoError(err)
-			require.Equal(test.nonce, caller.Nonce)
+			require.Equal(test.nonce+1, caller.Nonce)
 			total := big.NewInt(0)
 			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, withdrawCost).Add(total, createCost))
 		}
