@@ -952,7 +952,6 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	candidate2 := testCandidates[1].d.Clone()
 	tests := []struct {
 		// creat stake fields
 		caller      address.Address
@@ -982,7 +981,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			10000,
 			false,
 			1,
-			candidate2.Name,
+			"test2",
 			big.NewInt(unit.Qev),
 			10000,
 			1,
@@ -1018,7 +1017,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			100,
 			true,
 			1,
-			candidate2.Name,
+			"test2",
 			big.NewInt(unit.Qev),
 			10000,
 			1,
@@ -1036,7 +1035,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			100,
 			false,
 			1,
-			candidate2.Name,
+			"test2",
 			big.NewInt(unit.Qev),
 			10000,
 			1,
@@ -1047,6 +1046,24 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			ErrInvalidOwner,
 			iotextypes.ReceiptStatus_Success,
 		},
+		// Upsert,ErrInvalidCanName
+		{
+			identityset.Address(1),
+			"10000000000000000000",
+			100,
+			false,
+			1,
+			"test3",
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			false,
+			ErrInvalidCanName,
+			iotextypes.ReceiptStatus_Success,
+		},
 		// change from 0 to candidate2
 		{
 			identityset.Address(2),
@@ -1054,7 +1071,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			100,
 			false,
 			0,
-			candidate2.Name,
+			"test2",
 			big.NewInt(unit.Qev),
 			10000,
 			1,
