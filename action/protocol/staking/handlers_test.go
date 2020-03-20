@@ -1522,8 +1522,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 		blkHeight    uint64
 		blkTimestamp time.Time
 		blkGasLimit  uint64
-		// restake fields
-		duration  uint32
+
 		autoStake bool
 		// clear flag for inMemCandidates
 		clear bool
@@ -1546,7 +1545,6 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
-			1,
 			false,
 			false,
 			false,
@@ -1566,7 +1564,6 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
-			1,
 			false,
 			false,
 			true,
@@ -1586,13 +1583,14 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
-			1,
 			false,
 			true,
 			true,
 			nil,
 			iotextypes.ReceiptStatus_ErrInvalidBucketType,
 		},
+		// inMemCandidates.GetByOwner error cannot happen,becuase previous vote have no error
+		// for inMemCandidates.GetByOwner,ErrInvalidOwner
 		{
 			identityset.Address(1),
 			10000000000000000000,
@@ -1605,7 +1603,25 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
+			true,
+			true,
+			false,
+			ErrInvalidOwner,
+			iotextypes.ReceiptStatus_Success,
+		},
+		// ReceiptStatus_Success
+		{
+			identityset.Address(1),
+			10000000000000000000,
+			100,
+			false,
+			0,
+			big.NewInt(unit.Qev),
+			10000,
 			1,
+			1,
+			time.Now(),
+			10000,
 			true,
 			false,
 			false,
