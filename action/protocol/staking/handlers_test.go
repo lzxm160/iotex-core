@@ -1046,25 +1046,8 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			ErrInvalidOwner,
 			iotextypes.ReceiptStatus_Success,
 		},
-		// Upsert,ErrInvalidCanName
-		{
-			identityset.Address(1),
-			"10000000000000000000",
-			100,
-			false,
-			1,
-			"test1",
-			big.NewInt(unit.Qev),
-			10000,
-			1,
-			1,
-			time.Now(),
-			10000,
-			false,
-			nil,
-			iotextypes.ReceiptStatus_Success,
-		},
-		// change from 0 to candidate2
+		// Upsert error cannot happen,because CreateStake already check collision
+		// change from 0 to test1
 		{
 			identityset.Address(2),
 			"10000000000000000000",
