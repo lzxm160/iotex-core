@@ -1061,7 +1061,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			time.Now(),
 			10000,
 			false,
-			ErrInvalidCanName,
+			nil,
 			iotextypes.ReceiptStatus_Success,
 		},
 		// change from 0 to candidate2
