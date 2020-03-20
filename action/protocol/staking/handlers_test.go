@@ -313,14 +313,14 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			GasLimit:       test.blkGasLimit,
 		})
 		r, err := p.handleCandidateRegister(ctx, act, sm)
-		if err != nil {
+		if test.err != nil {
 			require.Equal(test.err, errors.Cause(err))
 		}
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
 		}
 
-		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
+		if test.err == nil && test.status == iotextypes.ReceiptStatus_Success {
 			// test candidate
 			candidate, err := getCandidate(sm, act.OwnerAddress())
 			if act.OwnerAddress() == nil {
@@ -535,14 +535,14 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			GasLimit:       test.blkGasLimit,
 		})
 		r, err := p.handleCandidateUpdate(ctx, cu, sm)
-		if err != nil {
+		if test.err != nil {
 			require.Equal(test.err, errors.Cause(err))
 		}
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
 		}
 
-		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
+		if test.err == nil && test.status == iotextypes.ReceiptStatus_Success {
 			// test candidate
 			candidate, err := getCandidate(sm, act.OwnerAddress())
 			if act.OwnerAddress() == nil {
@@ -727,14 +727,14 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			p.inMemCandidates.Delete(test.caller)
 		}
 		r, err := p.handleUnstake(ctx, act, sm)
-		if err != nil {
+		if test.err != nil {
 			require.Equal(test.err, errors.Cause(err))
 		}
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
 		}
 
-		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
+		if test.err == nil && test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			bucketIndices, err := getCandBucketIndices(sm, candidate.Owner)
 			require.NoError(err)
@@ -929,14 +929,14 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			GasLimit:       blkCtx.GasLimit,
 		})
 		r, err := p.handleWithdrawStake(ctx, withdraw, sm)
-		if err != nil {
+		if test.err != nil {
 			require.Equal(test.err, errors.Cause(err))
 		}
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
 		}
 
-		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
+		if test.err == nil && test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			_, err := getCandBucketIndices(sm, candidate.Owner)
 			require.Error(err)
@@ -1094,14 +1094,14 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			p.inMemCandidates.Delete(cc.Owner)
 		}
 		r, err := p.handleChangeCandidate(ctx, act, sm)
-		if err != nil {
+		if test.err != nil {
 			require.Equal(test.err, errors.Cause(err))
 		}
-		if r != nil {
+		if test.status != iotextypes.ReceiptStatus_Success {
 			require.Equal(uint64(test.status), r.Status)
 		}
 
-		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
+		if test.err == nil && test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
 			bucketIndices, err := getCandBucketIndices(sm, test.caller)
 			require.NoError(err)
