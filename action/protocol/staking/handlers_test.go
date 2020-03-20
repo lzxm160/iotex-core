@@ -558,10 +558,10 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 				require.NoError(err)
 				require.Equal(test.ownerAddrStr, candidate.Owner.String())
 			}
-			require.LessOrEqual("0", candidate.Votes.String())
+			require.Equal("0", candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.LessOrEqual("0", candidate.Votes.String())
+			require.Equal("0", candidate.Votes.String())
 			if test.updateName != "" {
 				require.Equal(test.updateName, candidate.Name)
 			}
@@ -571,7 +571,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			if test.updateOperator != "" {
 				require.Equal(test.updateReward, candidate.Reward.String())
 			}
-			require.LessOrEqual(test.amountStr, candidate.Votes.String())
+			require.Equal(test.amountStr, candidate.Votes.String())
 			require.Equal(test.amountStr, candidate.SelfStake.String())
 
 			// test staker's account
