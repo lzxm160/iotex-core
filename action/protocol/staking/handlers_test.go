@@ -756,6 +756,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
 			require.Equal("2", candidate.Votes.String())
+
 			// test staker's account
 			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
 			require.NoError(err)
@@ -953,6 +954,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			require.Error(err)
 			_, err = getVoterBucketIndices(sm, candidate.Owner)
 			require.Error(err)
+
 			// test staker's account
 			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
 			require.NoError(err)
@@ -1323,6 +1325,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			require.Equal(candi.Owner, candidate.Owner)
 			require.LessOrEqual(uint64(2), candidate.Votes.Uint64())
 			require.LessOrEqual(uint64(2), candidate.SelfStake.Uint64())
+
 			// test staker's account
 			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
 			require.NoError(err)
