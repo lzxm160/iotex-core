@@ -313,9 +313,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			GasLimit:       test.blkGasLimit,
 		})
 		r, err := p.handleCandidateRegister(ctx, act, sm)
-		if test.err != nil {
-			require.Equal(test.err, errors.Cause(err))
-		}
+		require.Equal(test.err, errors.Cause(err))
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
 		}
@@ -535,9 +533,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			GasLimit:       test.blkGasLimit,
 		})
 		r, err := p.handleCandidateUpdate(ctx, cu, sm)
-		if test.err != nil {
-			require.Equal(test.err, errors.Cause(err))
-		}
+		require.Equal(test.err, errors.Cause(err))
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
 		}
@@ -727,9 +723,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			p.inMemCandidates.Delete(test.caller)
 		}
 		r, err := p.handleUnstake(ctx, act, sm)
-		if test.err != nil {
-			require.Equal(test.err, errors.Cause(err))
-		}
+		require.Equal(test.err, errors.Cause(err))
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
 		}
@@ -929,9 +923,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			GasLimit:       blkCtx.GasLimit,
 		})
 		r, err := p.handleWithdrawStake(ctx, withdraw, sm)
-		if test.err != nil {
-			require.Equal(test.err, errors.Cause(err))
-		}
+		require.Equal(test.err, errors.Cause(err))
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
 		}
@@ -1094,10 +1086,8 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			p.inMemCandidates.Delete(cc.Owner)
 		}
 		r, err := p.handleChangeCandidate(ctx, act, sm)
-		if test.err != nil {
-			require.Equal(test.err, errors.Cause(err))
-		}
-		if test.status != iotextypes.ReceiptStatus_Success {
+		require.Equal(test.err, errors.Cause(err))
+		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
 		}
 
