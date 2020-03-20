@@ -759,7 +759,6 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			require.NotNil(candidate)
 			require.Equal("2", candidate.Votes.String())
 		}
-
 	}
 }
 
