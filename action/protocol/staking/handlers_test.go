@@ -971,8 +971,6 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		blkGasLimit  uint64
 		// clear flag for inMemCandidates
 		clear bool
-		// need new p
-		newProtocol bool
 		// expected result
 		err    error
 		status iotextypes.ReceiptStatus
@@ -992,7 +990,6 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			time.Now(),
 			10000,
 			true,
-			true,
 			ErrInvalidCanName,
 			iotextypes.ReceiptStatus_ErrCandidateNotExist,
 		},
@@ -1010,7 +1007,6 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
-			true,
 			true,
 			nil,
 			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
@@ -1030,7 +1026,6 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			time.Now(),
 			10000,
 			false,
-			true,
 			nil,
 			iotextypes.ReceiptStatus_ErrInvalidBucketType,
 		},
@@ -1048,7 +1043,6 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			1,
 			time.Now(),
 			10000,
-			true,
 			true,
 			ErrInvalidOwner,
 			iotextypes.ReceiptStatus_Success,
@@ -1068,7 +1062,6 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			time.Now(),
 			10000,
 			false,
-			true,
 			nil,
 			iotextypes.ReceiptStatus_Success,
 		},
