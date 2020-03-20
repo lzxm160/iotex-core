@@ -975,25 +975,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		err    error
 		status iotextypes.ReceiptStatus
 	}{
-		// ErrInvalidCanName
-		{
-			identityset.Address(1),
-			"10000000000000000000",
-			100,
-			false,
-			1,
-			"testname",
-			big.NewInt(unit.Qev),
-			10000,
-			1,
-			1,
-			time.Now(),
-			10000,
-			true,
-			ErrInvalidCanName,
-			iotextypes.ReceiptStatus_ErrCandidateNotExist,
-		},
-		// fetchCaller state.ErrNotEnoughBalance
+		// fetchCaller ReceiptStatus_ErrNotEnoughBalance
 		{
 			identityset.Address(1),
 			"9999990000000000000000",
@@ -1011,7 +993,25 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			nil,
 			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
-		// fetchBucket
+		// ReceiptStatus_ErrCandidateNotExist
+		{
+			identityset.Address(1),
+			"10000000000000000000",
+			100,
+			false,
+			1,
+			"testname",
+			big.NewInt(unit.Qev),
+			10000,
+			1,
+			1,
+			time.Now(),
+			10000,
+			true,
+			nil,
+			iotextypes.ReceiptStatus_ErrCandidateNotExist,
+		},
+		// fetchBucket,ReceiptStatus_ErrInvalidBucketType
 		{
 			identityset.Address(1),
 			"10000000000000000000",
