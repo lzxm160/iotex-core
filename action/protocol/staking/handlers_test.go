@@ -317,7 +317,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
 		} else {
-			require.Equal(uint64(test.status), iotextypes.ReceiptStatus_Success)
+			require.Equal(test.status, iotextypes.ReceiptStatus_Success)
 		}
 
 		if test.err == nil && test.status == iotextypes.ReceiptStatus_Success {
@@ -539,7 +539,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
 		} else {
-			require.Equal(uint64(test.status), iotextypes.ReceiptStatus_Success)
+			require.Equal(test.status, iotextypes.ReceiptStatus_Success)
 		}
 
 		if test.err == nil && test.status == iotextypes.ReceiptStatus_Success {
@@ -731,7 +731,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
 		} else {
-			require.Equal(uint64(test.status), iotextypes.ReceiptStatus_Success)
+			require.Equal(test.status, iotextypes.ReceiptStatus_Success)
 		}
 
 		if test.err == nil && test.status == iotextypes.ReceiptStatus_Success {
@@ -933,7 +933,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
 		} else {
-			require.Equal(uint64(test.status), iotextypes.ReceiptStatus_Success)
+			require.Equal(test.status, iotextypes.ReceiptStatus_Success)
 		}
 
 		if test.err == nil && test.status == iotextypes.ReceiptStatus_Success {
@@ -1098,7 +1098,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
 		} else {
-			require.Equal(uint64(test.status), iotextypes.ReceiptStatus_Success)
+			require.Equal(test.status, iotextypes.ReceiptStatus_Success)
 		}
 
 		if test.err == nil && test.status == iotextypes.ReceiptStatus_Success {
