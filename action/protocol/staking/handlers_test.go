@@ -592,7 +592,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 	defer ctrl.Finish()
 
 	sm, p, candidate, candidate2 := initAll(t, ctrl)
-	ctx, _ := initCreateStake(t, sm, identityset.Address(2), 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000", false)
+	initCreateStake(t, sm, identityset.Address(2), 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000", false)
 
 	callerAddr := identityset.Address(1)
 	tests := []struct {
@@ -718,7 +718,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 		} else {
 			candidate = candidate2
 		}
-		ctx, _ = initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount, false)
+		ctx, createCost := initCreateStake(t, sm, test.caller, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount, false)
 		fmt.Println(candidate.Name)
 		act, err := action.NewUnstake(test.nonce, test.index,
 			nil, test.gasLimit, test.gasPrice)
@@ -756,6 +756,14 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
 			require.Equal("2", candidate.Votes.String())
+			// test staker's account
+			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
+			require.NoError(err)
+			actCost, err := act.Cost()
+			require.NoError(err)
+			require.Equal(test.nonce, caller.Nonce)
+			total := big.NewInt(0)
+			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, createCost))
 		}
 	}
 }
@@ -889,7 +897,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	for _, test := range tests {
 		sm, p, _, candidate := initAll(t, ctrl)
 		require.NoError(setupAccount(sm, test.caller, test.initBalance))
-		ctx, _ := initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount, false)
+		ctx, createCost := initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount, false)
 		if test.unstake {
 			act, err := action.NewUnstake(test.nonce, test.index,
 				nil, test.gasLimit, test.gasPrice)
@@ -942,6 +950,14 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			require.Error(err)
 			_, err = getVoterBucketIndices(sm, candidate.Owner)
 			require.Error(err)
+			// test staker's account
+			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
+			require.NoError(err)
+			actCost, err := withdraw.Cost()
+			require.NoError(err)
+			require.Equal(test.nonce, caller.Nonce)
+			total := big.NewInt(0)
+			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, createCost))
 		}
 
 	}
@@ -1072,7 +1088,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		// candidate2 vote self,index 0
 		initCreateStake(t, sm, candidate2.Owner, 100, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, "10000000000000000000", false)
 		// candidate vote self,index 1
-		initCreateStake(t, sm, candidate.Owner, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount, false)
+		_, createCost := initCreateStake(t, sm, candidate.Owner, test.initBalance, test.gasPrice, test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount, false)
 
 		act, err := action.NewChangeCandidate(test.nonce, test.candidateName, test.index, nil, test.gasLimit, test.gasPrice)
 		require.NoError(err)
@@ -1129,6 +1145,15 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
 			require.Equal("20000000000000000002", candidate.Votes.String())
+
+			// test staker's account
+			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
+			require.NoError(err)
+			actCost, err := act.Cost()
+			require.NoError(err)
+			require.Equal(test.nonce, caller.Nonce)
+			total := big.NewInt(0)
+			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, createCost))
 		}
 	}
 }
@@ -1443,7 +1468,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 
 	for _, test := range tests {
 		sm, p, candidate, candidate2 := initAll(t, ctrl)
-		initCreateStake(t, sm, candidate2.Owner, test.initBalance, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, test.amount, test.autoStake)
+		_, createCost := initCreateStake(t, sm, candidate2.Owner, test.initBalance, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate2, test.amount, test.autoStake)
 
 		if test.newAccount {
 			require.NoError(setupAccount(sm, test.caller, test.initBalance))
@@ -1499,6 +1524,15 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
 			require.Equal(uint64(10380178401692392590), candidate.Votes.Uint64())
+
+			// test staker's account
+			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
+			require.NoError(err)
+			actCost, err := act.Cost()
+			require.NoError(err)
+			require.Equal(test.nonce, caller.Nonce)
+			total := big.NewInt(0)
+			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, createCost))
 		}
 	}
 }
@@ -1522,8 +1556,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 		blkHeight    uint64
 		blkTimestamp time.Time
 		blkGasLimit  uint64
-
-		autoStake bool
+		autoStake    bool
 		// clear flag for inMemCandidates
 		clear bool
 		// need new p
@@ -1589,7 +1622,6 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			nil,
 			iotextypes.ReceiptStatus_ErrInvalidBucketType,
 		},
-		// inMemCandidates.GetByOwner error cannot happen,becuase previous vote have no error
 		// for inMemCandidates.GetByOwner,ErrInvalidOwner
 		{
 			identityset.Address(1),
@@ -1632,7 +1664,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 
 	for _, test := range tests {
 		sm, p, candidate, _ := initAll(t, ctrl)
-		initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate, fmt.Sprintf("%d", test.amount), test.autoStake)
+		_, createCost := initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), 10000, 1, 1, time.Now(), 10000, p, candidate, fmt.Sprintf("%d", test.amount), test.autoStake)
 
 		if test.newAccount {
 			require.NoError(setupAccount(sm, test.caller, test.initBalance))
@@ -1687,6 +1719,15 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
 			require.Equal("20760356803384785176", candidate.Votes.String())
+
+			// test staker's account
+			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
+			require.NoError(err)
+			actCost, err := act.Cost()
+			require.NoError(err)
+			require.Equal(test.nonce, caller.Nonce)
+			total := big.NewInt(0)
+			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, createCost))
 		}
 	}
 }
