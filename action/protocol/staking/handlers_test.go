@@ -1103,28 +1103,28 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 
 		if test.err == nil && test.status == iotextypes.ReceiptStatus_Success {
 			// test bucket index and bucket
-			bucketIndices, err := getCandBucketIndices(sm, test.caller)
+			bucketIndices, err := getCandBucketIndices(sm, identityset.Address(1))
 			require.NoError(err)
 			require.Equal(1, len(*bucketIndices))
-			bucketIndices, err = getVoterBucketIndices(sm, test.caller)
+			bucketIndices, err = getVoterBucketIndices(sm, identityset.Address(1))
 			require.NoError(err)
 			require.Equal(1, len(*bucketIndices))
 			indices := *bucketIndices
 			bucket, err := getBucket(sm, indices[0])
 			require.NoError(err)
-			require.Equal(test.caller.String(), bucket.Candidate.String())
-			require.Equal(test.caller.String(), bucket.Owner.String())
+			require.Equal(identityset.Address(2).String(), bucket.Candidate.String())
+			require.Equal(identityset.Address(2).String(), bucket.Owner.String())
 			require.Equal(test.amount, bucket.StakedAmount.String())
 
 			// test candidate
-			candidate, err := getCandidate(sm, candidate2.Owner)
+			candidate, err := getCandidate(sm, candidate.Owner)
 			require.NotNil(candidate)
 			require.NoError(err)
 			require.Equal("20000000000000000003", candidate.Votes.String())
 			require.Equal(test.candidateName, candidate.Name)
-			require.Equal(candidate2.Operator.String(), candidate.Operator.String())
-			require.Equal(candidate2.Reward.String(), candidate.Reward.String())
-			require.Equal(candidate2.Owner.String(), candidate.Owner.String())
+			require.Equal(candidate.Operator.String(), candidate.Operator.String())
+			require.Equal(candidate.Reward.String(), candidate.Reward.String())
+			require.Equal(candidate.Owner.String(), candidate.Owner.String())
 			require.Equal("1200000000000000000000000", candidate.SelfStake.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
