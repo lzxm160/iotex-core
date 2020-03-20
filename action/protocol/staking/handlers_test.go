@@ -562,9 +562,15 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
 			require.LessOrEqual("0", candidate.Votes.String())
-			require.Equal(test.updateName, candidate.Name)
-			require.Equal(test.updateOperator, candidate.Operator.String())
-			require.Equal(test.updateReward, candidate.Reward.String())
+			if test.updateName != "" {
+				require.Equal(test.updateName, candidate.Name)
+			}
+			if test.updateOperator != "" {
+				require.Equal(test.updateOperator, candidate.Operator.String())
+			}
+			if test.updateOperator != "" {
+				require.Equal(test.updateReward, candidate.Reward.String())
+			}
 			require.LessOrEqual(test.amountStr, candidate.Votes.String())
 			require.Equal(test.amountStr, candidate.SelfStake.String())
 
