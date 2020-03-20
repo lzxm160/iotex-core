@@ -1418,7 +1418,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			ErrInvalidOwner,
 			iotextypes.ReceiptStatus_Success,
 		},
-		// for inMemCandidates.GetByOwner,ErrInvalidOwner
+		// candidate.SubVote,ErrInvalidAmount
 		{
 			callerAddr,
 			"10000000000000000000",
@@ -1435,7 +1435,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			true,
 			true,
 			false,
-			ErrInvalidOwner,
+			ErrInvalidAmount,
 			iotextypes.ReceiptStatus_Success,
 		},
 		{
