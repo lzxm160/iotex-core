@@ -657,7 +657,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			iotextypes.ReceiptStatus_ErrUnauthorizedOperator,
 		},
 		// fetchBucket,ReceiptStatus_ErrInvalidBucketType cannot happen,because allowSelfStaking is true
-		// updateBucket getbucket ErrStateNotExist
+		// fetchBucket and updateBucket call getbucket, ReceiptStatus_ErrInvalidBucketIndex
 		{
 			identityset.Address(33),
 			"10000000000000000000",
