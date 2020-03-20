@@ -1394,7 +1394,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			1,
 			true,
 			false,
-			false,
+			true,
 			nil,
 			iotextypes.ReceiptStatus_ErrInvalidBucketIndex,
 		},
