@@ -474,8 +474,8 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			"test2",
 			"",
 			"",
-			nil,
-			iotextypes.ReceiptStatus_ErrInvalidBucketType,
+			ErrInvalidCanName,
+			iotextypes.ReceiptStatus_Success,
 		},
 		{
 			1000,
