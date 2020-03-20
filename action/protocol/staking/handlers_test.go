@@ -1112,8 +1112,8 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			indices := *bucketIndices
 			bucket, err := getBucket(sm, indices[0])
 			require.NoError(err)
-			require.Equal(identityset.Address(2).String(), bucket.Candidate.String())
-			require.Equal(identityset.Address(2).String(), bucket.Owner.String())
+			require.Equal(identityset.Address(1).String(), bucket.Candidate.String())
+			require.Equal(identityset.Address(1).String(), bucket.Owner.String())
 			require.Equal(test.amount, bucket.StakedAmount.String())
 
 			// test candidate
