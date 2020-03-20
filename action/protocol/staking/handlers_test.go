@@ -672,8 +672,8 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			10000,
 			false,
 			true,
-			state.ErrStateNotExist,
-			iotextypes.ReceiptStatus_Success,
+			nil,
+			iotextypes.ReceiptStatus_ErrInvalidBucketIndex,
 		},
 		// inMemCandidates.GetByOwner,ErrInvalidOwner
 		{
