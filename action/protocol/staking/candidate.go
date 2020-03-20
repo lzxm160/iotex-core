@@ -7,6 +7,7 @@
 package staking
 
 import (
+	"fmt"
 	"math/big"
 	"sort"
 	"strings"
@@ -73,7 +74,7 @@ func (d *Candidate) SubVote(amount *big.Int) error {
 	if amount.Sign() < 0 {
 		return ErrInvalidAmount
 	}
-
+	fmt.Println(d.Votes.String(), ":", amount.String())
 	if d.Votes.Cmp(amount) == -1 {
 		return ErrInvalidAmount
 	}
