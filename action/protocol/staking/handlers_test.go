@@ -13,8 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iotexproject/iotex-core/state"
-
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -809,7 +807,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			nil,
 			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
-		// updateBucket getbucket ErrStateNotExist
+		// fetchBucket call getbucket, ErrStateNotExist
 		{
 			identityset.Address(2),
 			"10000000000000000000",
@@ -825,10 +823,10 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			10000,
 			true,
 			1,
-			state.ErrStateNotExist,
-			iotextypes.ReceiptStatus_ErrInvalidBucketIndex,
+			nil,
+			iotextypes.ReceiptStatus_Success,
 		},
-		// check unstake time
+		// check unstake time,ReceiptStatus_ErrWithdrawBeforeUnstake
 		{
 			identityset.Address(2),
 			"10000000000000000000",
@@ -847,7 +845,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			nil,
 			iotextypes.ReceiptStatus_ErrWithdrawBeforeUnstake,
 		},
-		// check ErrNotReadyWithdraw
+		// check ReceiptStatus_ErrWithdrawBeforeMaturity
 		{
 			identityset.Address(2),
 			"10000000000000000000",
@@ -866,7 +864,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			nil,
 			iotextypes.ReceiptStatus_ErrWithdrawBeforeMaturity,
 		},
-		// nil
+		// ReceiptStatus_Success
 		{
 			identityset.Address(2),
 			"10000000000000000000",
