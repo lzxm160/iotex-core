@@ -558,10 +558,10 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 				require.NoError(err)
 				require.Equal(test.ownerAddrStr, candidate.Owner.String())
 			}
-			require.Equal("0", candidate.Votes.String())
+			require.Equal("158", candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.Equal("0", candidate.Votes.String())
+			require.Equal("158", candidate.Votes.String())
 			if test.updateName != "" {
 				require.Equal(test.updateName, candidate.Name)
 			}
