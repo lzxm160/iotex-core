@@ -1105,10 +1105,10 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			// test bucket index and bucket
 			bucketIndices, err := getCandBucketIndices(sm, identityset.Address(1))
 			require.NoError(err)
-			require.Equal(1, len(*bucketIndices))
+			require.Equal(2, len(*bucketIndices))
 			bucketIndices, err = getVoterBucketIndices(sm, identityset.Address(1))
 			require.NoError(err)
-			require.Equal(1, len(*bucketIndices))
+			require.Equal(2, len(*bucketIndices))
 			indices := *bucketIndices
 			bucket, err := getBucket(sm, indices[0])
 			require.NoError(err)
