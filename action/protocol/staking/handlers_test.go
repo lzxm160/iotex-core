@@ -897,7 +897,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	for _, test := range tests {
 		sm, p, _, candidate := initAll(t, ctrl)
 		require.NoError(setupAccount(sm, test.caller, test.initBalance))
-		ctx, createCost := initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount, false)
+		ctx, _ := initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount, false)
 		var actCost *big.Int
 		if test.unstake {
 			act, err := action.NewUnstake(test.nonce, test.index,
@@ -960,7 +960,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			require.NoError(err)
 			require.Equal(test.nonce, caller.Nonce)
 			total := big.NewInt(0)
-			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, withdrawCost).Add(total, createCost))
+			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, withdrawCost))
 		}
 	}
 }
