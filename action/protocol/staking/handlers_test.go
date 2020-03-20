@@ -957,7 +957,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			require.NoError(err)
 			require.Equal(test.nonce, caller.Nonce)
 			total := big.NewInt(0)
-			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, createCost))
+			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost))
 		}
 
 	}
