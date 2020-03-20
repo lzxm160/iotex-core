@@ -571,7 +571,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			if test.updateOperator != "" {
 				require.Equal(test.updateReward, candidate.Reward.String())
 			}
-			require.Equal(test.amountStr, candidate.Votes.String())
+			require.Equal("158", candidate.Votes.String())
 			require.Equal(test.amountStr, candidate.SelfStake.String())
 
 			// test staker's account
