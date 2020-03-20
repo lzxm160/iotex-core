@@ -897,12 +897,15 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 	for _, test := range tests {
 		sm, p, _, candidate := initAll(t, ctrl)
 		require.NoError(setupAccount(sm, test.caller, test.initBalance))
-		ctx, _ := initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount, false)
+		ctx, createCost := initCreateStake(t, sm, candidate.Owner, test.initBalance, big.NewInt(unit.Qev), test.gasLimit, test.nonce, test.blkHeight, test.blkTimestamp, test.blkGasLimit, p, candidate, test.amount, false)
+		var actCost *big.Int
 		if test.unstake {
 			act, err := action.NewUnstake(test.nonce, test.index,
 				nil, test.gasLimit, test.gasPrice)
 			require.NoError(err)
 			intrinsic, err := act.IntrinsicGas()
+			actCost, err = act.Cost()
+			require.NoError(err)
 			require.NoError(err)
 			ctx = protocol.WithActionCtx(context.Background(), protocol.ActionCtx{
 				Caller:       test.caller,
@@ -953,13 +956,12 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			// test staker's account
 			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
 			require.NoError(err)
-			actCost, err := withdraw.Cost()
+			withdrawCost, err := withdraw.Cost()
 			require.NoError(err)
 			require.Equal(test.nonce, caller.Nonce)
 			total := big.NewInt(0)
-			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost))
+			require.Equal(unit.ConvertIotxToRau(test.initBalance), total.Add(total, caller.Balance).Add(total, actCost).Add(total, withdrawCost).Add(total, createCost))
 		}
-
 	}
 }
 
