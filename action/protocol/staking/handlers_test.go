@@ -638,7 +638,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			nil,
 			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
-		// for bucket.Owner is not equal to actionCtx.Caller
+		// fetchBucket, bucket.Owner is not equal to actionCtx.Caller
 		{
 			identityset.Address(12),
 			"10000000000000000000",
@@ -656,6 +656,7 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			nil,
 			iotextypes.ReceiptStatus_ErrUnauthorizedOperator,
 		},
+		// fetchBucket,ReceiptStatus_ErrInvalidBucketType cannot happen,because allowSelfStaking is true
 		// updateBucket getbucket ErrStateNotExist
 		{
 			identityset.Address(33),
@@ -672,9 +673,9 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			false,
 			true,
 			state.ErrStateNotExist,
-			iotextypes.ReceiptStatus_ErrInvalidBucketIndex,
+			iotextypes.ReceiptStatus_Success,
 		},
-		// for inMemCandidates.GetByOwner,ErrInvalidOwner
+		// inMemCandidates.GetByOwner,ErrInvalidOwner
 		{
 			callerAddr,
 			"10000000000000000000",
@@ -690,8 +691,10 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			true,
 			true,
 			ErrInvalidOwner,
-			iotextypes.ReceiptStatus_ErrCandidateNotExist,
+			iotextypes.ReceiptStatus_Success,
 		},
+		// Upsert error cannot happen,because collision cannot happen
+		// success
 		{
 			callerAddr,
 			"10000000000000000000",
