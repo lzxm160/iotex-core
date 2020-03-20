@@ -807,7 +807,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			nil,
 			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
-		// fetchBucket call getbucket, ErrStateNotExist
+		// fetchBucket ReceiptStatus_ErrInvalidBucketIndex
 		{
 			identityset.Address(2),
 			"10000000000000000000",
@@ -824,7 +824,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			true,
 			1,
 			nil,
-			iotextypes.ReceiptStatus_Success,
+			iotextypes.ReceiptStatus_ErrInvalidBucketIndex,
 		},
 		// check unstake time,ReceiptStatus_ErrWithdrawBeforeUnstake
 		{
@@ -864,6 +864,7 @@ func TestProtocol_HandleWithdrawStake(t *testing.T) {
 			nil,
 			iotextypes.ReceiptStatus_ErrWithdrawBeforeMaturity,
 		},
+		// delxxx cannot happen,because unstake first called without error
 		// ReceiptStatus_Success
 		{
 			identityset.Address(2),
