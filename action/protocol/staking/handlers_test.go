@@ -1120,7 +1120,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			candidate, err := getCandidate(sm, candidate.Owner)
 			require.NotNil(candidate)
 			require.NoError(err)
-			require.Equal("20000000000000000003", candidate.Votes.String())
+			require.Equal("20000000000000000002", candidate.Votes.String())
 			require.Equal(test.candidateName, candidate.Name)
 			require.Equal(candidate.Operator.String(), candidate.Operator.String())
 			require.Equal(candidate.Reward.String(), candidate.Reward.String())
@@ -1128,7 +1128,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			require.Equal("1200000000000000000000000", candidate.SelfStake.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.Equal("20000000000000000003", candidate.Votes.String())
+			require.Equal("20000000000000000002", candidate.Votes.String())
 		}
 	}
 }
