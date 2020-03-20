@@ -1338,7 +1338,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 		err    error
 		status iotextypes.ReceiptStatus
 	}{
-		// fetchCaller ErrNotEnoughBalance
+		// fetchCaller ReceiptStatus_ErrNotEnoughBalance
 		{
 			callerAddr,
 			"9990000000000000000",
@@ -1358,7 +1358,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			nil,
 			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
-		// for bucket.Owner is not equal to actionCtx.Caller
+		// fetchBucket, bucket.Owner is not equal to actionCtx.Caller
 		{
 			identityset.Address(12),
 			"10000000000000000000",
