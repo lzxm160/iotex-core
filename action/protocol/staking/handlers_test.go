@@ -1160,7 +1160,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		err    error
 		status iotextypes.ReceiptStatus
 	}{
-		// fetchCaller state.ErrNotEnoughBalance
+		// fetchCaller ReceiptStatus_ErrNotEnoughBalance
 		{
 			identityset.Address(2),
 			9990000000000000000,
@@ -1259,11 +1259,11 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			GasLimit:       10000000,
 		})
 		r, err := p.handleTransferStake(ctx, act, sm)
-		if err != nil {
-			require.Equal(test.err, errors.Cause(err))
-		}
+		require.Equal(test.err, errors.Cause(err))
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
+		} else {
+			require.Equal(test.status, iotextypes.ReceiptStatus_Success)
 		}
 
 		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
@@ -1468,11 +1468,11 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			GasLimit:       10000000,
 		})
 		r, err := p.handleRestake(ctx, act, sm)
-		if err != nil {
-			require.Equal(test.err, errors.Cause(err))
-		}
+		require.Equal(test.err, errors.Cause(err))
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
+		} else {
+			require.Equal(test.status, iotextypes.ReceiptStatus_Success)
 		}
 
 		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
@@ -1639,11 +1639,11 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			GasLimit:       10000000,
 		})
 		r, err := p.handleDepositToStake(ctx, act, sm)
-		if err != nil {
-			require.Equal(test.err, errors.Cause(err))
-		}
+		require.Equal(test.err, errors.Cause(err))
 		if r != nil {
 			require.Equal(uint64(test.status), r.Status)
+		} else {
+			require.Equal(test.status, iotextypes.ReceiptStatus_Success)
 		}
 
 		if err == nil && test.status == iotextypes.ReceiptStatus_Success {
