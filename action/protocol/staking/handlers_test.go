@@ -1182,9 +1182,10 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 
 	tests := []struct {
 		// creat stake fields
-		caller      address.Address
-		amount      uint64
-		initBalance int64
+		caller        address.Address
+		amount        uint64
+		afterTransfer uint64
+		initBalance   int64
 		// action fields
 		index    uint64
 		gasPrice *big.Int
@@ -1206,6 +1207,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		{
 			identityset.Address(2),
 			9990000000000000000,
+			0,
 			10,
 			0,
 			big.NewInt(unit.Qev),
@@ -1224,6 +1226,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		{
 			identityset.Address(1),
 			10000000000000000000,
+			0,
 			1000,
 			0,
 			big.NewInt(unit.Qev),
@@ -1242,6 +1245,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		{
 			identityset.Address(1),
 			10000000000000000000,
+			0,
 			100,
 			1,
 			big.NewInt(unit.Qev),
@@ -1259,6 +1263,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 		{
 			identityset.Address(2),
 			10000000000000000000,
+			0,
 			100,
 			0,
 			big.NewInt(unit.Qev),
@@ -1326,7 +1331,7 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			// test candidate
 			candidate, err := getCandidate(sm, candi.Owner)
 			require.NoError(err)
-			require.LessOrEqual(uint64(2), candidate.Votes.Uint64())
+			require.LessOrEqual(test.afterTransfer, candidate.Votes.Uint64())
 			candidate = p.inMemCandidates.GetByOwner(candi.Owner)
 			require.NotNil(candidate)
 			require.LessOrEqual(uint64(2), candidate.Votes.Uint64())
@@ -1334,8 +1339,8 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			require.Equal(candi.Operator, candidate.Operator)
 			require.Equal(candi.Reward, candidate.Reward)
 			require.Equal(candi.Owner, candidate.Owner)
-			require.LessOrEqual(uint64(2), candidate.Votes.Uint64())
-			require.LessOrEqual(uint64(2), candidate.SelfStake.Uint64())
+			require.LessOrEqual(test.afterTransfer, candidate.Votes.Uint64())
+			require.LessOrEqual(test.afterTransfer, candidate.SelfStake.Uint64())
 
 			// test staker's account
 			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
