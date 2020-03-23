@@ -1362,10 +1362,11 @@ func TestProtocol_HandleRestake(t *testing.T) {
 
 	tests := []struct {
 		// creat stake fields
-		caller      address.Address
-		amount      string
-		initBalance int64
-		selfstaking bool
+		caller       address.Address
+		amount       string
+		afterRestake string
+		initBalance  int64
+		selfstaking  bool
 		// action fields
 		index    uint64
 		gasPrice *big.Int
@@ -1390,6 +1391,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 		{
 			callerAddr,
 			"9990000000000000000",
+			"0",
 			10,
 			false,
 			0,
@@ -1410,6 +1412,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 		{
 			identityset.Address(12),
 			"10000000000000000000",
+			"0",
 			100,
 			false,
 			0,
@@ -1430,6 +1433,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 		{
 			identityset.Address(33),
 			"10000000000000000000",
+			"0",
 			100,
 			false,
 			1,
@@ -1450,6 +1454,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 		{
 			callerAddr,
 			"10000000000000000000",
+			"0",
 			100,
 			false,
 			0,
@@ -1470,6 +1475,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 		// ReceiptStatus_Success
 		{
 			callerAddr,
+			"10000000000000000000",
 			"10000000000000000000",
 			100,
 			false,
@@ -1543,10 +1549,10 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			// test candidate
 			candidate, err = getCandidate(sm, candidate.Owner)
 			require.NoError(err)
-			require.Equal(uint64(10380178401692392590), candidate.Votes.Uint64())
+			require.Equal(test.afterRestake, candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.Equal(uint64(10380178401692392590), candidate.Votes.Uint64())
+			require.Equal(test.afterRestake, candidate.Votes.String())
 
 			// test staker's account
 			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
