@@ -983,6 +983,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		// creat stake fields
 		caller      address.Address
 		amount      string
+		afterChange string
 		initBalance int64
 		selfstaking bool
 		// action fields
@@ -1005,6 +1006,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		{
 			identityset.Address(1),
 			"9999990000000000000000",
+			"0",
 			10000,
 			false,
 			1,
@@ -1023,6 +1025,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		{
 			identityset.Address(1),
 			"10000000000000000000",
+			"0",
 			100,
 			false,
 			1,
@@ -1041,6 +1044,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		{
 			identityset.Address(1),
 			"10000000000000000000",
+			"0",
 			100,
 			true,
 			1,
@@ -1059,6 +1063,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		{
 			identityset.Address(1),
 			"10000000000000000000",
+			"0",
 			100,
 			false,
 			1,
@@ -1078,6 +1083,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		{
 			identityset.Address(2),
 			"10000000000000000000",
+			"20000000000000000000",
 			100,
 			false,
 			0,
@@ -1147,7 +1153,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			candidate, err := getCandidate(sm, candidate.Owner)
 			require.NotNil(candidate)
 			require.NoError(err)
-			require.Equal("20000000000000000002", candidate.Votes.String())
+			require.Equal(test.afterChange, candidate.Votes.String())
 			require.Equal(test.candidateName, candidate.Name)
 			require.Equal(candidate.Operator.String(), candidate.Operator.String())
 			require.Equal(candidate.Reward.String(), candidate.Reward.String())
@@ -1155,7 +1161,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			require.Equal("1200000000000000000000000", candidate.SelfStake.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.Equal("20000000000000000002", candidate.Votes.String())
+			require.Equal(test.afterChange, candidate.Votes.String())
 
 			// test staker's account
 			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
