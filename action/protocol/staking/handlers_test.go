@@ -334,10 +334,10 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 				require.NoError(err)
 				require.Equal(test.ownerAddrStr, candidate.Owner.String())
 			}
-			require.Equal("1", candidate.Votes.String())
+			require.Equal(test.amountStr, candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.Equal("1", candidate.Votes.String())
+			require.Equal(test.amountStr, candidate.Votes.String())
 			require.Equal(test.name, candidate.Name)
 			require.Equal(test.operatorAddrStr, candidate.Operator.String())
 			require.Equal(test.rewardAddrStr, candidate.Reward.String())
@@ -369,6 +369,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 		rewardAddrStr   string
 		ownerAddrStr    string
 		amountStr       string
+		afterUpdate     string
 		duration        uint32
 		autoStake       bool
 		payload         []byte
@@ -393,6 +394,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			identityset.Address(29).String(),
 			identityset.Address(27).String(),
 			"9999999999989300000",
+			"",
 			uint32(10000),
 			false,
 			[]byte("payload"),
@@ -416,6 +418,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			identityset.Address(29).String(),
 			identityset.Address(30).String(),
 			"100",
+			"",
 			uint32(10000),
 			false,
 			[]byte("payload"),
@@ -439,6 +442,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			identityset.Address(29).String(),
 			"",
 			"100",
+			"",
 			uint32(10000),
 			false,
 			[]byte("payload"),
@@ -462,6 +466,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			identityset.Address(30).String(),
 			"",
 			"100",
+			"",
 			uint32(10000),
 			false,
 			[]byte("payload"),
@@ -484,6 +489,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			identityset.Address(29).String(),
 			identityset.Address(27).String(),
 			"100",
+			"158",
 			uint32(10000),
 			false,
 			[]byte("payload"),
@@ -556,10 +562,10 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 				require.NoError(err)
 				require.Equal(test.ownerAddrStr, candidate.Owner.String())
 			}
-			require.Equal("158", candidate.Votes.String())
+			require.Equal(test.afterUpdate, candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.Equal("158", candidate.Votes.String())
+			require.Equal(test.afterUpdate, candidate.Votes.String())
 			if test.updateName != "" {
 				require.Equal(test.updateName, candidate.Name)
 			}
@@ -569,7 +575,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			if test.updateOperator != "" {
 				require.Equal(test.updateReward, candidate.Reward.String())
 			}
-			require.Equal("158", candidate.Votes.String())
+			require.Equal(test.afterUpdate, candidate.Votes.String())
 			require.Equal(test.amountStr, candidate.SelfStake.String())
 
 			// test staker's account
@@ -981,11 +987,12 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 
 	tests := []struct {
 		// creat stake fields
-		caller      address.Address
-		amount      string
-		afterChange string
-		initBalance int64
-		selfstaking bool
+		caller               address.Address
+		amount               string
+		afterChange          string
+		afterChangeSelfStake string
+		initBalance          int64
+		selfstaking          bool
 		// action fields
 		index         uint64
 		candidateName string
@@ -1007,6 +1014,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			identityset.Address(1),
 			"9999990000000000000000",
 			"0",
+			"0",
 			10000,
 			false,
 			1,
@@ -1025,6 +1033,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		{
 			identityset.Address(1),
 			"10000000000000000000",
+			"0",
 			"0",
 			100,
 			false,
@@ -1045,6 +1054,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			identityset.Address(1),
 			"10000000000000000000",
 			"0",
+			"0",
 			100,
 			true,
 			1,
@@ -1063,6 +1073,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 		{
 			identityset.Address(1),
 			"10000000000000000000",
+			"0",
 			"0",
 			100,
 			false,
@@ -1084,6 +1095,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			identityset.Address(2),
 			"10000000000000000000",
 			"20000000000000000000",
+			"1200000000000000000000000",
 			100,
 			false,
 			0,
@@ -1158,7 +1170,7 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			require.Equal(candidate.Operator.String(), candidate.Operator.String())
 			require.Equal(candidate.Reward.String(), candidate.Reward.String())
 			require.Equal(candidate.Owner.String(), candidate.Owner.String())
-			require.Equal("1200000000000000000000000", candidate.SelfStake.String())
+			require.Equal(test.afterChangeSelfStake, candidate.SelfStake.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
 			require.Equal(test.afterChange, candidate.Votes.String())
