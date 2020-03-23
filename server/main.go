@@ -20,6 +20,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/q191201771/pprofplus/pkg/pprofplus"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 
@@ -41,6 +42,10 @@ func init() {
 }
 
 func main() {
+	if err := pprofplus.Start(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	signal.Notify(stop, syscall.SIGTERM)

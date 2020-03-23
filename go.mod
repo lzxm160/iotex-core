@@ -29,6 +29,7 @@ require (
 	github.com/multiformats/go-multiaddr v0.0.2
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.0.0
+	github.com/q191201771/pprofplus v0.0.0-20200317021942-511c6386d5ce // indirect
 	github.com/rs/zerolog v1.14.3
 	github.com/schollz/progressbar/v2 v2.15.0
 	github.com/spf13/cobra v0.0.4
