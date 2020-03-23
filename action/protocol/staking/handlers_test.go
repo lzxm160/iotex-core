@@ -1331,10 +1331,10 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			// test candidate
 			candidate, err := getCandidate(sm, candi.Owner)
 			require.NoError(err)
-			require.LessOrEqual(test.afterTransfer, candidate.Votes.Uint64())
+			require.Equal(test.afterTransfer, candidate.Votes.Uint64())
 			candidate = p.inMemCandidates.GetByOwner(candi.Owner)
 			require.NotNil(candidate)
-			require.LessOrEqual(uint64(2), candidate.Votes.Uint64())
+			require.LessOrEqual(test.afterTransfer, candidate.Votes.Uint64())
 			require.Equal(candi.Name, candidate.Name)
 			require.Equal(candi.Operator, candidate.Operator)
 			require.Equal(candi.Reward, candidate.Reward)
