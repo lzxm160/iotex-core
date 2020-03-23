@@ -1339,8 +1339,8 @@ func TestProtocol_HandleTransferStake(t *testing.T) {
 			require.Equal(candi.Operator, candidate.Operator)
 			require.Equal(candi.Reward, candidate.Reward)
 			require.Equal(candi.Owner, candidate.Owner)
-			require.LessOrEqual(test.afterTransfer, candidate.Votes.Uint64())
-			require.LessOrEqual(test.afterTransfer, candidate.SelfStake.Uint64())
+			require.Equal(test.afterTransfer, candidate.Votes.Uint64())
+			require.Equal(test.afterTransfer, candidate.SelfStake.Uint64())
 
 			// test staker's account
 			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
