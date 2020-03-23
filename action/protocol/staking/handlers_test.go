@@ -1476,7 +1476,7 @@ func TestProtocol_HandleRestake(t *testing.T) {
 		{
 			callerAddr,
 			"10000000000000000000",
-			"10000000000000000000",
+			"10380178401692392587",
 			100,
 			false,
 			0,
