@@ -1549,10 +1549,10 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			// test candidate
 			candidate, err = getCandidate(sm, candidate.Owner)
 			require.NoError(err)
-			require.LessOrEqual(test.afterRestake, candidate.Votes.String())
+			require.Equal(test.afterRestake, candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.LessOrEqual(test.afterRestake, candidate.Votes.String())
+			require.Equal(test.afterRestake, candidate.Votes.String())
 
 			// test staker's account
 			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
@@ -1572,10 +1572,11 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 	defer ctrl.Finish()
 	tests := []struct {
 		// creat stake fields
-		caller      address.Address
-		amount      uint64
-		initBalance int64
-		selfstaking bool
+		caller       address.Address
+		amount       uint64
+		afterDeposit string
+		initBalance  int64
+		selfstaking  bool
 		// action fields
 		index    uint64
 		gasPrice *big.Int
@@ -1598,6 +1599,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 		{
 			identityset.Address(1),
 			9990000000000000000,
+			"0",
 			10,
 			false,
 			0,
@@ -1617,6 +1619,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 		{
 			identityset.Address(12),
 			10000000000000000000,
+			"0",
 			100,
 			false,
 			1,
@@ -1636,6 +1639,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 		{
 			identityset.Address(33),
 			10000000000000000000,
+			"0",
 			100,
 			false,
 			0,
@@ -1655,6 +1659,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 		{
 			identityset.Address(1),
 			10000000000000000000,
+			"0",
 			100,
 			false,
 			0,
@@ -1674,6 +1679,7 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 		{
 			identityset.Address(1),
 			10000000000000000000,
+			"20760356803384785174",
 			100,
 			false,
 			0,
@@ -1743,10 +1749,10 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			// test candidate
 			candidate, err = getCandidate(sm, candidate.Owner)
 			require.NoError(err)
-			require.Equal("20760356803384785176", candidate.Votes.String())
+			require.Equal(test.afterDeposit, candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.Equal("20760356803384785176", candidate.Votes.String())
+			require.Equal(test.afterDeposit, candidate.Votes.String())
 
 			// test staker's account
 			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
