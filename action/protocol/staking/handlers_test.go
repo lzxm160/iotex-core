@@ -1779,8 +1779,10 @@ func initAll(t *testing.T, ctrl *gomock.Controller) (protocol.StateManager, *Pro
 
 	// set up candidate
 	candidate := testCandidates[0].d.Clone()
+	candidate.Votes = big.NewInt(0)
 	require.NoError(setupCandidate(p, sm, candidate))
 	candidate2 := testCandidates[1].d.Clone()
+	candidate2.Votes = big.NewInt(0)
 	require.NoError(setupCandidate(p, sm, candidate2))
 	return sm, p, candidate, candidate2
 }
