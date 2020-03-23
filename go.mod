@@ -23,16 +23,16 @@ require (
 	github.com/iotexproject/iotex-proto v0.2.6-0.20200313212651-3c29eadd68ba
 	github.com/libp2p/go-libp2p v0.0.21 // indirect
 	github.com/libp2p/go-libp2p-peerstore v0.0.5
+	github.com/lzxm160/gomemanalysis v0.0.0-20200323140814-cc11a10b839f // indirect
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1
 	github.com/minio/sha256-simd v0.1.1 // indirect
 	github.com/multiformats/go-multiaddr v0.0.2
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.0.0
-	github.com/q191201771/pprofplus v0.0.0-20200317021942-511c6386d5ce // indirect
 	github.com/rs/zerolog v1.14.3
 	github.com/schollz/progressbar/v2 v2.15.0
-	github.com/spf13/cobra v0.0.4
+	github.com/spf13/cobra v0.0.5
 	github.com/stretchr/testify v1.4.0
 	go.etcd.io/bbolt v1.3.2
 	go.uber.org/automaxprocs v1.2.0

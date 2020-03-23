@@ -20,7 +20,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/q191201771/pprofplus/pkg/pprofplus"
+	gomemanalysis "github.com/lzxm160/gomemanalysis/core"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 
@@ -42,7 +42,7 @@ func init() {
 }
 
 func main() {
-	if err := pprofplus.Start(); err != nil {
+	if err := gomemanalysis.Start(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
