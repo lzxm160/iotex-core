@@ -442,7 +442,7 @@ func TestProtocol_handleCandidateUpdate(t *testing.T) {
 			identityset.Address(29).String(),
 			"",
 			"100",
-			"",
+			"158",
 			uint32(10000),
 			false,
 			[]byte("payload"),
