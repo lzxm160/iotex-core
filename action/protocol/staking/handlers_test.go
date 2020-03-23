@@ -1549,10 +1549,10 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			// test candidate
 			candidate, err = getCandidate(sm, candidate.Owner)
 			require.NoError(err)
-			require.Equal(test.afterRestake, candidate.Votes.String())
+			require.LessOrEqual(test.afterRestake, candidate.Votes.String())
 			candidate = p.inMemCandidates.GetByOwner(candidate.Owner)
 			require.NotNil(candidate)
-			require.Equal(test.afterRestake, candidate.Votes.String())
+			require.LessOrEqual(test.afterRestake, candidate.Votes.String())
 
 			// test staker's account
 			caller, err := accountutil.LoadAccount(sm, hash.BytesToHash160(test.caller.Bytes()))
