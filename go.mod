@@ -23,7 +23,7 @@ require (
 	github.com/iotexproject/iotex-proto v0.2.6-0.20200313212651-3c29eadd68ba
 	github.com/libp2p/go-libp2p v0.0.21 // indirect
 	github.com/libp2p/go-libp2p-peerstore v0.0.5
-	github.com/lzxm160/gomemanalysis v0.0.0-20200323140814-cc11a10b839f // indirect
+	github.com/lzxm160/gomemanalysis v0.0.0-20200324003633-2a8c4b95d506 // indirect
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1
 	github.com/minio/sha256-simd v0.1.1 // indirect

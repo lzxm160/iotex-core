@@ -342,6 +342,8 @@ github.com/libp2p/go-ws-transport v0.0.2 h1:PtK1AoM16nm96FwPBQoq+4T4t9LdDwOhkB+m
 github.com/libp2p/go-ws-transport v0.0.2/go.mod h1:p3bKjDWHEgtuKKj+2OdPYs5dAPIjtpQGHF2tJfGz7Ww=
 github.com/lzxm160/gomemanalysis v0.0.0-20200323140814-cc11a10b839f h1:SBOtSmpKqm8xpbf/UqNelcdv3cb0fXtAo8j+0hsXutQ=
 github.com/lzxm160/gomemanalysis v0.0.0-20200323140814-cc11a10b839f/go.mod h1:uIdkd7h/qrHkhUsw42wfxDbzNmTIiiGnmgv8rur9NWw=
+github.com/lzxm160/gomemanalysis v0.0.0-20200324003633-2a8c4b95d506 h1:QFIaC1uozCf+z091m0KwivWFFKwKtvBK3czBzrL5RvU=
+github.com/lzxm160/gomemanalysis v0.0.0-20200324003633-2a8c4b95d506/go.mod h1:uIdkd7h/qrHkhUsw42wfxDbzNmTIiiGnmgv8rur9NWw=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/mattn/go-colorable v0.1.1/go.mod h1:FuOcm+DKB9mbwrcAfNl7/TZVBZ6rcnceauSikq3lYCQ=
 github.com/mattn/go-colorable v0.1.2 h1:/bC9yWikZXAL9uJdulbSfyVNIR3n3trXl+v8+1sx8mU=
