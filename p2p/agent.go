@@ -240,7 +240,7 @@ func (p *Agent) Start(ctx context.Context) error {
 			if strings.Contains(bootAddr.String(), host.HostIdentity()) {
 				continue
 			}
-
+			fmt.Println("////////////////////////////:", bootAddr.String())
 			tryNum++
 			go func() {
 				if err := exponentialRetry(
