@@ -108,11 +108,11 @@ func (s *Server) Start(ctx context.Context) error {
 // Stop stops the server
 func (s *Server) Stop(ctx context.Context) error {
 	defer s.subModuleCancel()
-	if err := s.p2pAgent.Stop(ctx); err != nil {
-		return errors.Wrap(err, "error when stopping P2P agent")
-	}
 	if err := s.dispatcher.Stop(ctx); err != nil {
 		return errors.Wrap(err, "error when stopping dispatcher")
+	}
+	if err := s.p2pAgent.Stop(ctx); err != nil {
+		return errors.Wrap(err, "error when stopping P2P agent")
 	}
 	for _, cs := range s.chainservices {
 		if err := cs.Stop(ctx); err != nil {
