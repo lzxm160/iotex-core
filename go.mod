@@ -51,4 +51,4 @@ replace github.com/ethereum/go-ethereum => github.com/iotexproject/go-ethereum v
 
 replace golang.org/x/xerrors => golang.org/x/xerrors v0.0.0-20190212162355-a5947ffaace3
 
-replace github.com/iotexproject/go-p2p => github.com/lzxm160/go-p2p v1.0.4
+replace github.com/iotexproject/go-p2p => github.com/lzxm160/go-p2p v1.0.5
