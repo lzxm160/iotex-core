@@ -123,18 +123,17 @@ func main() {
 		svrs[i] = svr
 	}
 	defer func() {
-		if !deleteDBFiles {
-			return
-		}
 		for _, s := range svrs {
 			s.Stop(context.Background())
+		}
+		if !deleteDBFiles {
+			return
 		}
 		for _, dbFilePath := range dbFilePaths {
 			if fileutil.FileExists(dbFilePath) && os.RemoveAll(dbFilePath) != nil {
 				log.L().Error("Failed to delete db file")
 			}
 		}
-
 	}()
 	// Create a probe server
 	probeSvr := probe.New(7788)
@@ -385,6 +384,7 @@ func main() {
 		}
 		deleteDBFiles = true
 	}
+
 }
 
 func newConfig(
