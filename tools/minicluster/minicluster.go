@@ -123,8 +123,8 @@ func main() {
 		svrs[i] = svr
 	}
 	defer func() {
-		for i := numNodes - 1; i >= 0; i-- {
-			svrs[i].Stop(context.Background())
+		for _, svr := range svrs {
+			svr.Stop(context.Background())
 		}
 		if !deleteDBFiles {
 			return
