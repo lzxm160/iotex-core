@@ -343,7 +343,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 		//},
 		{
 			101,
-			identityset.Address(31),
+			identityset.Address(33),
 			uint64(10),
 			"test1",
 			identityset.Address(32).String(),
