@@ -213,7 +213,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 		err             error
 		status          iotextypes.ReceiptStatus
 	}{
-		// fetchCaller,ErrNotEnoughBalance
+		// Case I: fetchCaller,ErrNotEnoughBalance
 		{
 			100,
 			identityset.Address(27),
@@ -233,7 +233,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			nil,
 			iotextypes.ReceiptStatus_ErrNotEnoughBalance,
 		},
-		// owner address is nil
+		// Case II: owner address is nil
 		{
 			101,
 			identityset.Address(27),
@@ -254,7 +254,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			iotextypes.ReceiptStatus_Success,
 		},
 		// caller.SubBalance,ErrNotEnoughBalance,cannot happen because fetchcaller already check
-		// settleAction,ErrHitGasLimit
+		// Case III: settleAction,ErrHitGasLimit
 		{
 			1000,
 			identityset.Address(27),
@@ -274,7 +274,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			action.ErrHitGasLimit,
 			iotextypes.ReceiptStatus_Success,
 		},
-		// Upsert,check collision
+		// Case IV: Upsert,check collision
 		{
 			1000,
 			identityset.Address(27),
@@ -294,7 +294,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			ErrAlreadyExist,
 			iotextypes.ReceiptStatus_Success,
 		},
-		// Case IV: act.OwnerAddress() is not nil,existing owner, but selfstake is not 0
+		// Case V: act.OwnerAddress() is not nil,existing owner, but selfstake is not 0
 		{
 			101,
 			identityset.Address(27),
@@ -314,14 +314,7 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			ErrAlreadyExist,
 			iotextypes.ReceiptStatus_Success,
 		},
-
-		//// Case V: act.OwnerAddress() is not,existing candidate, collide with existing name
-		//{
-		//	ctx, "test", cans[0].Operator.String(), cans[0].Reward.String(), cans[0].Owner.String(), "1200000000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
-		//	10000,
-		//	1,
-		//	ErrInvalidCanName,
-		//},
+		// Case VI: act.OwnerAddress() is false,existing candidate, collide with existing name
 		{
 			101,
 			identityset.Address(31),
@@ -341,13 +334,32 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			ErrInvalidCanName,
 			iotextypes.ReceiptStatus_Success,
 		},
-		//// Case VI: act.OwnerAddress() is not,existing candidate, collide with existing operator
+		// Case VII: act.OwnerAddress() is not,existing candidate, collide with existing operator
 		//{
 		//	ctx, "test1", cans[1].Operator.String(), cans[0].Reward.String(), cans[0].Owner.String(), "1200000000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
 		//	10000,
 		//	1,
 		//	ErrInvalidOperator,
 		//},
+		{
+			101,
+			identityset.Address(31),
+			uint64(10),
+			"test",
+			identityset.Address(32).String(),
+			identityset.Address(29).String(),
+			identityset.Address(31).String(),
+			"1",
+			uint32(10000),
+			false,
+			nil,
+			uint64(1000000),
+			uint64(1000000),
+			big.NewInt(1),
+			false,
+			ErrInvalidOperator,
+			iotextypes.ReceiptStatus_Success,
+		},
 		//// Case VII: act.OwnerAddress() is not,new candidate, collide with existing name
 		//{
 		//	ctx, "test1", cans[0].Operator.String(), cans[0].Reward.String(), "", "1200000000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
