@@ -466,7 +466,7 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	// cannot collide with existing name
 	if csm.ContainsName(act.Name()) && (!ownerExist || act.Name() != c.Name) {
 		fmt.Println("act.Name():", act.Name())
-		fmt.Println("c.Name:", c.Name)
+		//fmt.Println("c.Name:", c.Name)
 		return nil, ErrInvalidCanName
 	}
 	fmt.Println("470")
