@@ -449,7 +449,7 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
 		return p.settleAction(ctx, csm, uint64(fetchErr.failureStatus), gasFee)
 	}
-
+	fmt.Println("452")
 	owner := actCtx.Caller
 	if act.OwnerAddress() != nil {
 		owner = act.OwnerAddress()
@@ -462,22 +462,24 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	if ownerExist && c.SelfStake.Cmp(big.NewInt(0)) != 0 {
 		return nil, ErrAlreadyExist
 	}
+	fmt.Println("465")
 	// cannot collide with existing name
 	if csm.ContainsName(act.Name()) && (!ownerExist || act.Name() != c.Name) {
 		return nil, ErrInvalidCanName
 	}
+	fmt.Println("470")
 	// cannot collide with existing operator address
 	if csm.ContainsOperator(act.OperatorAddress()) &&
 		(!ownerExist || !address.Equal(act.OperatorAddress(), c.Operator)) {
 		return nil, ErrInvalidOperator
 	}
-
+	fmt.Println("476")
 	bucket := NewVoteBucket(owner, owner, act.Amount(), act.Duration(), blkCtx.BlockTimeStamp, act.AutoStake())
 	bucketIdx, err := putBucketAndIndex(csm, bucket)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to put bucket")
 	}
-
+	fmt.Println("482")
 	c = &Candidate{
 		Owner:              owner,
 		Operator:           act.OperatorAddress(),
@@ -491,21 +493,22 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	if err := csm.Upsert(c); err != nil {
 		return nil, errors.Wrapf(err, "failed to put state of candidate %s", owner.String())
 	}
-
+	fmt.Println("496")
 	// update caller balance
 	if err := caller.SubBalance(act.Amount()); err != nil {
 		return nil, errors.Wrapf(err, "failed to update the balance of staker %s", actCtx.Caller.String())
 	}
+	fmt.Println("501")
 	// put updated caller's account state to trie
 	if err := accountutil.StoreAccount(csm, actCtx.Caller.String(), caller); err != nil {
 		return nil, errors.Wrapf(err, "failed to store account %s", actCtx.Caller.String())
 	}
-
+	fmt.Println("506")
 	// put registrationFee to reward pool
 	if err := p.depositGas(ctx, csm, registrationFee); err != nil {
 		return nil, errors.Wrap(err, "failed to deposit gas")
 	}
-
+	fmt.Println("511")
 	log := p.createLog(ctx, HandleCandidateRegister, owner, actCtx.Caller, byteutil.Uint64ToBytesBigEndian(bucketIdx))
 	return p.settleAction(ctx, csm, uint64(iotextypes.ReceiptStatus_Success), gasFee, log)
 }
