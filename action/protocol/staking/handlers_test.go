@@ -295,12 +295,6 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 			iotextypes.ReceiptStatus_Success,
 		},
 		// Case IV: act.OwnerAddress() is not nil,existing owner, but selfstake is not 0
-		//{
-		//	ctx, "test2", cans[1].Operator.String(), cans[1].Reward.String(), cans[1].Owner.String(), "1200000000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
-		//	10000,
-		//	1,
-		//	ErrInvalidOwner,
-		//},
 		{
 			101,
 			identityset.Address(27),
@@ -328,6 +322,25 @@ func TestProtocol_HandleCandidateRegister(t *testing.T) {
 		//	1,
 		//	ErrInvalidCanName,
 		//},
+		{
+			101,
+			identityset.Address(30),
+			uint64(10),
+			"test",
+			identityset.Address(28).String(),
+			identityset.Address(29).String(),
+			identityset.Address(30).String(),
+			"1",
+			uint32(10000),
+			false,
+			nil,
+			uint64(1000000),
+			uint64(1000000),
+			big.NewInt(1),
+			false,
+			ErrInvalidCanName,
+			iotextypes.ReceiptStatus_Success,
+		},
 		//// Case VI: act.OwnerAddress() is not,existing candidate, collide with existing operator
 		//{
 		//	ctx, "test1", cans[1].Operator.String(), cans[0].Reward.String(), cans[0].Owner.String(), "1200000000000000000000000", uint32(10000), false, []byte("payload"), big.NewInt(unit.Qev),
