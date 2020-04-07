@@ -18,7 +18,7 @@ import (
 type (
 	// CandidateStateManager is candidate manager on top of StateMangaer
 	CandidateStateManager interface {
-		protocol.StateManager
+		//protocol.StateManager
 		// candidate-related
 		Size() int
 		ContainsName(string) bool
