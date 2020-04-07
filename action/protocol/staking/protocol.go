@@ -61,6 +61,11 @@ type Protocol struct {
 	sr          protocol.StateReader
 	config      Configuration
 }
+type HandleMsg struct {
+	data   []byte
+	status uint64
+	gasFee *big.Int
+}
 
 // Configuration is the staking protocol configuration.
 type Configuration struct {
@@ -188,44 +193,63 @@ func (p *Protocol) Commit(ctx context.Context, sm protocol.StateManager) error {
 
 // Handle handles a staking message
 func (p *Protocol) Handle(ctx context.Context, act action.Action, sm protocol.StateManager) (*action.Receipt, error) {
+	return p.handle(ctx, act, sm)
+}
+
+func (p *Protocol) handle(ctx context.Context, act action.Action, sm protocol.StateManager) (*action.Receipt, error) {
+	var (
+		r              *HandleMsg
+		handlerName    string
+		candidateOwner address.Address
+		err            error
+	)
 	csm, err := p.createCandidateStateManager(sm)
 	if err != nil {
 		return nil, err
 	}
-	return p.handle(ctx, act, csm)
-}
 
-func (p *Protocol) handle(ctx context.Context, act action.Action, csm CandidateStateManager) (*action.Receipt, error) {
 	switch act := act.(type) {
 	case *action.CreateStake:
-		r, err := p.handleCreateStake(ctx, act, csm)
-		return r, err
+		r, err = p.handleCreateStake(ctx, act, sm)
+		handlerName = HandleCreateStake
+		candidate := csm.GetByName(act.Candidate())
+		if candidate != nil {
+			candidateOwner = candidate.Owner
+		}
 	case *action.Unstake:
-		r, err := p.handleUnstake(ctx, act, csm)
-		return r, err
+		r, err = p.handleUnstake(ctx, act, sm)
+		handlerName = HandleUnstake
 	case *action.WithdrawStake:
-		r, err := p.handleWithdrawStake(ctx, act, csm)
-		return r, err
+		r, err = p.handleWithdrawStake(ctx, act, sm)
+		handlerName = HandleWithdrawStake
 	case *action.ChangeCandidate:
-		r, err := p.handleChangeCandidate(ctx, act, csm)
-		return r, err
+		r, err = p.handleChangeCandidate(ctx, act, sm)
+		handlerName = HandleChangeCandidate
+		candidate := csm.GetByName(act.Candidate())
+		if candidate != nil {
+			candidateOwner = candidate.Owner
+		}
 	case *action.TransferStake:
-		r, err := p.handleTransferStake(ctx, act, csm)
-		return r, err
+		r, err = p.handleTransferStake(ctx, act, sm)
+		handlerName = HandleTransferStake
 	case *action.DepositToStake:
-		r, err := p.handleDepositToStake(ctx, act, csm)
-		return r, err
+		r, err = p.handleDepositToStake(ctx, act, sm)
+		handlerName = HandleDepositToStake
 	case *action.Restake:
-		r, err := p.handleRestake(ctx, act, csm)
-		return r, err
+		r, err = p.handleRestake(ctx, act, sm)
+		handlerName = HandleRestake
 	case *action.CandidateRegister:
-		r, err := p.handleCandidateRegister(ctx, act, csm)
-		return r, err
+		r, err = p.handleCandidateRegister(ctx, act, sm)
+		handlerName = HandleCandidateRegister
 	case *action.CandidateUpdate:
-		r, err := p.handleCandidateUpdate(ctx, act, csm)
-		return r, err
+		r, err = p.handleCandidateUpdate(ctx, act, sm)
+		handlerName = HandleCandidateUpdate
 	}
-	return nil, nil
+	if err != nil {
+		return nil, err
+	}
+	log := p.createLog(ctx, handlerName, candidateOwner, protocol.MustGetActionCtx(ctx).Caller, r.data)
+	return p.settleAction(ctx, sm, r.status, r.gasFee, log)
 }
 
 // Validate validates a staking message
