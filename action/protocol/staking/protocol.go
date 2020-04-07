@@ -193,56 +193,57 @@ func (p *Protocol) Commit(ctx context.Context, sm protocol.StateManager) error {
 
 // Handle handles a staking message
 func (p *Protocol) Handle(ctx context.Context, act action.Action, sm protocol.StateManager) (*action.Receipt, error) {
-	csm, err := p.createCandidateStateManager(sm)
-	if err != nil {
-		return nil, err
-	}
-	return p.handle(ctx, act, csm, sm)
+	return p.handle(ctx, act, sm)
 }
 
-func (p *Protocol) handle(ctx context.Context, act action.Action, csm CandidateStateManager, sm protocol.StateManager) (*action.Receipt, error) {
+func (p *Protocol) handle(ctx context.Context, act action.Action, sm protocol.StateManager) (*action.Receipt, error) {
 	var (
 		r              *HandleMsg
 		handlerName    string
 		candidateOwner address.Address
 		err            error
 	)
+	csm, err := p.createCandidateStateManager(sm)
+	if err != nil {
+		return nil, err
+	}
+
 	switch act := act.(type) {
 	case *action.CreateStake:
-		r, err = p.handleCreateStake(ctx, act, csm, sm)
-		handlerName = "HandleCreateStake"
+		r, err = p.handleCreateStake(ctx, act, sm)
+		handlerName = HandleCreateStake
 		candidate := csm.GetByName(act.Candidate())
 		if candidate != nil {
 			candidateOwner = candidate.Owner
 		}
 	case *action.Unstake:
-		r, err = p.handleUnstake(ctx, act, csm, sm)
-		handlerName = "HandleUnstake"
+		r, err = p.handleUnstake(ctx, act, sm)
+		handlerName = HandleUnstake
 	case *action.WithdrawStake:
-		r, err = p.handleWithdrawStake(ctx, act, csm, sm)
-		handlerName = "HandleWithdrawStake"
+		r, err = p.handleWithdrawStake(ctx, act, sm)
+		handlerName = HandleWithdrawStake
 	case *action.ChangeCandidate:
-		r, err = p.handleChangeCandidate(ctx, act, csm, sm)
-		handlerName = "HandleChangeCandidate"
+		r, err = p.handleChangeCandidate(ctx, act, sm)
+		handlerName = HandleChangeCandidate
 		candidate := csm.GetByName(act.Candidate())
 		if candidate != nil {
 			candidateOwner = candidate.Owner
 		}
 	case *action.TransferStake:
-		r, err = p.handleTransferStake(ctx, act, csm, sm)
-		handlerName = "HandleTransferStake"
+		r, err = p.handleTransferStake(ctx, act, sm)
+		handlerName = HandleTransferStake
 	case *action.DepositToStake:
-		r, err = p.handleDepositToStake(ctx, act, csm, sm)
-		handlerName = "HandleDepositToStake"
+		r, err = p.handleDepositToStake(ctx, act, sm)
+		handlerName = HandleDepositToStake
 	case *action.Restake:
-		r, err = p.handleRestake(ctx, act, csm, sm)
-		handlerName = "HandleRestake"
+		r, err = p.handleRestake(ctx, act, sm)
+		handlerName = HandleRestake
 	case *action.CandidateRegister:
-		r, err = p.handleCandidateRegister(ctx, act, csm, sm)
-		handlerName = "HandleCandidateRegister"
+		r, err = p.handleCandidateRegister(ctx, act, sm)
+		handlerName = HandleCandidateRegister
 	case *action.CandidateUpdate:
-		r, err = p.handleCandidateUpdate(ctx, act, csm, sm)
-		handlerName = "HandleCandidateUpdate"
+		r, err = p.handleCandidateUpdate(ctx, act, sm)
+		handlerName = HandleCandidateUpdate
 	}
 	if err != nil {
 		return nil, err

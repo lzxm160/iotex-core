@@ -58,7 +58,11 @@ type fetchError struct {
 	failureStatus iotextypes.ReceiptStatus
 }
 
-func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStake, csm CandidateStateManager, sm protocol.StateManager) (*HandleMsg, error) {
+func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStake, sm protocol.StateManager) (*HandleMsg, error) {
+	csm, err := p.createCandidateStateManager(sm)
+	if err != nil {
+		return nil, err
+	}
 	actionCtx := protocol.MustGetActionCtx(ctx)
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 
@@ -68,7 +72,6 @@ func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStak
 			return nil, fetchErr.err
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
-		//return p.settleAction(ctx, csm, uint64(fetchErr.failureStatus), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(fetchErr.failureStatus),
@@ -80,7 +83,6 @@ func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStak
 	candidate := csm.GetByName(act.Candidate())
 	if candidate == nil {
 		log.L().Debug("Error when finding candidate in candidate center", zap.Error(ErrInvalidCanName))
-		//return p.settleAction(ctx, csm, uint64(iotextypes.ReceiptStatus_ErrCandidateNotExist), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(iotextypes.ReceiptStatus_ErrCandidateNotExist),
@@ -117,7 +119,11 @@ func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStak
 	}, nil
 }
 
-func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, csm CandidateStateManager, sm protocol.StateManager) (*HandleMsg, error) {
+func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, sm protocol.StateManager) (*HandleMsg, error) {
+	csm, err := p.createCandidateStateManager(sm)
+	if err != nil {
+		return nil, err
+	}
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 
 	_, gasFee, fetchErr := fetchCaller(ctx, sm, big.NewInt(0))
@@ -131,7 +137,6 @@ func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, csm C
 			uint64(fetchErr.failureStatus),
 			gasFee,
 		}, nil
-		//return p.settleAction(ctx, csm, uint64(fetchErr.failureStatus), gasFee)
 	}
 
 	bucket, fetchErr := p.fetchBucket(ctx, sm, csm, act.BucketIndex(), true, true)
@@ -140,7 +145,6 @@ func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, csm C
 			return nil, fetchErr.err
 		}
 		log.L().Debug("Error when fetching bucket", zap.Error(fetchErr.err))
-		//return p.settleAction(ctx, csm, uint64(fetchErr.failureStatus), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(fetchErr.failureStatus),
@@ -157,7 +161,6 @@ func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, csm C
 		err := fmt.Errorf("bucket is not ready to be unstaked, current time %s, required time %s",
 			blkCtx.BlockTimeStamp, bucket.StakeStartTime.Add(bucket.StakedDuration))
 		log.L().Debug("Error when withdrawing bucket", zap.Error(err))
-		//return p.settleAction(ctx, csm, uint64(iotextypes.ReceiptStatus_ErrUnstakeBeforeMaturity), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(iotextypes.ReceiptStatus_ErrUnstakeBeforeMaturity),
@@ -188,11 +191,13 @@ func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, csm C
 		uint64(iotextypes.ReceiptStatus_Success),
 		gasFee,
 	}, nil
-	//log := p.createLog(ctx, HandleUnstake, nil, actionCtx.Caller, nil)
-	//return p.settleAction(ctx, csm, uint64(iotextypes.ReceiptStatus_Success), gasFee, log)
 }
 
-func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.WithdrawStake, csm CandidateStateManager, sm protocol.StateManager) (*HandleMsg, error) {
+func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.WithdrawStake, sm protocol.StateManager) (*HandleMsg, error) {
+	csm, err := p.createCandidateStateManager(sm)
+	if err != nil {
+		return nil, err
+	}
 	actionCtx := protocol.MustGetActionCtx(ctx)
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 
@@ -202,7 +207,6 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 			return nil, fetchErr.err
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
-		//return p.settleAction(ctx, csm, uint64(fetchErr.failureStatus), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(fetchErr.failureStatus),
@@ -216,7 +220,6 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 			return nil, fetchErr.err
 		}
 		log.L().Debug("Error when fetching bucket", zap.Error(fetchErr.err))
-		//return p.settleAction(ctx, csm, uint64(fetchErr.failureStatus), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(fetchErr.failureStatus),
@@ -228,7 +231,6 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 	if bucket.UnstakeStartTime.Unix() == 0 {
 		err := errors.New("bucket has not been unstaked")
 		log.L().Debug("Error when withdrawing bucket", zap.Error(err))
-		//return p.settleAction(ctx, csm, uint64(iotextypes.ReceiptStatus_ErrWithdrawBeforeUnstake), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(iotextypes.ReceiptStatus_ErrWithdrawBeforeUnstake),
@@ -243,7 +245,6 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 		err := fmt.Errorf("bucket is not ready to be withdrawn, current time %s, required time %s",
 			blkCtx.BlockTimeStamp, maturity)
 		log.L().Debug("Error when withdrawing bucket", zap.Error(err))
-		//return p.settleAction(ctx, csm, uint64(iotextypes.ReceiptStatus_ErrWithdrawBeforeMaturity), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(iotextypes.ReceiptStatus_ErrWithdrawBeforeMaturity),
@@ -270,9 +271,6 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 	if err := accountutil.StoreAccount(sm, actionCtx.Caller.String(), withdrawer); err != nil {
 		return nil, errors.Wrapf(err, "failed to store account %s", actionCtx.Caller.String())
 	}
-
-	//log := p.createLog(ctx, HandleWithdrawStake, nil, actionCtx.Caller, nil)
-	//	//return p.settleAction(ctx, csm, uint64(iotextypes.ReceiptStatus_Success), gasFee, log)
 	return &HandleMsg{
 		nil,
 		uint64(iotextypes.ReceiptStatus_Success),
@@ -280,14 +278,17 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 	}, nil
 }
 
-func (p *Protocol) handleChangeCandidate(ctx context.Context, act *action.ChangeCandidate, csm CandidateStateManager, sm protocol.StateManager) (*HandleMsg, error) {
+func (p *Protocol) handleChangeCandidate(ctx context.Context, act *action.ChangeCandidate, sm protocol.StateManager) (*HandleMsg, error) {
+	csm, err := p.createCandidateStateManager(sm)
+	if err != nil {
+		return nil, err
+	}
 	_, gasFee, fetchErr := fetchCaller(ctx, sm, big.NewInt(0))
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
-		//return p.settleAction(ctx, csm, uint64(fetchErr.failureStatus), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(fetchErr.failureStatus),
@@ -298,7 +299,6 @@ func (p *Protocol) handleChangeCandidate(ctx context.Context, act *action.Change
 	candidate := csm.GetByName(act.Candidate())
 	if candidate == nil {
 		log.L().Debug("Error when finding candidate in candidate center", zap.Error(ErrInvalidCanName))
-		//return p.settleAction(ctx, csm, uint64(iotextypes.ReceiptStatus_ErrCandidateNotExist), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(iotextypes.ReceiptStatus_ErrCandidateNotExist),
@@ -312,7 +312,6 @@ func (p *Protocol) handleChangeCandidate(ctx context.Context, act *action.Change
 			return nil, fetchErr.err
 		}
 		log.L().Debug("Error when fetching bucket", zap.Error(fetchErr.err))
-		//return p.settleAction(ctx, csm, uint64(fetchErr.failureStatus), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(fetchErr.failureStatus),
@@ -356,8 +355,6 @@ func (p *Protocol) handleChangeCandidate(ctx context.Context, act *action.Change
 		return nil, errors.Wrapf(err, "failed to put state of candidate %s", candidate.Owner.String())
 	}
 
-	//log := p.createLog(ctx, HandleChangeCandidate, candidate.Owner, actionCtx.Caller, nil)
-	//return p.settleAction(ctx, csm, uint64(iotextypes.ReceiptStatus_Success), gasFee, log)
 	return &HandleMsg{
 		nil,
 		uint64(iotextypes.ReceiptStatus_Success),
@@ -365,14 +362,17 @@ func (p *Protocol) handleChangeCandidate(ctx context.Context, act *action.Change
 	}, nil
 }
 
-func (p *Protocol) handleTransferStake(ctx context.Context, act *action.TransferStake, csm CandidateStateManager, sm protocol.StateManager) (*HandleMsg, error) {
+func (p *Protocol) handleTransferStake(ctx context.Context, act *action.TransferStake, sm protocol.StateManager) (*HandleMsg, error) {
+	csm, err := p.createCandidateStateManager(sm)
+	if err != nil {
+		return nil, err
+	}
 	_, gasFee, fetchErr := fetchCaller(ctx, sm, big.NewInt(0))
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
-		//return p.settleAction(ctx, csm, uint64(fetchErr.failureStatus), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(fetchErr.failureStatus),
@@ -386,7 +386,6 @@ func (p *Protocol) handleTransferStake(ctx context.Context, act *action.Transfer
 			return nil, fetchErr.err
 		}
 		log.L().Debug("Error when fetching bucket", zap.Error(fetchErr.err))
-		//return p.settleAction(ctx, csm, uint64(fetchErr.failureStatus), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(fetchErr.failureStatus),
@@ -408,8 +407,6 @@ func (p *Protocol) handleTransferStake(ctx context.Context, act *action.Transfer
 		return nil, errors.Wrapf(err, "failed to update bucket for voter %s", bucket.Owner)
 	}
 
-	//log := p.createLog(ctx, HandleTransferStake, nil, actionCtx.Caller, nil)
-	//return p.settleAction(ctx, csm, uint64(iotextypes.ReceiptStatus_Success), gasFee, log)
 	return &HandleMsg{
 		nil,
 		uint64(iotextypes.ReceiptStatus_Success),
@@ -417,7 +414,11 @@ func (p *Protocol) handleTransferStake(ctx context.Context, act *action.Transfer
 	}, nil
 }
 
-func (p *Protocol) handleDepositToStake(ctx context.Context, act *action.DepositToStake, csm CandidateStateManager, sm protocol.StateManager) (*HandleMsg, error) {
+func (p *Protocol) handleDepositToStake(ctx context.Context, act *action.DepositToStake, sm protocol.StateManager) (*HandleMsg, error) {
+	csm, err := p.createCandidateStateManager(sm)
+	if err != nil {
+		return nil, err
+	}
 	actionCtx := protocol.MustGetActionCtx(ctx)
 
 	depositor, gasFee, fetchErr := fetchCaller(ctx, sm, act.Amount())
@@ -426,7 +427,6 @@ func (p *Protocol) handleDepositToStake(ctx context.Context, act *action.Deposit
 			return nil, fetchErr.err
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
-		//return p.settleAction(ctx, csm, uint64(fetchErr.failureStatus), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(fetchErr.failureStatus),
@@ -440,7 +440,6 @@ func (p *Protocol) handleDepositToStake(ctx context.Context, act *action.Deposit
 			return nil, fetchErr.err
 		}
 		log.L().Debug("Error when fetching bucket", zap.Error(fetchErr.err))
-		//return p.settleAction(ctx, csm, uint64(fetchErr.failureStatus), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(fetchErr.failureStatus),
@@ -450,7 +449,6 @@ func (p *Protocol) handleDepositToStake(ctx context.Context, act *action.Deposit
 	if !bucket.AutoStake {
 		err := errors.New("deposit is only allowed on auto-stake bucket")
 		log.L().Debug("Error when depositing to stake", zap.Error(err))
-		//return p.settleAction(ctx, csm, uint64(iotextypes.ReceiptStatus_ErrInvalidBucketType), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(iotextypes.ReceiptStatus_ErrInvalidBucketType),
@@ -495,8 +493,6 @@ func (p *Protocol) handleDepositToStake(ctx context.Context, act *action.Deposit
 		return nil, errors.Wrapf(err, "failed to store account %s", actionCtx.Caller.String())
 	}
 
-	//log := p.createLog(ctx, HandleDepositToStake, nil, actionCtx.Caller, nil)
-	//return p.settleAction(ctx, csm, uint64(iotextypes.ReceiptStatus_Success), gasFee, log)
 	return &HandleMsg{
 		nil,
 		uint64(iotextypes.ReceiptStatus_Success),
@@ -504,14 +500,17 @@ func (p *Protocol) handleDepositToStake(ctx context.Context, act *action.Deposit
 	}, nil
 }
 
-func (p *Protocol) handleRestake(ctx context.Context, act *action.Restake, csm CandidateStateManager, sm protocol.StateManager) (*HandleMsg, error) {
+func (p *Protocol) handleRestake(ctx context.Context, act *action.Restake, sm protocol.StateManager) (*HandleMsg, error) {
+	csm, err := p.createCandidateStateManager(sm)
+	if err != nil {
+		return nil, err
+	}
 	_, gasFee, fetchErr := fetchCaller(ctx, sm, big.NewInt(0))
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
-		//return p.settleAction(ctx, csm, uint64(fetchErr.failureStatus), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(fetchErr.failureStatus),
@@ -525,7 +524,6 @@ func (p *Protocol) handleRestake(ctx context.Context, act *action.Restake, csm C
 			return nil, fetchErr.err
 		}
 		log.L().Debug("Error when fetching bucket", zap.Error(fetchErr.err))
-		//return p.settleAction(ctx, csm, uint64(fetchErr.failureStatus), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(fetchErr.failureStatus),
@@ -558,8 +556,6 @@ func (p *Protocol) handleRestake(ctx context.Context, act *action.Restake, csm C
 		return nil, errors.Wrapf(err, "failed to put state of candidate %s", bucket.Candidate.String())
 	}
 
-	//log := p.createLog(ctx, HandleRestake, nil, actionCtx.Caller, nil)
-	//return p.settleAction(ctx, csm, uint64(iotextypes.ReceiptStatus_Success), gasFee, log)
 	return &HandleMsg{
 		nil,
 		uint64(iotextypes.ReceiptStatus_Success),
@@ -567,7 +563,11 @@ func (p *Protocol) handleRestake(ctx context.Context, act *action.Restake, csm C
 	}, nil
 }
 
-func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.CandidateRegister, csm CandidateStateManager, sm protocol.StateManager) (*HandleMsg, error) {
+func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.CandidateRegister, sm protocol.StateManager) (*HandleMsg, error) {
+	csm, err := p.createCandidateStateManager(sm)
+	if err != nil {
+		return nil, err
+	}
 	actCtx := protocol.MustGetActionCtx(ctx)
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 
@@ -579,7 +579,6 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 			return nil, fetchErr.err
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
-		//return p.settleAction(ctx, csm, uint64(fetchErr.failureStatus), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(fetchErr.failureStatus),
@@ -643,8 +642,6 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 		return nil, errors.Wrap(err, "failed to deposit gas")
 	}
 
-	//log := p.createLog(ctx, HandleCandidateRegister, owner, actCtx.Caller, byteutil.Uint64ToBytesBigEndian(bucketIdx))
-	//return p.settleAction(ctx, csm, uint64(iotextypes.ReceiptStatus_Success), gasFee, log)
 	return &HandleMsg{
 		byteutil.Uint64ToBytesBigEndian(bucketIdx),
 		uint64(iotextypes.ReceiptStatus_Success),
@@ -652,7 +649,11 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	}, nil
 }
 
-func (p *Protocol) handleCandidateUpdate(ctx context.Context, act *action.CandidateUpdate, csm CandidateStateManager, sm protocol.StateManager) (*HandleMsg, error) {
+func (p *Protocol) handleCandidateUpdate(ctx context.Context, act *action.CandidateUpdate, sm protocol.StateManager) (*HandleMsg, error) {
+	csm, err := p.createCandidateStateManager(sm)
+	if err != nil {
+		return nil, err
+	}
 	actCtx := protocol.MustGetActionCtx(ctx)
 
 	_, gasFee, fetchErr := fetchCaller(ctx, sm, new(big.Int))
@@ -661,7 +662,6 @@ func (p *Protocol) handleCandidateUpdate(ctx context.Context, act *action.Candid
 			return nil, fetchErr.err
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
-		//return p.settleAction(ctx, csm, uint64(fetchErr.failureStatus), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(fetchErr.failureStatus),
@@ -673,7 +673,6 @@ func (p *Protocol) handleCandidateUpdate(ctx context.Context, act *action.Candid
 	c := csm.GetByOwner(actCtx.Caller)
 	if c == nil {
 		log.L().Debug("Error only owner can update candidate", zap.Error(ErrInvalidOwner))
-		//return p.settleAction(ctx, csm, uint64(iotextypes.ReceiptStatus_ErrCandidateNotExist), gasFee)
 		return &HandleMsg{
 			nil,
 			uint64(iotextypes.ReceiptStatus_ErrCandidateNotExist),
@@ -697,8 +696,6 @@ func (p *Protocol) handleCandidateUpdate(ctx context.Context, act *action.Candid
 		return nil, errors.Wrapf(err, "failed to put state of candidate %s", c.Owner.String())
 	}
 
-	//log := p.createLog(ctx, HandleCandidateUpdate, nil, actCtx.Caller, nil)
-	//return p.settleAction(ctx, csm, uint64(iotextypes.ReceiptStatus_Success), gasFee, log)
 	return &HandleMsg{
 		nil,
 		uint64(iotextypes.ReceiptStatus_Success),
