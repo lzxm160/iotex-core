@@ -58,15 +58,11 @@ type fetchError struct {
 	failureStatus iotextypes.ReceiptStatus
 }
 
-func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStake, sm protocol.StateManager) (*HandleMsg, error) {
-	csm, err := p.createCandidateStateManager(sm)
-	if err != nil {
-		return nil, err
-	}
+func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStake, csm CandidateStateManager) (*HandleMsg, error) {
 	actionCtx := protocol.MustGetActionCtx(ctx)
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 
-	staker, gasFee, fetchErr := fetchCaller(ctx, sm, act.Amount())
+	staker, gasFee, fetchErr := fetchCaller(ctx, csm, act.Amount())
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
@@ -90,7 +86,7 @@ func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStak
 		}, nil
 	}
 	bucket := NewVoteBucket(candidate.Owner, actionCtx.Caller, act.Amount(), act.Duration(), blkCtx.BlockTimeStamp, act.AutoStake())
-	bucketIdx, err := putBucketAndIndex(sm, bucket)
+	bucketIdx, err := putBucketAndIndex(csm, bucket)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to put bucket")
 	}
@@ -109,7 +105,7 @@ func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStak
 		return nil, errors.Wrapf(err, "failed to update the balance of staker %s", actionCtx.Caller.String())
 	}
 	// put updated staker's account state to trie
-	if err := accountutil.StoreAccount(sm, actionCtx.Caller.String(), staker); err != nil {
+	if err := accountutil.StoreAccount(csm, actionCtx.Caller.String(), staker); err != nil {
 		return nil, errors.Wrapf(err, "failed to store account %s", actionCtx.Caller.String())
 	}
 	return &HandleMsg{
@@ -119,14 +115,10 @@ func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStak
 	}, nil
 }
 
-func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, sm protocol.StateManager) (*HandleMsg, error) {
-	csm, err := p.createCandidateStateManager(sm)
-	if err != nil {
-		return nil, err
-	}
+func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, csm CandidateStateManager) (*HandleMsg, error) {
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 
-	_, gasFee, fetchErr := fetchCaller(ctx, sm, big.NewInt(0))
+	_, gasFee, fetchErr := fetchCaller(ctx, csm, big.NewInt(0))
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
@@ -139,7 +131,7 @@ func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, sm pr
 		}, nil
 	}
 
-	bucket, fetchErr := p.fetchBucket(ctx, sm, csm, act.BucketIndex(), true, true)
+	bucket, fetchErr := p.fetchBucket(ctx, csm, act.BucketIndex(), true, true)
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
@@ -170,7 +162,7 @@ func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, sm pr
 
 	// update bucket
 	bucket.UnstakeStartTime = blkCtx.BlockTimeStamp
-	if err := updateBucket(sm, act.BucketIndex(), bucket); err != nil {
+	if err := updateBucket(csm, act.BucketIndex(), bucket); err != nil {
 		return nil, errors.Wrapf(err, "failed to update bucket for voter %s", bucket.Owner)
 	}
 
@@ -193,15 +185,11 @@ func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, sm pr
 	}, nil
 }
 
-func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.WithdrawStake, sm protocol.StateManager) (*HandleMsg, error) {
-	csm, err := p.createCandidateStateManager(sm)
-	if err != nil {
-		return nil, err
-	}
+func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.WithdrawStake, csm CandidateStateManager) (*HandleMsg, error) {
 	actionCtx := protocol.MustGetActionCtx(ctx)
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 
-	withdrawer, gasFee, fetchErr := fetchCaller(ctx, sm, big.NewInt(0))
+	withdrawer, gasFee, fetchErr := fetchCaller(ctx, csm, big.NewInt(0))
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
@@ -214,7 +202,7 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 		}, nil
 	}
 
-	bucket, fetchErr := p.fetchBucket(ctx, sm, csm, act.BucketIndex(), true, true)
+	bucket, fetchErr := p.fetchBucket(ctx, csm, act.BucketIndex(), true, true)
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
@@ -253,13 +241,13 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 	}
 
 	// delete bucket and bucket index
-	if err := delBucket(sm, act.BucketIndex()); err != nil {
+	if err := delBucket(csm, act.BucketIndex()); err != nil {
 		return nil, errors.Wrapf(err, "failed to delete bucket for candidate %s", bucket.Candidate.String())
 	}
-	if err := delCandBucketIndex(sm, bucket.Candidate, act.BucketIndex()); err != nil {
+	if err := delCandBucketIndex(csm, bucket.Candidate, act.BucketIndex()); err != nil {
 		return nil, errors.Wrapf(err, "failed to delete bucket index for candidate %s", bucket.Candidate.String())
 	}
-	if err := delVoterBucketIndex(sm, bucket.Owner, act.BucketIndex()); err != nil {
+	if err := delVoterBucketIndex(csm, bucket.Owner, act.BucketIndex()); err != nil {
 		return nil, errors.Wrapf(err, "failed to delete bucket index for voter %s", bucket.Owner.String())
 	}
 
@@ -268,7 +256,7 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 		return nil, errors.Wrapf(err, "failed to update the balance of withdrawer %s", actionCtx.Caller.String())
 	}
 	// put updated withdrawer's account state to trie
-	if err := accountutil.StoreAccount(sm, actionCtx.Caller.String(), withdrawer); err != nil {
+	if err := accountutil.StoreAccount(csm, actionCtx.Caller.String(), withdrawer); err != nil {
 		return nil, errors.Wrapf(err, "failed to store account %s", actionCtx.Caller.String())
 	}
 	return &HandleMsg{
@@ -278,12 +266,8 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 	}, nil
 }
 
-func (p *Protocol) handleChangeCandidate(ctx context.Context, act *action.ChangeCandidate, sm protocol.StateManager) (*HandleMsg, error) {
-	csm, err := p.createCandidateStateManager(sm)
-	if err != nil {
-		return nil, err
-	}
-	_, gasFee, fetchErr := fetchCaller(ctx, sm, big.NewInt(0))
+func (p *Protocol) handleChangeCandidate(ctx context.Context, act *action.ChangeCandidate, csm CandidateStateManager) (*HandleMsg, error) {
+	_, gasFee, fetchErr := fetchCaller(ctx, csm, big.NewInt(0))
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
@@ -306,7 +290,7 @@ func (p *Protocol) handleChangeCandidate(ctx context.Context, act *action.Change
 		}, nil
 	}
 
-	bucket, fetchErr := p.fetchBucket(ctx, sm, csm, act.BucketIndex(), true, false)
+	bucket, fetchErr := p.fetchBucket(ctx, csm, act.BucketIndex(), true, false)
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
@@ -325,15 +309,15 @@ func (p *Protocol) handleChangeCandidate(ctx context.Context, act *action.Change
 	}
 
 	// update bucket index
-	if err := delCandBucketIndex(sm, bucket.Candidate, act.BucketIndex()); err != nil {
+	if err := delCandBucketIndex(csm, bucket.Candidate, act.BucketIndex()); err != nil {
 		return nil, errors.Wrapf(err, "failed to delete candidate bucket index for candidate %s", bucket.Candidate.String())
 	}
-	if err := putCandBucketIndex(sm, candidate.Owner, act.BucketIndex()); err != nil {
+	if err := putCandBucketIndex(csm, candidate.Owner, act.BucketIndex()); err != nil {
 		return nil, errors.Wrapf(err, "failed to put candidate bucket index for candidate %s", candidate.Owner.String())
 	}
 	// update bucket
 	bucket.Candidate = candidate.Owner
-	if err := updateBucket(sm, act.BucketIndex(), bucket); err != nil {
+	if err := updateBucket(csm, act.BucketIndex(), bucket); err != nil {
 		return nil, errors.Wrapf(err, "failed to update bucket for voter %s", bucket.Owner)
 	}
 
@@ -362,12 +346,8 @@ func (p *Protocol) handleChangeCandidate(ctx context.Context, act *action.Change
 	}, nil
 }
 
-func (p *Protocol) handleTransferStake(ctx context.Context, act *action.TransferStake, sm protocol.StateManager) (*HandleMsg, error) {
-	csm, err := p.createCandidateStateManager(sm)
-	if err != nil {
-		return nil, err
-	}
-	_, gasFee, fetchErr := fetchCaller(ctx, sm, big.NewInt(0))
+func (p *Protocol) handleTransferStake(ctx context.Context, act *action.TransferStake, csm CandidateStateManager) (*HandleMsg, error) {
+	_, gasFee, fetchErr := fetchCaller(ctx, csm, big.NewInt(0))
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
@@ -380,7 +360,7 @@ func (p *Protocol) handleTransferStake(ctx context.Context, act *action.Transfer
 		}, nil
 	}
 
-	bucket, fetchErr := p.fetchBucket(ctx, sm, csm, act.BucketIndex(), true, false)
+	bucket, fetchErr := p.fetchBucket(ctx, csm, act.BucketIndex(), true, false)
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
@@ -394,16 +374,16 @@ func (p *Protocol) handleTransferStake(ctx context.Context, act *action.Transfer
 	}
 
 	// update bucket index
-	if err := delVoterBucketIndex(sm, bucket.Owner, act.BucketIndex()); err != nil {
+	if err := delVoterBucketIndex(csm, bucket.Owner, act.BucketIndex()); err != nil {
 		return nil, errors.Wrapf(err, "failed to delete voter bucket index for voter %s", bucket.Owner.String())
 	}
-	if err := putVoterBucketIndex(sm, act.VoterAddress(), act.BucketIndex()); err != nil {
+	if err := putVoterBucketIndex(csm, act.VoterAddress(), act.BucketIndex()); err != nil {
 		return nil, errors.Wrapf(err, "failed to put candidate bucket index for voter %s", act.VoterAddress().String())
 	}
 
 	// update bucket
 	bucket.Owner = act.VoterAddress()
-	if err := updateBucket(sm, act.BucketIndex(), bucket); err != nil {
+	if err := updateBucket(csm, act.BucketIndex(), bucket); err != nil {
 		return nil, errors.Wrapf(err, "failed to update bucket for voter %s", bucket.Owner)
 	}
 
@@ -414,14 +394,10 @@ func (p *Protocol) handleTransferStake(ctx context.Context, act *action.Transfer
 	}, nil
 }
 
-func (p *Protocol) handleDepositToStake(ctx context.Context, act *action.DepositToStake, sm protocol.StateManager) (*HandleMsg, error) {
-	csm, err := p.createCandidateStateManager(sm)
-	if err != nil {
-		return nil, err
-	}
+func (p *Protocol) handleDepositToStake(ctx context.Context, act *action.DepositToStake, csm CandidateStateManager) (*HandleMsg, error) {
 	actionCtx := protocol.MustGetActionCtx(ctx)
 
-	depositor, gasFee, fetchErr := fetchCaller(ctx, sm, act.Amount())
+	depositor, gasFee, fetchErr := fetchCaller(ctx, csm, act.Amount())
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
@@ -434,7 +410,7 @@ func (p *Protocol) handleDepositToStake(ctx context.Context, act *action.Deposit
 		}, nil
 	}
 
-	bucket, fetchErr := p.fetchBucket(ctx, sm, csm, act.BucketIndex(), false, true)
+	bucket, fetchErr := p.fetchBucket(ctx, csm, act.BucketIndex(), false, true)
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
@@ -463,7 +439,7 @@ func (p *Protocol) handleDepositToStake(ctx context.Context, act *action.Deposit
 	prevWeightedVotes := p.calculateVoteWeight(bucket, csm.ContainsSelfStakingBucket(act.BucketIndex()))
 	// update bucket
 	bucket.StakedAmount.Add(bucket.StakedAmount, act.Amount())
-	if err := updateBucket(sm, act.BucketIndex(), bucket); err != nil {
+	if err := updateBucket(csm, act.BucketIndex(), bucket); err != nil {
 		return nil, errors.Wrapf(err, "failed to update bucket for voter %s", bucket.Owner)
 	}
 
@@ -489,7 +465,7 @@ func (p *Protocol) handleDepositToStake(ctx context.Context, act *action.Deposit
 		return nil, errors.Wrapf(err, "failed to update the balance of depositor %s", actionCtx.Caller.String())
 	}
 	// put updated depositor's account state to trie
-	if err := accountutil.StoreAccount(sm, actionCtx.Caller.String(), depositor); err != nil {
+	if err := accountutil.StoreAccount(csm, actionCtx.Caller.String(), depositor); err != nil {
 		return nil, errors.Wrapf(err, "failed to store account %s", actionCtx.Caller.String())
 	}
 
@@ -500,12 +476,8 @@ func (p *Protocol) handleDepositToStake(ctx context.Context, act *action.Deposit
 	}, nil
 }
 
-func (p *Protocol) handleRestake(ctx context.Context, act *action.Restake, sm protocol.StateManager) (*HandleMsg, error) {
-	csm, err := p.createCandidateStateManager(sm)
-	if err != nil {
-		return nil, err
-	}
-	_, gasFee, fetchErr := fetchCaller(ctx, sm, big.NewInt(0))
+func (p *Protocol) handleRestake(ctx context.Context, act *action.Restake, csm CandidateStateManager) (*HandleMsg, error) {
+	_, gasFee, fetchErr := fetchCaller(ctx, csm, big.NewInt(0))
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
@@ -518,7 +490,7 @@ func (p *Protocol) handleRestake(ctx context.Context, act *action.Restake, sm pr
 		}, nil
 	}
 
-	bucket, fetchErr := p.fetchBucket(ctx, sm, csm, act.BucketIndex(), true, true)
+	bucket, fetchErr := p.fetchBucket(ctx, csm, act.BucketIndex(), true, true)
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
@@ -540,7 +512,7 @@ func (p *Protocol) handleRestake(ctx context.Context, act *action.Restake, sm pr
 	// update bucket
 	bucket.StakedDuration = time.Duration(act.Duration()) * 24 * time.Hour
 	bucket.AutoStake = act.AutoStake()
-	if err := updateBucket(sm, act.BucketIndex(), bucket); err != nil {
+	if err := updateBucket(csm, act.BucketIndex(), bucket); err != nil {
 		return nil, errors.Wrapf(err, "failed to update bucket for voter %s", bucket.Owner)
 	}
 
@@ -563,17 +535,13 @@ func (p *Protocol) handleRestake(ctx context.Context, act *action.Restake, sm pr
 	}, nil
 }
 
-func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.CandidateRegister, sm protocol.StateManager) (*HandleMsg, error) {
-	csm, err := p.createCandidateStateManager(sm)
-	if err != nil {
-		return nil, err
-	}
+func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.CandidateRegister, csm CandidateStateManager) (*HandleMsg, error) {
 	actCtx := protocol.MustGetActionCtx(ctx)
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 
 	registrationFee := new(big.Int).Set(p.config.RegistrationConsts.Fee)
 
-	caller, gasFee, fetchErr := fetchCaller(ctx, sm, new(big.Int).Add(act.Amount(), registrationFee))
+	caller, gasFee, fetchErr := fetchCaller(ctx, csm, new(big.Int).Add(act.Amount(), registrationFee))
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
@@ -609,7 +577,7 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	}
 
 	bucket := NewVoteBucket(owner, owner, act.Amount(), act.Duration(), blkCtx.BlockTimeStamp, act.AutoStake())
-	bucketIdx, err := putBucketAndIndex(sm, bucket)
+	bucketIdx, err := putBucketAndIndex(csm, bucket)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to put bucket")
 	}
@@ -633,12 +601,12 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 		return nil, errors.Wrapf(err, "failed to update the balance of staker %s", actCtx.Caller.String())
 	}
 	// put updated caller's account state to trie
-	if err := accountutil.StoreAccount(sm, actCtx.Caller.String(), caller); err != nil {
+	if err := accountutil.StoreAccount(csm, actCtx.Caller.String(), caller); err != nil {
 		return nil, errors.Wrapf(err, "failed to store account %s", actCtx.Caller.String())
 	}
 
 	// put registrationFee to reward pool
-	if err := p.depositGas(ctx, sm, registrationFee); err != nil {
+	if err := p.depositGas(ctx, csm, registrationFee); err != nil {
 		return nil, errors.Wrap(err, "failed to deposit gas")
 	}
 
@@ -649,14 +617,10 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	}, nil
 }
 
-func (p *Protocol) handleCandidateUpdate(ctx context.Context, act *action.CandidateUpdate, sm protocol.StateManager) (*HandleMsg, error) {
-	csm, err := p.createCandidateStateManager(sm)
-	if err != nil {
-		return nil, err
-	}
+func (p *Protocol) handleCandidateUpdate(ctx context.Context, act *action.CandidateUpdate, csm CandidateStateManager) (*HandleMsg, error) {
 	actCtx := protocol.MustGetActionCtx(ctx)
 
-	_, gasFee, fetchErr := fetchCaller(ctx, sm, new(big.Int))
+	_, gasFee, fetchErr := fetchCaller(ctx, csm, new(big.Int))
 	if fetchErr != nil {
 		if fetchErr.failureStatus == iotextypes.ReceiptStatus_Failure {
 			return nil, fetchErr.err
@@ -706,7 +670,7 @@ func (p *Protocol) handleCandidateUpdate(ctx context.Context, act *action.Candid
 // settleAccount deposits gas fee and updates caller's nonce
 func (p *Protocol) settleAction(
 	ctx context.Context,
-	sm protocol.StateManager,
+	sm protocol.StateReadWriter,
 	status uint64,
 	gasFee *big.Int,
 	logs ...*action.Log,
@@ -733,7 +697,7 @@ func (p *Protocol) settleAction(
 	}, nil
 }
 
-func (p *Protocol) increaseNonce(sm protocol.StateManager, addr address.Address, nonce uint64) error {
+func (p *Protocol) increaseNonce(sm protocol.StateReadWriter, addr address.Address, nonce uint64) error {
 	acc, err := accountutil.LoadAccount(sm, hash.BytesToHash160(addr.Bytes()))
 	if err != nil {
 		return err
@@ -747,14 +711,13 @@ func (p *Protocol) increaseNonce(sm protocol.StateManager, addr address.Address,
 
 func (p *Protocol) fetchBucket(
 	ctx context.Context,
-	sr protocol.StateReader,
 	csm CandidateStateManager,
 	index uint64,
 	checkOwner bool,
 	allowSelfStaking bool,
 ) (*VoteBucket, *fetchError) {
 	actionCtx := protocol.MustGetActionCtx(ctx)
-	bucket, err := getBucket(sr, index)
+	bucket, err := getBucket(csm, index)
 	if err != nil {
 		fetchErr := &fetchError{
 			err:           errors.Wrapf(err, "failed to fetch bucket by index %d", index),
@@ -808,7 +771,7 @@ func (p *Protocol) createLog(
 	}
 }
 
-func putBucketAndIndex(sm protocol.StateManager, bucket *VoteBucket) (uint64, error) {
+func putBucketAndIndex(sm protocol.StateReadWriter, bucket *VoteBucket) (uint64, error) {
 	index, err := putBucket(sm, bucket)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to put bucket")

@@ -29,6 +29,9 @@ type (
 		GetBySelfStakingIndex(uint64) *Candidate
 		Upsert(*Candidate) error
 		Commit() error
+		// bucket-related
+		protocol.StateReadWriter
+		Load(string, interface{}) error
 	}
 
 	candSM struct {
@@ -91,6 +94,31 @@ func (csm *candSM) Upsert(d *Candidate) error {
 	// load change to sm
 	csm.StateManager.Load(protocolID, ser)
 	return nil
+}
+
+// State read bucket info from state manager
+func (csm *candSM) State(s interface{}, opts ...protocol.StateOption) (uint64, error) {
+	return csm.StateManager.State(s, opts...)
+}
+
+// PutState writes bucket info into state manager
+func (csm *candSM) PutState(s interface{}, opts ...protocol.StateOption) (uint64, error) {
+	return csm.StateManager.PutState(s, opts...)
+}
+
+// DelState delete bucket info from state manager
+func (csm *candSM) DelState(opts ...protocol.StateOption) (uint64, error) {
+	return csm.StateManager.DelState(opts...)
+}
+
+// DelState delete bucket info from state manager
+func (csm *candSM) Height() (uint64, error) {
+	return csm.StateManager.Height()
+}
+
+// DelState delete bucket info from state manager
+func (csm *candSM) States(opts ...protocol.StateOption) (uint64, state.Iterator, error) {
+	return csm.StateManager.States(opts...)
 }
 
 func loadCandidatesFromSR(sr protocol.StateReader) (CandidateList, error) {

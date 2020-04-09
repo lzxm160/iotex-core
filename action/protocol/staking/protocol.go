@@ -77,7 +77,7 @@ type Configuration struct {
 }
 
 // DepositGas deposits gas to some pool
-type DepositGas func(ctx context.Context, sm protocol.StateManager, amount *big.Int) error
+type DepositGas func(ctx context.Context, sm protocol.StateReadWriter, amount *big.Int) error
 
 // NewProtocol instantiates the protocol of staking
 func NewProtocol(depositGas DepositGas, sr protocol.StateReader, cfg genesis.Staking) (*Protocol, error) {
@@ -210,39 +210,39 @@ func (p *Protocol) handle(ctx context.Context, act action.Action, sm protocol.St
 
 	switch act := act.(type) {
 	case *action.CreateStake:
-		r, err = p.handleCreateStake(ctx, act, sm)
+		r, err = p.handleCreateStake(ctx, act, csm)
 		handlerName = HandleCreateStake
 		candidate := csm.GetByName(act.Candidate())
 		if candidate != nil {
 			candidateOwner = candidate.Owner
 		}
 	case *action.Unstake:
-		r, err = p.handleUnstake(ctx, act, sm)
+		r, err = p.handleUnstake(ctx, act, csm)
 		handlerName = HandleUnstake
 	case *action.WithdrawStake:
-		r, err = p.handleWithdrawStake(ctx, act, sm)
+		r, err = p.handleWithdrawStake(ctx, act, csm)
 		handlerName = HandleWithdrawStake
 	case *action.ChangeCandidate:
-		r, err = p.handleChangeCandidate(ctx, act, sm)
+		r, err = p.handleChangeCandidate(ctx, act, csm)
 		handlerName = HandleChangeCandidate
 		candidate := csm.GetByName(act.Candidate())
 		if candidate != nil {
 			candidateOwner = candidate.Owner
 		}
 	case *action.TransferStake:
-		r, err = p.handleTransferStake(ctx, act, sm)
+		r, err = p.handleTransferStake(ctx, act, csm)
 		handlerName = HandleTransferStake
 	case *action.DepositToStake:
-		r, err = p.handleDepositToStake(ctx, act, sm)
+		r, err = p.handleDepositToStake(ctx, act, csm)
 		handlerName = HandleDepositToStake
 	case *action.Restake:
-		r, err = p.handleRestake(ctx, act, sm)
+		r, err = p.handleRestake(ctx, act, csm)
 		handlerName = HandleRestake
 	case *action.CandidateRegister:
-		r, err = p.handleCandidateRegister(ctx, act, sm)
+		r, err = p.handleCandidateRegister(ctx, act, csm)
 		handlerName = HandleCandidateRegister
 	case *action.CandidateUpdate:
-		r, err = p.handleCandidateUpdate(ctx, act, sm)
+		r, err = p.handleCandidateUpdate(ctx, act, csm)
 		handlerName = HandleCandidateUpdate
 	}
 	if err != nil {
