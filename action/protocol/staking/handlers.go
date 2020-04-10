@@ -69,9 +69,9 @@ func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStak
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
 		return &HandleMsg{
-			nil,
-			uint64(fetchErr.failureStatus),
-			gasFee,
+			handlerName: HandleCreateStake,
+			status:      uint64(fetchErr.failureStatus),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -80,9 +80,9 @@ func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStak
 	if candidate == nil {
 		log.L().Debug("Error when finding candidate in candidate center", zap.Error(ErrInvalidCanName))
 		return &HandleMsg{
-			nil,
-			uint64(iotextypes.ReceiptStatus_ErrCandidateNotExist),
-			gasFee,
+			handlerName: HandleCreateStake,
+			status:      uint64(iotextypes.ReceiptStatus_ErrCandidateNotExist),
+			gasFee:      gasFee,
 		}, nil
 	}
 	bucket := NewVoteBucket(candidate.Owner, actionCtx.Caller, act.Amount(), act.Duration(), blkCtx.BlockTimeStamp, act.AutoStake())
@@ -109,6 +109,8 @@ func (p *Protocol) handleCreateStake(ctx context.Context, act *action.CreateStak
 		return nil, errors.Wrapf(err, "failed to store account %s", actionCtx.Caller.String())
 	}
 	return &HandleMsg{
+		HandleCreateStake,
+		candidate.Owner,
 		byteutil.Uint64ToBytesBigEndian(bucketIdx),
 		uint64(iotextypes.ReceiptStatus_Success),
 		gasFee,
@@ -125,9 +127,9 @@ func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, csm C
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
 		return &HandleMsg{
-			nil,
-			uint64(fetchErr.failureStatus),
-			gasFee,
+			handlerName: HandleUnstake,
+			status:      uint64(fetchErr.failureStatus),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -138,9 +140,9 @@ func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, csm C
 		}
 		log.L().Debug("Error when fetching bucket", zap.Error(fetchErr.err))
 		return &HandleMsg{
-			nil,
-			uint64(fetchErr.failureStatus),
-			gasFee,
+			handlerName: HandleUnstake,
+			status:      uint64(fetchErr.failureStatus),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -154,9 +156,9 @@ func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, csm C
 			blkCtx.BlockTimeStamp, bucket.StakeStartTime.Add(bucket.StakedDuration))
 		log.L().Debug("Error when withdrawing bucket", zap.Error(err))
 		return &HandleMsg{
-			nil,
-			uint64(iotextypes.ReceiptStatus_ErrUnstakeBeforeMaturity),
-			gasFee,
+			handlerName: HandleUnstake,
+			status:      uint64(iotextypes.ReceiptStatus_ErrUnstakeBeforeMaturity),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -179,9 +181,9 @@ func (p *Protocol) handleUnstake(ctx context.Context, act *action.Unstake, csm C
 	}
 
 	return &HandleMsg{
-		nil,
-		uint64(iotextypes.ReceiptStatus_Success),
-		gasFee,
+		handlerName: HandleUnstake,
+		status:      uint64(iotextypes.ReceiptStatus_Success),
+		gasFee:      gasFee,
 	}, nil
 }
 
@@ -196,9 +198,9 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
 		return &HandleMsg{
-			nil,
-			uint64(fetchErr.failureStatus),
-			gasFee,
+			handlerName: HandleWithdrawStake,
+			status:      uint64(fetchErr.failureStatus),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -209,9 +211,9 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 		}
 		log.L().Debug("Error when fetching bucket", zap.Error(fetchErr.err))
 		return &HandleMsg{
-			nil,
-			uint64(fetchErr.failureStatus),
-			gasFee,
+			handlerName: HandleWithdrawStake,
+			status:      uint64(fetchErr.failureStatus),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -220,9 +222,9 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 		err := errors.New("bucket has not been unstaked")
 		log.L().Debug("Error when withdrawing bucket", zap.Error(err))
 		return &HandleMsg{
-			nil,
-			uint64(iotextypes.ReceiptStatus_ErrWithdrawBeforeUnstake),
-			gasFee,
+			handlerName: HandleWithdrawStake,
+			status:      uint64(iotextypes.ReceiptStatus_ErrWithdrawBeforeUnstake),
+			gasFee:      gasFee,
 		}, nil
 	}
 	maturity := bucket.UnstakeStartTime.Add(p.config.WithdrawWaitingPeriod)
@@ -234,9 +236,9 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 			blkCtx.BlockTimeStamp, maturity)
 		log.L().Debug("Error when withdrawing bucket", zap.Error(err))
 		return &HandleMsg{
-			nil,
-			uint64(iotextypes.ReceiptStatus_ErrWithdrawBeforeMaturity),
-			gasFee,
+			handlerName: HandleWithdrawStake,
+			status:      uint64(iotextypes.ReceiptStatus_ErrWithdrawBeforeMaturity),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -260,9 +262,9 @@ func (p *Protocol) handleWithdrawStake(ctx context.Context, act *action.Withdraw
 		return nil, errors.Wrapf(err, "failed to store account %s", actionCtx.Caller.String())
 	}
 	return &HandleMsg{
-		nil,
-		uint64(iotextypes.ReceiptStatus_Success),
-		gasFee,
+		handlerName: HandleWithdrawStake,
+		status:      uint64(iotextypes.ReceiptStatus_Success),
+		gasFee:      gasFee,
 	}, nil
 }
 
@@ -274,9 +276,9 @@ func (p *Protocol) handleChangeCandidate(ctx context.Context, act *action.Change
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
 		return &HandleMsg{
-			nil,
-			uint64(fetchErr.failureStatus),
-			gasFee,
+			handlerName: HandleChangeCandidate,
+			status:      uint64(fetchErr.failureStatus),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -284,9 +286,9 @@ func (p *Protocol) handleChangeCandidate(ctx context.Context, act *action.Change
 	if candidate == nil {
 		log.L().Debug("Error when finding candidate in candidate center", zap.Error(ErrInvalidCanName))
 		return &HandleMsg{
-			nil,
-			uint64(iotextypes.ReceiptStatus_ErrCandidateNotExist),
-			gasFee,
+			handlerName: HandleChangeCandidate,
+			status:      uint64(iotextypes.ReceiptStatus_ErrCandidateNotExist),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -297,9 +299,9 @@ func (p *Protocol) handleChangeCandidate(ctx context.Context, act *action.Change
 		}
 		log.L().Debug("Error when fetching bucket", zap.Error(fetchErr.err))
 		return &HandleMsg{
-			nil,
-			uint64(fetchErr.failureStatus),
-			gasFee,
+			handlerName: HandleChangeCandidate,
+			status:      uint64(fetchErr.failureStatus),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -340,9 +342,10 @@ func (p *Protocol) handleChangeCandidate(ctx context.Context, act *action.Change
 	}
 
 	return &HandleMsg{
-		nil,
-		uint64(iotextypes.ReceiptStatus_Success),
-		gasFee,
+		handlerName:    HandleChangeCandidate,
+		candidateOwner: candidate.Owner,
+		status:         uint64(iotextypes.ReceiptStatus_Success),
+		gasFee:         gasFee,
 	}, nil
 }
 
@@ -354,9 +357,9 @@ func (p *Protocol) handleTransferStake(ctx context.Context, act *action.Transfer
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
 		return &HandleMsg{
-			nil,
-			uint64(fetchErr.failureStatus),
-			gasFee,
+			handlerName: HandleTransferStake,
+			status:      uint64(fetchErr.failureStatus),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -367,9 +370,9 @@ func (p *Protocol) handleTransferStake(ctx context.Context, act *action.Transfer
 		}
 		log.L().Debug("Error when fetching bucket", zap.Error(fetchErr.err))
 		return &HandleMsg{
-			nil,
-			uint64(fetchErr.failureStatus),
-			gasFee,
+			handlerName: HandleTransferStake,
+			status:      uint64(fetchErr.failureStatus),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -388,9 +391,9 @@ func (p *Protocol) handleTransferStake(ctx context.Context, act *action.Transfer
 	}
 
 	return &HandleMsg{
-		nil,
-		uint64(iotextypes.ReceiptStatus_Success),
-		gasFee,
+		handlerName: HandleTransferStake,
+		status:      uint64(iotextypes.ReceiptStatus_Success),
+		gasFee:      gasFee,
 	}, nil
 }
 
@@ -404,9 +407,9 @@ func (p *Protocol) handleDepositToStake(ctx context.Context, act *action.Deposit
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
 		return &HandleMsg{
-			nil,
-			uint64(fetchErr.failureStatus),
-			gasFee,
+			handlerName: HandleDepositToStake,
+			status:      uint64(fetchErr.failureStatus),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -417,18 +420,18 @@ func (p *Protocol) handleDepositToStake(ctx context.Context, act *action.Deposit
 		}
 		log.L().Debug("Error when fetching bucket", zap.Error(fetchErr.err))
 		return &HandleMsg{
-			nil,
-			uint64(fetchErr.failureStatus),
-			gasFee,
+			handlerName: HandleDepositToStake,
+			status:      uint64(fetchErr.failureStatus),
+			gasFee:      gasFee,
 		}, nil
 	}
 	if !bucket.AutoStake {
 		err := errors.New("deposit is only allowed on auto-stake bucket")
 		log.L().Debug("Error when depositing to stake", zap.Error(err))
 		return &HandleMsg{
-			nil,
-			uint64(iotextypes.ReceiptStatus_ErrInvalidBucketType),
-			gasFee,
+			handlerName: HandleDepositToStake,
+			status:      uint64(iotextypes.ReceiptStatus_ErrInvalidBucketType),
+			gasFee:      gasFee,
 		}, nil
 	}
 	candidate := csm.GetByOwner(bucket.Candidate)
@@ -470,9 +473,9 @@ func (p *Protocol) handleDepositToStake(ctx context.Context, act *action.Deposit
 	}
 
 	return &HandleMsg{
-		nil,
-		uint64(iotextypes.ReceiptStatus_Success),
-		gasFee,
+		handlerName: HandleDepositToStake,
+		status:      uint64(iotextypes.ReceiptStatus_Success),
+		gasFee:      gasFee,
 	}, nil
 }
 
@@ -484,9 +487,9 @@ func (p *Protocol) handleRestake(ctx context.Context, act *action.Restake, csm C
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
 		return &HandleMsg{
-			nil,
-			uint64(fetchErr.failureStatus),
-			gasFee,
+			handlerName: HandleRestake,
+			status:      uint64(fetchErr.failureStatus),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -497,9 +500,9 @@ func (p *Protocol) handleRestake(ctx context.Context, act *action.Restake, csm C
 		}
 		log.L().Debug("Error when fetching bucket", zap.Error(fetchErr.err))
 		return &HandleMsg{
-			nil,
-			uint64(fetchErr.failureStatus),
-			gasFee,
+			handlerName: HandleRestake,
+			status:      uint64(fetchErr.failureStatus),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -529,9 +532,9 @@ func (p *Protocol) handleRestake(ctx context.Context, act *action.Restake, csm C
 	}
 
 	return &HandleMsg{
-		nil,
-		uint64(iotextypes.ReceiptStatus_Success),
-		gasFee,
+		handlerName: HandleRestake,
+		status:      uint64(iotextypes.ReceiptStatus_Success),
+		gasFee:      gasFee,
 	}, nil
 }
 
@@ -548,9 +551,9 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
 		return &HandleMsg{
-			nil,
-			uint64(fetchErr.failureStatus),
-			gasFee,
+			handlerName: HandleCandidateRegister,
+			status:      uint64(fetchErr.failureStatus),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -611,6 +614,8 @@ func (p *Protocol) handleCandidateRegister(ctx context.Context, act *action.Cand
 	}
 
 	return &HandleMsg{
+		HandleCandidateRegister,
+		owner,
 		byteutil.Uint64ToBytesBigEndian(bucketIdx),
 		uint64(iotextypes.ReceiptStatus_Success),
 		gasFee,
@@ -627,9 +632,9 @@ func (p *Protocol) handleCandidateUpdate(ctx context.Context, act *action.Candid
 		}
 		log.L().Debug("Error when fetching caller", zap.Error(fetchErr.err))
 		return &HandleMsg{
-			nil,
-			uint64(fetchErr.failureStatus),
-			gasFee,
+			handlerName: HandleCandidateUpdate,
+			status:      uint64(fetchErr.failureStatus),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -638,9 +643,9 @@ func (p *Protocol) handleCandidateUpdate(ctx context.Context, act *action.Candid
 	if c == nil {
 		log.L().Debug("Error only owner can update candidate", zap.Error(ErrInvalidOwner))
 		return &HandleMsg{
-			nil,
-			uint64(iotextypes.ReceiptStatus_ErrCandidateNotExist),
-			gasFee,
+			handlerName: HandleCandidateUpdate,
+			status:      uint64(iotextypes.ReceiptStatus_ErrCandidateNotExist),
+			gasFee:      gasFee,
 		}, nil
 	}
 
@@ -661,9 +666,9 @@ func (p *Protocol) handleCandidateUpdate(ctx context.Context, act *action.Candid
 	}
 
 	return &HandleMsg{
-		nil,
-		uint64(iotextypes.ReceiptStatus_Success),
-		gasFee,
+		handlerName: HandleCandidateUpdate,
+		status:      uint64(iotextypes.ReceiptStatus_Success),
+		gasFee:      gasFee,
 	}, nil
 }
 
