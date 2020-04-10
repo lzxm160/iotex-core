@@ -1922,12 +1922,13 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			require.True(ok)
 			center.deleteForTestOnly(test.caller)
 			require.False(csm.ContainsOwner(test.caller))
-			r, err := p.handle(ctx, act, csm)
-			require.NoError(err)
-			log := p.createLog(ctx, r.handlerName, r.candidateOwner, protocol.MustGetActionCtx(ctx).Caller, r.data)
-			_, err = p.settleAction(ctx, sm, r.status, r.gasFee, log)
+			hm, err := p.handle(ctx, act, csm)
 			require.Equal(test.err, errors.Cause(err))
-			require.Equal(test.err, errors.Cause(err))
+			if err == nil {
+				log := p.createLog(ctx, hm.handlerName, hm.candidateOwner, protocol.MustGetActionCtx(ctx).Caller, hm.data)
+				r, err = p.settleAction(ctx, sm, hm.status, hm.gasFee, log)
+				require.Equal(test.err, errors.Cause(err))
+			}
 		} else {
 			r, err = p.Handle(ctx, act, sm)
 			require.Equal(test.err, errors.Cause(err))
