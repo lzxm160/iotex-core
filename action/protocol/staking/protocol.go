@@ -228,7 +228,7 @@ func (p *Protocol) Handle(ctx context.Context, act action.Action, sm protocol.St
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("handleMsg：", handleMsg)
 	fmt.Println("handleMsg.handlerName：", handleMsg.handlerName)
 	fmt.Println("handleMsg.candidateOwner：", handleMsg.candidateOwner)
 	fmt.Println("protocol.MustGetActionCtx(ctx).Caller：", protocol.MustGetActionCtx(ctx).Caller)
