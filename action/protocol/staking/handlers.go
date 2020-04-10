@@ -798,8 +798,9 @@ func (p *Protocol) createLog(
 	if candidateAddr != nil {
 		topics = append(topics, hash.Hash256b(candidateAddr.Bytes()))
 	}
-	topics = append(topics, hash.Hash256b(voterAddr.Bytes()))
-
+	if candidateAddr != nil {
+		topics = append(topics, hash.Hash256b(voterAddr.Bytes()))
+	}
 	return &action.Log{
 		Address:     p.addr.String(),
 		Topics:      topics,

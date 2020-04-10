@@ -222,7 +222,7 @@ func (p *Protocol) Handle(ctx context.Context, act action.Action, sm protocol.St
 	if err != nil {
 		return nil, err
 	}
-	
+
 	handleMsg, err := p.handle(ctx, act, csm)
 	if err != nil {
 		return nil, err
