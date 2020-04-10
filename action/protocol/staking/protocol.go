@@ -8,6 +8,7 @@ package staking
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -227,7 +228,10 @@ func (p *Protocol) Handle(ctx context.Context, act action.Action, sm protocol.St
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("handleMsg.handlerName：", handleMsg.handlerName)
+	fmt.Println("handleMsg.candidateOwner：", handleMsg.candidateOwner)
+	fmt.Println("protocol.MustGetActionCtx(ctx).Caller：", protocol.MustGetActionCtx(ctx).Caller)
+	fmt.Println("handleMsg.data：", handleMsg.data)
 	log := p.createLog(ctx, handleMsg.handlerName, handleMsg.candidateOwner, protocol.MustGetActionCtx(ctx).Caller, handleMsg.data)
 	return p.settleAction(ctx, sm, handleMsg.status, handleMsg.gasFee, log)
 }
