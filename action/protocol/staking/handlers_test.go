@@ -833,10 +833,12 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			center.deleteForTestOnly(test.caller)
 			require.False(csm.ContainsOwner(test.caller))
 			hm, err := p.handle(ctx, act, csm)
-			require.NoError(err)
-			log := p.createLog(ctx, hm.handlerName, hm.candidateOwner, protocol.MustGetActionCtx(ctx).Caller, hm.data)
-			r, err = p.settleAction(ctx, sm, hm.status, hm.gasFee, log)
 			require.Equal(test.err, errors.Cause(err))
+			if err == nil {
+				log := p.createLog(ctx, hm.handlerName, hm.candidateOwner, protocol.MustGetActionCtx(ctx).Caller, hm.data)
+				r, err = p.settleAction(ctx, sm, hm.status, hm.gasFee, log)
+				require.Equal(test.err, errors.Cause(err))
+			}
 		} else {
 			r, err = p.Handle(ctx, act, sm)
 			require.Equal(test.err, errors.Cause(err))
@@ -1248,10 +1250,12 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			center.deleteForTestOnly(cc.Owner)
 			require.False(csm.ContainsOwner(cc.Owner))
 			hm, err := p.handle(ctx, act, csm)
-			require.NoError(err)
-			log := p.createLog(ctx, hm.handlerName, hm.candidateOwner, protocol.MustGetActionCtx(ctx).Caller, hm.data)
-			r, err = p.settleAction(ctx, sm, hm.status, hm.gasFee, log)
 			require.Equal(test.err, errors.Cause(err))
+			if err == nil {
+				log := p.createLog(ctx, hm.handlerName, hm.candidateOwner, protocol.MustGetActionCtx(ctx).Caller, hm.data)
+				r, err = p.settleAction(ctx, sm, hm.status, hm.gasFee, log)
+				require.Equal(test.err, errors.Cause(err))
+			}
 		} else {
 			r, err = p.Handle(ctx, act, sm)
 			require.Equal(test.err, errors.Cause(err))
@@ -1703,10 +1707,12 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			center.deleteForTestOnly(test.caller)
 			require.False(csm.ContainsOwner(test.caller))
 			hm, err := p.handle(ctx, act, csm)
-			require.NoError(err)
-			log := p.createLog(ctx, hm.handlerName, hm.candidateOwner, protocol.MustGetActionCtx(ctx).Caller, hm.data)
-			r, err = p.settleAction(ctx, sm, hm.status, hm.gasFee, log)
 			require.Equal(test.err, errors.Cause(err))
+			if err == nil {
+				log := p.createLog(ctx, hm.handlerName, hm.candidateOwner, protocol.MustGetActionCtx(ctx).Caller, hm.data)
+				r, err = p.settleAction(ctx, sm, hm.status, hm.gasFee, log)
+				require.Equal(test.err, errors.Cause(err))
+			}
 		} else {
 			r, err = p.Handle(ctx, act, sm)
 			require.Equal(test.err, errors.Cause(err))
