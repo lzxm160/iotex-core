@@ -199,10 +199,12 @@ func (p *Protocol) Handle(ctx context.Context, act action.Action, sm protocol.St
 	if err != nil {
 		return nil, err
 	}
+
 	handleMsg, err := p.handle(ctx, act, csm)
 	if err != nil {
 		return nil, err
 	}
+
 	log := p.createLog(ctx, handleMsg.handlerName, handleMsg.candidateOwner, protocol.MustGetActionCtx(ctx).Caller, handleMsg.data)
 	return p.settleAction(ctx, sm, handleMsg.status, handleMsg.gasFee, log)
 }
