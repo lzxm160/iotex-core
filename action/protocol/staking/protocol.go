@@ -257,6 +257,8 @@ func (p *Protocol) handle(ctx context.Context, act action.Action, csm CandidateS
 		r, err = p.handleCandidateRegister(ctx, act, csm)
 	case *action.CandidateUpdate:
 		r, err = p.handleCandidateUpdate(ctx, act, csm)
+	default:
+		err = errors.New("not supported action type")
 	}
 	return
 }
