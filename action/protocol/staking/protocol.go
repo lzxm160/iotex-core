@@ -8,7 +8,6 @@ package staking
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -228,11 +227,9 @@ func (p *Protocol) Handle(ctx context.Context, act action.Action, sm protocol.St
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("handleMsg：", handleMsg)
-	fmt.Println("handleMsg.handlerName：", handleMsg.handlerName)
-	fmt.Println("handleMsg.candidateOwner：", handleMsg.candidateOwner)
-	fmt.Println("protocol.MustGetActionCtx(ctx).Caller：", protocol.MustGetActionCtx(ctx).Caller)
-	fmt.Println("handleMsg.data：", handleMsg.data)
+	if handleMsg == nil {
+		return nil, nil
+	}
 	log := p.createLog(ctx, handleMsg.handlerName, handleMsg.candidateOwner, protocol.MustGetActionCtx(ctx).Caller, handleMsg.data)
 	return p.settleAction(ctx, sm, handleMsg.status, handleMsg.gasFee, log)
 }
@@ -257,8 +254,6 @@ func (p *Protocol) handle(ctx context.Context, act action.Action, csm CandidateS
 		r, err = p.handleCandidateRegister(ctx, act, csm)
 	case *action.CandidateUpdate:
 		r, err = p.handleCandidateUpdate(ctx, act, csm)
-	default:
-		err = errors.New("not supported action type")
 	}
 	return
 }
