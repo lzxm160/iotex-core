@@ -832,7 +832,10 @@ func TestProtocol_HandleUnstake(t *testing.T) {
 			require.True(ok)
 			center.deleteForTestOnly(test.caller)
 			require.False(csm.ContainsOwner(test.caller))
-			r, err = p.handle(ctx, act, csm)
+			r, err := p.handle(ctx, act, csm)
+			require.NoError(err)
+			log := p.createLog(ctx, r.handlerName, r.candidateOwner, protocol.MustGetActionCtx(ctx).Caller, r.data)
+			_, err = p.settleAction(ctx, sm, r.status, r.gasFee, log)
 			require.Equal(test.err, errors.Cause(err))
 		} else {
 			r, err = p.Handle(ctx, act, sm)
@@ -1244,7 +1247,11 @@ func TestProtocol_HandleChangeCandidate(t *testing.T) {
 			cc := center.GetBySelfStakingIndex(test.index)
 			center.deleteForTestOnly(cc.Owner)
 			require.False(csm.ContainsOwner(cc.Owner))
-			r, err = p.handle(ctx, act, csm)
+			r, err := p.handle(ctx, act, csm)
+			require.NoError(err)
+			log := p.createLog(ctx, r.handlerName, r.candidateOwner, protocol.MustGetActionCtx(ctx).Caller, r.data)
+			_, err = p.settleAction(ctx, sm, r.status, r.gasFee, log)
+			require.Equal(test.err, errors.Cause(err))
 			require.Equal(test.err, errors.Cause(err))
 		} else {
 			r, err = p.Handle(ctx, act, sm)
@@ -1696,7 +1703,11 @@ func TestProtocol_HandleRestake(t *testing.T) {
 			require.True(ok)
 			center.deleteForTestOnly(test.caller)
 			require.False(csm.ContainsOwner(test.caller))
-			r, err = p.handle(ctx, act, csm)
+			r, err := p.handle(ctx, act, csm)
+			require.NoError(err)
+			log := p.createLog(ctx, r.handlerName, r.candidateOwner, protocol.MustGetActionCtx(ctx).Caller, r.data)
+			_, err = p.settleAction(ctx, sm, r.status, r.gasFee, log)
+			require.Equal(test.err, errors.Cause(err))
 			require.Equal(test.err, errors.Cause(err))
 		} else {
 			r, err = p.Handle(ctx, act, sm)
@@ -1907,7 +1918,11 @@ func TestProtocol_HandleDepositToStake(t *testing.T) {
 			require.True(ok)
 			center.deleteForTestOnly(test.caller)
 			require.False(csm.ContainsOwner(test.caller))
-			r, err = p.handle(ctx, act, csm)
+			r, err := p.handle(ctx, act, csm)
+			require.NoError(err)
+			log := p.createLog(ctx, r.handlerName, r.candidateOwner, protocol.MustGetActionCtx(ctx).Caller, r.data)
+			_, err = p.settleAction(ctx, sm, r.status, r.gasFee, log)
+			require.Equal(test.err, errors.Cause(err))
 			require.Equal(test.err, errors.Cause(err))
 		} else {
 			r, err = p.Handle(ctx, act, sm)
@@ -2028,7 +2043,7 @@ func setupAccount(sm protocol.StateManager, addr address.Address, balance int64)
 	return accountutil.StoreAccount(sm, addr.String(), account)
 }
 
-func depositGas(ctx context.Context, sm protocol.StateManager, gasFee *big.Int) error {
+func depositGas(ctx context.Context, sm protocol.StateReadWriter, gasFee *big.Int) error {
 	actionCtx := protocol.MustGetActionCtx(ctx)
 	// Subtract balance from caller
 	acc, err := accountutil.LoadAccount(sm, hash.BytesToHash160(actionCtx.Caller.Bytes()))
