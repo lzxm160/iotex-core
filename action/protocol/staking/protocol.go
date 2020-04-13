@@ -60,6 +60,15 @@ type Protocol struct {
 	config     Configuration
 }
 
+// HandleMsg is the msg returned by handler
+type HandleMsg struct {
+	handlerName    string
+	candidateOwner address.Address
+	data           []byte
+	status         uint64
+	gasFee         *big.Int
+}
+
 // Configuration is the staking protocol configuration.
 type Configuration struct {
 	VoteWeightCalConsts   genesis.VoteWeightCalConsts
@@ -70,7 +79,7 @@ type Configuration struct {
 }
 
 // DepositGas deposits gas to some pool
-type DepositGas func(ctx context.Context, sm protocol.StateManager, amount *big.Int) error
+type DepositGas func(ctx context.Context, sm protocol.StateReadWriter, amount *big.Int) error
 
 // NewProtocol instantiates the protocol of staking
 func NewProtocol(depositGas DepositGas, sr protocol.StateReader, cfg genesis.Staking) (*Protocol, error) {
@@ -213,62 +222,45 @@ func (p *Protocol) Handle(ctx context.Context, act action.Action, sm protocol.St
 	if err != nil {
 		return nil, err
 	}
-	return p.handle(ctx, act, csm)
-}
-
-func (p *Protocol) handle(ctx context.Context, act action.Action, csm CandidateStateManager) (*action.Receipt, error) {
-	if act == nil {
+if act == nil {
 		return nil, ErrNilAction
 	}
+	handleMsg, err := p.handle(ctx, act, csm)
+	if err != nil {
+		return nil, err
+	}
+	if handleMsg == nil {
+		return nil, nil
+	}
+	log := p.createLog(ctx, handleMsg.handlerName, handleMsg.candidateOwner, protocol.MustGetActionCtx(ctx).Caller, handleMsg.data)
+	return p.settleAction(ctx, sm, handleMsg.status, handleMsg.gasFee, log)
+}
+
+func (p *Protocol) handle(ctx context.Context, act action.Action, csm CandidateStateManager) (r *HandleMsg, err error) {
 	switch act := act.(type) {
 	case *action.CreateStake:
-		if err := p.validateCreateStake(ctx, act); err != nil {
-			return nil, err
-		}
-		return p.handleCreateStake(ctx, act, csm)
+		r, err = p.handleCreateStake(ctx, act, csm)
 	case *action.Unstake:
-		if err := p.validateUnstake(ctx, act); err != nil {
-			return nil, err
-		}
-		return p.handleUnstake(ctx, act, csm)
+		r, err = p.handleUnstake(ctx, act, csm)
 	case *action.WithdrawStake:
-		if err := p.validateWithdrawStake(ctx, act); err != nil {
-			return nil, err
-		}
-		return p.handleWithdrawStake(ctx, act, csm)
+		r, err = p.handleWithdrawStake(ctx, act, csm)
 	case *action.ChangeCandidate:
-		if err := p.validateChangeCandidate(ctx, act); err != nil {
-			return nil, err
-		}
-		return p.handleChangeCandidate(ctx, act, csm)
+		r, err = p.handleChangeCandidate(ctx, act, csm)
 	case *action.TransferStake:
-		if err := p.validateTransferStake(ctx, act); err != nil {
-			return nil, err
-		}
-		return p.handleTransferStake(ctx, act, csm)
+		r, err = p.handleTransferStake(ctx, act, csm)
 	case *action.DepositToStake:
-		if err := p.validateDepositToStake(ctx, act); err != nil {
-			return nil, err
-		}
-		return p.handleDepositToStake(ctx, act, csm)
+		r, err = p.handleDepositToStake(ctx, act, csm)
 	case *action.Restake:
-		if err := p.validateRestake(ctx, act); err != nil {
-			return nil, err
-		}
-		return p.handleRestake(ctx, act, csm)
+		r, err = p.handleRestake(ctx, act, csm)
 	case *action.CandidateRegister:
-		if err := p.validateCandidateRegister(ctx, act); err != nil {
-			return nil, err
-		}
-		return p.handleCandidateRegister(ctx, act, csm)
+		r, err = p.handleCandidateRegister(ctx, act, csm)
 	case *action.CandidateUpdate:
-		if err := p.validateCandidateUpdate(ctx, act); err != nil {
-			return nil, err
-		}
-		return p.handleCandidateUpdate(ctx, act, csm)
+		r, err = p.handleCandidateUpdate(ctx, act, csm)
 	}
-	return nil, nil
+	return
 }
+
+
 
 // ActiveCandidates returns all active candidates in candidate center
 func (p *Protocol) ActiveCandidates(ctx context.Context, sr protocol.StateReader, height uint64) (state.CandidateList, error) {
