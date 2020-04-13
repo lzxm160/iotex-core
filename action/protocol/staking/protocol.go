@@ -222,9 +222,11 @@ func (p *Protocol) Handle(ctx context.Context, act action.Action, sm protocol.St
 	if err != nil {
 		return nil, err
 	}
-if act == nil {
+
+	if act == nil {
 		return nil, ErrNilAction
 	}
+
 	handleMsg, err := p.handle(ctx, act, csm)
 	if err != nil {
 		return nil, err
@@ -259,8 +261,6 @@ func (p *Protocol) handle(ctx context.Context, act action.Action, csm CandidateS
 	}
 	return
 }
-
-
 
 // ActiveCandidates returns all active candidates in candidate center
 func (p *Protocol) ActiveCandidates(ctx context.Context, sr protocol.StateReader, height uint64) (state.CandidateList, error) {
