@@ -176,7 +176,7 @@ func TestProtocol_HandleCreateStake(t *testing.T) {
 		require.NoError(err)
 		r, err := p.Handle(ctx, act, sm)
 		if test.err != nil {
-			fmt.Println(r, ":", err)
+			fmt.Println(r, ":", test.err)
 			require.EqualError(test.err, errors.Cause(err).Error())
 			continue
 		}
