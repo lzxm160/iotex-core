@@ -238,7 +238,7 @@ func (p *Protocol) Handle(ctx context.Context, act action.Action, sm protocol.St
 	return p.settleAction(ctx, sm, handleMsg.status, handleMsg.gasFee, log)
 }
 
-func (p *Protocol) handle(ctx context.Context, act action.Action, csm CandidateStateManager) (*action.Receipt, error) {
+func (p *Protocol) handle(ctx context.Context, act action.Action, csm CandidateStateManager) (*HandleMsg, error) {
 	switch act := act.(type) {
 	case *action.CreateStake:
 		if err := p.validateCreateStake(ctx, act); err != nil {
