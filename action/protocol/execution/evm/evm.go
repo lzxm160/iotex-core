@@ -8,6 +8,7 @@ package evm
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"math/big"
 	"time"
@@ -166,6 +167,8 @@ func ExecuteContract(
 		return nil, nil, err
 	}
 	retval, depositGas, remainingGas, contractAddress, statusCode, err := executeInEVM(ps, stateDB, hu, blkCtx.GasLimit, blkCtx.BlockHeight)
+	fmt.Println(retval, depositGas, remainingGas, contractAddress, statusCode, err)
+	fmt.Println(blkCtx.GasLimit, blkCtx.BlockHeight)
 	if err != nil {
 		return nil, nil, err
 	}
