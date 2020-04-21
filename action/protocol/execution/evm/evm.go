@@ -225,7 +225,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, hu config.HeightUp
 	var config vm.Config
 	chainConfig := getChainConfig(hu.BeringBlockHeight())
 	evm := vm.NewEVM(evmParams.context, stateDB, chainConfig, config)
-	fmt.Println("228:", chainConfig, config)
+	fmt.Println("228:", chainConfig.DAOForkSupport, config.Debug)
 	intriGas, err := intrinsicGas(evmParams.data)
 	if err != nil {
 		return nil, evmParams.gas, remainingGas, action.EmptyAddress, uint64(iotextypes.ReceiptStatus_Failure), err
