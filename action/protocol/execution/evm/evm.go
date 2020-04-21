@@ -254,7 +254,6 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, hu config.HeightUp
 		stateDB.SetNonce(evmParams.context.Origin, stateDB.GetNonce(evmParams.context.Origin)+1)
 		// process contract
 		ret, remainingGas, evmErr = evm.Call(executor, *evmParams.contract, evmParams.data, remainingGas, evmParams.amount)
-		fmt.Println("246:", ret, remainingGas, evmErr)
 	}
 	if evmErr != nil {
 		log.L().Debug("evm error", zap.Error(evmErr))
