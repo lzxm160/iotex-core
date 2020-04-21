@@ -229,6 +229,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, hu config.HeightUp
 	if err != nil {
 		return nil, evmParams.gas, remainingGas, action.EmptyAddress, uint64(iotextypes.ReceiptStatus_Failure), err
 	}
+	fmt.Println("232:", intriGas, err)
 	if remainingGas < intriGas {
 		return nil, evmParams.gas, remainingGas, action.EmptyAddress, uint64(iotextypes.ReceiptStatus_Failure), action.ErrOutOfGas
 	}
@@ -241,6 +242,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, hu config.HeightUp
 		// create contract
 		var evmContractAddress common.Address
 		_, evmContractAddress, remainingGas, evmErr = evm.Create(executor, evmParams.data, remainingGas, evmParams.amount)
+		fmt.Println("246:", evmContractAddress, remainingGas, evmErr)
 		log.L().Debug("evm Create.", log.Hex("addrHash", evmContractAddress[:]))
 		if evmErr == nil {
 			if contractAddress, err := address.FromBytes(evmContractAddress.Bytes()); err == nil {
@@ -251,6 +253,7 @@ func executeInEVM(evmParams *Params, stateDB *StateDBAdapter, hu config.HeightUp
 		stateDB.SetNonce(evmParams.context.Origin, stateDB.GetNonce(evmParams.context.Origin)+1)
 		// process contract
 		ret, remainingGas, evmErr = evm.Call(executor, *evmParams.contract, evmParams.data, remainingGas, evmParams.amount)
+		fmt.Println("246:", ret, remainingGas, evmErr)
 	}
 	if evmErr != nil {
 		log.L().Debug("evm error", zap.Error(evmErr))
