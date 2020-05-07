@@ -7,6 +7,8 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/iotexproject/iotex-core/tools/util"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -31,7 +33,7 @@ const (
 	existingOperatorAddr = "io1cs32huf9hg92em6vhmyf5qt6a9h02yys46zpe0"
 )
 
-func injectCandidates() {
+func injectCandidates(addrs []*util.AddressKey) {
 	grpcCtx1, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	conn1, err := grpc.DialContext(grpcCtx1, chainEndpoint, grpc.WithBlock(), grpc.WithInsecure())
@@ -70,16 +72,16 @@ func injectCandidates() {
 	startNonce := initNonce
 	count := uint64(4)
 	candNumber := uint64(1)
-	for startNonce < initNonce+uint64(36) {
+	for startNonce < initNonce+uint64(27) {
 		for nonce := startNonce; nonce < startNonce+count; nonce++ {
-			private, err := crypto.GenerateKey()
-			if err != nil {
-				log.L().Fatal("Failed to generate new key for a new account", zap.Error(err))
-			}
-			addr, err := address.FromBytes(private.PublicKey().Hash())
-			if err != nil {
-				log.L().Fatal("Failed to derive address from public key", zap.Error(err))
-			}
+			//private, err := crypto.GenerateKey()
+			//if err != nil {
+			//	log.L().Fatal("Failed to generate new key for a new account", zap.Error(err))
+			//}
+			//addr, err := address.FromBytes(private.PublicKey().Hash())
+			//if err != nil {
+			//	log.L().Fatal("Failed to derive address from public key", zap.Error(err))
+			//}
 
 			fixedAmount := unit.ConvertIotxToRau(3000000).String()
 			b := make([]byte, 6)
@@ -90,12 +92,12 @@ func injectCandidates() {
 			//if candNumber == uint64(2) {
 			//	candidateName = candidateNames[rand.Intn(len(candidateNames))]
 			//}
-			operatorAddr := addr.String()
+			operatorAddr := addrs[startNonce].EncodedAddr
 			//if candNumber == uint64(3) {
 			//	operatorAddr = existingOperatorAddr
 			//}
 
-			cr, err := testutil.SignedCandidateRegister(nonce, candidateName, operatorAddr, addr.String(), addr.String(), fixedAmount, 1, true, nil, 1000000, big.NewInt(unit.Qev), sk)
+			cr, err := testutil.SignedCandidateRegister(nonce, candidateName, operatorAddr, addrs[startNonce].EncodedAddr, addrs[startNonce].EncodedAddr, fixedAmount, 1, true, nil, 1000000, big.NewInt(unit.Qev), sk)
 			if err != nil {
 				log.L().Fatal("Failed to create create_bucket", zap.Error(err))
 			}
