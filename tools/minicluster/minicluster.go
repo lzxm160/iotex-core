@@ -430,7 +430,11 @@ func newConfig(
 	cfg.Genesis.Delegates = cfg.Genesis.Delegates[3 : numNodes+3]
 	cfg.Genesis.EnableGravityChainVoting = false
 	cfg.Genesis.PollMode = "nativeMix"
-
+	//scoreThreshold: "2000000000000000000000000"
+	//selfStakingThreshold: "1200000000000000000000000"
+	//stakingContractAddress: 0x87c9dbff0016af23f5b1ab9b8e072124ab729193
+	//voteThreshold: "100000000000000000000"
+	cfg.Genesis.ScoreThreshold = "2000000000000000000000000"
 	cfg.Genesis.FairbankBlockHeight = 5
 	return cfg
 }
