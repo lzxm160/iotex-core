@@ -92,12 +92,12 @@ func injectCandidates(addrs []*util.AddressKey) {
 			//if candNumber == uint64(2) {
 			//	candidateName = candidateNames[rand.Intn(len(candidateNames))]
 			//}
-			operatorAddr := addrs[startNonce].EncodedAddr
+			operatorAddr := addrs[nonce].EncodedAddr
 			//if candNumber == uint64(3) {
 			//	operatorAddr = existingOperatorAddr
 			//}
 
-			cr, err := testutil.SignedCandidateRegister(nonce, candidateName, operatorAddr, addrs[startNonce].EncodedAddr, addrs[startNonce].EncodedAddr, fixedAmount, 1, true, nil, 1000000, big.NewInt(unit.Qev), sk)
+			cr, err := testutil.SignedCandidateRegister(nonce, candidateName, operatorAddr, addrs[nonce].EncodedAddr, addrs[nonce].EncodedAddr, fixedAmount, 1, true, nil, 1000000, big.NewInt(unit.Qev), sk)
 			if err != nil {
 				log.L().Fatal("Failed to create create_bucket", zap.Error(err))
 			}
