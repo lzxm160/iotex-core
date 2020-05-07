@@ -104,7 +104,7 @@ func injectCandidates() {
 			if err != nil {
 				log.L().Fatal("Failed to send action", zap.Error(err))
 			}
-			fmt.Println(candNumber, res.ActionHash)
+			fmt.Println("inject candidate:", candNumber, res.ActionHash)
 			candNumber += 1
 		}
 		startNonce = startNonce + count
