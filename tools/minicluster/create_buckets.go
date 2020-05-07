@@ -99,7 +99,7 @@ func injectBuckets() {
 				if err != nil {
 					log.L().Fatal("Failed to send action", zap.Error(err))
 				}
-				fmt.Println(res.ActionHash)
+				fmt.Println(nonce, res.ActionHash)
 			}
 			startNonce = startNonce + count
 			time.Sleep(time.Second * 7)
