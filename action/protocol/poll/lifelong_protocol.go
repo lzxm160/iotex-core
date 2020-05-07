@@ -8,6 +8,7 @@ package poll
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-address/address"
@@ -106,6 +107,7 @@ func (p *lifeLongDelegatesProtocol) ReadState(
 	case "BlockProducersByEpoch":
 		fallthrough
 	case "ActiveBlockProducersByEpoch":
+		fmt.Println("lifelong CandidatesByEpoch ActiveBlockProducersByEpoch:")
 		return p.readBlockProducers()
 	case "GetGravityChainStartHeight":
 		if len(args) != 1 {

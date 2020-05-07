@@ -8,6 +8,7 @@ package poll
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"strconv"
 
@@ -138,6 +139,7 @@ func (sh *Slasher) ReadState(
 	}
 	switch string(method) {
 	case "CandidatesByEpoch":
+		fmt.Println("slasher CandidatesByEpoch:")
 		if indexer != nil {
 			candidates, err := sh.GetCandidatesFromIndexer(ctx, epochStartHeight)
 			if err == nil {
@@ -172,6 +174,7 @@ func (sh *Slasher) ReadState(
 		}
 		return blockProducers.Serialize()
 	case "ActiveBlockProducersByEpoch":
+		fmt.Println("slasher ActiveBlockProducersByEpoch:")
 		if indexer != nil {
 			activeBlockProducers, err := sh.GetABPFromIndexer(ctx, epochStartHeight)
 			if err == nil {
