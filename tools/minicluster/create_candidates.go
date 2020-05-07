@@ -72,7 +72,7 @@ func injectCandidates(addrs []*util.AddressKey) {
 	startNonce := initNonce
 	count := uint64(4)
 	candNumber := uint64(1)
-	for startNonce < initNonce+uint64(27) {
+	for startNonce < initNonce+uint64(26) {
 		for nonce := startNonce; nonce < startNonce+count; nonce++ {
 			//private, err := crypto.GenerateKey()
 			//if err != nil {
