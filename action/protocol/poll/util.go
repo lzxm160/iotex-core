@@ -184,6 +184,7 @@ func setCandidates(
 		if err != nil {
 			errors.Wrap(err, "failed to convert candidate address")
 		}
+		fmt.Println("////////init/////////////setCandidates(:", candidate.Address, delegate.Balance)
 		if err := accountutil.StoreAccount(sm, candAddr, delegate); err != nil {
 			return errors.Wrap(err, "failed to update pending account changes to trie")
 		}
