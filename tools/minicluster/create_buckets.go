@@ -114,14 +114,14 @@ func injectBuckets() {
 
 func getAllBuckets(chainClient iotexapi.APIServiceClient) ([]string, error) {
 	methodName, err := proto.Marshal(&iotexapi.ReadStakingDataMethod{
-		Method: iotexapi.ReadStakingDataMethod_CANDIDATES,
+		Method: iotexapi.ReadStakingDataMethod_BUCKETS,
 	})
 	if err != nil {
 		return nil, err
 	}
 	arg, err := proto.Marshal(&iotexapi.ReadStakingDataRequest{
-		Request: &iotexapi.ReadStakingDataRequest_Candidates_{
-			Candidates: &iotexapi.ReadStakingDataRequest_Candidates{
+		Request: &iotexapi.ReadStakingDataRequest_Buckets{
+			Buckets: &iotexapi.ReadStakingDataRequest_VoteBuckets{
 				Pagination: &iotexapi.PaginationParam{
 					Offset: 0,
 					Limit:  500,
