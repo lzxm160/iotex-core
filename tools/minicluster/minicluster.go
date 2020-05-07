@@ -97,7 +97,7 @@ func main() {
 		networkPort := 4689 + i
 		apiPort := 14014 + i
 		HTTPAdminPort := 9009 + i
-		config := newConfig(chainAddrs[i].PriKey, networkPort, apiPort, HTTPAdminPort)
+		config := newConfig(chainAddrs[i].PriKey, networkPort, apiPort, HTTPAdminPort, chainAddrs)
 		config.Chain.ChainDBPath = chainDBPath
 		config.Chain.TrieDBPath = trieDBPath
 		config.Chain.IndexDBPath = indexDBPath
@@ -394,6 +394,7 @@ func newConfig(
 	networkPort,
 	apiPort int,
 	HTTPAdminPort int,
+	addr []*util.AddressKey,
 ) config.Config {
 	cfg := config.Default
 
@@ -435,5 +436,9 @@ func newConfig(
 	//voteThreshold: "100000000000000000000"
 	//cfg.Genesis.ScoreThreshold = "2000000000000000000000000"
 	//cfg.Genesis.FairbankBlockHeight = 5
+	cfg.Genesis.InitBalanceMap = make(map[string]string)
+	for _, a := range addr {
+		cfg.Genesis.InitBalanceMap[a.EncodedAddr] = "1000000000000000000000000000000000000000000"
+	}
 	return cfg
 }
