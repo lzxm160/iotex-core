@@ -431,13 +431,13 @@ func newConfig(
 	cfg.Genesis.Blockchain.TimeBasedRotation = true
 	cfg.Genesis.Delegates = cfg.Genesis.Delegates[3 : numNodes+3]
 	cfg.Genesis.EnableGravityChainVoting = false
-	cfg.Genesis.PollMode = "native"
+	cfg.Genesis.PollMode = "lifelong"
 	//scoreThreshold: "2000000000000000000000000"
 	//selfStakingThreshold: "1200000000000000000000000"
 	//stakingContractAddress: 0x87c9dbff0016af23f5b1ab9b8e072124ab729193
 	//voteThreshold: "100000000000000000000"
 	cfg.Genesis.ScoreThreshold = "200000000000000000"
-	cfg.Genesis.FairbankBlockHeight = 100
+	cfg.Genesis.FairbankBlockHeight = 10
 	cfg.Genesis.InitBalanceMap = make(map[string]string)
 	for _, a := range addr {
 		cfg.Genesis.InitBalanceMap[a.EncodedAddr] = "1000000000000000000000000000000000000000000"
