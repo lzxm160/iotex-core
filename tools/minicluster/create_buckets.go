@@ -141,7 +141,7 @@ func getAllCandidateNames(chainClient iotexapi.APIServiceClient) ([]string, erro
 	names := make([]string, 0)
 	for _, candidate := range c.Candidates {
 		names = append(names, candidate.GetName())
-		fmt.Println(candidate)
+		fmt.Println("getAllCandidateNames:", candidate)
 	}
 	return names, nil
 }

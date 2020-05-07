@@ -23,7 +23,7 @@ const (
 
 	chainEndpoint  = "127.0.0.1:14014"
 	privateKey     = "414efa99dfac6f4095d6954713fb0085268d400d6a05a8ae8a69b5b1c10b4bed"
-	accountAddress = "io13sj9mzpewn25ymheukte4v39hvjdtrfp00mlyv"
+	accountAddress = "io1ph0u2psnd7muq5xv9623rmxdsxc4uapxhzpg02"
 
 	existingOperatorAddr = "io1cs32huf9hg92em6vhmyf5qt6a9h02yys46zpe0"
 )
@@ -106,5 +106,10 @@ func injectCandidates() {
 		}
 		startNonce = startNonce + count
 		time.Sleep(time.Second * 7)
+	}
+
+	candidateNames, err = getAllCandidateNames(chainClient)
+	if err != nil {
+		log.L().Fatal("Failed to get all candidate names", zap.Error(err))
 	}
 }
