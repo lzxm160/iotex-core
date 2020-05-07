@@ -67,7 +67,7 @@ func injectCandidates() {
 	startNonce := initNonce
 	count := uint64(4)
 	candNumber := uint64(1)
-	for startNonce < initNonce+uint64(200) {
+	for startNonce < initNonce+uint64(36) {
 		for nonce := startNonce; nonce < startNonce+count; nonce++ {
 			private, err := crypto.GenerateKey()
 			if err != nil {
