@@ -139,14 +139,14 @@ func getAllBuckets(chainClient iotexapi.APIServiceClient) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	c := iotextypes.CandidateListV2{}
-	if err := proto.Unmarshal(res.Data, &c); err != nil {
+	b := iotextypes.VoteBucketList{}
+	if err := proto.Unmarshal(res.Data, &b); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal response")
 	}
 	names := make([]string, 0)
-	for _, candidate := range c.Candidates {
-		names = append(names, candidate.GetName())
-		fmt.Println("getAllCandidateNames:", candidate)
+	for _, bucket := range b.Buckets {
+		names = append(names, bucket.Owner)
+		fmt.Println("getAllBuckets:", bucket)
 	}
 	return names, nil
 }
