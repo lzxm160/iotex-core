@@ -51,10 +51,10 @@ func injectCandidates() {
 	}
 	fmt.Println("/////////////////////inject addr:", addr.String())
 
-	candidateNames, err := getAllCandidateNames(chainClient)
-	if err != nil {
-		log.L().Fatal("Failed to get all candidate names", zap.Error(err))
-	}
+	//candidateNames, err := getAllCandidateNames(chainClient)
+	//if err != nil {
+	//	log.L().Fatal("Failed to get all candidate names", zap.Error(err))
+	//}
 	time.Sleep(5 * time.Second)
 
 	rand.Seed(time.Now().Unix())
@@ -84,13 +84,13 @@ func injectCandidates() {
 				b[i] = charset[rand.Intn(len(charset))]
 			}
 			candidateName := string(b)
-			if candNumber == uint64(2) {
-				candidateName = candidateNames[rand.Intn(len(candidateNames))]
-			}
+			//if candNumber == uint64(2) {
+			//	candidateName = candidateNames[rand.Intn(len(candidateNames))]
+			//}
 			operatorAddr := addr.String()
-			if candNumber == uint64(3) {
-				operatorAddr = existingOperatorAddr
-			}
+			//if candNumber == uint64(3) {
+			//	operatorAddr = existingOperatorAddr
+			//}
 
 			cr, err := testutil.SignedCandidateRegister(nonce, candidateName, operatorAddr, addr.String(), addr.String(), fixedAmount, 1, true, nil, 1000000, big.NewInt(unit.Qev), sk)
 			if err != nil {
@@ -108,8 +108,9 @@ func injectCandidates() {
 		time.Sleep(time.Second * 7)
 	}
 
-	candidateNames, err = getAllCandidateNames(chainClient)
+	_, err = getAllCandidateNames(chainClient)
 	if err != nil {
 		log.L().Fatal("Failed to get all candidate names", zap.Error(err))
 	}
+
 }
