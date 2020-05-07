@@ -8,14 +8,15 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 	"github.com/pkg/errors"
+
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
 	"github.com/iotexproject/go-pkgs/crypto"
 	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-proto/golang/iotexapi"
-	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 
 	"github.com/iotexproject/iotex-core/pkg/log"
 	"github.com/iotexproject/iotex-core/pkg/unit"
@@ -103,9 +104,13 @@ func injectBuckets() {
 		}
 		fmt.Println()
 	}
+	_, err = getAllBuckets(chainClient)
+	if err != nil {
+		log.L().Fatal("Failed to get all candidate names", zap.Error(err))
+	}
 }
 
-func getAllCandidateNames(chainClient iotexapi.APIServiceClient) ([]string, error) {
+func getAllBuckets(chainClient iotexapi.APIServiceClient) ([]string, error) {
 	methodName, err := proto.Marshal(&iotexapi.ReadStakingDataMethod{
 		Method: iotexapi.ReadStakingDataMethod_CANDIDATES,
 	})

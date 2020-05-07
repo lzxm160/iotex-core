@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/iotexproject/iotex-core/pkg/unit"
 	"github.com/iotexproject/iotex-core/testutil"
 	"github.com/iotexproject/iotex-proto/golang/iotexapi"
+	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 )
 
 const (
@@ -112,5 +114,45 @@ func injectCandidates() {
 	if err != nil {
 		log.L().Fatal("Failed to get all candidate names", zap.Error(err))
 	}
+}
 
+func getAllCandidateNames(chainClient iotexapi.APIServiceClient) ([]string, error) {
+	methodName, err := proto.Marshal(&iotexapi.ReadStakingDataMethod{
+		Method: iotexapi.ReadStakingDataMethod_CANDIDATES,
+	})
+	if err != nil {
+		return nil, err
+	}
+	arg, err := proto.Marshal(&iotexapi.ReadStakingDataRequest{
+		Request: &iotexapi.ReadStakingDataRequest_Candidates_{
+			Candidates: &iotexapi.ReadStakingDataRequest_Candidates{
+				Pagination: &iotexapi.PaginationParam{
+					Offset: 0,
+					Limit:  500,
+				},
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	request := &iotexapi.ReadStateRequest{
+		ProtocolID: []byte("staking"),
+		MethodName: methodName,
+		Arguments:  [][]byte{arg},
+	}
+	res, err := chainClient.ReadState(context.Background(), request)
+	if err != nil {
+		return nil, err
+	}
+	c := iotextypes.CandidateListV2{}
+	if err := proto.Unmarshal(res.Data, &c); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal response")
+	}
+	names := make([]string, 0)
+	for _, candidate := range c.Candidates {
+		names = append(names, candidate.GetName())
+		fmt.Println("getAllCandidateNames:", candidate)
+	}
+	return names, nil
 }

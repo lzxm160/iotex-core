@@ -263,7 +263,8 @@ func main() {
 		log.L().Info("Start action injections.")
 		time.Sleep(time.Second * 50)
 		injectCandidates()
-		//injectBuckets()
+		fmt.Println("-------------------------------------------------")
+		injectBuckets()
 		wg := &sync.WaitGroup{}
 		util.InjectByAps(wg, aps, counter, transferGasLimit, transferGasPrice, transferPayload, voteGasLimit,
 			voteGasPrice, contract, executionAmount, executionGasLimit, executionGasPrice, interactExecData, fpToken,
