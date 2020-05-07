@@ -30,6 +30,7 @@ const (
 )
 
 func injectBuckets() {
+	fmt.Println("/////////////////////injectBuckets start:")
 	grpcCtx1, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	conn1, err := grpc.DialContext(grpcCtx1, chainEndpoint, grpc.WithBlock(), grpc.WithInsecure())
@@ -68,6 +69,7 @@ func injectBuckets() {
 		if err != nil {
 			log.L().Fatal("Failed to get account", zap.Error(err))
 		}
+		fmt.Println(addr.String(), ":", res.AccountMeta.Nonce, ":", res.AccountMeta.PendingNonce)
 		transfer, err := testutil.SignedTransfer(addr.String(), sk, res.AccountMeta.Nonce+1, unit.ConvertIotxToRau(100000), nil, 100000, big.NewInt(unit.Qev))
 		if err != nil {
 			log.L().Fatal("Failed to create transfer", zap.Error(err))

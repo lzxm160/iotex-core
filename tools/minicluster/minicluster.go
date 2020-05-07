@@ -264,6 +264,7 @@ func main() {
 		time.Sleep(time.Second * 50)
 		injectCandidates()
 		fmt.Println("-------------------------------------------------")
+		time.Sleep(time.Second * 10)
 		injectBuckets()
 		wg := &sync.WaitGroup{}
 		util.InjectByAps(wg, aps, counter, transferGasLimit, transferGasPrice, transferPayload, voteGasLimit,
