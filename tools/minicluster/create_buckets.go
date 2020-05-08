@@ -90,7 +90,7 @@ func injectBuckets() {
 			for nonce := startNonce; nonce < startNonce+count; nonce++ {
 				fixedAmount := unit.ConvertIotxToRau(100).String()
 				candidateName := candidateNames[rand.Intn(len(candidateNames))]
-				ex, err := testutil.SignedCreateStake(nonce, candidateName, fixedAmount, 1, false, nil, 1000000, big.NewInt(unit.Qev), private)
+				ex, err := testutil.SignedCreateStake(nonce, candidateName, fixedAmount, 1, true, nil, 1000000, big.NewInt(unit.Qev), private)
 				if err != nil {
 					log.L().Fatal("Failed to create create_bucket", zap.Error(err))
 				}
