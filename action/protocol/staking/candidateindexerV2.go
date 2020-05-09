@@ -61,7 +61,7 @@ func (vb *CandidateV2Indexer) Put(height uint64, candidates *iotextypes.Candidat
 		return err
 	}
 	for _, cand := range candidates.Candidates {
-		fmt.Println("CandidateV2Indexer", height, cand)
+		fmt.Println("CandidateV2Indexer Put", height, cand)
 	}
 
 	return vb.kvStore.Put(CandidateV2Namespace, byteutil.Uint64ToBytes(height), candidatesBytes)

@@ -61,7 +61,7 @@ func (vb *VoteBucketV2Indexer) Put(height uint64, buckets *iotextypes.VoteBucket
 		return err
 	}
 	for _, b := range buckets.Buckets {
-		fmt.Println("VoteBucketV2Indexer", height, b)
+		fmt.Println("VoteBucketV2Indexer Put", height, b)
 	}
 	return vb.kvStore.Put(VoteBucketV2Namespace, byteutil.Uint64ToBytes(height), bucketsBytes)
 }

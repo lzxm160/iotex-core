@@ -237,15 +237,17 @@ func (p *Protocol) Handle(ctx context.Context, act action.Action, sm protocol.St
 	if err != nil {
 		return nil, err
 	}
-	// add stakingv2 indexer,because handle used for many modes
+	// add stakingv2 indexer here
 	p.handleIndexerV2(ctx, act, sm)
 	return receipt, nil
 }
 
 func (p *Protocol) handleIndexerV2(ctx context.Context, act action.Action, sm protocol.StateManager) error {
-	// if is not this action,it's not the epoch start height
-	r, ok := act.(*action.PutPollResult)
-	if !ok {
+	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
+	blkCtx := protocol.MustGetBlockCtx(ctx)
+	epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(blkCtx.BlockHeight))
+	fmt.Println("handleIndexerV2", epochStartHeight, blkCtx.BlockHeight)
+	if epochStartHeight != blkCtx.BlockHeight {
 		return nil
 	}
 	bcCtx := protocol.MustGetBlockchainCtx(ctx)
@@ -380,16 +382,14 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get candidate center")
 	}
-	// using offset as height
-
+	// using offset as height for test
+	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
 	var resp proto.Message
 	switch m.GetMethod() {
 	case iotexapi.ReadStakingDataMethod_BUCKETS:
 		offset := uint64(r.GetBuckets().GetPagination().GetOffset())
-		rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
 		epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(offset))
 		if p.hu.IsPost(config.Fairbank, epochStartHeight) && p.voteBucketV2Indexer != nil {
-			fmt.Println("iotexapi.ReadStakingDataMethod_BUCKETS voteBucketV2Indexer", epochStartHeight)
 			return p.voteBucketV2Indexer.Get(epochStartHeight)
 		}
 		resp, err = readStateBuckets(ctx, sr, r.GetBuckets())
@@ -399,11 +399,8 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 		resp, err = readStateBucketsByCandidate(ctx, sr, center, r.GetBucketsByCandidate())
 	case iotexapi.ReadStakingDataMethod_CANDIDATES:
 		offset := uint64(r.GetCandidates().GetPagination().GetOffset())
-		rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
 		epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(offset))
-		fmt.Println("xxxxxxxxxxxxx:", config.Fairbank, epochStartHeight, p.hu.IsPost(config.Fairbank, epochStartHeight), p.candidateV2Indexer != nil)
 		if p.hu.IsPost(config.Fairbank, epochStartHeight) && p.candidateV2Indexer != nil {
-			fmt.Println("iotexapi.ReadStakingDataMethod_CANDIDATES candidateV2Indexer", epochStartHeight)
 			return p.candidateV2Indexer.Get(epochStartHeight)
 		}
 		resp, err = readStateCandidates(ctx, center, r.GetCandidates())
