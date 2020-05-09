@@ -253,7 +253,7 @@ func (p *Protocol) handleIndexerV2(ctx context.Context, act action.Action, sm pr
 	bcCtx := protocol.MustGetBlockchainCtx(ctx)
 	hu := config.NewHeightUpgrade(&bcCtx.Genesis)
 	// only for after fairbank
-	if hu.IsPre(config.Fairbank, r.Height()) {
+	if hu.IsPre(config.Fairbank, epochStartHeight) {
 		return nil
 	}
 	if p.voteBucketV2Indexer != nil {
@@ -261,7 +261,7 @@ func (p *Protocol) handleIndexerV2(ctx context.Context, act action.Action, sm pr
 		if err != nil {
 			return err
 		}
-		err = p.voteBucketV2Indexer.Put(r.Height(), buckets)
+		err = p.voteBucketV2Indexer.Put(epochStartHeight, buckets)
 		if err != nil {
 			return err
 		}
@@ -271,7 +271,7 @@ func (p *Protocol) handleIndexerV2(ctx context.Context, act action.Action, sm pr
 		if err != nil {
 			return err
 		}
-		err = p.candidateV2Indexer.Put(r.Height(), candidateListV2)
+		err = p.candidateV2Indexer.Put(epochStartHeight, candidateListV2)
 		if err != nil {
 			return err
 		}
