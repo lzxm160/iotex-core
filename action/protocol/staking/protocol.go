@@ -382,6 +382,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	}
 	// using offset as height
 	offset := uint64(r.GetBuckets().GetPagination().GetOffset())
+	fmt.Println("offset:", offset)
 	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
 	epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(offset))
 	var resp proto.Message
