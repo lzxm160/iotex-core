@@ -8,6 +8,7 @@ package staking
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -383,6 +384,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	switch m.GetMethod() {
 	case iotexapi.ReadStakingDataMethod_BUCKETS:
 		if p.hu.IsPost(config.Fairbank, epochStartHeight) && p.voteBucketV2Indexer != nil {
+			fmt.Println("iotexapi.ReadStakingDataMethod_BUCKETS voteBucketV2Indexer", epochStartHeight)
 			return p.voteBucketV2Indexer.Get(epochStartHeight)
 		}
 		resp, err = readStateBuckets(ctx, sr, r.GetBuckets())
@@ -392,6 +394,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 		resp, err = readStateBucketsByCandidate(ctx, sr, center, r.GetBucketsByCandidate())
 	case iotexapi.ReadStakingDataMethod_CANDIDATES:
 		if p.hu.IsPost(config.Fairbank, epochStartHeight) && p.candidateV2Indexer != nil {
+			fmt.Println("iotexapi.ReadStakingDataMethod_CANDIDATES candidateV2Indexer", epochStartHeight)
 			return p.candidateV2Indexer.Get(epochStartHeight)
 		}
 		resp, err = readStateCandidates(ctx, center, r.GetCandidates())
