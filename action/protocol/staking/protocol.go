@@ -379,7 +379,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get candidate center")
 	}
-	epochStartHeight := uint64(2)
+	epochStartHeight := uint64(361)
 	var resp proto.Message
 	switch m.GetMethod() {
 	case iotexapi.ReadStakingDataMethod_BUCKETS:
