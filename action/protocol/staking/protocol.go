@@ -24,6 +24,7 @@ import (
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/blockchain/genesis"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/pkg/log"
@@ -379,7 +380,10 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get candidate center")
 	}
-	epochStartHeight := uint64(361)
+	// using offset as height
+	offset := uint64(r.GetBuckets().GetPagination().GetOffset())
+	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
+	epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(offset))
 	var resp proto.Message
 	switch m.GetMethod() {
 	case iotexapi.ReadStakingDataMethod_BUCKETS:
