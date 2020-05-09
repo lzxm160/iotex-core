@@ -397,6 +397,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	case iotexapi.ReadStakingDataMethod_BUCKETS_BY_CANDIDATE:
 		resp, err = readStateBucketsByCandidate(ctx, sr, center, r.GetBucketsByCandidate())
 	case iotexapi.ReadStakingDataMethod_CANDIDATES:
+		fmt.Println("xxxxxxxxxxxxx:", config.Fairbank, epochStartHeight, p.hu.IsPost(config.Fairbank, epochStartHeight), p.candidateV2Indexer != nil)
 		if p.hu.IsPost(config.Fairbank, epochStartHeight) && p.candidateV2Indexer != nil {
 			fmt.Println("iotexapi.ReadStakingDataMethod_CANDIDATES candidateV2Indexer", epochStartHeight)
 			return p.candidateV2Indexer.Get(epochStartHeight)
