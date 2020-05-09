@@ -239,7 +239,7 @@ func (p *Protocol) Handle(ctx context.Context, act action.Action, sm protocol.St
 		return nil, err
 	}
 	// add stakingv2 indexer here
-	p.handleIndexerV2(ctx, act, sm)
+	go p.handleIndexerV2(ctx, act, sm)
 	return receipt, nil
 }
 
