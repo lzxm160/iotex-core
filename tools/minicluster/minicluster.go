@@ -267,11 +267,11 @@ func main() {
 		pendingActionMap := new(sync.Map)
 
 		log.L().Info("Start action injections.")
-		//time.Sleep(time.Second * 50)
-		//injectCandidates(chainAddrs)
-		//fmt.Println("-------------------------------------------------")
-		//time.Sleep(time.Second * 10)
-		//injectBuckets()
+		time.Sleep(time.Second * 50)
+		injectCandidates(chainAddrs)
+		fmt.Println("-------------------------------------------------")
+		time.Sleep(time.Second * 10)
+		injectBuckets()
 		wg := &sync.WaitGroup{}
 		util.InjectByAps(wg, aps, counter, transferGasLimit, transferGasPrice, transferPayload, voteGasLimit,
 			voteGasPrice, contract, executionAmount, executionGasLimit, executionGasPrice, interactExecData, fpToken,
