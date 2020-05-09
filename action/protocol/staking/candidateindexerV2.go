@@ -71,5 +71,10 @@ func (vb *CandidateV2Indexer) Put(height uint64, candidates *iotextypes.Candidat
 func (vb *CandidateV2Indexer) Get(height uint64) ([]byte, error) {
 	vb.mutex.RLock()
 	defer vb.mutex.RUnlock()
-	return vb.kvStore.Get(CandidateV2Namespace, byteutil.Uint64ToBytes(height))
+
+	ret, err := vb.kvStore.Get(CandidateV2Namespace, byteutil.Uint64ToBytes(height))
+	if errors.Cause(err) == db.ErrNotExist {
+		return proto.Marshal(&iotextypes.CandidateListV2{})
+	}
+	return ret, err
 }
