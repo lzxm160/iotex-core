@@ -367,27 +367,26 @@ func (p *Protocol) ActiveCandidates(ctx context.Context, sr protocol.StateReader
 
 // ReadState read the state on blockchain via protocol
 func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, method []byte, args ...[]byte) ([]byte, error) {
-	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
-	epochStartHeight := uint64(1)
-	if len(args) != 0 {
-		height, err := strconv.ParseUint(string(args[0]), 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		epochStartHeight = rp.GetEpochHeight(rp.GetEpochNum(height))
-		fmt.Println("ReadStakingDataMethod_BUCKETS", epochStartHeight, height)
-	}
 	m := iotexapi.ReadStakingDataMethod{}
 	if err := proto.Unmarshal(method, &m); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal method name")
 	}
-	if len(args) != 1 {
+	if len(args) != 2 {
 		return nil, errors.Errorf("invalid number of arguments %d", len(args))
 	}
 	r := iotexapi.ReadStakingDataRequest{}
 	if err := proto.Unmarshal(args[0], &r); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal request")
 	}
+	// get height arg
+	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
+	epochStartHeight := uint64(1)
+	height, err := strconv.ParseUint(string(args[1]), 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	epochStartHeight = rp.GetEpochHeight(rp.GetEpochNum(height))
+	fmt.Println("ReadStakingDataMethod_BUCKETS", epochStartHeight, height)
 
 	center, err := getOrCreateCandCenter(sr)
 	if err != nil {
