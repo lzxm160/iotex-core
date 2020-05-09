@@ -381,13 +381,13 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 		return nil, errors.Wrap(err, "failed to get candidate center")
 	}
 	// using offset as height
-	offset := uint64(r.GetBuckets().GetPagination().GetOffset())
-	fmt.Println("offset:", offset)
-	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
-	epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(offset))
+
 	var resp proto.Message
 	switch m.GetMethod() {
 	case iotexapi.ReadStakingDataMethod_BUCKETS:
+		offset := uint64(r.GetBuckets().GetPagination().GetOffset())
+		rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
+		epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(offset))
 		if p.hu.IsPost(config.Fairbank, epochStartHeight) && p.voteBucketV2Indexer != nil {
 			fmt.Println("iotexapi.ReadStakingDataMethod_BUCKETS voteBucketV2Indexer", epochStartHeight)
 			return p.voteBucketV2Indexer.Get(epochStartHeight)
@@ -398,6 +398,9 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	case iotexapi.ReadStakingDataMethod_BUCKETS_BY_CANDIDATE:
 		resp, err = readStateBucketsByCandidate(ctx, sr, center, r.GetBucketsByCandidate())
 	case iotexapi.ReadStakingDataMethod_CANDIDATES:
+		offset := uint64(r.GetCandidates().GetPagination().GetOffset())
+		rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
+		epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(offset))
 		fmt.Println("xxxxxxxxxxxxx:", config.Fairbank, epochStartHeight, p.hu.IsPost(config.Fairbank, epochStartHeight), p.candidateV2Indexer != nil)
 		if p.hu.IsPost(config.Fairbank, epochStartHeight) && p.candidateV2Indexer != nil {
 			fmt.Println("iotexapi.ReadStakingDataMethod_CANDIDATES candidateV2Indexer", epochStartHeight)
