@@ -390,6 +390,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 		offset := uint64(r.GetBuckets().GetPagination().GetOffset())
 		epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(offset))
 		if p.hu.IsPost(config.Fairbank, epochStartHeight) && p.voteBucketV2Indexer != nil {
+			fmt.Println("ReadStakingDataMethod_BUCKETS", epochStartHeight, offset)
 			return p.voteBucketV2Indexer.Get(epochStartHeight)
 		}
 		resp, err = readStateBuckets(ctx, sr, r.GetBuckets())
@@ -401,6 +402,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 		offset := uint64(r.GetCandidates().GetPagination().GetOffset())
 		epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(offset))
 		if p.hu.IsPost(config.Fairbank, epochStartHeight) && p.candidateV2Indexer != nil {
+			fmt.Println("ReadStakingDataMethod_CANDIDATES", epochStartHeight, offset)
 			return p.candidateV2Indexer.Get(epochStartHeight)
 		}
 		resp, err = readStateCandidates(ctx, center, r.GetCandidates())
