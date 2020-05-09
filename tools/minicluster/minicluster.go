@@ -261,11 +261,11 @@ func main() {
 		pendingActionMap := new(sync.Map)
 
 		log.L().Info("Start action injections.")
-		time.Sleep(time.Second * 50)
-		injectCandidates(chainAddrs)
-		fmt.Println("-------------------------------------------------")
-		time.Sleep(time.Second * 10)
-		injectBuckets()
+		//time.Sleep(time.Second * 50)
+		//injectCandidates(chainAddrs)
+		//fmt.Println("-------------------------------------------------")
+		//time.Sleep(time.Second * 10)
+		//injectBuckets()
 		wg := &sync.WaitGroup{}
 		util.InjectByAps(wg, aps, counter, transferGasLimit, transferGasPrice, transferPayload, voteGasLimit,
 			voteGasPrice, contract, executionAmount, executionGasLimit, executionGasPrice, interactExecData, fpToken,
@@ -437,10 +437,10 @@ func newConfig(
 	//stakingContractAddress: 0x87c9dbff0016af23f5b1ab9b8e072124ab729193
 	//voteThreshold: "100000000000000000000"
 	//cfg.Genesis.ScoreThreshold = "200000000000000000"
-	cfg.Genesis.FairbankBlockHeight = 10
-	cfg.Genesis.InitBalanceMap = make(map[string]string)
-	for _, a := range addr {
-		cfg.Genesis.InitBalanceMap[a.EncodedAddr] = "1000000000000000000000000000000000000000000"
-	}
+	//cfg.Genesis.FairbankBlockHeight = 10
+	//cfg.Genesis.InitBalanceMap = make(map[string]string)
+	//for _, a := range addr {
+	//	cfg.Genesis.InitBalanceMap[a.EncodedAddr] = "1000000000000000000000000000000000000000000"
+	//}
 	return cfg
 }
