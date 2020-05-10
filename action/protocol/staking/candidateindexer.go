@@ -60,7 +60,7 @@ func (vb *StakingCandidatesIndexer) Put(height uint64, candidates *iotextypes.Ca
 	if err != nil {
 		return err
 	}
-	fmt.Println("StakingCandidatesIndexer len", len(candidates.Candidates))
+	fmt.Println("StakingCandidatesIndexer len", len(candidates.Candidates), height)
 	for _, c := range candidates.Candidates {
 		fmt.Println("StakingCandidatesIndexer put", height, c)
 	}

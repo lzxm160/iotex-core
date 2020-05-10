@@ -94,10 +94,10 @@ func main() {
 		dbFilePaths = append(dbFilePaths, systemLogDBPath)
 		candidateIndexDBPath := fmt.Sprintf("./candidate.index%d.db", i+1)
 		dbFilePaths = append(dbFilePaths, candidateIndexDBPath)
-		candidateIndexV2DBPath := fmt.Sprintf("./candidateV2.index%d.db", i+1)
-		dbFilePaths = append(dbFilePaths, candidateIndexV2DBPath)
-		voteBucketV2DBPath := fmt.Sprintf("./voteBucketV2.index%d.db", i+1)
-		dbFilePaths = append(dbFilePaths, voteBucketV2DBPath)
+		stakingCandidatesIndexerDBPath := fmt.Sprintf("./stakingCandidates.index%d.db", i+1)
+		dbFilePaths = append(dbFilePaths, stakingCandidatesIndexerDBPath)
+		stakingBucketsIndexerDBPath := fmt.Sprintf("./stakingBuckets.index%d.db", i+1)
+		dbFilePaths = append(dbFilePaths, stakingBucketsIndexerDBPath)
 		networkPort := 4689 + i
 		apiPort := 14014 + i
 		HTTPAdminPort := 9009 + i
@@ -106,8 +106,8 @@ func main() {
 		config.Chain.TrieDBPath = trieDBPath
 		config.Chain.IndexDBPath = indexDBPath
 		config.Chain.CandidateIndexDBPath = candidateIndexDBPath
-		config.Chain.CandidateIndexV2DBPath = candidateIndexV2DBPath
-		config.Chain.VoteBucketIndexV2DBPath = voteBucketV2DBPath
+		config.Chain.StakingCandidatesIndexerDBPath = stakingCandidatesIndexerDBPath
+		config.Chain.StakingBucketsIndexerDBPath = stakingBucketsIndexerDBPath
 		config.Consensus.RollDPoS.ConsensusDBPath = consensusDBPath
 		config.System.SystemLogDBPath = systemLogDBPath
 		if i == 0 {

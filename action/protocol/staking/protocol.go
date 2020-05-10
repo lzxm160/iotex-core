@@ -272,7 +272,6 @@ func (p *Protocol) handleStakingIndexer(ctx context.Context, sm protocol.StateMa
 		}
 	}
 	if p.stakingCandidatesIndexer != nil {
-
 		candidateListV2 := toIoTeXTypesCandidateListV2(center.All())
 		//if err != nil {
 		//	return err
