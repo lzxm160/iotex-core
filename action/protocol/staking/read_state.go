@@ -88,12 +88,12 @@ func readStateCandidates(ctx context.Context, cc CandidateCenter,
 	return toIoTeXTypesCandidateListV2(candidates), nil
 }
 
-func getAllCandidates(sr protocol.StateReader) (*iotextypes.CandidateListV2, error) {
-	all, err := loadCandidatesFromSR(sr)
+func getStakingCandidates(sr protocol.StateReader) (*iotextypes.CandidateListV2, error) {
+	cc, err := getCandCenter(sr)
 	if err != nil {
 		return nil, err
 	}
-	return toIoTeXTypesCandidateListV2(all), nil
+	return toIoTeXTypesCandidateListV2(cc.All()), nil
 }
 
 func readStateCandidateByName(ctx context.Context, cc CandidateCenter,
