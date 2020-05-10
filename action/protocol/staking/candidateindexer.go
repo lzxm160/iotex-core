@@ -60,9 +60,9 @@ func (vb *StakingCandidatesIndexer) Put(height uint64, candidates *iotextypes.Ca
 	if err != nil {
 		return err
 	}
-	fmt.Println("StakingBucketsIndexer len", len(candidates.Candidates))
+	fmt.Println("StakingCandidatesIndexer len", len(candidates.Candidates))
 	for _, c := range candidates.Candidates {
-		fmt.Println("StakingBucketsIndexer put", height, c)
+		fmt.Println("StakingCandidatesIndexer put", height, c)
 	}
 	return vb.kvStore.Put(StakingCandidateNamespace, byteutil.Uint64ToBytes(height), candidatesBytes)
 }
