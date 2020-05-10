@@ -8,7 +8,6 @@ package staking
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"strconv"
 	"time"
@@ -247,7 +246,6 @@ func (p *Protocol) handleIndexerV2(ctx context.Context, act action.Action, sm pr
 	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 	epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(blkCtx.BlockHeight))
-	fmt.Println("handleIndexerV2", epochStartHeight, blkCtx.BlockHeight)
 	if epochStartHeight != blkCtx.BlockHeight {
 		return nil
 	}
@@ -386,8 +384,6 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 		return nil, err
 	}
 	epochStartHeight = rp.GetEpochHeight(rp.GetEpochNum(height))
-	fmt.Println("ReadStakingDataMethod_BUCKETS", epochStartHeight, height)
-
 	center, err := getOrCreateCandCenter(sr)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get candidate center")
@@ -396,7 +392,6 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	switch m.GetMethod() {
 	case iotexapi.ReadStakingDataMethod_BUCKETS:
 		if p.hu.IsPost(config.Fairbank, epochStartHeight) && p.voteBucketV2Indexer != nil {
-			fmt.Println("ReadStakingDataMethod_BUCKETS voteBucketV2Indexer", r.GetBuckets().GetPagination().GetOffset(), r.GetBuckets().GetPagination().GetLimit())
 			return p.voteBucketV2Indexer.Get(epochStartHeight, r.GetBuckets().GetPagination().GetOffset(), r.GetBuckets().GetPagination().GetLimit())
 		}
 		resp, err = readStateBuckets(ctx, sr, r.GetBuckets())
@@ -406,7 +401,6 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 		resp, err = readStateBucketsByCandidate(ctx, sr, center, r.GetBucketsByCandidate())
 	case iotexapi.ReadStakingDataMethod_CANDIDATES:
 		if p.hu.IsPost(config.Fairbank, epochStartHeight) && p.candidateV2Indexer != nil {
-			fmt.Println("ReadStakingDataMethod_CANDIDATES candidateV2Indexer", r.GetCandidates().GetPagination().GetOffset(), r.GetCandidates().GetPagination().GetLimit())
 			return p.candidateV2Indexer.Get(epochStartHeight, r.GetCandidates().GetPagination().GetOffset(), r.GetCandidates().GetPagination().GetLimit())
 		}
 		resp, err = readStateCandidates(ctx, center, r.GetCandidates())
