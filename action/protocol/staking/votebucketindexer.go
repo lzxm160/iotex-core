@@ -8,6 +8,7 @@ package staking
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/gogo/protobuf/proto"
@@ -59,6 +60,11 @@ func (vb *StakingBucketsIndexer) Put(height uint64, buckets *iotextypes.VoteBuck
 	if err != nil {
 		return err
 	}
+	fmt.Println("StakingBucketsIndexer len", len(buckets.Buckets))
+	for _, bucket := range buckets.Buckets {
+		fmt.Println("StakingBucketsIndexer put", height, bucket)
+	}
+
 	return vb.kvStore.Put(StakingBucketsNamespace, byteutil.Uint64ToBytes(height), bucketsBytes)
 }
 
