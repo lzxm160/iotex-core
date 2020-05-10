@@ -8,6 +8,7 @@ package staking
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"strconv"
 	"time"
@@ -393,7 +394,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 		}
 		epochStartHeight = rp.GetEpochHeight(rp.GetEpochNum(height))
 	}
-
+	fmt.Println("ReadState", height, epochStartHeight)
 	center, err := getOrCreateCandCenter(sr)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get candidate center")
