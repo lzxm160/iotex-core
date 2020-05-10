@@ -267,7 +267,7 @@ func main() {
 		pendingActionMap := new(sync.Map)
 
 		log.L().Info("Start action injections.")
-		time.Sleep(time.Second * 50)
+		//time.Sleep(time.Second * 50)
 		injectCandidates(chainAddrs)
 		fmt.Println("-------------------------------------------------")
 		time.Sleep(time.Second * 10)
