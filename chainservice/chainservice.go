@@ -186,12 +186,12 @@ func New(
 		if err != nil {
 			return nil, err
 		}
-		cfg.DB.DbPath = cfg.Chain.CandidateIndexV2DBPath
+		cfg.DB.DbPath = cfg.Chain.StakingCandidatesIndexerDBPath
 		stakingCandidatesIndexer, err = staking.NewStakingCandidatesIndexer(db.NewBoltDB(cfg.DB))
 		if err != nil {
 			return nil, err
 		}
-		cfg.DB.DbPath = cfg.Chain.VoteBucketIndexV2DBPath
+		cfg.DB.DbPath = cfg.Chain.StakingBucketsIndexerDBPath
 		stakingBucketsIndexer, err = staking.NewStakingBucketsIndexer(db.NewBoltDB(cfg.DB))
 		if err != nil {
 			return nil, err
