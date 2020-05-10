@@ -239,7 +239,7 @@ func (p *Protocol) Handle(ctx context.Context, act action.Action, sm protocol.St
 		return nil, err
 	}
 
-	err = p.handleStakingIndexer(ctx, sm)
+	err = p.handleStakingIndexer(ctx, sm, center)
 	if err != nil {
 		log.L().Error("error when processing staking indexer", zap.Error(err))
 		return nil, err
@@ -248,7 +248,7 @@ func (p *Protocol) Handle(ctx context.Context, act action.Action, sm protocol.St
 	return receipt, nil
 }
 
-func (p *Protocol) handleStakingIndexer(ctx context.Context, sm protocol.StateManager) error {
+func (p *Protocol) handleStakingIndexer(ctx context.Context, sm protocol.StateManager, center CandidateCenter) error {
 	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 	epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(blkCtx.BlockHeight))
@@ -272,11 +272,13 @@ func (p *Protocol) handleStakingIndexer(ctx context.Context, sm protocol.StateMa
 		}
 	}
 	if p.stakingCandidatesIndexer != nil {
-		candidateListV2, err := getStakingCandidates(sm)
-		if err != nil {
-			return err
-		}
-		err = p.stakingCandidatesIndexer.Put(epochStartHeight, candidateListV2)
+
+		candidateListV2 := toIoTeXTypesCandidateListV2(center.All())
+		//if err != nil {
+		//	return err
+		//}
+		fmt.Println("p.stakingCandidatesIndexer != nil", len(candidateListV2.Candidates))
+		err := p.stakingCandidatesIndexer.Put(epochStartHeight, candidateListV2)
 		if err != nil {
 			return err
 		}
