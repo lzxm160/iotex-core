@@ -8,7 +8,6 @@ package staking
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"strconv"
 	"time"
@@ -239,8 +238,7 @@ func (p *Protocol) Handle(ctx context.Context, act action.Action, sm protocol.St
 		return nil, err
 	}
 
-	err = p.handleStakingIndexer(ctx, sm, center)
-	if err != nil {
+	if err = p.handleStakingIndexer(ctx, sm, center); err != nil {
 		log.L().Error("error when processing staking indexer", zap.Error(err))
 		return nil, err
 	}
@@ -272,12 +270,8 @@ func (p *Protocol) handleStakingIndexer(ctx context.Context, sm protocol.StateMa
 		}
 	}
 	if p.stakingCandidatesIndexer != nil {
-		candidateListV2 := toIoTeXTypesCandidateListV2(center.All())
-		//if err != nil {
-		//	return err
-		//}
-		fmt.Println("p.stakingCandidatesIndexer != nil", len(candidateListV2.Candidates))
-		err := p.stakingCandidatesIndexer.Put(epochStartHeight, candidateListV2)
+		candidateList := toIoTeXTypesCandidateListV2(center.All())
+		err := p.stakingCandidatesIndexer.Put(epochStartHeight, candidateList)
 		if err != nil {
 			return err
 		}
@@ -395,7 +389,6 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 		}
 		epochStartHeight = rp.GetEpochHeight(rp.GetEpochNum(height))
 	}
-	fmt.Println("ReadState", height, epochStartHeight)
 	center, err := getOrCreateCandCenter(sr)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get candidate center")

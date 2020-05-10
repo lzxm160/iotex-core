@@ -107,8 +107,8 @@ var (
 			TrieDBPath:                     "/var/data/trie.db",
 			IndexDBPath:                    "/var/data/index.db",
 			CandidateIndexDBPath:           "/var/data/candidate.index.db",
-			StakingCandidatesIndexerDBPath: "/var/data/stakingCandidates.index.db",
-			StakingBucketsIndexerDBPath:    "/var/data/stakingBuckets.index.db",
+			StakingCandidatesIndexDBPath: "/var/data/stakingCandidates.index.db",
+			StakingBucketsIndexDBPath:    "/var/data/stakingBuckets.index.db",
 			ID:                             1,
 			Address:                        "",
 			ProducerPrivKey:                generateRandomKey(SigP256k1),
@@ -232,8 +232,8 @@ type (
 		TrieDBPath                     string           `yaml:"trieDBPath"`
 		IndexDBPath                    string           `yaml:"indexDBPath"`
 		CandidateIndexDBPath           string           `yaml:"candidateIndexDBPath"`
-		StakingCandidatesIndexerDBPath string           `yaml:"stakingCandidatesIndexerDBPath"`
-		StakingBucketsIndexerDBPath    string           `yaml:"stakingBucketsIndexerDBPath"`
+		StakingCandidatesIndexDBPath string           `yaml:"stakingCandidatesIndexDBPath"`
+		StakingBucketsIndexDBPath    string           `yaml:"stakingBucketsIndexDBPath"`
 		ID                             uint32           `yaml:"id"`
 		Address                        string           `yaml:"address"`
 		ProducerPrivKey                string           `yaml:"producerPrivKey"`
