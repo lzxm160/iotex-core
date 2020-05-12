@@ -268,7 +268,6 @@ func main() {
 
 		log.L().Info("Start action injections.")
 		injectCandidates(chainAddrs)
-		fmt.Println("-------------------------------------------------")
 		time.Sleep(time.Second * 10)
 		injectBuckets()
 		wg := &sync.WaitGroup{}

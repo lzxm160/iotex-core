@@ -52,7 +52,7 @@ func injectCandidates(addrs []*util.AddressKey) {
 	if err != nil {
 		log.L().Fatal("Failed to derive address from public key", zap.Error(err))
 	}
-	fmt.Println("/////////////////////inject addr:", addr.String())
+	fmt.Println("inject addr:", addr.String())
 	time.Sleep(5 * time.Second)
 
 	rand.Seed(time.Now().Unix())
