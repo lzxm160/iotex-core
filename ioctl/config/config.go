@@ -105,7 +105,7 @@ func init() {
 		completeness = false
 	}
 	if ReadConfig.FairBankHeight == 0 {
-		ReadConfig.FairBankHeight = 5165641
+		ReadConfig.FairBankHeight = 3330000
 	}
 	if !completeness {
 		err := writeConfig()
