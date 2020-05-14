@@ -13,12 +13,16 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pkg/errors"
+
+	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/iotexproject/iotex-proto/golang/iotexapi"
+	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 
 	"github.com/iotexproject/iotex-core/action/protocol/vote"
 	"github.com/iotexproject/iotex-core/ioctl/cmd/alias"
@@ -287,8 +291,41 @@ func delegatesV2() error {
 			Votes:   util.RauToString(votes, util.IotxDecimalNum),
 		})
 	}
+	fillMessage(cli, &message)
 	fmt.Println(message.String())
 	return nil
+}
+func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage) error {
+	cl, err := GetAllStakingCandidates(cli)
+	if err != nil {
+		return err
+	}
+	addressMap := make(map[string]*iotextypes.CandidateV2)
+	for _, candidate := range cl.Candidates {
+		addressMap[candidate.OwnerAddress] = candidate
+	}
+	delegateAddressMap := make(map[string]struct{})
+	for _, m := range message.Delegates {
+		delegateAddressMap[m.Address] = struct{}{}
+	}
+	for i, m := range message.Delegates {
+		if c, ok := addressMap[m.Address]; ok {
+			message.Delegates[i].Name = c.Name
+			continue
+		}
+	}
+	for i, candidate := range cl.Candidates {
+		if _, ok := delegateAddressMap[candidate.OwnerAddress]; ok {
+			continue
+		}
+		message.Delegates = append(message.Delegates, delegate{
+			Address: candidate.OwnerAddress,
+			Rank:    i + 24,
+			Alias:   "",
+			Active:  true,
+			Votes:   "0",
+		})
+	}
 }
 func isProducer(candidateList state.CandidateList, candidateAddress string) bool {
 	for _, candidate := range candidateList {
@@ -299,62 +336,57 @@ func isProducer(candidateList state.CandidateList, candidateAddress string) bool
 	return false
 }
 
-//
-//func getCandidatesByEpoch()(state.CandidateList, error){
-//
-//}
-//
-//// GetAllStakingCandidates get all candidates by height
-//func GetAllStakingCandidates(chainClient iotexapi.APIServiceClient) (candidateListAll *iotextypes.CandidateListV2, err error) {
-//	candidateListAll = &iotextypes.CandidateListV2{}
-//	for i := uint32(0); ; i++ {
-//		offset := i * readCandidatesLimit
-//		size := uint32(readCandidatesLimit)
-//		candidateList, err := getStakingCandidates(chainClient, offset, size)
-//		if err != nil {
-//			return nil, errors.Wrap(err, "failed to get candidates")
-//		}
-//		candidateListAll.Candidates = append(candidateListAll.Candidates, candidateList.Candidates...)
-//		if len(candidateList.Candidates) < readCandidatesLimit {
-//			break
-//		}
-//	}
-//	return
-//}
-//
-//// getStakingCandidates get specific candidates by height
-//func getStakingCandidates(chainClient iotexapi.APIServiceClient, offset, limit uint32) (candidateList *iotextypes.CandidateListV2, err error) {
-//	methodName, err := proto.Marshal(&iotexapi.ReadStakingDataMethod{
-//		Method: iotexapi.ReadStakingDataMethod_CANDIDATES,
-//	})
-//	if err != nil {
-//		return nil, err
-//	}
-//	arg, err := proto.Marshal(&iotexapi.ReadStakingDataRequest{
-//		Request: &iotexapi.ReadStakingDataRequest_Candidates_{
-//			Candidates: &iotexapi.ReadStakingDataRequest_Candidates{
-//				Pagination: &iotexapi.PaginationParam{
-//					Offset: offset,
-//					Limit:  limit,
-//				},
-//			},
-//		},
-//	})
-//	if err != nil {
-//		return nil, err
-//	}
-//	readStateRequest := &iotexapi.ReadStateRequest{
-//		ProtocolID: []byte(protocolID),
-//		MethodName: methodName,
-//		Arguments:  [][]byte{arg},
-//	}
-//	readStateRes, err := chainClient.ReadState(context.Background(), readStateRequest)
-//	if err != nil {
-//		return
-//	}
-//	candidateList = &iotextypes.CandidateListV2{}
-//	if err := proto.Unmarshal(readStateRes.GetData(), candidateList); err != nil {
-//		return nil, errors.Wrap(err, "failed to unmarshal VoteBucketList")
-//	}
-//	return
-//}
+// GetAllStakingCandidates get all candidates by height
+func GetAllStakingCandidates(chainClient iotexapi.APIServiceClient) (candidateListAll *iotextypes.CandidateListV2, err error) {
+	candidateListAll = &iotextypes.CandidateListV2{}
+	for i := uint32(0); ; i++ {
+		offset := i * readCandidatesLimit
+		size := uint32(readCandidatesLimit)
+		candidateList, err := getStakingCandidates(chainClient, offset, size)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get candidates")
+		}
+		candidateListAll.Candidates = append(candidateListAll.Candidates, candidateList.Candidates...)
+		if len(candidateList.Candidates) < readCandidatesLimit {
+			break
+		}
+	}
+	return
+}
+
+// getStakingCandidates get specific candidates by height
+func getStakingCandidates(chainClient iotexapi.APIServiceClient, offset, limit uint32) (candidateList *iotextypes.CandidateListV2, err error) {
+	methodName, err := proto.Marshal(&iotexapi.ReadStakingDataMethod{
+		Method: iotexapi.ReadStakingDataMethod_CANDIDATES,
+	})
+	if err != nil {
+		return nil, err
+	}
+	arg, err := proto.Marshal(&iotexapi.ReadStakingDataRequest{
+		Request: &iotexapi.ReadStakingDataRequest_Candidates_{
+			Candidates: &iotexapi.ReadStakingDataRequest_Candidates{
+				Pagination: &iotexapi.PaginationParam{
+					Offset: offset,
+					Limit:  limit,
+				},
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	readStateRequest := &iotexapi.ReadStateRequest{
+		ProtocolID: []byte(protocolID),
+		MethodName: methodName,
+		Arguments:  [][]byte{arg},
+	}
+	readStateRes, err := chainClient.ReadState(context.Background(), readStateRequest)
+	if err != nil {
+		return
+	}
+	candidateList = &iotextypes.CandidateListV2{}
+	if err := proto.Unmarshal(readStateRes.GetData(), candidateList); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal VoteBucketList")
+	}
+	return
+}
