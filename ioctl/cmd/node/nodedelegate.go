@@ -107,8 +107,8 @@ func (m *delegatesMessage) String() string {
 		}
 		lines := []string{fmt.Sprintf("Epoch: %d,  Start block height: %d,Total blocks produced in epoch: %d\n",
 			m.Epoch, m.StartBlock, m.TotalBlocks)}
-		formatTitleString := "%-41s   %-12s   %-4s   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %-6s   %-4t    %s"
-		formatDataString := "%-41s   %-12s   %4d   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %-6d   %-4t    %s"
+		formatTitleString := "%-41s   %-12s   %-4s   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %-6s   %-12s    %s"
+		formatDataString := "%-41s   %-12s   %4d   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %-6d   %-12s    %s"
 		lines = append(lines, fmt.Sprintf(formatTitleString,
 			"Address", "Name", "Rank", "Alias", "Status", "Blocks", "ProbatedStatus", "Votes"))
 		for i, bp := range m.Delegates {
@@ -263,41 +263,42 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 			ProbatedStatus: isProbated,
 		})
 	}
-	request = &iotexapi.ReadStateRequest{
-		ProtocolID: []byte("poll"),
-		MethodName: []byte("CandidatesByEpoch"),
-		Arguments:  [][]byte{[]byte(strconv.FormatUint(epochNum, 10))},
-	}
-	bpResponse, err = cli.ReadState(ctx, request)
-	if err != nil {
-		sta, ok := status.FromError(err)
-		if ok {
-			return output.NewError(output.APIError, sta.Message(), nil)
-		}
-		return output.NewError(output.NetworkError, "failed to invoke ReadState api", err)
-	}
-	var allCandidates state.CandidateList
-	if err := allCandidates.Deserialize(bpResponse.Data); err != nil {
-		return output.NewError(output.SerializationError, "failed to deserialize BPs", err)
-	}
-	for rank, candidate := range allCandidates {
-		if isProducer(BPs, candidate.Address) {
-			continue
-		}
-		votes := big.NewInt(0).SetBytes(candidate.Votes.Bytes())
-		message.Delegates = append(message.Delegates, delegate{
-			Address: candidate.Address,
-			Name:    string(candidate.CanName),
-			Rank:    rank + 24,
-			Alias:   aliases[candidate.Address],
-			Active:  isActive[candidate.Address],
-			Votes:   util.RauToString(votes, util.IotxDecimalNum),
-		})
-	}
+	//request = &iotexapi.ReadStateRequest{
+	//	ProtocolID: []byte("poll"),
+	//	MethodName: []byte("CandidatesByEpoch"),
+	//	Arguments:  [][]byte{[]byte(strconv.FormatUint(epochNum, 10))},
+	//}
+	//bpResponse, err = cli.ReadState(ctx, request)
+	//if err != nil {
+	//	sta, ok := status.FromError(err)
+	//	if ok {
+	//		return output.NewError(output.APIError, sta.Message(), nil)
+	//	}
+	//	return output.NewError(output.NetworkError, "failed to invoke ReadState api", err)
+	//}
+	//var allCandidates state.CandidateList
+	//if err := allCandidates.Deserialize(bpResponse.Data); err != nil {
+	//	return output.NewError(output.SerializationError, "failed to deserialize BPs", err)
+	//}
+	//for rank, candidate := range allCandidates {
+	//	if isProducer(BPs, candidate.Address) {
+	//		continue
+	//	}
+	//	votes := big.NewInt(0).SetBytes(candidate.Votes.Bytes())
+	//	message.Delegates = append(message.Delegates, delegate{
+	//		Address: candidate.Address,
+	//		Name:    string(candidate.CanName),
+	//		Rank:    rank + 24,
+	//		Alias:   aliases[candidate.Address],
+	//		Active:  isActive[candidate.Address],
+	//		Votes:   util.RauToString(votes, util.IotxDecimalNum),
+	//	})
+	//}
 	fillMessage(cli, &message, aliases, isActive)
 	fmt.Println(message.String())
 	return nil
 }
+
 func getProbationList(epochNum uint64) (*vote.ProbationList, error) {
 	probationListRes, err := bc.GetProbationList(epochNum)
 	if err != nil {
@@ -311,15 +312,12 @@ func getProbationList(epochNum uint64) (*vote.ProbationList, error) {
 	}
 	return probationList, nil
 }
+
 func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage, alias map[string]string, active map[string]bool) error {
-	cl, err := GetAllStakingCandidates(cli)
+	cl, err := getAllStakingCandidates(cli)
 	if err != nil {
 		return err
 	}
-	for _, can := range cl.Candidates {
-		fmt.Println(can)
-	}
-
 	addressMap := make(map[string]*iotextypes.CandidateV2)
 	for _, candidate := range cl.Candidates {
 		addressMap[candidate.OwnerAddress] = candidate
@@ -349,17 +347,8 @@ func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage, alias
 	}
 	return nil
 }
-func isProducer(candidateList state.CandidateList, candidateAddress string) bool {
-	for _, candidate := range candidateList {
-		if candidate.Address == candidateAddress {
-			return true
-		}
-	}
-	return false
-}
 
-// GetAllStakingCandidates get all candidates by height
-func GetAllStakingCandidates(chainClient iotexapi.APIServiceClient) (candidateListAll *iotextypes.CandidateListV2, err error) {
+func getAllStakingCandidates(chainClient iotexapi.APIServiceClient) (candidateListAll *iotextypes.CandidateListV2, err error) {
 	candidateListAll = &iotextypes.CandidateListV2{}
 	for i := uint32(0); ; i++ {
 		offset := i * readCandidatesLimit
