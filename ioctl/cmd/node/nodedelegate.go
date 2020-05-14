@@ -300,6 +300,10 @@ func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage) error
 	if err != nil {
 		return err
 	}
+	for _, can := range cl.Candidates {
+		fmt.Println(can)
+	}
+
 	addressMap := make(map[string]*iotextypes.CandidateV2)
 	for _, candidate := range cl.Candidates {
 		addressMap[candidate.OwnerAddress] = candidate
@@ -320,7 +324,7 @@ func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage) error
 		}
 		message.Delegates = append(message.Delegates, delegate{
 			Address: candidate.OwnerAddress,
-			Rank:    i + 24,
+			Rank:    i + 25,
 			Alias:   "",
 			Active:  true,
 			Votes:   "0",
