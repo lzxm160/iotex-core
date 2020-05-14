@@ -104,8 +104,8 @@ func (m *delegatesMessage) String() string {
 		}
 		lines := []string{fmt.Sprintf("Epoch: %d,  Start block height: %d,Total blocks produced in epoch: %d\n",
 			m.Epoch, m.StartBlock, m.TotalBlocks)}
-		formatTitleString := "%-41s   %-4s   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %-6s   %-12s    %s"
-		formatDataString := "%-41s   %4d   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %-6d   %-12s    %s"
+		formatTitleString := "%-41s   %-4s   %-4s   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %-6s   %-12s    %s"
+		formatDataString := "%-41s   %-4s   %4d   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %-6d   %-12s    %s"
 		lines = append(lines, fmt.Sprintf(formatTitleString,
 			"Address", "Name", "Rank", "Alias", "Status", "Blocks", "ProbatedStatus", "Votes"))
 		for _, bp := range m.Delegates {
