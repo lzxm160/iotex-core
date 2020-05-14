@@ -117,31 +117,31 @@ func (m *delegatesMessage) String() string {
 	return output.FormatString(output.Result, m)
 }
 
-type delegatesMessageV2 struct {
-	Epoch     int        `json:"epoch"`
-	Delegates []delegate `json:"delegates"`
-}
-
-func (m *delegatesMessageV2) String() string {
-	if output.Format == "" {
-		aliasLen := 5
-		for _, bp := range m.Delegates {
-			if len(bp.Alias) > aliasLen {
-				aliasLen = len(bp.Alias)
-			}
-		}
-		lines := []string{fmt.Sprintf("Epoch: %d\n", epochNum)}
-		formatTitleString := "%-41s   %-4s   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %s"
-		formatDataString := "%-41s   %4d   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %s"
-		lines = append(lines, fmt.Sprintf(formatTitleString, "Address", "Name", "Rank", "Alias", "Status", "Votes"))
-		for _, bp := range m.Delegates {
-			lines = append(lines, fmt.Sprintf(formatDataString, bp.Address, bp.Name, bp.Rank,
-				bp.Alias, nodeStatus[bp.Active], bp.Votes))
-		}
-		return strings.Join(lines, "\n")
-	}
-	return output.FormatString(output.Result, m)
-}
+//type delegatesMessageV2 struct {
+//	Epoch     int        `json:"epoch"`
+//	Delegates []delegate `json:"delegates"`
+//}
+//
+//func (m *delegatesMessageV2) String() string {
+//	if output.Format == "" {
+//		aliasLen := 5
+//		for _, bp := range m.Delegates {
+//			if len(bp.Alias) > aliasLen {
+//				aliasLen = len(bp.Alias)
+//			}
+//		}
+//		lines := []string{fmt.Sprintf("Epoch: %d\n", epochNum)}
+//		formatTitleString := "%-41s   %-4s   %-4s   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %s"
+//		formatDataString := "%-41s   %-4s   %4d   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %s"
+//		lines = append(lines, fmt.Sprintf(formatTitleString, "Address", "Name", "Rank", "Alias", "Status", "Votes"))
+//		for _, bp := range m.Delegates {
+//			lines = append(lines, fmt.Sprintf(formatDataString, bp.Address, bp.Name, bp.Rank,
+//				bp.Alias, nodeStatus[bp.Active], bp.Votes))
+//		}
+//		return strings.Join(lines, "\n")
+//	}
+//	return output.FormatString(output.Result, m)
+//}
 
 func init() {
 	nodeDelegateCmd.Flags().Uint64VarP(&epochNum, "epoch-num", "e", 0,
@@ -216,7 +216,7 @@ func delegatesV2() error {
 		return output.NewError(0, "failed to get chain meta", err)
 	}
 	epochNum = chainMeta.Epoch.Num
-	message := delegatesMessageV2{Epoch: int(epochNum)}
+	message := delegatesMessage{Epoch: int(epochNum)}
 	conn, err := util.ConnectToEndpoint(config.ReadConfig.SecureConnect && !config.Insecure)
 	if err != nil {
 		return output.NewError(output.NetworkError, "failed to connect to endpoint", err)
