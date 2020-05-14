@@ -63,6 +63,7 @@ type Config struct {
 	DefaultAccount Context           `json:"defaultAccount" yaml:"defaultAccount"`
 	Explorer       string            `json:"explorer" yaml:"explorer"`
 	Language       string            `json:"language" yaml:"language"`
+	FairBank       string            `json:"fairbank" yaml:"fairbank"`
 }
 
 var (

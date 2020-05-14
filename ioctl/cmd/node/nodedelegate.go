@@ -29,6 +29,12 @@ import (
 	"github.com/iotexproject/iotex-core/state"
 )
 
+const (
+	protocolID          = "staking"
+	readBucketsLimit    = 30000
+	readCandidatesLimit = 20000
+)
+
 // Multi-language support
 var (
 	delegateCmdUses = map[config.Language]string{
@@ -64,8 +70,8 @@ var nodeDelegateCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		var err error
-		if nextEpoch {
-			err = nextDelegates()
+		if true {
+			err = delegatesV2()
 		} else {
 			err = delegates()
 		}
@@ -76,6 +82,7 @@ var nodeDelegateCmd = &cobra.Command{
 
 type delegate struct {
 	Address        string `json:"address"`
+	Name           string `json:"string"`
 	Rank           int    `json:"rank"`
 	Alias          string `json:"alias"`
 	Active         bool   `json:"active"`
@@ -104,9 +111,9 @@ func (m *delegatesMessage) String() string {
 		formatTitleString := "%-41s   %-4s   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %-6s   %-12s    %s"
 		formatDataString := "%-41s   %4d   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %-6d   %-12s    %s"
 		lines = append(lines, fmt.Sprintf(formatTitleString,
-			"Address", "Rank", "Alias", "Status", "Blocks", "ProbatedStatus", "Votes"))
+			"Address", "Name", "Rank", "Alias", "Status", "Blocks", "ProbatedStatus", "Votes"))
 		for _, bp := range m.Delegates {
-			lines = append(lines, fmt.Sprintf(formatDataString, bp.Address, bp.Rank,
+			lines = append(lines, fmt.Sprintf(formatDataString, bp.Address, bp.Name, bp.Rank,
 				bp.Alias, nodeStatus[bp.Active], bp.Production, probatedStatus[bp.ProbatedStatus], bp.Votes))
 		}
 		return strings.Join(lines, "\n")
@@ -114,17 +121,13 @@ func (m *delegatesMessage) String() string {
 	return output.FormatString(output.Result, m)
 }
 
-type nextDelegatesMessage struct {
-	Epoch      int        `json:"epoch"`
-	Determined bool       `json:"determined"`
-	Delegates  []delegate `json:"delegates"`
+type delegatesMessageV2 struct {
+	Epoch     int        `json:"epoch"`
+	Delegates []delegate `json:"delegates"`
 }
 
-func (m *nextDelegatesMessage) String() string {
+func (m *delegatesMessageV2) String() string {
 	if output.Format == "" {
-		if !m.Determined {
-			return fmt.Sprintf("delegates of upcoming epoch #%d are not determined", epochNum)
-		}
 		aliasLen := 5
 		for _, bp := range m.Delegates {
 			if len(bp.Alias) > aliasLen {
@@ -134,9 +137,9 @@ func (m *nextDelegatesMessage) String() string {
 		lines := []string{fmt.Sprintf("Epoch: %d\n", epochNum)}
 		formatTitleString := "%-41s   %-4s   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %s"
 		formatDataString := "%-41s   %4d   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %s"
-		lines = append(lines, fmt.Sprintf(formatTitleString, "Address", "Rank", "Alias", "Status", "Votes"))
+		lines = append(lines, fmt.Sprintf(formatTitleString, "Address", "Name", "Rank", "Alias", "Status", "Votes"))
 		for _, bp := range m.Delegates {
-			lines = append(lines, fmt.Sprintf(formatDataString, bp.Address, bp.Rank,
+			lines = append(lines, fmt.Sprintf(formatDataString, bp.Address, bp.Name, bp.Rank,
 				bp.Alias, nodeStatus[bp.Active], bp.Votes))
 		}
 		return strings.Join(lines, "\n")
@@ -208,14 +211,13 @@ func delegates() error {
 	return nil
 }
 
-// deprecated: It won't be able to query next delegate after Easter height, because it will be determined at the end of the epoch.
-func nextDelegates() error {
+func delegatesV2() error {
 	chainMeta, err := bc.GetChainMeta()
 	if err != nil {
 		return output.NewError(0, "failed to get chain meta", err)
 	}
-	epochNum = chainMeta.Epoch.Num + 1
-	message := nextDelegatesMessage{Epoch: int(epochNum)}
+	epochNum = chainMeta.Epoch.Num
+	message := delegatesMessageV2{Epoch: int(epochNum)}
 	conn, err := util.ConnectToEndpoint(config.ReadConfig.SecureConnect && !config.Insecure)
 	if err != nil {
 		return output.NewError(output.NetworkError, "failed to connect to endpoint", err)
@@ -239,7 +241,6 @@ func nextDelegates() error {
 	if err != nil {
 		sta, ok := status.FromError(err)
 		if ok && sta.Code() == codes.NotFound {
-			message.Determined = false
 			fmt.Println(message.String())
 			return nil
 		} else if ok {
@@ -247,7 +248,6 @@ func nextDelegates() error {
 		}
 		return output.NewError(output.NetworkError, "failed to invoke ReadState api", err)
 	}
-	message.Determined = true
 	var ABPs state.CandidateList
 	if err := ABPs.Deserialize(abpResponse.Data); err != nil {
 		return output.NewError(output.SerializationError, "failed to deserialize active BPs", err)
@@ -284,6 +284,105 @@ func nextDelegates() error {
 			Votes:   util.RauToString(votes, util.IotxDecimalNum),
 		})
 	}
+	request = &iotexapi.ReadStateRequest{
+		ProtocolID: []byte("poll"),
+		MethodName: []byte("CandidatesByEpoch"),
+		Arguments:  [][]byte{[]byte(strconv.FormatUint(epochNum, 10))},
+	}
+	bpResponse, err = cli.ReadState(ctx, request)
+	if err != nil {
+		sta, ok := status.FromError(err)
+		if ok {
+			return output.NewError(output.APIError, sta.Message(), nil)
+		}
+		return output.NewError(output.NetworkError, "failed to invoke ReadState api", err)
+	}
+	var allCandidates state.CandidateList
+	if err := allCandidates.Deserialize(bpResponse.Data); err != nil {
+		return output.NewError(output.SerializationError, "failed to deserialize BPs", err)
+	}
+	for rank, candidate := range allCandidates {
+		if isProducer(BPs, candidate.Address) {
+			continue
+		}
+		votes := big.NewInt(0).SetBytes(candidate.Votes.Bytes())
+		message.Delegates = append(message.Delegates, delegate{
+			Address: candidate.Address,
+			Name:    string(candidate.CanName),
+			Rank:    rank + 24,
+			Alias:   aliases[candidate.Address],
+			Active:  isActive[candidate.Address],
+			Votes:   util.RauToString(votes, util.IotxDecimalNum),
+		})
+	}
 	fmt.Println(message.String())
 	return nil
 }
+func isProducer(candidateList state.CandidateList, candidateAddress string) bool {
+	for _, candidate := range candidateList {
+		if candidate.Address == candidateAddress {
+			return true
+		}
+	}
+	return false
+}
+
+//
+//func getCandidatesByEpoch()(state.CandidateList, error){
+//
+//}
+//
+//// GetAllStakingCandidates get all candidates by height
+//func GetAllStakingCandidates(chainClient iotexapi.APIServiceClient) (candidateListAll *iotextypes.CandidateListV2, err error) {
+//	candidateListAll = &iotextypes.CandidateListV2{}
+//	for i := uint32(0); ; i++ {
+//		offset := i * readCandidatesLimit
+//		size := uint32(readCandidatesLimit)
+//		candidateList, err := getStakingCandidates(chainClient, offset, size)
+//		if err != nil {
+//			return nil, errors.Wrap(err, "failed to get candidates")
+//		}
+//		candidateListAll.Candidates = append(candidateListAll.Candidates, candidateList.Candidates...)
+//		if len(candidateList.Candidates) < readCandidatesLimit {
+//			break
+//		}
+//	}
+//	return
+//}
+//
+//// getStakingCandidates get specific candidates by height
+//func getStakingCandidates(chainClient iotexapi.APIServiceClient, offset, limit uint32) (candidateList *iotextypes.CandidateListV2, err error) {
+//	methodName, err := proto.Marshal(&iotexapi.ReadStakingDataMethod{
+//		Method: iotexapi.ReadStakingDataMethod_CANDIDATES,
+//	})
+//	if err != nil {
+//		return nil, err
+//	}
+//	arg, err := proto.Marshal(&iotexapi.ReadStakingDataRequest{
+//		Request: &iotexapi.ReadStakingDataRequest_Candidates_{
+//			Candidates: &iotexapi.ReadStakingDataRequest_Candidates{
+//				Pagination: &iotexapi.PaginationParam{
+//					Offset: offset,
+//					Limit:  limit,
+//				},
+//			},
+//		},
+//	})
+//	if err != nil {
+//		return nil, err
+//	}
+//	readStateRequest := &iotexapi.ReadStateRequest{
+//		ProtocolID: []byte(protocolID),
+//		MethodName: methodName,
+//		Arguments:  [][]byte{arg},
+//	}
+//	readStateRes, err := chainClient.ReadState(context.Background(), readStateRequest)
+//	if err != nil {
+//		return
+//	}
+//	candidateList = &iotextypes.CandidateListV2{}
+//	if err := proto.Unmarshal(readStateRes.GetData(), candidateList); err != nil {
+//		return nil, errors.Wrap(err, "failed to unmarshal VoteBucketList")
+//	}
+//	return
+//}
