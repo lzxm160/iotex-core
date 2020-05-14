@@ -286,6 +286,7 @@ func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage, alias
 	if err != nil {
 		return err
 	}
+	fmt.Println("len(cl.Candidates)", len(cl.Candidates))
 	addressMap := make(map[string]*iotextypes.CandidateV2)
 	for _, candidate := range cl.Candidates {
 		addressMap[candidate.OwnerAddress] = candidate
