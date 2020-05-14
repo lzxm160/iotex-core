@@ -263,38 +263,7 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 			ProbatedStatus: isProbated,
 		})
 	}
-	//request = &iotexapi.ReadStateRequest{
-	//	ProtocolID: []byte("poll"),
-	//	MethodName: []byte("CandidatesByEpoch"),
-	//	Arguments:  [][]byte{[]byte(strconv.FormatUint(epochNum, 10))},
-	//}
-	//bpResponse, err = cli.ReadState(ctx, request)
-	//if err != nil {
-	//	sta, ok := status.FromError(err)
-	//	if ok {
-	//		return output.NewError(output.APIError, sta.Message(), nil)
-	//	}
-	//	return output.NewError(output.NetworkError, "failed to invoke ReadState api", err)
-	//}
-	//var allCandidates state.CandidateList
-	//if err := allCandidates.Deserialize(bpResponse.Data); err != nil {
-	//	return output.NewError(output.SerializationError, "failed to deserialize BPs", err)
-	//}
-	//for rank, candidate := range allCandidates {
-	//	if isProducer(BPs, candidate.Address) {
-	//		continue
-	//	}
-	//	votes := big.NewInt(0).SetBytes(candidate.Votes.Bytes())
-	//	message.Delegates = append(message.Delegates, delegate{
-	//		Address: candidate.Address,
-	//		Name:    string(candidate.CanName),
-	//		Rank:    rank + 24,
-	//		Alias:   aliases[candidate.Address],
-	//		Active:  isActive[candidate.Address],
-	//		Votes:   util.RauToString(votes, util.IotxDecimalNum),
-	//	})
-	//}
-	fillMessage(cli, &message, aliases, isActive)
+	fillMessage(cli, &message, aliases, isActive, pb)
 	fmt.Println(message.String())
 	return nil
 }
@@ -313,7 +282,7 @@ func getProbationList(epochNum uint64) (*vote.ProbationList, error) {
 	return probationList, nil
 }
 
-func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage, alias map[string]string, active map[string]bool) error {
+func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage, alias map[string]string, active map[string]bool, pb *vote.ProbationList) error {
 	cl, err := getAllStakingCandidates(cli)
 	if err != nil {
 		return err
@@ -336,13 +305,18 @@ func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage, alias
 		if _, ok := delegateAddressMap[candidate.OwnerAddress]; ok {
 			continue
 		}
+		isProbated := false
+		if _, ok := pb.ProbationInfo[candidate.OwnerAddress]; ok {
+			isProbated = true
+		}
 		message.Delegates = append(message.Delegates, delegate{
-			Address: candidate.OwnerAddress,
-			Name:    candidate.Name,
-			Rank:    i + 25,
-			Alias:   alias[candidate.OwnerAddress],
-			Active:  active[candidate.OwnerAddress],
-			Votes:   candidate.TotalWeightedVotes,
+			Address:        candidate.OwnerAddress,
+			Name:           candidate.Name,
+			Rank:           i + 25,
+			Alias:          alias[candidate.OwnerAddress],
+			Active:         active[candidate.OwnerAddress],
+			Votes:          candidate.TotalWeightedVotes,
+			ProbatedStatus: isProbated,
 		})
 	}
 	return nil
@@ -365,7 +339,6 @@ func getAllStakingCandidates(chainClient iotexapi.APIServiceClient) (candidateLi
 	return
 }
 
-// getStakingCandidates get specific candidates by height
 func getStakingCandidates(chainClient iotexapi.APIServiceClient, offset, limit uint32) (candidateList *iotextypes.CandidateListV2, err error) {
 	methodName, err := proto.Marshal(&iotexapi.ReadStakingDataMethod{
 		Method: iotexapi.ReadStakingDataMethod_CANDIDATES,
