@@ -109,39 +109,12 @@ func (m *delegatesMessage) String() string {
 		lines = append(lines, fmt.Sprintf(formatTitleString,
 			"Address", "Name", "Rank", "Alias", "Status", "Blocks", "ProbatedStatus", "Votes"))
 		for _, bp := range m.Delegates {
-			lines = append(lines, fmt.Sprintf(formatDataString, bp.Address, bp.Name, bp.Rank,
-				bp.Alias, nodeStatus[bp.Active], bp.Production, probatedStatus[bp.ProbatedStatus], bp.Votes))
+			lines = append(lines, fmt.Sprintf(formatDataString, bp.Address, bp.Name, bp.Rank, bp.Alias, nodeStatus[bp.Active], bp.Production, probatedStatus[bp.ProbatedStatus], bp.Votes))
 		}
 		return strings.Join(lines, "\n")
 	}
 	return output.FormatString(output.Result, m)
 }
-
-//type delegatesMessageV2 struct {
-//	Epoch     int        `json:"epoch"`
-//	Delegates []delegate `json:"delegates"`
-//}
-//
-//func (m *delegatesMessageV2) String() string {
-//	if output.Format == "" {
-//		aliasLen := 5
-//		for _, bp := range m.Delegates {
-//			if len(bp.Alias) > aliasLen {
-//				aliasLen = len(bp.Alias)
-//			}
-//		}
-//		lines := []string{fmt.Sprintf("Epoch: %d\n", epochNum)}
-//		formatTitleString := "%-41s   %-4s   %-4s   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %s"
-//		formatDataString := "%-41s   %-4s   %4d   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %s"
-//		lines = append(lines, fmt.Sprintf(formatTitleString, "Address", "Name", "Rank", "Alias", "Status", "Votes"))
-//		for _, bp := range m.Delegates {
-//			lines = append(lines, fmt.Sprintf(formatDataString, bp.Address, bp.Name, bp.Rank,
-//				bp.Alias, nodeStatus[bp.Active], bp.Votes))
-//		}
-//		return strings.Join(lines, "\n")
-//	}
-//	return output.FormatString(output.Result, m)
-//}
 
 func init() {
 	nodeDelegateCmd.Flags().Uint64VarP(&epochNum, "epoch-num", "e", 0,
