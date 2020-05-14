@@ -112,7 +112,10 @@ func (m *delegatesMessage) String() string {
 		formatDataString := "%-41s   %-4s   %4d   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %-6d   %-12s    %s"
 		lines = append(lines, fmt.Sprintf(formatTitleString,
 			"Address", "Name", "Rank", "Alias", "Status", "Blocks", "ProbatedStatus", "Votes"))
-		for _, bp := range m.Delegates {
+		for i, bp := range m.Delegates {
+			if i == 36 {
+				lines = append(lines, "------------------------------")
+			}
 			lines = append(lines, fmt.Sprintf(formatDataString, bp.Address, bp.Name, bp.Rank, bp.Alias, nodeStatus[bp.Active], bp.Production, probatedStatus[bp.ProbatedStatus], bp.Votes))
 		}
 		return strings.Join(lines, "\n")
