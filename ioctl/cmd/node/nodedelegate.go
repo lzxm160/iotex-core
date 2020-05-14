@@ -304,7 +304,8 @@ func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage, alias
 			continue
 		}
 	}
-	for i, candidate := range cl.Candidates {
+	rank := len(message.Delegates) + 1
+	for _, candidate := range cl.Candidates {
 		if _, ok := delegateAddressMap[candidate.OperatorAddress]; ok {
 			continue
 		}
@@ -319,12 +320,13 @@ func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage, alias
 		message.Delegates = append(message.Delegates, delegate{
 			Address:        candidate.OperatorAddress,
 			Name:           candidate.Name,
-			Rank:           i + 25,
+			Rank:           rank,
 			Alias:          alias[candidate.OperatorAddress],
 			Active:         active[candidate.OperatorAddress],
 			Votes:          iotx,
 			ProbatedStatus: isProbated,
 		})
+		rank++
 	}
 	return nil
 }
