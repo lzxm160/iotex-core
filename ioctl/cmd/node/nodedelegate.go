@@ -151,19 +151,13 @@ func delegates() error {
 		StartBlock:  int(epochData.Height),
 		TotalBlocks: int(response.TotalBlocks),
 	}
-	fmt.Println(epochData.Height, config.ReadConfig.FairBankHeight)
-	if epochData.Height >= config.ReadConfig.FairBankHeight {
-		return delegatesV2()
-	}
-	probationListRes, err := bc.GetProbationList(epochNum)
+	probationList, err := getProbationList(epochNum)
 	if err != nil {
 		return output.NewError(0, "failed to get probation list", err)
 	}
-	probationList := &vote.ProbationList{}
-	if probationListRes != nil {
-		if err := probationList.Deserialize(probationListRes.Data); err != nil {
-			return output.NewError(output.SerializationError, "failed to deserialize probation list", err)
-		}
+	fmt.Println(epochData.Height, config.ReadConfig.FairBankHeight)
+	if epochData.Height >= config.ReadConfig.FairBankHeight {
+		return delegatesV2(probationList, response)
 	}
 	for rank, bp := range response.BlockProducersInfo {
 		votes, ok := big.NewInt(0).SetString(bp.Votes, 10)
@@ -190,7 +184,7 @@ func delegates() error {
 	return nil
 }
 
-func delegatesV2() error {
+func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaResponse) error {
 	chainMeta, err := bc.GetChainMeta()
 	if err != nil {
 		return output.NewError(0, "failed to get chain meta", err)
@@ -252,15 +246,25 @@ func delegatesV2() error {
 	for _, abp := range ABPs {
 		isActive[abp.Address] = true
 	}
+	production := make(map[string]int)
+	for _, info := range epochMeta.BlockProducersInfo {
+		production[info.Address] = int(info.Production)
+	}
 	aliases := alias.GetAliasMap()
 	for rank, bp := range BPs {
+		isProbated := false
+		if _, ok := pb.ProbationInfo[bp.Address]; ok {
+			isProbated = true
+		}
 		votes := big.NewInt(0).SetBytes(bp.Votes.Bytes())
 		message.Delegates = append(message.Delegates, delegate{
-			Address: bp.Address,
-			Rank:    rank + 1,
-			Alias:   aliases[bp.Address],
-			Active:  isActive[bp.Address],
-			Votes:   util.RauToString(votes, util.IotxDecimalNum),
+			Address:        bp.Address,
+			Rank:           rank + 1,
+			Alias:          aliases[bp.Address],
+			Active:         isActive[bp.Address],
+			Production:     production[bp.Address],
+			Votes:          util.RauToString(votes, util.IotxDecimalNum),
+			ProbatedStatus: isProbated,
 		})
 	}
 	request = &iotexapi.ReadStateRequest{
@@ -297,6 +301,19 @@ func delegatesV2() error {
 	fillMessage(cli, &message, aliases, isActive)
 	fmt.Println(message.String())
 	return nil
+}
+func getProbationList(epochNum uint64) (*vote.ProbationList, error) {
+	probationListRes, err := bc.GetProbationList(epochNum)
+	if err != nil {
+		return nil, err
+	}
+	probationList := &vote.ProbationList{}
+	if probationListRes != nil {
+		if err := probationList.Deserialize(probationListRes.Data); err != nil {
+			return nil, err
+		}
+	}
+	return probationList, nil
 }
 func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage, alias map[string]string, active map[string]bool) error {
 	cl, err := GetAllStakingCandidates(cli)
