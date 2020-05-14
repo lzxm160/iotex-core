@@ -12,7 +12,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 
 	"github.com/iotexproject/iotex-core/ioctl/output"
 	"github.com/iotexproject/iotex-core/pkg/log"
@@ -63,7 +62,7 @@ type Config struct {
 	DefaultAccount Context           `json:"defaultAccount" yaml:"defaultAccount"`
 	Explorer       string            `json:"explorer" yaml:"explorer"`
 	Language       string            `json:"language" yaml:"language"`
-	FairBank       string            `json:"fairbank" yaml:"fairbank"`
+	FairBankHeight uint64            `json:"fairbankHeight" yaml:"fairbankHeight"`
 }
 
 var (

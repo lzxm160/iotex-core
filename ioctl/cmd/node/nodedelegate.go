@@ -70,11 +70,7 @@ var nodeDelegateCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		var err error
-		if true {
-			err = delegatesV2()
-		} else {
-			err = delegates()
-		}
+		err = delegates()
 		return output.PrintError(err)
 
 	},
@@ -175,7 +171,9 @@ func delegates() error {
 		StartBlock:  int(epochData.Height),
 		TotalBlocks: int(response.TotalBlocks),
 	}
-
+	if epochData.Height >= config.ReadConfig.FairBankHeight {
+		return delegatesV2()
+	}
 	probationListRes, err := bc.GetProbationList(epochNum)
 	if err != nil {
 		return output.NewError(0, "failed to get probation list", err)
