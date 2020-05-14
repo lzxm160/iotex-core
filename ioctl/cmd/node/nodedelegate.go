@@ -291,11 +291,11 @@ func delegatesV2() error {
 			Votes:   util.RauToString(votes, util.IotxDecimalNum),
 		})
 	}
-	fillMessage(cli, &message)
+	fillMessage(cli, &message, aliases, isActive)
 	fmt.Println(message.String())
 	return nil
 }
-func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage) error {
+func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage, alias map[string]string, active map[string]bool) error {
 	cl, err := GetAllStakingCandidates(cli)
 	if err != nil {
 		return err
@@ -324,10 +324,11 @@ func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage) error
 		}
 		message.Delegates = append(message.Delegates, delegate{
 			Address: candidate.OwnerAddress,
+			Name:    candidate.Name,
 			Rank:    i + 25,
-			Alias:   "",
-			Active:  true,
-			Votes:   "0",
+			Alias:   alias[candidate.OwnerAddress],
+			Active:  active[candidate.OwnerAddress],
+			Votes:   candidate.TotalWeightedVotes,
 		})
 	}
 	return nil
