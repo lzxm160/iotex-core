@@ -305,20 +305,24 @@ func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage, alias
 		}
 	}
 	for i, candidate := range cl.Candidates {
-		if _, ok := delegateAddressMap[candidate.OwnerAddress]; ok {
+		if _, ok := delegateAddressMap[candidate.OperatorAddress]; ok {
 			continue
 		}
 		isProbated := false
 		if _, ok := pb.ProbationInfo[candidate.OwnerAddress]; ok {
 			isProbated = true
 		}
+		iotx, err := util.StringToIOTX(candidate.TotalWeightedVotes)
+		if err != nil {
+			return err
+		}
 		message.Delegates = append(message.Delegates, delegate{
-			Address:        candidate.OwnerAddress,
+			Address:        candidate.OperatorAddress,
 			Name:           candidate.Name,
 			Rank:           i + 25,
-			Alias:          alias[candidate.OwnerAddress],
-			Active:         active[candidate.OwnerAddress],
-			Votes:          candidate.TotalWeightedVotes,
+			Alias:          alias[candidate.OperatorAddress],
+			Active:         active[candidate.OperatorAddress],
+			Votes:          iotx,
 			ProbatedStatus: isProbated,
 		})
 	}
