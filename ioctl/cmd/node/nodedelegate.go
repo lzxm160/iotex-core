@@ -155,7 +155,7 @@ func delegates() error {
 		return output.NewError(0, "failed to get probation list", err)
 	}
 	if epochData.Height >= config.ReadConfig.FairBankHeight {
-		return delegatesV2(probationList, response)
+		return delegatesV2(probationList, response, &message)
 	}
 	for rank, bp := range response.BlockProducersInfo {
 		votes, ok := big.NewInt(0).SetString(bp.Votes, 10)
@@ -182,13 +182,12 @@ func delegates() error {
 	return nil
 }
 
-func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaResponse) error {
+func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaResponse, message *delegatesMessage) error {
 	chainMeta, err := bc.GetChainMeta()
 	if err != nil {
 		return output.NewError(0, "failed to get chain meta", err)
 	}
 	epochNum = chainMeta.Epoch.Num
-	message := delegatesMessage{Epoch: int(epochNum)}
 	conn, err := util.ConnectToEndpoint(config.ReadConfig.SecureConnect && !config.Insecure)
 	if err != nil {
 		return output.NewError(output.NetworkError, "failed to connect to endpoint", err)
@@ -263,7 +262,7 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 			ProbatedStatus: isProbated,
 		})
 	}
-	fillMessage(cli, &message, aliases, isActive, pb)
+	fillMessage(cli, message, aliases, isActive, pb)
 	fmt.Println(message.String())
 	return nil
 }
