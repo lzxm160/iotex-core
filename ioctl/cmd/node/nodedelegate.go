@@ -171,6 +171,7 @@ func delegates() error {
 		StartBlock:  int(epochData.Height),
 		TotalBlocks: int(response.TotalBlocks),
 	}
+	fmt.Println(epochData.Height, config.ReadConfig.FairBankHeight)
 	if epochData.Height >= config.ReadConfig.FairBankHeight {
 		return delegatesV2()
 	}

@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 
 	"github.com/iotexproject/iotex-core/ioctl/output"
 	"github.com/iotexproject/iotex-core/ioctl/validator"
@@ -284,7 +283,7 @@ func reset() error {
 	ReadConfig.DefaultAccount = *new(Context)
 	ReadConfig.Explorer = "iotexscan"
 	ReadConfig.Language = "en"
-
+	ReadConfig.FairBankHeight = 3330000
 	err := writeConfig()
 	if err != nil {
 		return err
