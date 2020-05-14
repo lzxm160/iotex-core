@@ -326,6 +326,7 @@ func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage) error
 			Votes:   "0",
 		})
 	}
+	return nil
 }
 func isProducer(candidateList state.CandidateList, candidateAddress string) bool {
 	for _, candidate := range candidateList {
