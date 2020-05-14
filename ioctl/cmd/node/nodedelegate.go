@@ -73,8 +73,7 @@ var nodeDelegateCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(0),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
-		var err error
-		err = delegates()
+		err := delegates()
 		return output.PrintError(err)
 
 	},
@@ -108,8 +107,8 @@ func (m *delegatesMessage) String() string {
 		}
 		lines := []string{fmt.Sprintf("Epoch: %d,  Start block height: %d,Total blocks produced in epoch: %d\n",
 			m.Epoch, m.StartBlock, m.TotalBlocks)}
-		formatTitleString := "%-41s   %-12s   %-4s   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %-6s   %-12s    %s"
-		formatDataString := "%-41s   %-12s   %4d   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %-6d   %-12s    %s"
+		formatTitleString := "%-41s   %-12s   %-4s   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %-6s   %-4t    %s"
+		formatDataString := "%-41s   %-12s   %4d   %-" + strconv.Itoa(aliasLen) + "s   %-6s   %-6d   %-4t    %s"
 		lines = append(lines, fmt.Sprintf(formatTitleString,
 			"Address", "Name", "Rank", "Alias", "Status", "Blocks", "ProbatedStatus", "Votes"))
 		for i, bp := range m.Delegates {
@@ -155,7 +154,6 @@ func delegates() error {
 	if err != nil {
 		return output.NewError(0, "failed to get probation list", err)
 	}
-	fmt.Println(epochData.Height, config.ReadConfig.FairBankHeight)
 	if epochData.Height >= config.ReadConfig.FairBankHeight {
 		return delegatesV2(probationList, response)
 	}
@@ -199,12 +197,10 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 
 	cli := iotexapi.NewAPIServiceClient(conn)
 	ctx := context.Background()
-
 	jwtMD, err := util.JwtAuth()
 	if err == nil {
 		ctx = metautils.NiceMD(jwtMD).ToOutgoing(ctx)
 	}
-
 	request := &iotexapi.ReadStateRequest{
 		ProtocolID: []byte("poll"),
 		MethodName: []byte("ActiveBlockProducersByEpoch"),
