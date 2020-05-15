@@ -152,6 +152,9 @@ func Get(arg string) error {
 	case "all":
 		fmt.Println(ReadConfig.String())
 		return nil
+	case "nsv2height":
+		fmt.Println(ReadConfig.Nsv2height)
+		return nil
 	}
 }
 
@@ -267,6 +270,12 @@ func set(args []string) error {
 					args[1], supportedLanguage), nil)
 		}
 		ReadConfig.Language = supportedLanguage[language]
+	case "nsv2height":
+		height, err := strconv.ParseUint(args[1], 10, 64)
+		if err != nil {
+			return output.NewError(output.ValidationError, "invalid height", nil)
+		}
+		ReadConfig.Nsv2height = height
 	}
 	err := writeConfig()
 	if err != nil {
