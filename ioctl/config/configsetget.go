@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 
 	"github.com/iotexproject/iotex-core/ioctl/output"
 	"github.com/iotexproject/iotex-core/ioctl/validator"
@@ -31,8 +30,8 @@ const (
 
 var (
 	supportedLanguage = []string{"English", "中文"}
-	validArgs         = []string{"endpoint", "wallet", "explorer", "defaultacc", "language"}
-	validGetArgs      = []string{"endpoint", "wallet", "explorer", "defaultacc", "language", "all"}
+	validArgs         = []string{"endpoint", "wallet", "explorer", "defaultacc", "language", "nsv2height"}
+	validGetArgs      = []string{"endpoint", "wallet", "explorer", "defaultacc", "language", "nsv2height", "all"}
 	validExpl         = []string{"iotexscan", "iotxplorer"}
 	endpointCompile   = regexp.MustCompile("^" + endpointPattern + "$")
 )
@@ -149,11 +148,11 @@ func Get(arg string) error {
 	case "language":
 		output.PrintResult(ReadConfig.Language)
 		return nil
-	case "all":
-		fmt.Println(ReadConfig.String())
-		return nil
 	case "nsv2height":
 		fmt.Println(ReadConfig.Nsv2height)
+		return nil
+	case "all":
+		fmt.Println(ReadConfig.String())
 		return nil
 	}
 }
