@@ -1241,12 +1241,114 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 	require.NoError(err)
 	require.Equal(uint64(10300), res.Gas)
 
+	var (
+		gaslimit   = uint64(1000000)
+		gasprice   = big.NewInt(10)
+		canAddress = "io1xpq62aw85uqzrccg9y5hnryv8ld2nkpycc3gza"
+		payload    = []byte("payload")
+		amount     = big.NewInt(10)
+		nonce      = uint64(0)
+		duration   = uint32(1000)
+		autoStake  = true
+		index      = uint64(10)
+	)
+
 	// test for StakeCreate
-	cs, err := action.NewCreateStake(0, "xx", "1", 1, false, []byte("123"), 1000000, big.NewInt(10))
+	cs, err := action.NewCreateStake(nonce, canAddress, amount.String(), duration, autoStake, payload, gaslimit, gasprice)
 	require.NoError(err)
 	request = &iotexapi.EstimateActionGasConsumptionRequest{
 		Action: &iotexapi.EstimateActionGasConsumptionRequest_StakeCreate{
 			StakeCreate: cs.Proto(),
+		},
+		CallerAddress: identityset.Address(0).String(),
+	}
+	res, err = svr.EstimateActionGasConsumption(context.Background(), request)
+	require.NoError(err)
+	require.Equal(uint64(10300), res.Gas)
+
+	// test for StakeUnstake
+	us, err := action.NewUnstake(nonce, index, payload, gaslimit, gasprice)
+	require.NoError(err)
+	request = &iotexapi.EstimateActionGasConsumptionRequest{
+		Action: &iotexapi.EstimateActionGasConsumptionRequest_StakeUnstake{
+			StakeUnstake: us.Proto(),
+		},
+		CallerAddress: identityset.Address(0).String(),
+	}
+	res, err = svr.EstimateActionGasConsumption(context.Background(), request)
+	require.NoError(err)
+	require.Equal(uint64(10300), res.Gas)
+
+	// test for StakeWithdraw
+	ws, err := action.NewWithdrawStake(nonce, index, payload, gaslimit, gasprice)
+	require.NoError(err)
+	request = &iotexapi.EstimateActionGasConsumptionRequest{
+		Action: &iotexapi.EstimateActionGasConsumptionRequest_StakeWithdraw{
+			StakeWithdraw: ws.Proto(),
+		},
+		CallerAddress: identityset.Address(0).String(),
+	}
+	res, err = svr.EstimateActionGasConsumption(context.Background(), request)
+	require.NoError(err)
+	require.Equal(uint64(10300), res.Gas)
+
+	// test for StakeDeposit
+	ds, err := action.NewDepositToStake(nonce, 1, amount.String(), payload, gaslimit, gasprice)
+	require.NoError(err)
+	request = &iotexapi.EstimateActionGasConsumptionRequest{
+		Action: &iotexapi.EstimateActionGasConsumptionRequest_StakeAddDeposit{
+			StakeAddDeposit: ds.Proto(),
+		},
+		CallerAddress: identityset.Address(0).String(),
+	}
+	res, err = svr.EstimateActionGasConsumption(context.Background(), request)
+	require.NoError(err)
+	require.Equal(uint64(10300), res.Gas)
+
+	// test for StakeChangeCandidate
+	cc, err := action.NewChangeCandidate(nonce, canAddress, index, payload, gaslimit, gasprice)
+	require.NoError(err)
+	request = &iotexapi.EstimateActionGasConsumptionRequest{
+		Action: &iotexapi.EstimateActionGasConsumptionRequest_StakeChangeCandidate{
+			StakeChangeCandidate: cc.Proto(),
+		},
+		CallerAddress: identityset.Address(0).String(),
+	}
+	res, err = svr.EstimateActionGasConsumption(context.Background(), request)
+	require.NoError(err)
+	require.Equal(uint64(10300), res.Gas)
+
+	// test for StakeTransfer
+	ts, err := action.NewTransferStake(nonce, canAddress, index, payload, gaslimit, gasprice)
+	require.NoError(err)
+	request = &iotexapi.EstimateActionGasConsumptionRequest{
+		Action: &iotexapi.EstimateActionGasConsumptionRequest_StakeTransferOwnership{
+			StakeTransferOwnership: ts.Proto(),
+		},
+		CallerAddress: identityset.Address(0).String(),
+	}
+	res, err = svr.EstimateActionGasConsumption(context.Background(), request)
+	require.NoError(err)
+	require.Equal(uint64(10300), res.Gas)
+
+	// test for CandidateRegister
+	cr, err := action.NewCandidateRegister(nonce, canAddress, canAddress, canAddress, canAddress, amount.String(), duration, autoStake, payload, gaslimit, gasprice)
+	require.NoError(err)
+	request = &iotexapi.EstimateActionGasConsumptionRequest{
+		Action: &iotexapi.EstimateActionGasConsumptionRequest_CandidateRegister{
+			CandidateRegister: cr.Proto(),
+		},
+		CallerAddress: identityset.Address(0).String(),
+	}
+	res, err = svr.EstimateActionGasConsumption(context.Background(), request)
+	require.NoError(err)
+	require.Equal(uint64(10300), res.Gas)
+
+	// test for CandidateUpdate
+	cu, err := action.NewCandidateUpdate(nonce, canAddress, canAddress, canAddress, gaslimit, gasprice)
+	request = &iotexapi.EstimateActionGasConsumptionRequest{
+		Action: &iotexapi.EstimateActionGasConsumptionRequest_CandidateUpdate{
+			CandidateUpdate: cu.Proto(),
 		},
 		CallerAddress: identityset.Address(0).String(),
 	}
