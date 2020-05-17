@@ -1253,7 +1253,8 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 		index      = uint64(10)
 	)
 
-	// test for StakeCreate
+	// staking related
+	// case I: test for StakeCreate
 	cs, err := action.NewCreateStake(nonce, canAddress, amount.String(), duration, autoStake, payload, gaslimit, gasprice)
 	require.NoError(err)
 	request = &iotexapi.EstimateActionGasConsumptionRequest{
@@ -1266,7 +1267,7 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 	require.NoError(err)
 	require.Equal(uint64(10300), res.Gas)
 
-	// test for StakeUnstake
+	// case II: test for StakeUnstake
 	us, err := action.NewUnstake(nonce, index, payload, gaslimit, gasprice)
 	require.NoError(err)
 	request = &iotexapi.EstimateActionGasConsumptionRequest{
@@ -1279,7 +1280,7 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 	require.NoError(err)
 	require.Equal(uint64(10300), res.Gas)
 
-	// test for StakeWithdraw
+	// case III: test for StakeWithdraw
 	ws, err := action.NewWithdrawStake(nonce, index, payload, gaslimit, gasprice)
 	require.NoError(err)
 	request = &iotexapi.EstimateActionGasConsumptionRequest{
@@ -1292,7 +1293,7 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 	require.NoError(err)
 	require.Equal(uint64(10300), res.Gas)
 
-	// test for StakeDeposit
+	// Case IV: test for StakeDeposit
 	ds, err := action.NewDepositToStake(nonce, 1, amount.String(), payload, gaslimit, gasprice)
 	require.NoError(err)
 	request = &iotexapi.EstimateActionGasConsumptionRequest{
@@ -1305,7 +1306,7 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 	require.NoError(err)
 	require.Equal(uint64(10300), res.Gas)
 
-	// test for StakeChangeCandidate
+	// Case V: test for StakeChangeCandidate
 	cc, err := action.NewChangeCandidate(nonce, canAddress, index, payload, gaslimit, gasprice)
 	require.NoError(err)
 	request = &iotexapi.EstimateActionGasConsumptionRequest{
@@ -1318,7 +1319,20 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 	require.NoError(err)
 	require.Equal(uint64(10300), res.Gas)
 
-	// test for StakeTransfer
+	// Case VI: test for StakeRestake
+	rs, err := action.NewRestake(nonce, index, duration, autoStake, payload, gaslimit, gasprice)
+	require.NoError(err)
+	request = &iotexapi.EstimateActionGasConsumptionRequest{
+		Action: &iotexapi.EstimateActionGasConsumptionRequest_StakeRestake{
+			StakeRestake: rs.Proto(),
+		},
+		CallerAddress: identityset.Address(0).String(),
+	}
+	res, err = svr.EstimateActionGasConsumption(context.Background(), request)
+	require.NoError(err)
+	require.Equal(uint64(10300), res.Gas)
+
+	// Case VII: test for StakeTransfer
 	ts, err := action.NewTransferStake(nonce, canAddress, index, payload, gaslimit, gasprice)
 	require.NoError(err)
 	request = &iotexapi.EstimateActionGasConsumptionRequest{
@@ -1331,7 +1345,7 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 	require.NoError(err)
 	require.Equal(uint64(10300), res.Gas)
 
-	// test for CandidateRegister
+	// Case VIII: test for CandidateRegister
 	cr, err := action.NewCandidateRegister(nonce, canAddress, canAddress, canAddress, canAddress, amount.String(), duration, autoStake, payload, gaslimit, gasprice)
 	require.NoError(err)
 	request = &iotexapi.EstimateActionGasConsumptionRequest{
@@ -1344,7 +1358,7 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 	require.NoError(err)
 	require.Equal(uint64(10300), res.Gas)
 
-	// test for CandidateUpdate
+	// tCase IX: test for CandidateUpdate
 	cu, err := action.NewCandidateUpdate(nonce, canAddress, canAddress, canAddress, gaslimit, gasprice)
 	request = &iotexapi.EstimateActionGasConsumptionRequest{
 		Action: &iotexapi.EstimateActionGasConsumptionRequest_CandidateUpdate{
@@ -1354,7 +1368,7 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 	}
 	res, err = svr.EstimateActionGasConsumption(context.Background(), request)
 	require.NoError(err)
-	require.Equal(uint64(10300), res.Gas)
+	require.Equal(uint64(10000), res.Gas)
 }
 
 func TestServer_ReadUnclaimedBalance(t *testing.T) {
