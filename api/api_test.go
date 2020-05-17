@@ -1245,7 +1245,7 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 		gaslimit   = uint64(1000000)
 		gasprice   = big.NewInt(10)
 		canAddress = "io1xpq62aw85uqzrccg9y5hnryv8ld2nkpycc3gza"
-		payload    = []byte("payload")
+		payload    = []byte("123")
 		amount     = big.NewInt(10)
 		nonce      = uint64(0)
 		duration   = uint32(1000)
