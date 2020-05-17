@@ -1358,8 +1358,9 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 	require.NoError(err)
 	require.Equal(uint64(10300), res.Gas)
 
-	// tCase IX: test for CandidateUpdate
+	// Case IX: test for CandidateUpdate
 	cu, err := action.NewCandidateUpdate(nonce, canAddress, canAddress, canAddress, gaslimit, gasprice)
+	require.NoError(err)
 	request = &iotexapi.EstimateActionGasConsumptionRequest{
 		Action: &iotexapi.EstimateActionGasConsumptionRequest_CandidateUpdate{
 			CandidateUpdate: cu.Proto(),
@@ -1369,6 +1370,14 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 	res, err = svr.EstimateActionGasConsumption(context.Background(), request)
 	require.NoError(err)
 	require.Equal(uint64(10000), res.Gas)
+
+	// Case X: test for action nil
+	request = &iotexapi.EstimateActionGasConsumptionRequest{
+		Action:        nil,
+		CallerAddress: identityset.Address(0).String(),
+	}
+	res, err = svr.EstimateActionGasConsumption(context.Background(), request)
+	require.Error(err)
 }
 
 func TestServer_ReadUnclaimedBalance(t *testing.T) {
