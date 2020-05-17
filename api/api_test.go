@@ -1240,6 +1240,19 @@ func TestServer_EstimateActionGasConsumption(t *testing.T) {
 	res, err = svr.EstimateActionGasConsumption(context.Background(), request)
 	require.NoError(err)
 	require.Equal(uint64(10300), res.Gas)
+
+	// test for StakeCreate
+	cs, err := action.NewCreateStake(0, "xx", "1", 1, false, []byte("123"), 1000000, big.NewInt(10))
+	require.NoError(err)
+	request = &iotexapi.EstimateActionGasConsumptionRequest{
+		Action: &iotexapi.EstimateActionGasConsumptionRequest_StakeCreate{
+			StakeCreate: cs.Proto(),
+		},
+		CallerAddress: identityset.Address(0).String(),
+	}
+	res, err = svr.EstimateActionGasConsumption(context.Background(), request)
+	require.NoError(err)
+	require.Equal(uint64(10300), res.Gas)
 }
 
 func TestServer_ReadUnclaimedBalance(t *testing.T) {
