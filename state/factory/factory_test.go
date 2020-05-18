@@ -633,7 +633,7 @@ func testFactoryStates(sf Factory, t *testing.T, statetx, archive bool) {
 
 	// case II: check without cond and namespace
 	filterOpt := protocol.FilterOption(nil, []byte("1"), []byte("2"))
-	height, _, err := sf.States(keyOpt, filterOpt)
+	height, _, err := sf.States(filterOpt)
 	require.NoError(t, err)
 	fmt.Println(height)
 	//// check archive data
