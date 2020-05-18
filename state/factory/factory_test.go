@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"math/rand"
 	"os"
@@ -637,7 +636,6 @@ func testFactoryStates(sf Factory, t *testing.T) {
 		c := &state.Account{}
 		err = iter.Next(c)
 		if err != nil {
-			fmt.Println("no error", i)
 			continue
 		}
 		accounts = append(accounts, c)
@@ -667,6 +665,7 @@ func testFactoryStates(sf Factory, t *testing.T) {
 	}
 	require.Equal(t, uint64(90), accounts[0].Balance.Uint64())
 }
+
 func TestNonce(t *testing.T) {
 	testTriePath, err := testutil.PathOfTempFile(triePath)
 	require.NoError(t, err)
