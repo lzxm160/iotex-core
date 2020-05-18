@@ -380,8 +380,9 @@ func TestHistoryState(t *testing.T) {
 func TestFactoryStates(t *testing.T) {
 	r := require.New(t)
 	var err error
-	// using factory
 	cfg := config.Default
+
+	// using factory
 	cfg.Chain.TrieDBPath, err = testutil.PathOfTempFile(triePath)
 	r.NoError(err)
 	sf, err := NewFactory(cfg, DefaultTrieOption())
