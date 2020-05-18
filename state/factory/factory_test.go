@@ -598,7 +598,7 @@ func testFactoryStates(sf Factory, t *testing.T, statetx, archive bool) {
 	ctx = protocol.WithBlockchainCtx(
 		ctx,
 		protocol.BlockchainCtx{
-			Genesis: config.Default.Genesis,
+			Genesis: ge,
 		},
 	)
 	require.NoError(t, sf.Start(ctx))
