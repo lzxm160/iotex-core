@@ -626,7 +626,7 @@ func testFactoryStates(sf Factory, t *testing.T, statetx, archive bool) {
 	require.NoError(t, sf.PutBlock(ctx, &blk))
 
 	// check KeyOption
-	opt := protocol.KeyOption([]byte("xx"))
+	opt := protocol.KeyOption([]byte(""))
 	_, _, err = sf.States(opt)
 	require.Equal(t, ErrNotSupported, errors.Cause(err))
 	//// check archive data
