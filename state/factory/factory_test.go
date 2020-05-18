@@ -644,9 +644,14 @@ func testFactoryStates(sf Factory, t *testing.T, statetx, archive bool) {
 
 	// case IV: check without cond and have AccountKVNamespace namespace
 	namespaceOpt = protocol.NamespaceOption(AccountKVNamespace)
-	height, _, err := sf.States(namespaceOpt)
+	height, iter, err := sf.States(namespaceOpt)
 	require.NoError(t, err)
-	fmt.Println(height)
+	require.Equal(t, 1, height)
+	for i := 0; i < iter.Size(); i++ {
+		c := &state.Account{}
+		require.NoError(t, iter.Next(c))
+		fmt.Println(c)
+	}
 	//// check archive data
 	//if statetx {
 	//	// statetx not support archive mode
