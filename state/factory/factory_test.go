@@ -646,7 +646,7 @@ func testFactoryStates(sf Factory, t *testing.T, statetx, archive bool) {
 	namespaceOpt = protocol.NamespaceOption(AccountKVNamespace)
 	height, iter, err := sf.States(namespaceOpt)
 	require.NoError(t, err)
-	require.Equal(t, 1, height)
+	require.Equal(t, uint64(1), height)
 	for i := 0; i < iter.Size(); i++ {
 		c := &state.Account{}
 		require.NoError(t, iter.Next(c))
