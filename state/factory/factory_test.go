@@ -9,6 +9,7 @@ package factory
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"math/rand"
 	"os"
@@ -625,10 +626,16 @@ func testFactoryStates(sf Factory, t *testing.T, statetx, archive bool) {
 	require.NoError(t, err)
 	require.NoError(t, sf.PutBlock(ctx, &blk))
 
-	// check KeyOption
-	opt := protocol.KeyOption([]byte(""))
-	_, _, err = sf.States(opt)
+	// case I: check KeyOption
+	keyOpt := protocol.KeyOption([]byte(""))
+	_, _, err = sf.States(keyOpt)
 	require.Equal(t, ErrNotSupported, errors.Cause(err))
+
+	// case II: check without cond and namespace
+	filterOpt := protocol.FilterOption(nil, []byte("1"), []byte("2"))
+	height, _, err := sf.States(keyOpt, filterOpt)
+	require.NoError(t, err)
+	fmt.Println(height)
 	//// check archive data
 	//if statetx {
 	//	// statetx not support archive mode
