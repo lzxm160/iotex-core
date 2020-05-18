@@ -384,17 +384,16 @@ func TestFactoryStates(t *testing.T) {
 	cfg := config.Default
 	cfg.Chain.TrieDBPath, err = testutil.PathOfTempFile(triePath)
 	r.NoError(err)
-	cfg.Chain.EnableArchiveMode = false
 	sf, err := NewFactory(cfg, DefaultTrieOption())
 	r.NoError(err)
-	testFactoryStates(sf, t, false)
+	testFactoryStates(sf, t)
 
 	// using stateDB
 	cfg.Chain.TrieDBPath, err = testutil.PathOfTempFile(triePath)
 	r.NoError(err)
 	sf, err = NewStateDB(cfg, DefaultStateDBOption())
 	r.NoError(err)
-	testFactoryStates(sf, t, true)
+	testFactoryStates(sf, t)
 }
 
 func TestSDBState(t *testing.T) {
@@ -554,7 +553,7 @@ func testHistoryState(sf Factory, t *testing.T, statetx, archive bool) {
 	}
 }
 
-func testFactoryStates(sf Factory, t *testing.T, statetx bool) {
+func testFactoryStates(sf Factory, t *testing.T) {
 	// Create a dummy iotex address
 	a := identityset.Address(28).String()
 	b := identityset.Address(31).String()
