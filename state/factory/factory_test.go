@@ -9,7 +9,6 @@ package factory
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"math/rand"
 	"os"
@@ -650,19 +649,16 @@ func testFactoryStates(sf Factory, t *testing.T, statetx, archive bool) {
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), height)
 	accounts := make([]*state.Account, 0)
-	fmt.Println(iter.Size())
 	for i := 0; i < iter.Size(); i++ {
 		c := &state.Account{}
 		err = iter.Next(c)
 		if err != nil {
-			fmt.Println(err)
 			continue
 		}
 		accounts = append(accounts, c)
 	}
-	for _, acc := range accounts {
-		fmt.Println(acc)
-	}
+	require.Equal(t, uint64(90), accounts[0].Balance.Uint64())
+	require.Equal(t, uint64(110), accounts[1].Balance.Uint64())
 	//// check archive data
 	//if statetx {
 	//	// statetx not support archive mode
