@@ -633,11 +633,11 @@ func testFactoryStates(sf Factory, t *testing.T) {
 	// two accounts and one CurrentHeightKey
 	require.Equal(t, 3, iter.Size())
 	accounts := make([]*state.Account, 0)
-	for i := 1; i < iter.Size(); i++ {
+	for i := 0; i < iter.Size(); i++ {
 		c := &state.Account{}
 		err = iter.Next(c)
 		if err != nil {
-			fmt.Println("no error")
+			fmt.Println("no error", i)
 			continue
 		}
 		accounts = append(accounts, c)
