@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"math/rand"
 	"os"
@@ -655,8 +654,8 @@ func testFactoryStates(sf Factory, t *testing.T) {
 	height, iter, err = sf.States(condOpt, namespaceOpt)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), height)
+	require.Equal(t, 1, iter.Size())
 	accounts = make([]*state.Account, 0)
-	fmt.Println("iter.Size()", iter.Size())
 	for i := 0; i < iter.Size(); i++ {
 		c := &state.Account{}
 		err = iter.Next(c)
