@@ -380,41 +380,21 @@ func TestHistoryState(t *testing.T) {
 func TestFactoryStates(t *testing.T) {
 	r := require.New(t)
 	var err error
-	// using factory and enable history
+	// using factory
 	cfg := config.Default
-	cfg.Chain.TrieDBPath, err = testutil.PathOfTempFile(triePath)
-	r.NoError(err)
-	cfg.Chain.EnableArchiveMode = true
-	sf, err := NewFactory(cfg, DefaultTrieOption())
-	r.NoError(err)
-	testFactoryStates(sf, t, false, cfg.Chain.EnableArchiveMode)
-
-	// using factory and disable history
 	cfg.Chain.TrieDBPath, err = testutil.PathOfTempFile(triePath)
 	r.NoError(err)
 	cfg.Chain.EnableArchiveMode = false
-	sf, err = NewFactory(cfg, DefaultTrieOption())
+	sf, err := NewFactory(cfg, DefaultTrieOption())
 	r.NoError(err)
-	testFactoryStates(sf, t, false, cfg.Chain.EnableArchiveMode)
-}
+	testFactoryStates(sf, t, false)
 
-func TestStateDBStates(t *testing.T) {
-	r := require.New(t)
-	var err error
-	cfg := config.Default
-	// using stateDB and enable history
-	cfg.Chain.TrieDBPath, err = testutil.PathOfTempFile(triePath)
-	r.NoError(err)
-	sf, err := NewStateDB(cfg, DefaultStateDBOption())
-	r.NoError(err)
-	testHistoryState(sf, t, true, cfg.Chain.EnableArchiveMode)
-
-	// using stateDB and disable history
+	// using stateDB
 	cfg.Chain.TrieDBPath, err = testutil.PathOfTempFile(triePath)
 	r.NoError(err)
 	sf, err = NewStateDB(cfg, DefaultStateDBOption())
 	r.NoError(err)
-	testHistoryState(sf, t, true, cfg.Chain.EnableArchiveMode)
+	testFactoryStates(sf, t, true)
 }
 
 func TestSDBState(t *testing.T) {
@@ -574,7 +554,7 @@ func testHistoryState(sf Factory, t *testing.T, statetx, archive bool) {
 	}
 }
 
-func testFactoryStates(sf Factory, t *testing.T, statetx, archive bool) {
+func testFactoryStates(sf Factory, t *testing.T, statetx bool) {
 	// Create a dummy iotex address
 	a := identityset.Address(28).String()
 	b := identityset.Address(31).String()
@@ -659,28 +639,15 @@ func testFactoryStates(sf Factory, t *testing.T, statetx, archive bool) {
 	}
 	require.Equal(t, uint64(90), accounts[0].Balance.Uint64())
 	require.Equal(t, uint64(110), accounts[1].Balance.Uint64())
-	//// check archive data
-	//if statetx {
-	//	// statetx not support archive mode
-	//	_, err = accountutil.AccountState(NewHistoryStateReader(sf, 0), a)
-	//	require.Equal(t, ErrNotSupported, errors.Cause(err))
-	//	_, err = accountutil.AccountState(NewHistoryStateReader(sf, 0), b)
-	//	require.Equal(t, ErrNotSupported, errors.Cause(err))
-	//} else {
-	//	if !archive {
-	//		_, err = accountutil.AccountState(NewHistoryStateReader(sf, 0), a)
-	//		require.Equal(t, ErrNoArchiveData, errors.Cause(err))
-	//		_, err = accountutil.AccountState(NewHistoryStateReader(sf, 0), b)
-	//		require.Equal(t, ErrNoArchiveData, errors.Cause(err))
-	//	} else {
-	//		accountA, err = accountutil.AccountState(NewHistoryStateReader(sf, 0), a)
-	//		require.NoError(t, err)
-	//		accountB, err = accountutil.AccountState(NewHistoryStateReader(sf, 0), b)
-	//		require.NoError(t, err)
-	//		require.Equal(t, big.NewInt(100), accountA.Balance)
-	//		require.Equal(t, big.NewInt(0), accountB.Balance)
-	//	}
-	//}
+	// check archive data
+	if statetx {
+		// statetx not support archive mode
+		//_, err = accountutil.AccountState(NewHistoryStateReader(sf, 0), a)
+		//require.Equal(t, ErrNotSupported, errors.Cause(err))
+		//_, err = accountutil.AccountState(NewHistoryStateReader(sf, 0), b)
+		//require.Equal(t, ErrNotSupported, errors.Cause(err))
+	}
+
 }
 func TestNonce(t *testing.T) {
 	testTriePath, err := testutil.PathOfTempFile(triePath)
