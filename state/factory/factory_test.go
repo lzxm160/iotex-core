@@ -583,7 +583,9 @@ func testFactoryStates(sf Factory, t *testing.T, statetx, archive bool) {
 	acc := account.NewProtocol(rewarding.DepositGas)
 	require.NoError(t, sf.Register(acc))
 	ge := genesis.Default
+	ge.InitBalanceMap = make(map[string]string)
 	ge.InitBalanceMap[a] = "100"
+	ge.InitBalanceMap[b] = "100"
 	gasLimit := uint64(1000000)
 	ctx := protocol.WithBlockCtx(
 		context.Background(),
@@ -647,10 +649,14 @@ func testFactoryStates(sf Factory, t *testing.T, statetx, archive bool) {
 	height, iter, err := sf.States(namespaceOpt)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), height)
+	accounts := make([]*state.Account, 0)
 	for i := 0; i < iter.Size(); i++ {
 		c := &state.Account{}
 		require.NoError(t, iter.Next(c))
-		fmt.Println(c)
+		accounts = append(accounts, c)
+	}
+	for _, acc := range accounts {
+		fmt.Println(acc)
 	}
 	//// check archive data
 	//if statetx {
