@@ -639,15 +639,6 @@ func testFactoryStates(sf Factory, t *testing.T, statetx bool) {
 	}
 	require.Equal(t, uint64(90), accounts[0].Balance.Uint64())
 	require.Equal(t, uint64(110), accounts[1].Balance.Uint64())
-	// check archive data
-	if statetx {
-		// statetx not support archive mode
-		//_, err = accountutil.AccountState(NewHistoryStateReader(sf, 0), a)
-		//require.Equal(t, ErrNotSupported, errors.Cause(err))
-		//_, err = accountutil.AccountState(NewHistoryStateReader(sf, 0), b)
-		//require.Equal(t, ErrNotSupported, errors.Cause(err))
-	}
-
 }
 func TestNonce(t *testing.T) {
 	testTriePath, err := testutil.PathOfTempFile(triePath)
