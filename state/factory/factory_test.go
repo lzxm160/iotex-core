@@ -629,6 +629,7 @@ func testFactoryStates(sf Factory, t *testing.T) {
 	height, iter, err := sf.States(namespaceOpt)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), height)
+	require.Equal(t, 2, iter.Size())
 	accounts := make([]*state.Account, 0)
 	for i := 0; i < iter.Size(); i++ {
 		c := &state.Account{}
@@ -658,10 +659,7 @@ func testFactoryStates(sf Factory, t *testing.T) {
 	accounts = make([]*state.Account, 0)
 	for i := 0; i < iter.Size(); i++ {
 		c := &state.Account{}
-		err = iter.Next(c)
-		if err != nil {
-			continue
-		}
+		require.NoError(t, iter.Next(c))
 		accounts = append(accounts, c)
 	}
 	require.Equal(t, uint64(90), accounts[0].Balance.Uint64())
