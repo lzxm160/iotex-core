@@ -266,9 +266,12 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 	if len(message.Delegates) > defaultDelegateNum {
 		temp := message.Delegates[defaultDelegateNum:]
 		sort.SliceStable(temp, func(i, j int) bool {
-			return temp[i].TotalWeightedVotes.Cmp(temp[j].TotalWeightedVotes) < 0
+			return temp[i].TotalWeightedVotes.Cmp(temp[j].TotalWeightedVotes) > 0
 		})
-		message.Delegates = append(message.Delegates, temp...)
+		for i, t := range temp {
+			t.Rank = defaultDelegateNum + i + 1
+			message.Delegates = append(message.Delegates, t)
+		}
 	}
 	fmt.Println(message.String())
 	return nil
