@@ -169,6 +169,7 @@ func delegates() error {
 	if allFlag.Value() == true && len(message.Delegates) > 36 {
 		message.Delegates = message.Delegates[:36]
 	}
+	fmt.Println(len(message.Delegates))
 	fmt.Println(message.String())
 	return nil
 }
