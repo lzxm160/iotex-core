@@ -169,11 +169,7 @@ func delegates() error {
 		}
 		message.Delegates = append(message.Delegates, delegate)
 	}
-	if allFlag.Value() == false && len(message.Delegates) > defaultDelegateNum {
-		message.Delegates = message.Delegates[:defaultDelegateNum]
-	}
-	fmt.Println(message.String())
-	return nil
+	return sortAndPrint(&message)
 }
 
 func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaResponse, message *delegatesMessage) error {
@@ -260,10 +256,22 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 		})
 	}
 	fillMessage(cli, message, aliases, isActive, pb)
+	return sortAndPrint(message)
+}
+
+func sortAndPrint(message *delegatesMessage) error {
 	if allFlag.Value() == false && len(message.Delegates) > defaultDelegateNum {
 		message.Delegates = message.Delegates[:defaultDelegateNum]
 		fmt.Println(message.String())
 		return nil
+	}
+	for i := defaultDelegateNum; i < len(message.Delegates); i++ {
+		totalWeightedVotes, ok := big.NewFloat(0).SetString(message.Delegates[i].Votes)
+		if !ok {
+			return errors.New("string convert to big float")
+		}
+		totalWeightedVotesInt, _ := totalWeightedVotes.Int(nil)
+		message.Delegates[i].TotalWeightedVotes = totalWeightedVotesInt
 	}
 	if len(message.Delegates) > defaultDelegateNum {
 		latter := message.Delegates[defaultDelegateNum:]
@@ -322,23 +330,18 @@ func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage, alias
 		if _, ok := pb.ProbationInfo[candidate.OwnerAddress]; ok {
 			isProbated = true
 		}
-		twv, ok := big.NewInt(0).SetString(candidate.TotalWeightedVotes, 10)
-		if !ok {
-			return errors.New("convert string to big int error")
-		}
 		iotx, err := util.StringToIOTX(candidate.TotalWeightedVotes)
 		if err != nil {
 			return err
 		}
 		message.Delegates = append(message.Delegates, delegate{
-			Address:            candidate.OperatorAddress,
-			Name:               candidate.Name,
-			Rank:               rank,
-			Alias:              alias[candidate.OperatorAddress],
-			Active:             active[candidate.OperatorAddress],
-			Votes:              iotx,
-			TotalWeightedVotes: twv,
-			ProbatedStatus:     isProbated,
+			Address:        candidate.OperatorAddress,
+			Name:           candidate.Name,
+			Rank:           rank,
+			Alias:          alias[candidate.OperatorAddress],
+			Active:         active[candidate.OperatorAddress],
+			Votes:          iotx,
+			ProbatedStatus: isProbated,
 		})
 		rank++
 	}
