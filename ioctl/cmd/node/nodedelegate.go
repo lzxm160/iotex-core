@@ -260,7 +260,6 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 	if allFlag.Value() == false && len(message.Delegates) > 36 {
 		message.Delegates = message.Delegates[:36]
 	}
-	fmt.Println(len(message.Delegates))
 	fmt.Println(message.String())
 	return nil
 }
