@@ -266,8 +266,8 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 		return nil
 	}
 	if len(message.Delegates) > defaultDelegateNum {
-		message.Delegates = message.Delegates[:defaultDelegateNum]
 		latter := message.Delegates[defaultDelegateNum:]
+		message.Delegates = message.Delegates[:defaultDelegateNum]
 		sort.SliceStable(latter, func(i, j int) bool {
 			return latter[i].TotalWeightedVotes.Cmp(latter[j].TotalWeightedVotes) > 0
 		})
