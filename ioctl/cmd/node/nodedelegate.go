@@ -40,8 +40,8 @@ const (
 // Multi-language support
 var (
 	delegateCmdUses = map[config.Language]string{
-		config.English: "delegate [-e epoch-num|-n]",
-		config.Chinese: "delegate [-e epoch数|-n]",
+		config.English: "delegate [-e epoch-num|-n] [-a]",
+		config.Chinese: "delegate [-e epoch数|-n] [-a]",
 	}
 	delegateCmdShorts = map[config.Language]string{
 		config.English: "Print consensus delegates information in certain epoch",
@@ -165,6 +165,9 @@ func delegates() error {
 			ProbatedStatus: isProbated,
 		}
 		message.Delegates = append(message.Delegates, delegate)
+	}
+	if allFlag.Value() == true && len(message.Delegates) > 36 {
+		message.Delegates = message.Delegates[:36]
 	}
 	fmt.Println(message.String())
 	return nil
