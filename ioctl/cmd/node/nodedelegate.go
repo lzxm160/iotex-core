@@ -276,6 +276,7 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 			message.Delegates = append(message.Delegates, t)
 		}
 	}
+	fmt.Println(message.String())
 	return nil
 }
 
