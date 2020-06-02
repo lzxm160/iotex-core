@@ -166,6 +166,9 @@ func delegates() error {
 		}
 		message.Delegates = append(message.Delegates, delegate)
 	}
+	if allFlag.Value() == false && len(message.Delegates) > 36 {
+		message.Delegates = message.Delegates[:36]
+	}
 	fmt.Println(message.String())
 	return nil
 }
@@ -254,7 +257,7 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 		})
 	}
 	fillMessage(cli, message, aliases, isActive, pb)
-	if allFlag.Value() == true && len(message.Delegates) > 36 {
+	if allFlag.Value() == false && len(message.Delegates) > 36 {
 		message.Delegates = message.Delegates[:36]
 	}
 	fmt.Println(len(message.Delegates))
