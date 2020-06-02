@@ -269,8 +269,9 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 			return temp[i].TotalWeightedVotes.Cmp(temp[j].TotalWeightedVotes) > 0
 		})
 		for i, t := range temp {
-			t.Rank = defaultDelegateNum + i + 1
-			message.Delegates = append(message.Delegates, t)
+			copyed := t
+			copyed.Rank = defaultDelegateNum + i + 1
+			message.Delegates = append(message.Delegates, copyed)
 		}
 	}
 	fmt.Println(message.String())
