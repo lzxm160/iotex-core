@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -259,6 +260,13 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 	fillMessage(cli, message, aliases, isActive, pb)
 	if allFlag.Value() == false && len(message.Delegates) > 36 {
 		message.Delegates = message.Delegates[:36]
+	}
+	if len(message.Delegates) > 36 {
+		temp := message.Delegates[36:]
+		sort.SliceStable(temp, func(i, j int) bool {
+			return temp[i].Votes < temp[j].Votes
+		})
+		message.Delegates = append(message.Delegates, temp...)
 	}
 	fmt.Println(message.String())
 	return nil
