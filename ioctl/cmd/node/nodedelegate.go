@@ -266,6 +266,7 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 		return nil
 	}
 	if len(message.Delegates) > defaultDelegateNum {
+		fmt.Println("xxxx")
 		latter := message.Delegates[defaultDelegateNum:]
 		fmt.Println("len(latter)", len(latter))
 		message.Delegates = message.Delegates[:defaultDelegateNum]
