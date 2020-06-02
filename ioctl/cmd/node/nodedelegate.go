@@ -36,6 +36,7 @@ import (
 const (
 	protocolID          = "staking"
 	readCandidatesLimit = 20000
+	defaultDelegateNum  = 36
 )
 
 // Multi-language support
@@ -74,14 +75,15 @@ var nodeDelegateCmd = &cobra.Command{
 }
 
 type delegate struct {
-	Address        string `json:"address"`
-	Name           string `json:"string"`
-	Rank           int    `json:"rank"`
-	Alias          string `json:"alias"`
-	Active         bool   `json:"active"`
-	Production     int    `json:"production"`
-	Votes          string `json:"votes"`
-	ProbatedStatus bool   `json:"probatedStatus"`
+	Address            string   `json:"address"`
+	Name               string   `json:"string"`
+	Rank               int      `json:"rank"`
+	Alias              string   `json:"alias"`
+	Active             bool     `json:"active"`
+	Production         int      `json:"production"`
+	Votes              string   `json:"votes"`
+	ProbatedStatus     bool     `json:"probatedStatus"`
+	TotalWeightedVotes *big.Int `json:"totalWeightedVotes"`
 }
 
 type delegatesMessage struct {
@@ -167,8 +169,8 @@ func delegates() error {
 		}
 		message.Delegates = append(message.Delegates, delegate)
 	}
-	if allFlag.Value() == false && len(message.Delegates) > 36 {
-		message.Delegates = message.Delegates[:36]
+	if allFlag.Value() == false && len(message.Delegates) > defaultDelegateNum {
+		message.Delegates = message.Delegates[:defaultDelegateNum]
 	}
 	fmt.Println(message.String())
 	return nil
@@ -258,13 +260,13 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 		})
 	}
 	fillMessage(cli, message, aliases, isActive, pb)
-	if allFlag.Value() == false && len(message.Delegates) > 36 {
-		message.Delegates = message.Delegates[:36]
+	if allFlag.Value() == false && len(message.Delegates) > defaultDelegateNum {
+		message.Delegates = message.Delegates[:defaultDelegateNum]
 	}
-	if len(message.Delegates) > 36 {
-		temp := message.Delegates[36:]
+	if len(message.Delegates) > defaultDelegateNum {
+		temp := message.Delegates[defaultDelegateNum:]
 		sort.SliceStable(temp, func(i, j int) bool {
-			return temp[i].Votes < temp[j].Votes
+			return temp[i].TotalWeightedVotes.Cmp(temp[j].TotalWeightedVotes) < 0
 		})
 		message.Delegates = append(message.Delegates, temp...)
 	}
@@ -314,18 +316,23 @@ func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage, alias
 		if _, ok := pb.ProbationInfo[candidate.OwnerAddress]; ok {
 			isProbated = true
 		}
+		twv, ok := big.NewInt(0).SetString(candidate.TotalWeightedVotes, 10)
+		if !ok {
+			return errors.New("convert string to big int error")
+		}
 		iotx, err := util.StringToIOTX(candidate.TotalWeightedVotes)
 		if err != nil {
 			return err
 		}
 		message.Delegates = append(message.Delegates, delegate{
-			Address:        candidate.OperatorAddress,
-			Name:           candidate.Name,
-			Rank:           rank,
-			Alias:          alias[candidate.OperatorAddress],
-			Active:         active[candidate.OperatorAddress],
-			Votes:          iotx,
-			ProbatedStatus: isProbated,
+			Address:            candidate.OperatorAddress,
+			Name:               candidate.Name,
+			Rank:               rank,
+			Alias:              alias[candidate.OperatorAddress],
+			Active:             active[candidate.OperatorAddress],
+			Votes:              iotx,
+			TotalWeightedVotes: twv,
+			ProbatedStatus:     isProbated,
 		})
 		rank++
 	}
