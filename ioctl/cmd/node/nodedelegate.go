@@ -262,19 +262,20 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 	fillMessage(cli, message, aliases, isActive, pb)
 	if allFlag.Value() == false && len(message.Delegates) > defaultDelegateNum {
 		message.Delegates = message.Delegates[:defaultDelegateNum]
+		fmt.Println(message.String())
+		return nil
 	}
 	if len(message.Delegates) > defaultDelegateNum {
-		temp := message.Delegates[defaultDelegateNum:]
-		sort.SliceStable(temp, func(i, j int) bool {
-			return temp[i].TotalWeightedVotes.Cmp(temp[j].TotalWeightedVotes) > 0
+		message.Delegates = message.Delegates[:defaultDelegateNum]
+		latter := message.Delegates[defaultDelegateNum:]
+		sort.SliceStable(latter, func(i, j int) bool {
+			return latter[i].TotalWeightedVotes.Cmp(latter[j].TotalWeightedVotes) > 0
 		})
-		for i, t := range temp {
-			copyed := t
-			copyed.Rank = defaultDelegateNum + i + 1
-			message.Delegates = append(message.Delegates, copyed)
+		for i, t := range latter {
+			t.Rank = defaultDelegateNum + i + 1
+			message.Delegates = append(message.Delegates, t)
 		}
 	}
-	fmt.Println(message.String())
 	return nil
 }
 
