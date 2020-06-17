@@ -98,7 +98,7 @@ func generateFromSigner(signer, password string) (generatedMessage string, err e
 	}
 	authentication := authenticationStruct{
 		Id:           doc.Id,
-		Type:         "Secp256k1VerificationKey2018",
+		Type:         DIDAuthType,
 		Controller:   doc.Id,
 		PublicKeyHex: compressed,
 	}
