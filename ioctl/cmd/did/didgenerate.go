@@ -90,6 +90,7 @@ func generateFromSigner(signer, password string) (generatedMessage string, err e
 	if err != nil {
 		return "", output.NewError(output.ConvertError, "", err)
 	}
+	fmt.Println(uncompressed)
 	var compressed string
 	if lastNum%2 == 0 {
 		compressed = "02" + x
