@@ -40,7 +40,7 @@ var (
 var generateCmd = &cobra.Command{
 	Use:   config.TranslateInLang(generateCmdUses, config.UILanguage),
 	Short: config.TranslateInLang(generateCmdShorts, config.UILanguage),
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.ExactArgs(0),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		err := generate()
