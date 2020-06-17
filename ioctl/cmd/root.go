@@ -7,6 +7,7 @@
 package cmd
 
 import (
+	"github.com/iotexproject/iotex-core/ioctl/cmd/did"
 	"github.com/spf13/cobra"
 
 	"github.com/iotexproject/iotex-core/ioctl/cmd/account"
@@ -72,7 +73,7 @@ func NewIoctl() *cobra.Command {
 	rootCmd.AddCommand(version.VersionCmd)
 	rootCmd.AddCommand(update.UpdateCmd)
 	rootCmd.AddCommand(contract.ContractCmd)
-
+	rootCmd.AddCommand(did.DIDCmd)
 	rootCmd.PersistentFlags().StringVarP(&output.Format, "output-format", "o", "",
 		config.TranslateInLang(flagOutputFormatUsages, config.UILanguage))
 
