@@ -97,7 +97,7 @@ func generateFromSigner(signer, password string) (generatedMessage string, err e
 		compressed = "03" + x
 	}
 	authentication := authenticationStruct{
-		Id:           doc.Id,
+		Id:           doc.Id + DIDOwner,
 		Type:         DIDAuthType,
 		Controller:   doc.Id,
 		PublicKeyHex: compressed,

@@ -9,6 +9,7 @@ package did
 const (
 	DIDPrefix   = "did:io:"
 	DIDAuthType = "Secp256k1VerificationKey2018"
+	DIDOwner    = "#owner"
 )
 
 type (
