@@ -27,8 +27,8 @@ var (
 		config.Chinese: "用钱包中的私钥产生DID document",
 	}
 	generateCmdUses = map[config.Language]string{
-		config.English: "sign MESSAGE [-s SIGNER]",
-		config.Chinese: "sign 信息 [-s 签署人]",
+		config.English: "generate [-s SIGNER]",
+		config.Chinese: "sign [-s 签署人]",
 	}
 	flagSignerUsages = map[config.Language]string{
 		config.English: "choose a signing account",
