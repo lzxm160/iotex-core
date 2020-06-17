@@ -9,6 +9,7 @@ package did
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/spf13/cobra"
 
@@ -82,11 +83,24 @@ func generateFromSigner(signer, password string) (generatedMessage string, err e
 	}
 	doc.Id = DIDPrefix + ethAddress.String()
 
+	uncompressed := pri.PublicKey().HexString()
+	x := uncompressed[1:32]
+	last := uncompressed[64:]
+	lastNum, err := strconv.Atoi(last)
+	if err != nil {
+		return "", output.NewError(output.ConvertError, "", err)
+	}
+	var compressed string
+	if lastNum%2 == 0 {
+		compressed = "02" + x
+	} else {
+		compressed = "03" + x
+	}
 	authentication := authenticationStruct{
 		Id:           doc.Id,
 		Type:         "Secp256k1VerificationKey2018",
 		Controller:   doc.Id,
-		PublicKeyHex: pri.PublicKey().HexString(),
+		PublicKeyHex: compressed,
 	}
 	doc.Authentication = append(doc.Authentication, authentication)
 	msg, err := json.Marshal(doc)
