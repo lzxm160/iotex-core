@@ -30,10 +30,6 @@ var (
 		config.English: "generate [-s SIGNER]",
 		config.Chinese: "sign [-s 签署人]",
 	}
-	flagSignerUsages = map[config.Language]string{
-		config.English: "choose a signing account",
-		config.Chinese: "选择一个签名账户",
-	}
 )
 
 // generateCmd represents the account sign command
@@ -46,10 +42,6 @@ var generateCmd = &cobra.Command{
 		err := generate()
 		return output.PrintError(err)
 	},
-}
-
-func init() {
-	generateCmd.Flags().StringVarP(&signer, "signer", "s", "", config.TranslateInLang(flagSignerUsages, config.UILanguage))
 }
 
 func generate() error {
