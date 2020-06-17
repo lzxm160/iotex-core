@@ -103,7 +103,7 @@ func generateFromSigner(signer, password string) (generatedMessage string, err e
 		PublicKeyHex: compressed,
 	}
 	doc.Authentication = append(doc.Authentication, authentication)
-	msg, err := json.MarshalIndent(doc, "", "    ")
+	msg, err := json.MarshalIndent(doc, "", "  ")
 	if err != nil {
 		return "", output.NewError(output.ConvertError, "", err)
 	}
