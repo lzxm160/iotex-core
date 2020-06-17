@@ -84,8 +84,9 @@ func generateFromSigner(signer, password string) (generatedMessage string, err e
 	doc.Id = DIDPrefix + ethAddress.String()
 
 	uncompressed := pri.PublicKey().HexString()
-	x := uncompressed[1:32]
-	last := uncompressed[64:]
+	x := uncompressed[2:66]
+	last := uncompressed[131:]
+	fmt.Println("last", last)
 	lastNum, err := strconv.Atoi(last)
 	if err != nil {
 		return "", output.NewError(output.ConvertError, "", err)
