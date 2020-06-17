@@ -84,14 +84,12 @@ func generateFromSigner(signer, password string) (generatedMessage string, err e
 	doc.Id = DIDPrefix + ethAddress.String()
 
 	uncompressed := pri.PublicKey().HexString()
-	uncompressed = "04d061e9c5891f579fd548cfd22ff29f5c642714cc7e7a9215f0071ef5a5723f691757b28e31be71f09f24673eed52348e58d53bcfd26f4d96ec6bf1489eab429e"
 	x := uncompressed[2:66]
 	last := uncompressed[129:]
 	lastNum, err := strconv.ParseInt(last, 16, 64)
 	if err != nil {
 		return "", output.NewError(output.ConvertError, "", err)
 	}
-	fmt.Println("lastNum", lastNum)
 	var compressed string
 	if lastNum%2 == 0 {
 		compressed = "02" + x
@@ -105,7 +103,7 @@ func generateFromSigner(signer, password string) (generatedMessage string, err e
 		PublicKeyHex: compressed,
 	}
 	doc.Authentication = append(doc.Authentication, authentication)
-	msg, err := json.Marshal(doc)
+	msg, err := json.MarshalIndent(doc, "", "    ")
 	if err != nil {
 		return "", output.NewError(output.ConvertError, "", err)
 	}
