@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/iotexproject/iotex-core/ioctl/cmd/account"
+	"github.com/iotexproject/iotex-core/ioctl/cmd/action"
 	"github.com/iotexproject/iotex-core/ioctl/config"
 	"github.com/iotexproject/iotex-core/ioctl/output"
 	"github.com/iotexproject/iotex-core/ioctl/util"
@@ -37,8 +38,8 @@ var (
 	}
 )
 
-// generateCmd represents the generate command
-var generateCmd = &cobra.Command{
+// didGenerateCmd represents the generate command
+var didGenerateCmd = &cobra.Command{
 	Use:   config.TranslateInLang(generateCmdUses, config.UILanguage),
 	Short: config.TranslateInLang(generateCmdShorts, config.UILanguage),
 	Args:  cobra.ExactArgs(0),
@@ -50,7 +51,7 @@ var generateCmd = &cobra.Command{
 }
 
 func init() {
-	generateCmd.Flags().StringVarP(&signer, "signer", "s", "", config.TranslateInLang(flagSignerUsages, config.UILanguage))
+	action.RegisterWriteCommand(didGenerateCmd)
 }
 
 func generate() error {
