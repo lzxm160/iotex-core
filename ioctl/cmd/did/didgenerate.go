@@ -87,7 +87,6 @@ func generateFromSigner(signer, password string) (generatedMessage string, err e
 		Controller: doc.ID,
 	}
 	uncompressed := pri.PublicKey().Bytes()
-	fmt.Println("uncompressed", hex.EncodeToString(uncompressed))
 	if len(uncompressed) == 33 && (uncompressed[0] == 2 || uncompressed[0] == 3) {
 		authentication.PublicKeyHex = hex.EncodeToString(uncompressed)
 	} else {
