@@ -20,8 +20,6 @@ import (
 	"github.com/iotexproject/iotex-core/ioctl/util"
 )
 
-var signer string
-
 // Multi-language support
 var (
 	generateCmdShorts = map[config.Language]string{
@@ -42,7 +40,7 @@ var (
 var didGenerateCmd = &cobra.Command{
 	Use:   config.TranslateInLang(generateCmdUses, config.UILanguage),
 	Short: config.TranslateInLang(generateCmdShorts, config.UILanguage),
-	Args:  cobra.RangeArgs(0, 1),
+	Args:  cobra.ExactArgs(0),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		err := generate()
@@ -55,7 +53,7 @@ func init() {
 }
 
 func generate() error {
-	addr, err := util.GetAddress(signer)
+	addr, err := action.Signer()
 	if err != nil {
 		return output.NewError(output.InputError, "failed to get signer addr", err)
 	}
