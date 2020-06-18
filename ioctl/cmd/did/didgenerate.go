@@ -7,9 +7,9 @@
 package did
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/spf13/cobra"
 
@@ -81,25 +81,27 @@ func generateFromSigner(signer, password string) (generatedMessage string, err e
 		return "", output.NewError(output.AddressError, "", err)
 	}
 	doc.ID = DIDPrefix + ethAddress.String()
-	uncompressed := pri.PublicKey().HexString()
-	x := uncompressed[2:66]
-	last := uncompressed[129:]
-	lastNum, err := strconv.ParseInt(last, 16, 64)
-	if err != nil {
-		return "", output.NewError(output.ConvertError, "", err)
-	}
-	var compressed string
-	if lastNum%2 == 0 {
-		compressed = "02" + x
-	} else {
-		compressed = "03" + x
-	}
 	authentication := authenticationStruct{
-		ID:           doc.ID + DIDOwner,
-		Type:         DIDAuthType,
-		Controller:   doc.ID,
-		PublicKeyHex: compressed,
+		ID:         doc.ID + DIDOwner,
+		Type:       DIDAuthType,
+		Controller: doc.ID,
 	}
+	uncompressed := pri.PublicKey().Bytes()
+	fmt.Println("uncompressed", hex.EncodeToString(uncompressed))
+	if len(uncompressed) == 33 && (uncompressed[0] == 2 || uncompressed[0] == 3) {
+		authentication.PublicKeyHex = hex.EncodeToString(uncompressed)
+	} else {
+		if len(uncompressed) == 65 && uncompressed[0] == 4 {
+			lastNum := uncompressed[64]
+			authentication.PublicKeyHex = hex.EncodeToString(uncompressed[1:33])
+			if lastNum%2 == 0 {
+				authentication.PublicKeyHex = "02" + authentication.PublicKeyHex
+			} else {
+				authentication.PublicKeyHex = "03" + authentication.PublicKeyHex
+			}
+		}
+	}
+
 	doc.Authentication = append(doc.Authentication, authentication)
 	msg, err := json.MarshalIndent(doc, "", "  ")
 	if err != nil {
