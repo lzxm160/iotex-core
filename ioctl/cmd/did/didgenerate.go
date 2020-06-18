@@ -89,15 +89,13 @@ func generateFromSigner(signer, password string) (generatedMessage string, err e
 	uncompressed := pri.PublicKey().Bytes()
 	if len(uncompressed) == 33 && (uncompressed[0] == 2 || uncompressed[0] == 3) {
 		authentication.PublicKeyHex = hex.EncodeToString(uncompressed)
-	} else {
-		if len(uncompressed) == 65 && uncompressed[0] == 4 {
-			lastNum := uncompressed[64]
-			authentication.PublicKeyHex = hex.EncodeToString(uncompressed[1:33])
-			if lastNum%2 == 0 {
-				authentication.PublicKeyHex = "02" + authentication.PublicKeyHex
-			} else {
-				authentication.PublicKeyHex = "03" + authentication.PublicKeyHex
-			}
+	} else if len(uncompressed) == 65 && uncompressed[0] == 4 {
+		lastNum := uncompressed[64]
+		authentication.PublicKeyHex = hex.EncodeToString(uncompressed[1:33])
+		if lastNum%2 == 0 {
+			authentication.PublicKeyHex = "02" + authentication.PublicKeyHex
+		} else {
+			authentication.PublicKeyHex = "03" + authentication.PublicKeyHex
 		}
 	}
 
