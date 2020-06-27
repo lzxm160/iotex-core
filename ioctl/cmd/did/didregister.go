@@ -25,6 +25,8 @@ const (
 	registerDIDName           = "registerDID"
 	getHashName               = "getHash"
 	getURIName                = "getURI"
+	updateDIDName             = "updateDID"
+	deregisterDIDName         = "deregisterDID"
 	AddressBasedDIDManagerABI = `[{"inputs": [{"internalType": "bytes","name": "_prefix","type": "bytes"},{"internalType": "address","name": "_dbAddr","type": "address"}],"payable": false,"stateMutability": "nonpayable","type": "constructor"},{"constant": false,"inputs": [],"name": "deregisterDID","outputs": [],"payable": false,"stateMutability": "nonpayable","type": "function"},{"constant": true,"inputs": [{"internalType": "bytes","name": "did","type": "bytes"}],"name": "getHash","outputs": [{"internalType": "bytes32","name": "","type": "bytes32"}],"payable": false,"stateMutability": "view","type": "function"},   {"constant": true,"inputs": [{"internalType": "bytes","name": "did","type": "bytes"}],"name": "getURI","outputs": [{"internalType": "bytes","name": "","type": "bytes"}],"payable": false,"stateMutability": "view","type": "function"},{"constant": false,"inputs": [{"internalType": "bytes32","name": "h","type": "bytes32"},{"internalType": "bytes","name": "uri","type": "bytes"}],"name": "registerDID","outputs": [],"payable": false,"stateMutability": "nonpayable","type": "function"},{"constant": false,"inputs": [{"internalType": "bytes32","name": "h","type": "bytes32"},{"internalType": "bytes","name": "uri","type": "bytes"}],"name": "updateDID","outputs": [],"payable": false,"stateMutability": "nonpayable","type": "function"}]`
 )
 
@@ -44,7 +46,7 @@ var (
 var didRegisterCmd = &cobra.Command{
 	Use:   config.TranslateInLang(registerCmdUses, config.UILanguage),
 	Short: config.TranslateInLang(registerCmdShorts, config.UILanguage),
-	Args:  cobra.RangeArgs(3, 4),
+	Args:  cobra.ExactArgs(3),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		err := registerDID(args)
@@ -62,7 +64,7 @@ func registerDID(args []string) error {
 		return output.NewError(output.AddressError, "failed to get contract address", err)
 	}
 
-	bytecode, err := encode(args[1], args[2])
+	bytecode, err := encode(registerDIDName, args[1], args[2])
 	if err != nil {
 		return output.NewError(output.ConvertError, "invalid bytecode", err)
 	}
@@ -70,7 +72,7 @@ func registerDID(args []string) error {
 	return action.Execute(contract, big.NewInt(0), bytecode)
 }
 
-func encode(didHash, uri string) (ret []byte, err error) {
+func encode(method, didHash, uri string) (ret []byte, err error) {
 	hashSlice, err := hex.DecodeString(didHash)
 	if err != nil {
 		return
@@ -81,23 +83,9 @@ func encode(didHash, uri string) (ret []byte, err error) {
 	if err != nil {
 		return
 	}
-	_, exist := abi.Methods[registerDIDName]
+	_, exist := abi.Methods[method]
 	if !exist {
 		return nil, errors.New("method is not found")
 	}
-	return abi.Pack(registerDIDName, hashArray, []byte(uri))
+	return abi.Pack(method, hashArray, []byte(uri))
 }
-
-//
-//func getPrivate() (crypto.PrivateKey, error) {
-//	addr, err := action.Signer()
-//	if err != nil {
-//		return nil, output.NewError(output.InputError, "failed to get signer addr", err)
-//	}
-//	fmt.Printf("Enter password #%s:\n", addr)
-//	password, err := util.ReadSecretFromStdin()
-//	if err != nil {
-//		return nil, output.NewError(output.InputError, "failed to get password", err)
-//	}
-//	return account.LocalAccountToPrivateKey(addr, password)
-//}

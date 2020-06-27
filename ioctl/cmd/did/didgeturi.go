@@ -8,7 +8,6 @@ package did
 
 import (
 	"encoding/hex"
-	"errors"
 	"math/big"
 	"strings"
 
@@ -59,7 +58,7 @@ func getURI(args []string) (err error) {
 	if err != nil {
 		return
 	}
-	bytecode, err := encodeGetURI(abi, args[1])
+	bytecode, err := encodeGet(abi, getURIName, args[1])
 	if err != nil {
 		return output.NewError(output.ConvertError, "invalid bytecode", err)
 	}
@@ -82,12 +81,4 @@ func getURI(args []string) (err error) {
 	}
 	output.PrintResult(string(out))
 	return
-}
-
-func encodeGetURI(abi abi.ABI, did string) (ret []byte, err error) {
-	_, exist := abi.Methods[getURIName]
-	if !exist {
-		return nil, errors.New("method is not found")
-	}
-	return abi.Pack(getURIName, []byte(did))
 }

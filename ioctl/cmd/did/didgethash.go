@@ -55,8 +55,11 @@ func getHash(args []string) (err error) {
 	if err != nil {
 		return output.NewError(output.AddressError, "failed to get contract address", err)
 	}
-
-	bytecode, err := encodeGetHash(args[1])
+	abi, err := abi.JSON(strings.NewReader(AddressBasedDIDManagerABI))
+	if err != nil {
+		return
+	}
+	bytecode, err := encodeGet(abi, getHashName, args[1])
 	if err != nil {
 		return output.NewError(output.ConvertError, "invalid bytecode", err)
 	}
@@ -72,28 +75,10 @@ func getHash(args []string) (err error) {
 	return
 }
 
-func encodeGetHash(did string) (ret []byte, err error) {
-	abi, err := abi.JSON(strings.NewReader(AddressBasedDIDManagerABI))
-	if err != nil {
-		return
-	}
-	_, exist := abi.Methods[getHashName]
+func encodeGet(abi abi.ABI, method, did string) (ret []byte, err error) {
+	_, exist := abi.Methods[method]
 	if !exist {
 		return nil, errors.New("method is not found")
 	}
-	return abi.Pack(getHashName, []byte(did))
+	return abi.Pack(method, []byte(did))
 }
-
-//
-//func getPrivate() (crypto.PrivateKey, error) {
-//	addr, err := action.Signer()
-//	if err != nil {
-//		return nil, output.NewError(output.InputError, "failed to get signer addr", err)
-//	}
-//	fmt.Printf("Enter password #%s:\n", addr)
-//	password, err := util.ReadSecretFromStdin()
-//	if err != nil {
-//		return nil, output.NewError(output.InputError, "failed to get password", err)
-//	}
-//	return account.LocalAccountToPrivateKey(addr, password)
-//}
