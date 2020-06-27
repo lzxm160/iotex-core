@@ -7,7 +7,6 @@
 package did
 
 import (
-	"encoding/hex"
 	"errors"
 	"math/big"
 	"strings"
@@ -74,12 +73,12 @@ func getHash(args []string) (err error) {
 	if err != nil {
 		return
 	}
-	dec, err := hex.DecodeString(result)
-	if err != nil {
-		return
-	}
+	//dec, err := hex.DecodeString(result)
+	//if err != nil {
+	//	return
+	//}
 	var out [32]byte
-	err = abi.Unpack(&out, getHashName, dec)
+	err = abi.Unpack(&out, getHashName, []byte(result))
 	if err != nil {
 		return
 	}
