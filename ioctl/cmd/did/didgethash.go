@@ -42,11 +42,8 @@ var didGetHashCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
-		result, err := getHash(args)
-		if err != nil {
-			return output.PrintError(err)
-		}
-		output.PrintResult(result)
+		return output.PrintError(getHash(args))
+
 	},
 }
 
@@ -54,24 +51,26 @@ func init() {
 	action.RegisterWriteCommand(didGetHashCmd)
 }
 
-func getHash(args []string) (ret string, err error) {
+func getHash(args []string) (err error) {
 	contract, err := util.Address(args[0])
 	if err != nil {
-		err = output.NewError(output.AddressError, "failed to get contract address", err)
-		return
+		return output.NewError(output.AddressError, "failed to get contract address", err)
 	}
 
 	bytecode, err := encodeGetHash(args[1])
 	if err != nil {
-		err = output.NewError(output.ConvertError, "invalid bytecode", err)
-		return
+		return output.NewError(output.ConvertError, "invalid bytecode", err)
 	}
 	addr, err := address.FromString(contract)
 	if err != nil {
-		err = output.NewError(output.ConvertError, "invalid contract address", err)
+		return output.NewError(output.ConvertError, "invalid contract address", err)
+	}
+	result, err := action.Read(addr, big.NewInt(0), bytecode)
+	if err != nil {
 		return
 	}
-	return action.Read(addr, big.NewInt(0), bytecode)
+	output.PrintResult(result)
+	return
 }
 
 func encodeGetHash(didHash string) (ret []byte, err error) {

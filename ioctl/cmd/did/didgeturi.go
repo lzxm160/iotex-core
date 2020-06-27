@@ -41,11 +41,7 @@ var didGetURICmd = &cobra.Command{
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
-		result, err := getURI(args)
-		if err != nil {
-			return output.PrintError(err)
-		}
-		output.PrintResult(result)
+		return output.PrintError(getURI(args))
 	},
 }
 
@@ -53,24 +49,26 @@ func init() {
 	action.RegisterWriteCommand(didGetURICmd)
 }
 
-func getURI(args []string) (ret string, err error) {
+func getURI(args []string) (err error) {
 	contract, err := util.Address(args[0])
 	if err != nil {
-		err = output.NewError(output.AddressError, "failed to get contract address", err)
-		return
+		return output.NewError(output.AddressError, "failed to get contract address", err)
 	}
 
 	bytecode, err := encodeGetURI(args[1])
 	if err != nil {
-		err = output.NewError(output.ConvertError, "invalid bytecode", err)
-		return
+		return output.NewError(output.ConvertError, "invalid bytecode", err)
 	}
 	addr, err := address.FromString(contract)
 	if err != nil {
-		err = output.NewError(output.ConvertError, "invalid contract address", err)
+		return output.NewError(output.ConvertError, "invalid contract address", err)
+	}
+	result, err := action.Read(addr, big.NewInt(0), bytecode)
+	if err != nil {
 		return
 	}
-	return action.Read(addr, big.NewInt(0), bytecode)
+	output.PrintResult(result)
+	return
 }
 
 func encodeGetURI(uri string) (ret []byte, err error) {
