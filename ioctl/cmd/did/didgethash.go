@@ -7,7 +7,6 @@
 package did
 
 import (
-	"encoding/hex"
 	"errors"
 	"math/big"
 	"strings"
@@ -26,8 +25,8 @@ import (
 // Multi-language support
 var (
 	getHashCmdUses = map[config.Language]string{
-		config.English: "gethash (CONTRACT_ADDRESS|ALIAS) hash",
-		config.Chinese: "gethash (合约地址|别名) hash",
+		config.English: "gethash (CONTRACT_ADDRESS|ALIAS) DID",
+		config.Chinese: "gethash (合约地址|别名) DID",
 	}
 	getHashCmdShorts = map[config.Language]string{
 		config.English: "Gethash get DID doc's hash on IoTeX blockchain",
@@ -73,13 +72,7 @@ func getHash(args []string) (err error) {
 	return
 }
 
-func encodeGetHash(didHash string) (ret []byte, err error) {
-	hashSlice, err := hex.DecodeString(didHash)
-	if err != nil {
-		return
-	}
-	var hashArray [32]byte
-	copy(hashArray[:], hashSlice)
+func encodeGetHash(did string) (ret []byte, err error) {
 	abi, err := abi.JSON(strings.NewReader(AddressBasedDIDManagerABI))
 	if err != nil {
 		return
@@ -88,7 +81,7 @@ func encodeGetHash(didHash string) (ret []byte, err error) {
 	if !exist {
 		return nil, errors.New("method is not found")
 	}
-	return abi.Pack(getHashName, hashArray)
+	return abi.Pack(getHashName, []byte(did))
 }
 
 //

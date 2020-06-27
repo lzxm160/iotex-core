@@ -25,8 +25,8 @@ import (
 // Multi-language support
 var (
 	getURICmdUses = map[config.Language]string{
-		config.English: "geturi (CONTRACT_ADDRESS|ALIAS) uri",
-		config.Chinese: "geturi (合约地址|别名) uri",
+		config.English: "geturi (CONTRACT_ADDRESS|ALIAS) DID",
+		config.Chinese: "geturi (合约地址|别名) DID",
 	}
 	getURICmdShorts = map[config.Language]string{
 		config.English: "Geturi get DID URI on IoTeX blockchain",
@@ -67,11 +67,12 @@ func getURI(args []string) (err error) {
 	if err != nil {
 		return
 	}
+	//abi.Unpack(v, d.method, d.Raw)
 	output.PrintResult(result)
 	return
 }
 
-func encodeGetURI(uri string) (ret []byte, err error) {
+func encodeGetURI(did string) (ret []byte, err error) {
 	abi, err := abi.JSON(strings.NewReader(AddressBasedDIDManagerABI))
 	if err != nil {
 		return
@@ -80,5 +81,5 @@ func encodeGetURI(uri string) (ret []byte, err error) {
 	if !exist {
 		return nil, errors.New("method is not found")
 	}
-	return abi.Pack(getURIName, []byte(uri))
+	return abi.Pack(getURIName, []byte(did))
 }
