@@ -14,7 +14,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/iotexproject/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 
 	"github.com/iotexproject/iotex-core/ioctl/cmd/account"
 
