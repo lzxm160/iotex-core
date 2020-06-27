@@ -7,7 +7,6 @@
 package did
 
 import (
-	"encoding/hex"
 	"errors"
 	"math/big"
 	"strings"
@@ -72,11 +71,11 @@ func getURI(args []string) (err error) {
 		return
 	}
 	var out []byte
-	dec, err := hex.DecodeString(result)
-	if err != nil {
-		return
-	}
-	err = abi.Unpack(&out, getURIName, dec)
+	//dec, err := hex.DecodeString(result)
+	//if err != nil {
+	//	return
+	//}
+	err = abi.Unpack(&out, getURIName, []byte(result))
 	if err != nil {
 		return
 	}
