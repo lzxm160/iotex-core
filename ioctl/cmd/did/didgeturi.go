@@ -12,10 +12,10 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/iotexproject/iotex-address/address"
-
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/spf13/cobra"
+
+	"github.com/iotexproject/iotex-address/address"
 
 	"github.com/iotexproject/iotex-core/ioctl/cmd/action"
 	"github.com/iotexproject/iotex-core/ioctl/config"
