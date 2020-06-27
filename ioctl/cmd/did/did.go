@@ -36,4 +36,5 @@ func init() {
 	DIDCmd.AddCommand(didGetHashCmd)
 	DIDCmd.AddCommand(didGetURICmd)
 	DIDCmd.AddCommand(didUpdateCmd)
+	DIDCmd.AddCommand(didDeregisterCmd)
 }
