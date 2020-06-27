@@ -78,12 +78,12 @@ func getHash(args []string) (err error) {
 	if err != nil {
 		return
 	}
-	var out []byte
+	var out [32]byte
 	err = abi.Unpack(&out, getHashName, dec)
 	if err != nil {
 		return
 	}
-	output.PrintResult(string(out))
+	output.PrintResult(string(out[:]))
 	return
 }
 
