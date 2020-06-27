@@ -71,7 +71,7 @@ func getURI(args []string) (err error) {
 	if err != nil {
 		return
 	}
-	var out string
+	var out []byte
 	dec, err := hex.DecodeString(result)
 	if err != nil {
 		return
@@ -80,7 +80,7 @@ func getURI(args []string) (err error) {
 	if err != nil {
 		return
 	}
-	output.PrintResult(out)
+	output.PrintResult(string(out))
 	return
 }
 
