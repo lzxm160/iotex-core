@@ -47,10 +47,6 @@ var didGetHashCmd = &cobra.Command{
 	},
 }
 
-func init() {
-	action.RegisterWriteCommand(didGetHashCmd)
-}
-
 func getHash(args []string) (err error) {
 	contract, err := util.Address(args[0])
 	if err != nil {

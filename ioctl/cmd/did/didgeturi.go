@@ -46,10 +46,6 @@ var didGetURICmd = &cobra.Command{
 	},
 }
 
-func init() {
-	action.RegisterWriteCommand(didGetURICmd)
-}
-
 func getURI(args []string) (err error) {
 	contract, err := util.Address(args[0])
 	if err != nil {
