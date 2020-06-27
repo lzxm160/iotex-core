@@ -19,8 +19,8 @@ var (
 		config.Chinese: "DID command",
 	}
 	DIDCmdUses = map[config.Language]string{
-		config.English: "DID command",
-		config.Chinese: "DID command",
+		config.English: "did command",
+		config.Chinese: "did command",
 	}
 )
 
