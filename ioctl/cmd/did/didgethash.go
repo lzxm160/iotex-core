@@ -83,7 +83,7 @@ func getHash(args []string) (err error) {
 	if err != nil {
 		return errors.New("DID does not exist")
 	}
-	output.PrintResult(string(out[:]))
+	output.PrintResult(hex.EncodeToString(out[:]))
 	return
 }
 
