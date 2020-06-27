@@ -54,8 +54,11 @@ func getURI(args []string) (err error) {
 	if err != nil {
 		return output.NewError(output.AddressError, "failed to get contract address", err)
 	}
-
-	bytecode, err := encodeGetURI(args[1])
+	abi, err := abi.JSON(strings.NewReader(AddressBasedDIDManagerABI))
+	if err != nil {
+		return
+	}
+	bytecode, err := encodeGetURI(abi, args[1])
 	if err != nil {
 		return output.NewError(output.ConvertError, "invalid bytecode", err)
 	}
@@ -67,16 +70,13 @@ func getURI(args []string) (err error) {
 	if err != nil {
 		return
 	}
-	//abi.Unpack(v, d.method, d.Raw)
-	output.PrintResult(result)
+	var out string
+	abi.Unpack(&out, getURIName, []byte(result))
+	output.PrintResult(out)
 	return
 }
 
-func encodeGetURI(did string) (ret []byte, err error) {
-	abi, err := abi.JSON(strings.NewReader(AddressBasedDIDManagerABI))
-	if err != nil {
-		return
-	}
+func encodeGetURI(abi abi.ABI, did string) (ret []byte, err error) {
 	_, exist := abi.Methods[getURIName]
 	if !exist {
 		return nil, errors.New("method is not found")
