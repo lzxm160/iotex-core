@@ -7,6 +7,7 @@
 package did
 
 import (
+	"encoding/hex"
 	"errors"
 	"math/big"
 	"strings"
@@ -55,6 +56,11 @@ func getHash(args []string) (err error) {
 	if err != nil {
 		return output.NewError(output.AddressError, "failed to get contract address", err)
 	}
+	addr, err := address.FromString(contract)
+	if err != nil {
+		return output.NewError(output.ConvertError, "invalid contract address", err)
+	}
+
 	abi, err := abi.JSON(strings.NewReader(AddressBasedDIDManagerABI))
 	if err != nil {
 		return
@@ -63,15 +69,21 @@ func getHash(args []string) (err error) {
 	if err != nil {
 		return output.NewError(output.ConvertError, "invalid bytecode", err)
 	}
-	addr, err := address.FromString(contract)
-	if err != nil {
-		return output.NewError(output.ConvertError, "invalid contract address", err)
-	}
+
 	result, err := action.Read(addr, big.NewInt(0), bytecode)
 	if err != nil {
 		return
 	}
-	output.PrintResult(result)
+	dec, err := hex.DecodeString(result)
+	if err != nil {
+		return
+	}
+	var out []byte
+	err = abi.Unpack(&out, getHashName, dec)
+	if err != nil {
+		return
+	}
+	output.PrintResult(string(out))
 	return
 }
 

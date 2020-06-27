@@ -23,8 +23,8 @@ import (
 // Multi-language support
 var (
 	deregisterCmdUses = map[config.Language]string{
-		config.English: "deregister (CONTRACT_ADDRESS|ALIAS) hash uri",
-		config.Chinese: "deregister (合约地址|别名) hash uri",
+		config.English: "deregister (CONTRACT_ADDRESS|ALIAS)",
+		config.Chinese: "deregister (合约地址|别名)",
 	}
 	deregisterCmdShorts = map[config.Language]string{
 		config.English: "Deregister DID on IoTeX blockchain",
