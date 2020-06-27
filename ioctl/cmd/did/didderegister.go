@@ -36,7 +36,7 @@ var (
 var didDeregisterCmd = &cobra.Command{
 	Use:   config.TranslateInLang(deregisterCmdUses, config.UILanguage),
 	Short: config.TranslateInLang(deregisterCmdShorts, config.UILanguage),
-	Args:  cobra.ExactArgs(0),
+	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 		err := deregisterDID(args)
