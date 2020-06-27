@@ -76,7 +76,10 @@ func getURI(args []string) (err error) {
 	if err != nil {
 		return
 	}
-	abi.Unpack(&out, getURIName, dec)
+	err = abi.Unpack(&out, getURIName, dec)
+	if err != nil {
+		return
+	}
 	output.PrintResult(out)
 	return
 }
