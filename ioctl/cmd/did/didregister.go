@@ -9,7 +9,6 @@ package did
 import (
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"math/big"
 	"strings"
 
@@ -80,7 +79,6 @@ func encode(method, didHash, uri string) (ret []byte, err error) {
 	}
 	var hashArray [32]byte
 	copy(hashArray[:], hashSlice)
-	fmt.Println("encode", hex.EncodeToString(hashArray[:]))
 	abi, err := abi.JSON(strings.NewReader(AddressBasedDIDManagerABI))
 	if err != nil {
 		return
