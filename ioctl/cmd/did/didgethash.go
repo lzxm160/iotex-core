@@ -30,8 +30,8 @@ var (
 		config.Chinese: "gethash (合约地址|别名) hash",
 	}
 	getHashCmdShorts = map[config.Language]string{
-		config.English: "gethash get DID doc's hash on IoTeX blockchain",
-		config.Chinese: "gethash 在IoTeX链上获取相应DID的doc hash",
+		config.English: "Gethash get DID doc's hash on IoTeX blockchain",
+		config.Chinese: "Gethash 在IoTeX链上获取相应DID的doc hash",
 	}
 )
 
