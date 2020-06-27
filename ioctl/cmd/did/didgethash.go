@@ -57,7 +57,7 @@ func getHash(args []string) (err error) {
 		return output.NewError(output.ConvertError, "invalid contract address", err)
 	}
 
-	abi, err := abi.JSON(strings.NewReader(AddressBasedDIDManagerABI))
+	abi, err := abi.JSON(strings.NewReader(DIDABI))
 	if err != nil {
 		return
 	}

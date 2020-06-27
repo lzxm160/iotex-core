@@ -51,7 +51,7 @@ func getURI(args []string) (err error) {
 	if err != nil {
 		return output.NewError(output.AddressError, "failed to get contract address", err)
 	}
-	abi, err := abi.JSON(strings.NewReader(AddressBasedDIDManagerABI))
+	abi, err := abi.JSON(strings.NewReader(DIDABI))
 	if err != nil {
 		return
 	}
