@@ -73,14 +73,10 @@ func getHash(args []string) (err error) {
 	if err != nil {
 		return
 	}
-	//dec, err := hex.DecodeString(result)
-	//if err != nil {
-	//	return
-	//}
 	var out [32]byte
 	err = abi.Unpack(&out, getHashName, []byte(result))
 	if err != nil {
-		return
+		return errors.New("DID does not exist")
 	}
 	output.PrintResult(string(out[:]))
 	return

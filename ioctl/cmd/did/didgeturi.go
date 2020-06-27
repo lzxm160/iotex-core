@@ -8,6 +8,7 @@ package did
 
 import (
 	"encoding/hex"
+	"errors"
 	"math/big"
 	"strings"
 
@@ -77,7 +78,7 @@ func getURI(args []string) (err error) {
 	var out []byte
 	err = abi.Unpack(&out, getURIName, dec)
 	if err != nil {
-		return
+		return errors.New("DID does not exist")
 	}
 	output.PrintResult(string(out))
 	return
