@@ -40,7 +40,7 @@ require (
 	golang.org/x/net v0.0.0-20191204025024-5ee1b9f4859a
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	google.golang.org/genproto v0.0.0-20191203220235-3fa9dbf08042
-	google.golang.org/grpc v1.31.0-dev.0.20200630190442-3de8449f8555 // indirect
+	google.golang.org/grpc v1.31.0
 	gopkg.in/yaml.v2 v2.2.2
 )
 
