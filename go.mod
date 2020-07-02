@@ -48,6 +48,6 @@ require (
 
 replace github.com/ethereum/go-ethereum => github.com/iotexproject/go-ethereum v0.3.0
 
-replace github.com/iotexproject/iotex-proto => github.com/lzxm160/iotex-proto v2.1.2
+replace github.com/iotexproject/iotex-proto => github.com/lzxm160/iotex-proto v0.2.6
 
 replace golang.org/x/xerrors => golang.org/x/xerrors v0.0.0-20190212162355-a5947ffaace3
