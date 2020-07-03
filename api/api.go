@@ -167,13 +167,13 @@ func NewServer(
 
 // GetAccount returns the metadata of an account
 func (api *Server) GetAccount(ctx context.Context, in *iotexapi.GetAccountRequest) (*iotexapi.GetAccountResponse, error) {
-	state, err := accountutil.AccountState(api.sf, in.Address)
-	if err != nil {
-		return nil, status.Error(codes.NotFound, err.Error())
-	}
 	tipHeight, err := api.sf.Height()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
+	}
+	state, err := accountutil.AccountState(api.sf, in.Address)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
 	}
 	pendingNonce, err := api.ap.GetPendingNonce(in.Address)
 	if err != nil {
