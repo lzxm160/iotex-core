@@ -171,6 +171,10 @@ func (api *Server) GetAccount(ctx context.Context, in *iotexapi.GetAccountReques
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
+	tipHeight, err := api.sf.Height()
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
 	pendingNonce, err := api.ap.GetPendingNonce(in.Address)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -193,7 +197,6 @@ func (api *Server) GetAccount(ctx context.Context, in *iotexapi.GetAccountReques
 		PendingNonce: pendingNonce,
 		NumActions:   numActions,
 	}
-	tipHeight := api.bc.TipHeight()
 	header, err := api.bc.BlockHeaderByHeight(tipHeight)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())

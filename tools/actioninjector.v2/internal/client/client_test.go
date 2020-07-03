@@ -6,6 +6,11 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/iotexproject/iotex-core/blockchain/block"
+
+	"github.com/golang/protobuf/ptypes"
+	"github.com/iotexproject/iotex-proto/golang/iotextypes"
+
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/require"
@@ -57,6 +62,18 @@ func TestClient(t *testing.T) {
 	})
 	bc.EXPECT().ChainID().Return(chainID).AnyTimes()
 	bc.EXPECT().AddSubscriber(gomock.Any()).Return(nil).AnyTimes()
+	bh := &iotextypes.BlockHeader{Core: &iotextypes.BlockHeaderCore{
+		Version:          1,
+		Height:           51,
+		Timestamp:        ptypes.TimestampNow(),
+		PrevBlockHash:    []byte(""),
+		TxRoot:           []byte(""),
+		DeltaStateDigest: []byte(""),
+		ReceiptRoot:      []byte(""),
+	}}
+	blh := block.Header{}
+	require.NoError(blh.LoadFromBlockHeaderProto(bh))
+	bc.EXPECT().BlockHeaderByHeight(gomock.Any()).Return(&blh, nil).AnyTimes()
 	ap.EXPECT().GetPendingNonce(gomock.Any()).Return(uint64(1), nil).AnyTimes()
 	ap.EXPECT().Add(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	newOption := api.WithBroadcastOutbound(func(_ context.Context, _ uint32, _ proto.Message) error {
