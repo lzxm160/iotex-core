@@ -70,7 +70,7 @@ func TestClient(t *testing.T) {
 		TxRoot:           []byte(""),
 		DeltaStateDigest: []byte(""),
 		ReceiptRoot:      []byte(""),
-	}}
+	}, ProducerPubkey: identityset.PrivateKey(27).PublicKey().Bytes()}
 	blh := block.Header{}
 	require.NoError(blh.LoadFromBlockHeaderProto(bh))
 	bc.EXPECT().BlockHeaderByHeight(gomock.Any()).Return(&blh, nil).AnyTimes()
