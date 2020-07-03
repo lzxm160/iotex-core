@@ -60,11 +60,12 @@ func TestClient(t *testing.T) {
 	sf.EXPECT().State(gomock.Any(), gomock.Any()).Do(func(accountState *state.Account, _ protocol.StateOption) {
 		*accountState = state.EmptyAccount()
 	})
+	sf.EXPECT().Height().Return(10, nil).AnyTimes()
 	bc.EXPECT().ChainID().Return(chainID).AnyTimes()
 	bc.EXPECT().AddSubscriber(gomock.Any()).Return(nil).AnyTimes()
 	bh := &iotextypes.BlockHeader{Core: &iotextypes.BlockHeaderCore{
-		Version:          1,
-		Height:           51,
+		Version:          chainID,
+		Height:           10,
 		Timestamp:        ptypes.TimestampNow(),
 		PrevBlockHash:    []byte(""),
 		TxRoot:           []byte(""),
