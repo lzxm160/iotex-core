@@ -175,10 +175,18 @@ func (api *Server) GetAccount(ctx context.Context, in *iotexapi.GetAccountReques
 		if err != nil {
 			return nil, err
 		}
+		arg, err := proto.Marshal(&iotexapi.ReadStakingDataRequest{
+			Request: &iotexapi.ReadStakingDataRequest_TotalStakingAmount_{
+				TotalStakingAmount: &iotexapi.ReadStakingDataRequest_TotalStakingAmount{},
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
 		req := &iotexapi.ReadStateRequest{
 			ProtocolID: []byte("staking"),
 			MethodName: methodName,
-			Arguments:  nil,
+			Arguments:  [][]byte{arg},
 		}
 		return api.getProtocolAccount(ctx, req, in.Address)
 	}
@@ -1574,9 +1582,26 @@ func (api *Server) getProtocolAccount(ctx context.Context, req *iotexapi.ReadSta
 	if err != nil {
 		return
 	}
+	var balance string
+	if addr == address.RewardingPoolAddr {
+		val, ok := big.NewInt(0).SetString(string(out.GetData()), 10)
+		if !ok {
+			err = errors.New("balance convert error")
+			return
+		}
+		balance = val.String()
+	} else {
+		acc := iotextypes.AccountMeta{}
+		if err := proto.Unmarshal(out.GetData(), &acc); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal account meta")
+		}
+		balance = acc.GetBalance()
+	}
+
 	ret = &iotexapi.GetAccountResponse{
 		AccountMeta: &iotextypes.AccountMeta{
 			Address: addr,
+			Balance: balance,
 		},
 		BlockIdentifier: out.GetBlockIdentifier(),
 	}
