@@ -162,33 +162,8 @@ func NewServer(
 
 // GetAccount returns the metadata of an account
 func (api *Server) GetAccount(ctx context.Context, in *iotexapi.GetAccountRequest) (*iotexapi.GetAccountResponse, error) {
-	if in.Address == address.RewardingPoolAddr {
-		req := &iotexapi.ReadStateRequest{
-			ProtocolID: []byte("rewarding"),
-			MethodName: []byte("TotalBalance"),
-		}
-		return api.getProtocolAccount(ctx, req, in.Address)
-	} else if in.Address == address.StakingBucketPoolAddr {
-		methodName, err := proto.Marshal(&iotexapi.ReadStakingDataMethod{
-			Method: iotexapi.ReadStakingDataMethod_TOTAL_STAKING_AMOUNT,
-		})
-		if err != nil {
-			return nil, err
-		}
-		arg, err := proto.Marshal(&iotexapi.ReadStakingDataRequest{
-			Request: &iotexapi.ReadStakingDataRequest_TotalStakingAmount_{
-				TotalStakingAmount: &iotexapi.ReadStakingDataRequest_TotalStakingAmount{},
-			},
-		})
-		if err != nil {
-			return nil, err
-		}
-		req := &iotexapi.ReadStateRequest{
-			ProtocolID: []byte("staking"),
-			MethodName: methodName,
-			Arguments:  [][]byte{arg},
-		}
-		return api.getProtocolAccount(ctx, req, in.Address)
+	if in.Address == address.RewardingPoolAddr || in.Address == address.StakingBucketPoolAddr {
+		return api.getProtocolAccount(ctx, in.Address)
 	}
 
 	state, tipHeight, err := accountutil.AccountStateWithHeight(api.sf, in.Address)
@@ -1577,25 +1552,57 @@ func (api *Server) getProductivityByEpoch(
 	return num, produce, nil
 }
 
-func (api *Server) getProtocolAccount(ctx context.Context, req *iotexapi.ReadStateRequest, addr string) (ret *iotexapi.GetAccountResponse, err error) {
-	out, err := api.ReadState(ctx, req)
-	if err != nil {
-		return
-	}
+func (api *Server) getProtocolAccount(ctx context.Context, addr string) (ret *iotexapi.GetAccountResponse, err error) {
+	var req *iotexapi.ReadStateRequest
 	var balance string
-	if addr == address.RewardingPoolAddr {
+	var blockIdentifier *iotextypes.BlockIdentifier
+	switch addr {
+	case address.RewardingPoolAddr:
+		req = &iotexapi.ReadStateRequest{
+			ProtocolID: []byte("rewarding"),
+			MethodName: []byte("TotalBalance"),
+		}
+		out, err := api.ReadState(ctx, req)
+		if err != nil {
+			return
+		}
 		val, ok := big.NewInt(0).SetString(string(out.GetData()), 10)
 		if !ok {
 			err = errors.New("balance convert error")
 			return
 		}
 		balance = val.String()
-	} else {
+		blockIdentifier = out.GetBlockIdentifier()
+	case address.StakingBucketPoolAddr:
+		methodName, err := proto.Marshal(&iotexapi.ReadStakingDataMethod{
+			Method: iotexapi.ReadStakingDataMethod_TOTAL_STAKING_AMOUNT,
+		})
+		if err != nil {
+			return nil, err
+		}
+		arg, err := proto.Marshal(&iotexapi.ReadStakingDataRequest{
+			Request: &iotexapi.ReadStakingDataRequest_TotalStakingAmount_{
+				TotalStakingAmount: &iotexapi.ReadStakingDataRequest_TotalStakingAmount{},
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+		req = &iotexapi.ReadStateRequest{
+			ProtocolID: []byte("staking"),
+			MethodName: methodName,
+			Arguments:  [][]byte{arg},
+		}
+		out, err := api.ReadState(ctx, req)
+		if err != nil {
+			return
+		}
 		acc := iotextypes.AccountMeta{}
 		if err := proto.Unmarshal(out.GetData(), &acc); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal account meta")
 		}
 		balance = acc.GetBalance()
+		blockIdentifier = out.GetBlockIdentifier()
 	}
 
 	ret = &iotexapi.GetAccountResponse{
@@ -1603,7 +1610,7 @@ func (api *Server) getProtocolAccount(ctx context.Context, req *iotexapi.ReadSta
 			Address: addr,
 			Balance: balance,
 		},
-		BlockIdentifier: out.GetBlockIdentifier(),
+		BlockIdentifier: blockIdentifier,
 	}
 	return
 }
