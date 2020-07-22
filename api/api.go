@@ -1594,7 +1594,7 @@ func (api *Server) getProtocolAccount(ctx context.Context, addr string) (ret *io
 		}
 		out, err = api.ReadState(ctx, req)
 		if err != nil {
-			return
+			return nil, err
 		}
 		acc := iotextypes.AccountMeta{}
 		if err := proto.Unmarshal(out.GetData(), &acc); err != nil {
