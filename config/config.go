@@ -103,16 +103,18 @@ var (
 			PrivateNetworkPSK: "",
 		},
 		Chain: Chain{
-			ChainDBPath:          "/var/data/chain.db",
-			TrieDBPath:           "/var/data/trie.db",
-			IndexDBPath:          "/var/data/index.db",
-			CandidateIndexDBPath: "/var/data/candidate.index.db",
-			ID:                   1,
-			Address:              "",
-			ProducerPrivKey:      generateRandomKey(SigP256k1),
-			SignatureScheme:      []string{SigP256k1},
-			EmptyGenesis:         false,
-			GravityChainDB:       DB{DbPath: "/var/data/poll.db", NumRetries: 10},
+			ChainDBPath:                  "/var/data/chain.db",
+			TrieDBPath:                   "/var/data/trie.db",
+			IndexDBPath:                  "/var/data/index.db",
+			CandidateIndexDBPath:         "/var/data/candidate.index.db",
+			StakingCandidatesIndexDBPath: "/var/data/stakingCandidates.index.db",
+			StakingBucketsIndexDBPath:    "/var/data/stakingBuckets.index.db",
+			ID:                           1,
+			Address:                      "",
+			ProducerPrivKey:              generateRandomKey(SigP256k1),
+			SignatureScheme:              []string{SigP256k1},
+			EmptyGenesis:                 false,
+			GravityChainDB:               DB{DbPath: "/var/data/poll.db", NumRetries: 10},
 			Committee: committee.Config{
 				GravityChainAPIs: []string{},
 			},
@@ -120,6 +122,7 @@ var (
 			EnableAsyncIndexWrite:         true,
 			EnableSystemLogIndexer:        false,
 			EnableStakingProtocol:         true,
+			EnableStakingIndexer:          false,
 			CompressBlock:                 false,
 			AllowedBlockGasResidue:        10000,
 			MaxCacheSize:                  0,
@@ -226,17 +229,19 @@ type (
 
 	// Chain is the config struct for blockchain package
 	Chain struct {
-		ChainDBPath          string           `yaml:"chainDBPath"`
-		TrieDBPath           string           `yaml:"trieDBPath"`
-		IndexDBPath          string           `yaml:"indexDBPath"`
-		CandidateIndexDBPath string           `yaml:"candidateIndexDBPath"`
-		ID                   uint32           `yaml:"id"`
-		Address              string           `yaml:"address"`
-		ProducerPrivKey      string           `yaml:"producerPrivKey"`
-		SignatureScheme      []string         `yaml:"signatureScheme"`
-		EmptyGenesis         bool             `yaml:"emptyGenesis"`
-		GravityChainDB       DB               `yaml:"gravityChainDB"`
-		Committee            committee.Config `yaml:"committee"`
+		ChainDBPath                  string           `yaml:"chainDBPath"`
+		TrieDBPath                   string           `yaml:"trieDBPath"`
+		IndexDBPath                  string           `yaml:"indexDBPath"`
+		CandidateIndexDBPath         string           `yaml:"candidateIndexDBPath"`
+		StakingCandidatesIndexDBPath string           `yaml:"stakingCandidatesIndexDBPath"`
+		StakingBucketsIndexDBPath    string           `yaml:"stakingBucketsIndexDBPath"`
+		ID                           uint32           `yaml:"id"`
+		Address                      string           `yaml:"address"`
+		ProducerPrivKey              string           `yaml:"producerPrivKey"`
+		SignatureScheme              []string         `yaml:"signatureScheme"`
+		EmptyGenesis                 bool             `yaml:"emptyGenesis"`
+		GravityChainDB               DB               `yaml:"gravityChainDB"`
+		Committee                    committee.Config `yaml:"committee"`
 
 		EnableTrielessStateDB bool `yaml:"enableTrielessStateDB"`
 		// EnableArchiveMode is only meaningful when EnableTrielessStateDB is false
@@ -247,6 +252,8 @@ type (
 		EnableSystemLogIndexer bool `yaml:"enableSystemLog"`
 		// EnableStakingProtocol enables staking protocol
 		EnableStakingProtocol bool `yaml: "enableStakingProtocol"`
+		// EnableStakingIndexer enables staking indexer
+		EnableStakingIndexer bool `yaml: "enableStakingIndexer"`
 		// CompressBlock enables gzip compression on block data
 		CompressBlock bool `yaml:"compressBlock"`
 		// AllowedBlockGasResidue is the amount of gas remained when block producer could stop processing more actions
