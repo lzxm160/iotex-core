@@ -397,7 +397,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	if err != nil {
 		return nil, uint64(0), errors.Wrap(err, "failed to get candidate center")
 	}
-
+	fmt.Println("m.GetMethod()", m.GetMethod())
 	var resp proto.Message
 	switch m.GetMethod() {
 	case iotexapi.ReadStakingDataMethod_BUCKETS:
