@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"fmt"
 	"math"
 	"math/big"
 	"net"
@@ -920,11 +921,12 @@ func (api *Server) readState(ctx context.Context, p protocol.Protocol, height st
 		}
 		inputEpochNum := rp.GetEpochNum(inputHeight)
 		if inputEpochNum < tipEpochNum {
+			fmt.Println("inputEpochNum < tipEpochNum", inputEpochNum, tipEpochNum)
 			// old data, wrap to history state reader
 			return p.ReadState(ctx, factory.NewHistoryStateReader(api.sf, rp.GetEpochHeight(inputEpochNum)), methodName, arguments...)
 		}
 	}
-
+	fmt.Println("inputEpochNum>= tipEpochNum", tipEpochNum)
 	// TODO: need to distinguish user error and system error
 	return p.ReadState(ctx, api.sf, methodName, arguments...)
 }
