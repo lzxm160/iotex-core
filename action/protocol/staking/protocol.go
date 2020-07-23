@@ -23,6 +23,7 @@ import (
 	"github.com/iotexproject/iotex-core/action"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	accountutil "github.com/iotexproject/iotex-core/action/protocol/account/util"
+	"github.com/iotexproject/iotex-core/action/protocol/rolldpos"
 	"github.com/iotexproject/iotex-core/blockchain/genesis"
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/pkg/log"
@@ -65,10 +66,12 @@ type (
 
 	// Protocol defines the protocol of handling staking
 	Protocol struct {
-		addr       address.Address
-		depositGas DepositGas
-		config     Configuration
-		hu         config.HeightUpgrade
+		addr                     address.Address
+		depositGas               DepositGas
+		config                   Configuration
+		hu                       config.HeightUpgrade
+		stakingCandidatesIndexer *StakingCandidatesIndexer
+		stakingBucketsIndexer    *StakingBucketsIndexer
 	}
 
 	// Configuration is the staking protocol configuration.
@@ -85,7 +88,7 @@ type (
 )
 
 // NewProtocol instantiates the protocol of staking
-func NewProtocol(depositGas DepositGas, cfg genesis.Staking) (*Protocol, error) {
+func NewProtocol(depositGas DepositGas, cfg genesis.Staking, stakingCandidatesIndexer *StakingCandidatesIndexer, stakingBucketsIndexer *StakingBucketsIndexer) (*Protocol, error) {
 	h := hash.Hash160b([]byte(protocolID))
 	addr, err := address.FromBytes(h[:])
 	if err != nil {
@@ -119,7 +122,9 @@ func NewProtocol(depositGas DepositGas, cfg genesis.Staking) (*Protocol, error) 
 			MinStakeAmount:        minStakeAmount,
 			BootstrapCandidates:   cfg.BootstrapCandidates,
 		},
-		depositGas: depositGas,
+		depositGas:               depositGas,
+		stakingCandidatesIndexer: stakingCandidatesIndexer,
+		stakingBucketsIndexer:    stakingBucketsIndexer,
 	}, nil
 }
 
@@ -215,8 +220,50 @@ func (p *Protocol) Handle(ctx context.Context, act action.Action, sm protocol.St
 	if err != nil {
 		return nil, err
 	}
+	receipt, err := p.handle(ctx, act, csm)
+	if err != nil {
+		return nil, err
+	}
 
-	return p.handle(ctx, act, csm)
+	if err = p.handleStakingIndexer(ctx, sm, csm.CandCenter()); err != nil {
+		log.L().Error("error when processing staking indexer", zap.Error(err))
+		return nil, err
+	}
+
+	return receipt, nil
+}
+
+func (p *Protocol) handleStakingIndexer(ctx context.Context, sm protocol.StateManager, center CandidateCenter) error {
+	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
+	blkCtx := protocol.MustGetBlockCtx(ctx)
+	epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(blkCtx.BlockHeight))
+	if epochStartHeight != blkCtx.BlockHeight {
+		return nil
+	}
+	bcCtx := protocol.MustGetBlockchainCtx(ctx)
+	hu := config.NewHeightUpgrade(&bcCtx.Genesis)
+	// only for after fairbank
+	if hu.IsPre(config.Fairbank, epochStartHeight) {
+		return nil
+	}
+	if p.stakingBucketsIndexer != nil {
+		buckets, err := getStakingBuckets(sm)
+		if err != nil {
+			return err
+		}
+		err = p.stakingBucketsIndexer.Put(epochStartHeight, buckets)
+		if err != nil {
+			return err
+		}
+	}
+	if p.stakingCandidatesIndexer != nil {
+		candidateList := toIoTeXTypesCandidateListV2(center.All())
+		err := p.stakingCandidatesIndexer.Put(epochStartHeight, candidateList)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (p *Protocol) handle(ctx context.Context, act action.Action, csm CandidateStateManager) (*action.Receipt, error) {
@@ -337,6 +384,13 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	if err := proto.Unmarshal(args[0], &r); err != nil {
 		return nil, uint64(0), errors.Wrap(err, "failed to unmarshal request")
 	}
+	// get height arg
+	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
+	height, err := sr.Height()
+	if err != nil {
+		return nil, uint64(0), err
+	}
+	epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(height))
 
 	c, err := GetStakingStateReader(sr)
 	if err != nil {
@@ -346,6 +400,10 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	var resp proto.Message
 	switch m.GetMethod() {
 	case iotexapi.ReadStakingDataMethod_BUCKETS:
+		if epochStartHeight != 0 && p.stakingBucketsIndexer != nil {
+			ret, err := p.stakingBucketsIndexer.Get(epochStartHeight, r.GetBuckets().GetPagination().GetOffset(), r.GetBuckets().GetPagination().GetLimit())
+			return ret, epochStartHeight, err
+		}
 		resp, err = readStateBuckets(ctx, sr, r.GetBuckets())
 	case iotexapi.ReadStakingDataMethod_BUCKETS_BY_VOTER:
 		resp, err = readStateBucketsByVoter(ctx, sr, r.GetBucketsByVoter())
@@ -354,6 +412,10 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	case iotexapi.ReadStakingDataMethod_BUCKETS_BY_INDEXES:
 		resp, err = readStateBucketByIndices(ctx, sr, r.GetBucketsByIndexes())
 	case iotexapi.ReadStakingDataMethod_CANDIDATES:
+		if epochStartHeight != 0 && p.stakingCandidatesIndexer != nil {
+			ret, err := p.stakingCandidatesIndexer.Get(epochStartHeight, r.GetCandidates().GetPagination().GetOffset(), r.GetCandidates().GetPagination().GetLimit())
+			return ret, epochStartHeight, err
+		}
 		resp, err = readStateCandidates(ctx, c.CandCenter(), r.GetCandidates())
 	case iotexapi.ReadStakingDataMethod_CANDIDATE_BY_NAME:
 		resp, err = readStateCandidateByName(ctx, c.CandCenter(), r.GetCandidateByName())
