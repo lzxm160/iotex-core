@@ -8,6 +8,7 @@ package staking
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/gogo/protobuf/proto"
@@ -53,6 +54,7 @@ func (vb *StakingCandidatesIndexer) Stop(ctx context.Context) error {
 
 // Put puts vote buckets into indexer
 func (vb *StakingCandidatesIndexer) Put(height uint64, candidates *iotextypes.CandidateListV2) error {
+	fmt.Println("StakingCandidatesIndexer put", len(candidates.Candidates))
 	vb.mutex.Lock()
 	defer vb.mutex.Unlock()
 	candidatesBytes, err := proto.Marshal(candidates)

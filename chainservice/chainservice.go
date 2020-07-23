@@ -8,6 +8,7 @@ package chainservice
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -247,6 +248,8 @@ func New(
 	)
 	// staking protocol need to be put in registry before poll protocol when enabling
 	if cfg.Chain.EnableStakingProtocol {
+		fmt.Println("stakingCandidatesIndexer", stakingCandidatesIndexer)
+		fmt.Println("stakingBucketsIndexer", stakingBucketsIndexer)
 		stakingProtocol, err = staking.NewProtocol(rewarding.DepositGas, cfg.Genesis.Staking, stakingCandidatesIndexer, stakingBucketsIndexer)
 		if err != nil {
 			return nil, err
