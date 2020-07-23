@@ -394,6 +394,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(height))
 
 	c, err := GetStakingStateReader(sr)
+	fmt.Println("GetStakingStateReader", err)
 	if err != nil {
 		return nil, uint64(0), errors.Wrap(err, "failed to get candidate center")
 	}
