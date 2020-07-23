@@ -8,6 +8,7 @@ package staking
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -401,6 +402,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	switch m.GetMethod() {
 	case iotexapi.ReadStakingDataMethod_BUCKETS:
 		if epochStartHeight != 0 && p.stakingBucketsIndexer != nil {
+			fmt.Println("iotexapi.ReadStakingDataMethod_BUCKETS", epochStartHeight)
 			ret, err := p.stakingBucketsIndexer.Get(epochStartHeight, r.GetBuckets().GetPagination().GetOffset(), r.GetBuckets().GetPagination().GetLimit())
 			return ret, epochStartHeight, err
 		}
@@ -413,6 +415,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 		resp, err = readStateBucketByIndices(ctx, sr, r.GetBucketsByIndexes())
 	case iotexapi.ReadStakingDataMethod_CANDIDATES:
 		if epochStartHeight != 0 && p.stakingCandidatesIndexer != nil {
+			fmt.Println("iotexapi.ReadStakingDataMethod_CANDIDATES", epochStartHeight)
 			ret, err := p.stakingCandidatesIndexer.Get(epochStartHeight, r.GetCandidates().GetPagination().GetOffset(), r.GetCandidates().GetPagination().GetLimit())
 			return ret, epochStartHeight, err
 		}
