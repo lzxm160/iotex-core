@@ -212,9 +212,8 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 		return err
 	}
 
-	if err = p.handleStakingIndexer(ctx, sm, csm.CandCenter()); err != nil {
-		log.L().Error("error when processing staking indexer", zap.Error(err))
-		return
+	if p.stakingCandidatesBucketsIndexer != nil {
+		return p.handleStakingIndexer(ctx, sm, csm.CandCenter())
 	}
 	return
 }
@@ -232,22 +231,18 @@ func (p *Protocol) handleStakingIndexer(ctx context.Context, sm protocol.StateMa
 	if hu.IsPre(config.Fairbank, epochStartHeight) {
 		return nil
 	}
-	if p.stakingCandidatesBucketsIndexer != nil {
-		buckets, err := getStakingBuckets(sm)
-		if err != nil {
-			return err
-		}
-		err = p.stakingCandidatesBucketsIndexer.PutBuckets(epochStartHeight, buckets)
-		if err != nil {
-			return err
-		}
-		candidateList := toIoTeXTypesCandidateListV2(center.All())
-		err = p.stakingCandidatesBucketsIndexer.PutCandidates(epochStartHeight, candidateList)
-		if err != nil {
-			return err
-		}
+
+	buckets, err := getStakingBuckets(sm)
+	if err != nil {
+		return err
 	}
-	return nil
+	err = p.stakingCandidatesBucketsIndexer.PutBuckets(epochStartHeight, buckets)
+	if err != nil {
+		return err
+	}
+
+	candidateList := toIoTeXTypesCandidateListV2(center.All())
+	return p.stakingCandidatesBucketsIndexer.PutCandidates(epochStartHeight, candidateList)
 }
 
 // Commit commits the last change
