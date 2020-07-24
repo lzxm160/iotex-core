@@ -57,12 +57,11 @@ type ChainService struct {
 	blockdao          blockdao.BlockDAO
 	electionCommittee committee.Committee
 	// TODO: explorer dependency deleted at #1085, need to api related params
-	api                      *api.Server
-	indexBuilder             *blockindex.IndexBuilder
-	candidateIndexer         *poll.CandidateIndexer
-	stakingCandidatesIndexer *staking.StakingCandidatesIndexer
-	stakingBucketsIndexer    *staking.StakingBucketsIndexer
-	registry                 *protocol.Registry
+	api                             *api.Server
+	indexBuilder                    *blockindex.IndexBuilder
+	candidateIndexer                *poll.CandidateIndexer
+	stakingCandidatesBucketsIndexer *staking.StakingCandidatesBucketsIndexer
+	registry                        *protocol.Registry
 }
 
 type optionParams struct {
@@ -98,13 +97,12 @@ func New(
 ) (*ChainService, error) {
 	// create indexers
 	var (
-		indexers                 []blockdao.BlockIndexer
-		indexer                  blockindex.Indexer
-		candidateIndexer         *poll.CandidateIndexer
-		stakingCandidatesIndexer *staking.StakingCandidatesIndexer
-		stakingBucketsIndexer    *staking.StakingBucketsIndexer
-		err                      error
-		ops                      optionParams
+		indexers                        []blockdao.BlockIndexer
+		indexer                         blockindex.Indexer
+		candidateIndexer                *poll.CandidateIndexer
+		stakingCandidatesBucketsIndexer *staking.StakingCandidatesBucketsIndexer
+		err                             error
+		ops                             optionParams
 	)
 	for _, opt := range opts {
 		if err = opt(&ops); err != nil {
@@ -176,13 +174,8 @@ func New(
 			return nil, err
 		}
 		if cfg.Chain.EnableStakingIndexer {
-			cfg.DB.DbPath = cfg.Chain.StakingCandidatesIndexDBPath
-			stakingCandidatesIndexer, err = staking.NewStakingCandidatesIndexer(db.NewBoltDB(cfg.DB))
-			if err != nil {
-				return nil, err
-			}
-			cfg.DB.DbPath = cfg.Chain.StakingBucketsIndexDBPath
-			stakingBucketsIndexer, err = staking.NewStakingBucketsIndexer(db.NewBoltDB(cfg.DB))
+			cfg.DB.DbPath = cfg.Chain.StakingIndexDBPath
+			stakingCandidatesBucketsIndexer, err = staking.NewStakingCandidatesBucketsIndexer(db.NewBoltDB(cfg.DB))
 			if err != nil {
 				return nil, err
 			}
@@ -247,7 +240,7 @@ func New(
 	)
 	// staking protocol need to be put in registry before poll protocol when enabling
 	if cfg.Chain.EnableStakingProtocol {
-		stakingProtocol, err = staking.NewProtocol(rewarding.DepositGas, cfg.Genesis.Staking, stakingCandidatesIndexer, stakingBucketsIndexer)
+		stakingProtocol, err = staking.NewProtocol(rewarding.DepositGas, cfg.Genesis.Staking, stakingCandidatesBucketsIndexer)
 		if err != nil {
 			return nil, err
 		}
@@ -384,19 +377,18 @@ func New(
 	}
 
 	return &ChainService{
-		actpool:                  actPool,
-		chain:                    chain,
-		factory:                  sf,
-		blockdao:                 dao,
-		blocksync:                bs,
-		consensus:                consensus,
-		electionCommittee:        electionCommittee,
-		indexBuilder:             indexBuilder,
-		candidateIndexer:         candidateIndexer,
-		stakingCandidatesIndexer: stakingCandidatesIndexer,
-		stakingBucketsIndexer:    stakingBucketsIndexer,
-		api:                      apiSvr,
-		registry:                 registry,
+		actpool:                         actPool,
+		chain:                           chain,
+		factory:                         sf,
+		blockdao:                        dao,
+		blocksync:                       bs,
+		consensus:                       consensus,
+		electionCommittee:               electionCommittee,
+		indexBuilder:                    indexBuilder,
+		candidateIndexer:                candidateIndexer,
+		stakingCandidatesBucketsIndexer: stakingCandidatesBucketsIndexer,
+		api:                             apiSvr,
+		registry:                        registry,
 	}, nil
 }
 
@@ -412,14 +404,9 @@ func (cs *ChainService) Start(ctx context.Context) error {
 			return errors.Wrap(err, "error when starting candidate indexer")
 		}
 	}
-	if cs.stakingCandidatesIndexer != nil {
-		if err := cs.stakingCandidatesIndexer.Start(ctx); err != nil {
+	if cs.stakingCandidatesBucketsIndexer != nil {
+		if err := cs.stakingCandidatesBucketsIndexer.Start(ctx); err != nil {
 			return errors.Wrap(err, "error when starting staking candidates indexer")
-		}
-	}
-	if cs.stakingBucketsIndexer != nil {
-		if err := cs.stakingBucketsIndexer.Start(ctx); err != nil {
-			return errors.Wrap(err, "error when starting staking buckets indexer")
 		}
 	}
 	if err := cs.chain.Start(ctx); err != nil {
@@ -476,14 +463,9 @@ func (cs *ChainService) Stop(ctx context.Context) error {
 			return errors.Wrap(err, "error when stopping candidate indexer")
 		}
 	}
-	if cs.stakingCandidatesIndexer != nil {
-		if err := cs.stakingCandidatesIndexer.Stop(ctx); err != nil {
+	if cs.stakingCandidatesBucketsIndexer != nil {
+		if err := cs.stakingCandidatesBucketsIndexer.Stop(ctx); err != nil {
 			return errors.Wrap(err, "error when stopping staking candidates indexer")
-		}
-	}
-	if cs.stakingBucketsIndexer != nil {
-		if err := cs.stakingBucketsIndexer.Stop(ctx); err != nil {
-			return errors.Wrap(err, "error when stopping staking buckets indexer")
 		}
 	}
 	if cs.electionCommittee != nil {
