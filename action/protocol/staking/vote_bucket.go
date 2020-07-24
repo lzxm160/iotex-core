@@ -294,6 +294,14 @@ func getAllBuckets(sr protocol.StateReader) ([]*VoteBucket, uint64, error) {
 	return buckets, height, nil
 }
 
+func getStakingBuckets(sr protocol.StateReader) (ret *iotextypes.VoteBucketList, err error) {
+	allBuckets, _, err := getAllBuckets(sr)
+	if err != nil && errors.Cause(err) != state.ErrStateNotExist {
+		return nil, err
+	}
+	return toIoTeXTypesVoteBucketList(allBuckets)
+}
+
 func getBucketsWithIndices(sr protocol.StateReader, indices BucketIndices) ([]*VoteBucket, error) {
 	buckets := make([]*VoteBucket, 0, len(indices))
 	for _, i := range indices {

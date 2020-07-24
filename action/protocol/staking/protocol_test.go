@@ -118,7 +118,7 @@ func TestProtocol(t *testing.T) {
 	}
 
 	// test loading with no candidate in stateDB
-	stk, err := NewProtocol(nil, genesis.Default.Staking)
+	stk, err := NewProtocol(nil, genesis.Default.Staking, nil)
 	r.NotNil(stk)
 	r.NoError(err)
 	buckets, _, err := getAllBuckets(sm)
