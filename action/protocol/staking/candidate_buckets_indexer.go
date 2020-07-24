@@ -27,34 +27,34 @@ const (
 	StakingBucketsNamespace = "stakingBuckets"
 )
 
-// StakingCandidatesBucketsIndexer is an indexer to store candidates by given height
-type StakingCandidatesBucketsIndexer struct {
+// CandidatesBucketsIndexer is an indexer to store candidates by given height
+type CandidatesBucketsIndexer struct {
 	mutex   sync.RWMutex
 	kvStore db.KVStore
 }
 
 // NewStakingCandidatesBucketsIndexer creates a new StakingCandidatesIndexer
-func NewStakingCandidatesBucketsIndexer(kv db.KVStore) (*StakingCandidatesBucketsIndexer, error) {
+func NewStakingCandidatesBucketsIndexer(kv db.KVStore) (*CandidatesBucketsIndexer, error) {
 	if kv == nil {
 		return nil, errors.New("empty kvStore")
 	}
-	return &StakingCandidatesBucketsIndexer{
+	return &CandidatesBucketsIndexer{
 		kvStore: kv,
 	}, nil
 }
 
 // Start starts the indexer
-func (cbi *StakingCandidatesBucketsIndexer) Start(ctx context.Context) error {
+func (cbi *CandidatesBucketsIndexer) Start(ctx context.Context) error {
 	return cbi.kvStore.Start(ctx)
 }
 
 // Stop stops the indexer
-func (cbi *StakingCandidatesBucketsIndexer) Stop(ctx context.Context) error {
+func (cbi *CandidatesBucketsIndexer) Stop(ctx context.Context) error {
 	return cbi.kvStore.Stop(ctx)
 }
 
 // PutCandidates puts candidates into indexer
-func (cbi *StakingCandidatesBucketsIndexer) PutCandidates(height uint64, candidates *iotextypes.CandidateListV2) error {
+func (cbi *CandidatesBucketsIndexer) PutCandidates(height uint64, candidates *iotextypes.CandidateListV2) error {
 	fmt.Println("PutCandidates", len(candidates.Candidates))
 	cbi.mutex.Lock()
 	defer cbi.mutex.Unlock()
@@ -66,7 +66,7 @@ func (cbi *StakingCandidatesBucketsIndexer) PutCandidates(height uint64, candida
 }
 
 // GetCandidates gets candidates from indexer given epoch start height
-func (cbi *StakingCandidatesBucketsIndexer) GetCandidates(height uint64, offset, limit uint32) ([]byte, error) {
+func (cbi *CandidatesBucketsIndexer) GetCandidates(height uint64, offset, limit uint32) ([]byte, error) {
 	cbi.mutex.RLock()
 	defer cbi.mutex.RUnlock()
 	candidateList := &iotextypes.CandidateListV2{}
@@ -93,7 +93,7 @@ func (cbi *StakingCandidatesBucketsIndexer) GetCandidates(height uint64, offset,
 }
 
 // PutBuckets puts vote buckets into indexer
-func (cbi *StakingCandidatesBucketsIndexer) PutBuckets(height uint64, buckets *iotextypes.VoteBucketList) error {
+func (cbi *CandidatesBucketsIndexer) PutBuckets(height uint64, buckets *iotextypes.VoteBucketList) error {
 	cbi.mutex.Lock()
 	defer cbi.mutex.Unlock()
 	fmt.Println("PutBuckets", len(buckets.Buckets))
@@ -104,8 +104,8 @@ func (cbi *StakingCandidatesBucketsIndexer) PutBuckets(height uint64, buckets *i
 	return cbi.kvStore.Put(StakingBucketsNamespace, byteutil.Uint64ToBytes(height), bucketsBytes)
 }
 
-// Get gets vote buckets from indexer given epoch start height
-func (cbi *StakingCandidatesBucketsIndexer) GetBuckets(height uint64, offset, limit uint32) ([]byte, error) {
+// GetBuckets gets vote buckets from indexer given epoch start height
+func (cbi *CandidatesBucketsIndexer) GetBuckets(height uint64, offset, limit uint32) ([]byte, error) {
 	cbi.mutex.RLock()
 	defer cbi.mutex.RUnlock()
 	buckets := &iotextypes.VoteBucketList{}
