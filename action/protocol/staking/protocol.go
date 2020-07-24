@@ -207,7 +207,7 @@ func (p *Protocol) CreateGenesisStates(
 
 // CreatePreStates updates state manager
 func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager) (err error) {
-	csm, err := NewCandidateStateManager(sm, false)
+	csm, err := NewCandidateStateManager(sm, true)
 	if err != nil {
 		return err
 	}
