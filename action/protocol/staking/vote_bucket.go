@@ -295,7 +295,7 @@ func getAllBuckets(sr protocol.StateReader) ([]*VoteBucket, uint64, error) {
 }
 
 func getStakingBuckets(sr protocol.StateReader) (ret *iotextypes.VoteBucketList, err error) {
-	allBuckets, err := getAllBuckets(sr)
+	allBuckets, _, err := getAllBuckets(sr)
 	if err != nil {
 		return
 	}
