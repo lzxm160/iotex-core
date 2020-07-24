@@ -70,7 +70,7 @@ type (
 		depositGas                      DepositGas
 		config                          Configuration
 		hu                              config.HeightUpgrade
-		stakingCandidatesBucketsIndexer *StakingCandidatesBucketsIndexer
+		stakingCandidatesBucketsIndexer *CandidatesBucketsIndexer
 	}
 
 	// Configuration is the staking protocol configuration.
@@ -87,7 +87,7 @@ type (
 )
 
 // NewProtocol instantiates the protocol of staking
-func NewProtocol(depositGas DepositGas, cfg genesis.Staking, stakingCandidatesBucketsIndexer *StakingCandidatesBucketsIndexer) (*Protocol, error) {
+func NewProtocol(depositGas DepositGas, cfg genesis.Staking, stakingCandidatesBucketsIndexer *CandidatesBucketsIndexer) (*Protocol, error) {
 	h := hash.Hash160b([]byte(protocolID))
 	addr, err := address.FromBytes(h[:])
 	if err != nil {
