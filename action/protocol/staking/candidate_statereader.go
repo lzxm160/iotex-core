@@ -7,6 +7,7 @@
 package staking
 
 import (
+	"fmt"
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/state"
 	"github.com/pkg/errors"
@@ -54,6 +55,7 @@ func GetStakingStateReader(sr protocol.StateReader) (CandidateStateReader, error
 	}
 
 	c, err := ConstructBaseView(sr)
+	fmt.Println("c, err := ConstructBaseView(sr)", err)
 	if err != nil {
 		if errors.Cause(err) == protocol.ErrNoName {
 			// the view does not exist yet, create it
