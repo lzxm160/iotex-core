@@ -224,7 +224,7 @@ func TestCreatePreStates(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	sm := testdb.NewMockStateManager(ctrl)
-	p, err := NewProtocol(nil, genesis.Default.Staking)
+	p, err := NewProtocol(nil, genesis.Default.Staking, nil)
 	require.NoError(err)
 	ctx := protocol.WithBlockCtx(
 		protocol.WithBlockchainCtx(
