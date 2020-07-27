@@ -210,17 +210,6 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	bcCtx := protocol.MustGetBlockchainCtx(ctx)
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 	hu := config.NewHeightUpgrade(&bcCtx.Genesis)
-	if blkCtx.BlockHeight != hu.GreenlandBlockHeight() {
-		return nil
-	}
-	csr, err := ConstructBaseView(sm)
-	if err != nil {
-		return err
-	}
-	_, err = sm.PutState(csr.BaseView().bucketPool.total, protocol.NamespaceOption(StakingNameSpace), protocol.KeyOption(bucketPoolAddrKey))
-	if err != nil {
-		return err
-	}
 	if p.candidatesBucketsIndexer == nil {
 		return nil
 	}
@@ -233,7 +222,19 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	if hu.IsPre(config.Fairbank, epochStartHeight) {
 		return nil
 	}
-	return p.handleStakingIndexer(epochStartHeight, sm)
+	err = p.handleStakingIndexer(epochStartHeight, sm)
+	if err != nil {
+		return err
+	}
+	if blkCtx.BlockHeight != hu.GreenlandBlockHeight() {
+		return nil
+	}
+	csr, err := ConstructBaseView(sm)
+	if err != nil {
+		return err
+	}
+	_, err = sm.PutState(csr.BaseView().bucketPool.total, protocol.NamespaceOption(StakingNameSpace), protocol.KeyOption(bucketPoolAddrKey))
+	return err
 }
 
 func (p *Protocol) handleStakingIndexer(epochStartHeight uint64, sm protocol.StateManager) error {
