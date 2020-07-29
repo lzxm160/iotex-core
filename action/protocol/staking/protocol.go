@@ -8,6 +8,7 @@ package staking
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -233,6 +234,7 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 }
 
 func (p *Protocol) handleStakingIndexer(epochNum uint64, sm protocol.StateManager) error {
+	fmt.Println("handleStakingIndexer", epochNum)
 	allBuckets, _, err := getAllBuckets(sm)
 	if err != nil && errors.Cause(err) != state.ErrStateNotExist {
 		return err

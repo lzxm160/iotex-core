@@ -8,6 +8,7 @@ package staking
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
@@ -52,6 +53,7 @@ func (cbi *CandidatesBucketsIndexer) Stop(ctx context.Context) error {
 
 // PutCandidates puts candidates into indexer
 func (cbi *CandidatesBucketsIndexer) PutCandidates(epochNum uint64, candidates *iotextypes.CandidateListV2) error {
+	fmt.Println("PutCandidates", epochNum)
 	candidatesBytes, err := proto.Marshal(candidates)
 	if err != nil {
 		return err
@@ -61,6 +63,7 @@ func (cbi *CandidatesBucketsIndexer) PutCandidates(epochNum uint64, candidates *
 
 // GetCandidates gets candidates from indexer given epoch start height
 func (cbi *CandidatesBucketsIndexer) GetCandidates(epochNum uint64, offset, limit uint32) ([]byte, error) {
+	fmt.Println("GetCandidates", epochNum)
 	candidateList := &iotextypes.CandidateListV2{}
 	ret, err := cbi.kvStore.Get(StakingCandidatesNamespace, byteutil.Uint64ToBytesBigEndian(epochNum))
 	if errors.Cause(err) == db.ErrNotExist {
@@ -90,11 +93,13 @@ func (cbi *CandidatesBucketsIndexer) PutBuckets(epochNum uint64, buckets *iotext
 	if err != nil {
 		return err
 	}
+	fmt.Println("PutBuckets", epochNum)
 	return cbi.kvStore.Put(StakingBucketsNamespace, byteutil.Uint64ToBytesBigEndian(epochNum), bucketsBytes)
 }
 
 // GetBuckets gets vote buckets from indexer given epoch start height
 func (cbi *CandidatesBucketsIndexer) GetBuckets(epochNum uint64, offset, limit uint32) ([]byte, error) {
+	fmt.Println("GetBuckets", epochNum)
 	buckets := &iotextypes.VoteBucketList{}
 	ret, err := cbi.kvStore.Get(StakingBucketsNamespace, byteutil.Uint64ToBytesBigEndian(epochNum))
 	if errors.Cause(err) == db.ErrNotExist {
