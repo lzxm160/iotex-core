@@ -230,11 +230,11 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 		return nil
 	}
 
-	return p.handleStakingIndexer(currentEpochNum-1, sm)
+	return p.handleStakingIndexer(rp.GetEpochHeight(currentEpochNum-1), sm)
 }
 
-func (p *Protocol) handleStakingIndexer(epochNum uint64, sm protocol.StateManager) error {
-	fmt.Println("handleStakingIndexer", epochNum)
+func (p *Protocol) handleStakingIndexer(epochStartHeight uint64, sm protocol.StateManager) error {
+	fmt.Println("handleStakingIndexer", epochStartHeight)
 	allBuckets, _, err := getAllBuckets(sm)
 	if err != nil && errors.Cause(err) != state.ErrStateNotExist {
 		return err
@@ -243,7 +243,7 @@ func (p *Protocol) handleStakingIndexer(epochNum uint64, sm protocol.StateManage
 	if err != nil {
 		return err
 	}
-	err = p.candBucketsIndexer.PutBuckets(epochNum, buckets)
+	err = p.candBucketsIndexer.PutBuckets(epochStartHeight, buckets)
 	if err != nil {
 		return err
 	}
@@ -252,7 +252,7 @@ func (p *Protocol) handleStakingIndexer(epochNum uint64, sm protocol.StateManage
 		return err
 	}
 	candidateList := toIoTeXTypesCandidateListV2(all)
-	return p.candBucketsIndexer.PutCandidates(epochNum, candidateList)
+	return p.candBucketsIndexer.PutCandidates(epochStartHeight, candidateList)
 }
 
 // Commit commits the last change
@@ -410,7 +410,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 
 	// get height arg
 	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
-	epochNum := rp.GetEpochNum(csr.Height())
+	epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(csr.Height()))
 
 	var (
 		height uint64
@@ -419,7 +419,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	switch m.GetMethod() {
 	case iotexapi.ReadStakingDataMethod_BUCKETS:
 		if p.candBucketsIndexer != nil {
-			ret, err := p.candBucketsIndexer.GetBuckets(epochNum, r.GetBuckets().GetPagination().GetOffset(), r.GetBuckets().GetPagination().GetLimit())
+			ret, err := p.candBucketsIndexer.GetBuckets(epochStartHeight, r.GetBuckets().GetPagination().GetOffset(), r.GetBuckets().GetPagination().GetLimit())
 			return ret, csr.Height(), err
 		}
 		resp, height, err = readStateBuckets(ctx, sr, r.GetBuckets())
@@ -431,7 +431,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 		resp, height, err = readStateBucketByIndices(ctx, sr, r.GetBucketsByIndexes())
 	case iotexapi.ReadStakingDataMethod_CANDIDATES:
 		if p.candBucketsIndexer != nil {
-			ret, err := p.candBucketsIndexer.GetCandidates(epochNum, r.GetCandidates().GetPagination().GetOffset(), r.GetCandidates().GetPagination().GetLimit())
+			ret, err := p.candBucketsIndexer.GetCandidates(epochStartHeight, r.GetCandidates().GetPagination().GetOffset(), r.GetCandidates().GetPagination().GetLimit())
 			return ret, csr.Height(), err
 		}
 		resp, height, err = readStateCandidates(ctx, csr, r.GetCandidates())
