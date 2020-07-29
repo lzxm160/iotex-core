@@ -411,7 +411,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	// get height arg
 	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
 	epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(csr.Height()))
-
+	fmt.Println("csr.Height(),epochStartHeight", csr.Height(), epochStartHeight)
 	var (
 		height uint64
 		resp   proto.Message
