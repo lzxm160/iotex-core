@@ -926,7 +926,7 @@ func (api *Server) readState(ctx context.Context, p protocol.Protocol, height st
 			return nil, uint64(0), err
 		}
 		inputEpochNum := rp.GetEpochNum(inputHeight)
-		fmt.Println("api", inputHeight, inputEpochNum, rp.GetEpochHeight(inputEpochNum))
+		fmt.Println("api", inputHeight, inputEpochNum, rp.GetEpochHeight(inputEpochNum), tipEpochNum)
 		if inputEpochNum < tipEpochNum {
 			// old data, wrap to history state reader
 			return p.ReadState(ctx, factory.NewHistoryStateReader(api.sf, rp.GetEpochHeight(inputEpochNum)), methodName, arguments...)
