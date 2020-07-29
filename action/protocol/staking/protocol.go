@@ -223,12 +223,13 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 		return nil
 	}
 	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
-	epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(blkCtx.BlockHeight))
+	currentEpochNum := rp.GetEpochNum(blkCtx.BlockHeight)
+	epochStartHeight := rp.GetEpochHeight(currentEpochNum)
 	if epochStartHeight != blkCtx.BlockHeight {
 		return nil
 	}
 
-	return p.handleStakingIndexer(epochStartHeight, sm)
+	return p.handleStakingIndexer(rp.GetEpochHeight(currentEpochNum-1), sm)
 }
 
 func (p *Protocol) handleStakingIndexer(epochStartHeight uint64, sm protocol.StateManager) error {
