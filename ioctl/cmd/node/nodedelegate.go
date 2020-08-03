@@ -158,6 +158,7 @@ func delegates() error {
 			// if it exists in probation info
 			isProbated = true
 		}
+
 		delegate := delegate{
 			Address:        bp.Address,
 			Rank:           rank + 1,
@@ -167,6 +168,7 @@ func delegates() error {
 			Votes:          util.RauToString(votes, util.IotxDecimalNum),
 			ProbatedStatus: isProbated,
 		}
+		fmt.Println("delegate", delegate)
 		message.Delegates = append(message.Delegates, delegate)
 	}
 	return sortAndPrint(&message)
