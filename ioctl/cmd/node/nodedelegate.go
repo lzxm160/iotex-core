@@ -210,9 +210,9 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 	if err := ABPs.Deserialize(abpResponse.Data); err != nil {
 		return output.NewError(output.SerializationError, "failed to deserialize active BPs", err)
 	}
-	for _, abp := range ABPs {
-		fmt.Println("abp", epochMeta.EpochData.Num, epochMeta.EpochData.Height, abp.Address)
-	}
+	//for _, abp := range ABPs {
+	//	fmt.Println("abp", epochMeta.EpochData.Num, epochMeta.EpochData.Height, abp.Address)
+	//}
 
 	request = &iotexapi.ReadStateRequest{
 		ProtocolID: []byte("poll"),
@@ -256,7 +256,7 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 			ProbatedStatus: isProbated,
 		})
 	}
-	fillMessage(cli, message, aliases, isActive, pb)
+	fillMessage(cli, message, aliases, isActive, pb, epochMeta.EpochData.Height)
 	return sortAndPrint(message)
 }
 
@@ -303,8 +303,8 @@ func getProbationList(epochNum uint64, epochStartHeight uint64) (*vote.Probation
 	return probationList, nil
 }
 
-func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage, alias map[string]string, active map[string]bool, pb *vote.ProbationList) error {
-	cl, err := getAllStakingCandidates(cli)
+func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage, alias map[string]string, active map[string]bool, pb *vote.ProbationList, height uint64) error {
+	cl, err := getAllStakingCandidates(cli, height)
 	if err != nil {
 		return err
 	}
@@ -349,12 +349,12 @@ func fillMessage(cli iotexapi.APIServiceClient, message *delegatesMessage, alias
 	return nil
 }
 
-func getAllStakingCandidates(chainClient iotexapi.APIServiceClient) (candidateListAll *iotextypes.CandidateListV2, err error) {
+func getAllStakingCandidates(chainClient iotexapi.APIServiceClient, height uint64) (candidateListAll *iotextypes.CandidateListV2, err error) {
 	candidateListAll = &iotextypes.CandidateListV2{}
 	for i := uint32(0); ; i++ {
 		offset := i * readCandidatesLimit
 		size := uint32(readCandidatesLimit)
-		candidateList, err := getStakingCandidates(chainClient, offset, size)
+		candidateList, err := getStakingCandidates(chainClient, offset, size, height)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get candidates")
 		}
@@ -366,7 +366,7 @@ func getAllStakingCandidates(chainClient iotexapi.APIServiceClient) (candidateLi
 	return
 }
 
-func getStakingCandidates(chainClient iotexapi.APIServiceClient, offset, limit uint32) (candidateList *iotextypes.CandidateListV2, err error) {
+func getStakingCandidates(chainClient iotexapi.APIServiceClient, offset, limit uint32, height uint64) (candidateList *iotextypes.CandidateListV2, err error) {
 	methodName, err := proto.Marshal(&iotexapi.ReadStakingDataMethod{
 		Method: iotexapi.ReadStakingDataMethod_CANDIDATES,
 	})
@@ -390,6 +390,7 @@ func getStakingCandidates(chainClient iotexapi.APIServiceClient, offset, limit u
 		ProtocolID: []byte(protocolID),
 		MethodName: methodName,
 		Arguments:  [][]byte{arg},
+		Height:     fmt.Sprintf("%d", height),
 	}
 	readStateRes, err := chainClient.ReadState(context.Background(), readStateRequest)
 	if err != nil {
