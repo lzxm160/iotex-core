@@ -168,7 +168,7 @@ func delegates() error {
 			Votes:          util.RauToString(votes, util.IotxDecimalNum),
 			ProbatedStatus: isProbated,
 		}
-		fmt.Println("delegate", delegate)
+
 		message.Delegates = append(message.Delegates, delegate)
 	}
 	return sortAndPrint(&message)
@@ -210,6 +210,10 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 	if err := ABPs.Deserialize(abpResponse.Data); err != nil {
 		return output.NewError(output.SerializationError, "failed to deserialize active BPs", err)
 	}
+	for _, abp := range ABPs {
+		fmt.Println("abp", epochMeta.EpochData.Num, epochMeta.EpochData.Height, abp.Address)
+	}
+
 	request = &iotexapi.ReadStateRequest{
 		ProtocolID: []byte("poll"),
 		MethodName: []byte("BlockProducersByEpoch"),
