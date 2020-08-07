@@ -2,7 +2,7 @@ FROM golang:1.14.7-stretch as build
 
 WORKDIR apps/iotex-core
 
-RUN apk add --no-cache make gcc musl-dev linux-headers git
+RUN apt install make gcc musl-dev linux-headers git
 
 COPY go.mod .
 COPY go.sum .
@@ -16,7 +16,7 @@ RUN mkdir -p $GOPATH/pkg/linux_amd64/github.com/iotexproject/ && \
 
 FROM stretch:latest
 
-RUN apk add --no-cache ca-certificates
+RUN apt install --no-cache ca-certificates
 RUN mkdir -p /etc/iotex/
 COPY --from=build /go/apps/iotex-core/bin/server /usr/local/bin/iotex-server
 COPY --from=build /go/apps/iotex-core/bin/actioninjectorv2 /usr/local/bin/iotex-actioninjectorv2
