@@ -14,7 +14,7 @@ COPY . .
 RUN mkdir -p $GOPATH/pkg/linux_amd64/github.com/iotexproject/ && \
     make clean build-all
 
-FROM alpine:latest
+FROM stretch:latest
 
 RUN apk add --no-cache ca-certificates
 RUN mkdir -p /etc/iotex/
