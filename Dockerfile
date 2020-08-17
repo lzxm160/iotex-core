@@ -7,9 +7,9 @@ RUN apt install make gcc git
 COPY go.mod .
 COPY go.sum .
 RUN export GO111MODULE=on
-RUN git config --global http.proxy 'socks5://192.168.1.8:1080'
-RUN git config --global https.proxy 'socks5://192.168.1.8:1080'
-RUN export http_proxy=socks5://192.168.1.8:1080
+#RUN git config --global http.proxy 'socks5://192.168.1.8:1080'
+#RUN git config --global https.proxy 'socks5://192.168.1.8:1080'
+#RUN export http_proxy=socks5://192.168.1.8:1080
 RUN go mod download
 
 COPY . .
