@@ -6,10 +6,11 @@ RUN apk add --no-cache make gcc musl-dev linux-headers git
 
 COPY go.mod .
 COPY go.sum .
-RUN export GO111MODULE=on
+ENV GO111MODULE=on
+ENV http_proxy=socks5://192.168.1.8:1080
 RUN git config --global http.proxy 'socks5://192.168.1.8:1080'
 RUN git config --global https.proxy 'socks5://192.168.1.8:1080'
-RUN export http_proxy=socks5://192.168.1.8:1080
+
 RUN go mod download
 
 COPY . .
