@@ -17,7 +17,7 @@ COPY . .
 RUN mkdir -p $GOPATH/pkg/linux_amd64/github.com/iotexproject/ && \
     make clean build-all
 
-FROM stretch:latest
+FROM ubuntu:latest
 
 #RUN apt install --no-cache ca-certificates
 RUN mkdir -p /etc/iotex/

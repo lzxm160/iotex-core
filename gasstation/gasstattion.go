@@ -122,7 +122,7 @@ func (gs *GasStation) EstimateGasForAction(actPb *iotextypes.Action) (uint64, er
 		if err != nil {
 			return 0, err
 		}
-		_, receipt, err := gs.simulator(ctx, callerAddr, sc, gs.dao.GetBlockHash)
+		_, receipt, err := gs.NewCandidateRegister(ctx, callerAddr, sc, gs.dao.GetBlockHash)
 		if err != nil {
 			return 0, err
 		}
