@@ -260,7 +260,7 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 func sortAndPrint(message *delegatesMessage) error {
 	if allFlag.Value() == false && len(message.Delegates) > defaultDelegateNum {
 		message.Delegates = message.Delegates[:defaultDelegateNum]
-		fmt.Println(message.String())
+		//fmt.Println(message.String())
 		return nil
 	}
 	for i := defaultDelegateNum; i < len(message.Delegates); i++ {
