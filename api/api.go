@@ -172,9 +172,8 @@ func (api *Server) GetAccount(ctx context.Context, in *iotexapi.GetAccountReques
 		height = uint64(heightInt)
 		in.Address = in.Address[:41]
 	}
-	var sr protocol.StateReader
-	sr = api.sf
-	if height == 0 {
+	var sr protocol.StateReader = api.sf
+	if height != 0 {
 		sr = factory.NewHistoryStateReader(api.sf, height)
 	}
 	fmt.Println(height, in.Address)
