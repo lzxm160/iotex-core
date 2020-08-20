@@ -25,7 +25,9 @@ func TestNodeDelegate(t *testing.T) {
 		require.NoError(err)
 		for _, m := range mess.Delegates {
 			if m.Active && m.Production == 0 {
-				fmt.Println(m)
+				fmt.Println("0 warning:", m)
+			} else {
+				fmt.Println("good:", m)
 			}
 		}
 	}
