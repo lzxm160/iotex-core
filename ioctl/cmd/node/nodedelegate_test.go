@@ -11,11 +11,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iotexproject/iotex-core/ioctl/config"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNodeDelegate(t *testing.T) {
 	require := require.New(t)
+	config.ReadConfig.Endpoint = "api.iotex.one"
+	config.Insecure = true
 	for {
 		time.Sleep(8)
 		err, mess := delegates()
