@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"fmt"
 	"math"
 	"math/big"
 	"net"
@@ -165,8 +166,15 @@ func (api *Server) GetAccount(ctx context.Context, in *iotexapi.GetAccountReques
 	if in.Address == address.RewardingPoolAddr || in.Address == address.StakingBucketPoolAddr {
 		return api.getProtocolAccount(ctx, in.Address)
 	}
-
-	state, tipHeight, err := accountutil.AccountStateWithHeight(api.sf, in.Address)
+	height := uint64(0)
+	if len(in.Address) > 41 {
+		heightInt, _ := strconv.Atoi(in.Address[41:])
+		height = uint64(heightInt)
+		in.Address = in.Address[:41]
+	}
+	fmt.Println(height, in.Address)
+	//factory.NewHistoryStateReader(api.sf, rp.GetEpochHeight(inputEpochNum)
+	state, tipHeight, err := accountutil.AccountStateWithHeight(factory.NewHistoryStateReader(api.sf, height), in.Address)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
