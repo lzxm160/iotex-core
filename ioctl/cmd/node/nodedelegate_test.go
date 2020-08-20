@@ -27,7 +27,7 @@ func TestNodeDelegate(t *testing.T) {
 			if m.Active && m.Production == 0 {
 				fmt.Println("0 warning:", m)
 			} else {
-				fmt.Println("good:", m)
+				fmt.Println("good:", m.Name, m.Production)
 			}
 		}
 	}

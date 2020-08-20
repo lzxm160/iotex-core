@@ -282,7 +282,7 @@ func sortAndPrint(message *delegatesMessage) error {
 			message.Delegates = append(message.Delegates, t)
 		}
 	}
-	fmt.Println(message.String())
+	//fmt.Println(message.String())
 	return nil
 }
 
