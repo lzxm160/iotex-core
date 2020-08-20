@@ -68,7 +68,7 @@ var nodeDelegateCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(0),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
-		err := delegates()
+		err, _ := delegates()
 		return output.PrintError(err)
 	},
 }
@@ -121,21 +121,21 @@ func init() {
 	probatedStatus = map[bool]string{true: "probated", false: ""}
 }
 
-func delegates() error {
+func delegates() (error, *delegatesMessage) {
 	if epochNum == 0 {
 		chainMeta, err := bc.GetChainMeta()
 		if err != nil {
-			return output.NewError(0, "failed to get chain meta", err)
+			return output.NewError(0, "failed to get chain meta", err), nil
 		}
 		epochData := chainMeta.GetEpoch()
 		if epochData == nil {
-			return output.NewError(0, "ROLLDPOS is not registered", nil)
+			return output.NewError(0, "ROLLDPOS is not registered", nil), nil
 		}
 		epochNum = epochData.Num
 	}
 	response, err := bc.GetEpochMeta(epochNum)
 	if err != nil {
-		return output.NewError(0, "failed to get epoch meta", err)
+		return output.NewError(0, "failed to get epoch meta", err), nil
 	}
 	epochData := response.EpochData
 	aliases := alias.GetAliasMap()
@@ -146,7 +146,7 @@ func delegates() error {
 	}
 	probationList, err := getProbationList(epochNum, epochData.Height)
 	if err != nil {
-		return output.NewError(0, "failed to get probation list", err)
+		return output.NewError(0, "failed to get probation list", err), nil
 	}
 	if epochData.Height >= config.ReadConfig.Nsv2height {
 		return delegatesV2(probationList, response, &message)
@@ -154,7 +154,7 @@ func delegates() error {
 	for rank, bp := range response.BlockProducersInfo {
 		votes, ok := big.NewInt(0).SetString(bp.Votes, 10)
 		if !ok {
-			return output.NewError(output.ConvertError, "failed to convert votes into big int", nil)
+			return output.NewError(output.ConvertError, "failed to convert votes into big int", nil), nil
 		}
 		isProbated := false
 		if _, ok := probationList.ProbationInfo[bp.Address]; ok {
@@ -172,13 +172,13 @@ func delegates() error {
 		}
 		message.Delegates = append(message.Delegates, delegate)
 	}
-	return sortAndPrint(&message)
+	return sortAndPrint(&message), &message
 }
 
-func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaResponse, message *delegatesMessage) error {
+func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaResponse, message *delegatesMessage) (error, *delegatesMessage) {
 	conn, err := util.ConnectToEndpoint(config.ReadConfig.SecureConnect && !config.Insecure)
 	if err != nil {
-		return output.NewError(output.NetworkError, "failed to connect to endpoint", err)
+		return output.NewError(output.NetworkError, "failed to connect to endpoint", err), nil
 	}
 	defer conn.Close()
 
@@ -201,15 +201,15 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 		sta, ok := status.FromError(err)
 		if ok && sta.Code() == codes.NotFound {
 			fmt.Println(message.String())
-			return nil
+			return nil, nil
 		} else if ok {
-			return output.NewError(output.APIError, sta.Message(), nil)
+			return output.NewError(output.APIError, sta.Message(), nil), nil
 		}
-		return output.NewError(output.NetworkError, "failed to invoke ReadState api", err)
+		return output.NewError(output.NetworkError, "failed to invoke ReadState api", err), nil
 	}
 	var ABPs state.CandidateList
 	if err := ABPs.Deserialize(abpResponse.Data); err != nil {
-		return output.NewError(output.SerializationError, "failed to deserialize active BPs", err)
+		return output.NewError(output.SerializationError, "failed to deserialize active BPs", err), nil
 	}
 	request = &iotexapi.ReadStateRequest{
 		ProtocolID: []byte("poll"),
@@ -220,13 +220,13 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 	if err != nil {
 		sta, ok := status.FromError(err)
 		if ok {
-			return output.NewError(output.APIError, sta.Message(), nil)
+			return output.NewError(output.APIError, sta.Message(), nil), nil
 		}
-		return output.NewError(output.NetworkError, "failed to invoke ReadState api", err)
+		return output.NewError(output.NetworkError, "failed to invoke ReadState api", err), nil
 	}
 	var BPs state.CandidateList
 	if err := BPs.Deserialize(bpResponse.Data); err != nil {
-		return output.NewError(output.SerializationError, "failed to deserialize BPs", err)
+		return output.NewError(output.SerializationError, "failed to deserialize BPs", err), nil
 	}
 	isActive := make(map[string]bool)
 	for _, abp := range ABPs {
@@ -254,7 +254,7 @@ func delegatesV2(pb *vote.ProbationList, epochMeta *iotexapi.GetEpochMetaRespons
 		})
 	}
 	fillMessage(cli, message, aliases, isActive, pb)
-	return sortAndPrint(message)
+	return sortAndPrint(message), message
 }
 
 func sortAndPrint(message *delegatesMessage) error {
