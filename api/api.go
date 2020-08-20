@@ -172,9 +172,14 @@ func (api *Server) GetAccount(ctx context.Context, in *iotexapi.GetAccountReques
 		height = uint64(heightInt)
 		in.Address = in.Address[:41]
 	}
+	var sr protocol.StateReader
+	sr = api.sf
+	if height == 0 {
+		sr = factory.NewHistoryStateReader(api.sf, height)
+	}
 	fmt.Println(height, in.Address)
 	//factory.NewHistoryStateReader(api.sf, rp.GetEpochHeight(inputEpochNum)
-	state, tipHeight, err := accountutil.AccountStateWithHeight(factory.NewHistoryStateReader(api.sf, height), in.Address)
+	state, tipHeight, err := accountutil.AccountStateWithHeight(sr, in.Address)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
