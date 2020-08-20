@@ -20,7 +20,6 @@ func TestNodeDelegate(t *testing.T) {
 	config.ReadConfig.Endpoint = "api.iotex.one:80"
 	config.Insecure = true
 	for {
-		time.Sleep(8)
 		err, mess := delegates()
 		require.NoError(err)
 		for _, m := range mess.Delegates {
@@ -31,5 +30,6 @@ func TestNodeDelegate(t *testing.T) {
 			}
 		}
 		fmt.Println("//////////////////////////////////////")
+		time.Sleep(8)
 	}
 }
