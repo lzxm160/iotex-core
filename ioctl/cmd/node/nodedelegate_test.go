@@ -30,5 +30,6 @@ func TestNodeDelegate(t *testing.T) {
 				fmt.Println("good:", m.Name, m.Production, m.Active)
 			}
 		}
+		fmt.Println("//////////////////////////////////////")
 	}
 }
