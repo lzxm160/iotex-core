@@ -17,7 +17,7 @@ import (
 
 func TestNodeDelegate(t *testing.T) {
 	require := require.New(t)
-	config.ReadConfig.Endpoint = "api.iotex.one"
+	config.ReadConfig.Endpoint = "api.iotex.one:80"
 	config.Insecure = true
 	for {
 		time.Sleep(8)
