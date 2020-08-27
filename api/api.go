@@ -1629,12 +1629,24 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 		balance = acc.GetBalance()
 	}
 
+	header, err := api.bc.BlockHeaderByHeight(height)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	hash := header.HashBlock()
+	//return &iotexapi.GetAccountResponse{AccountMeta: accountMeta, BlockIdentifier: &iotextypes.BlockIdentifier{
+	//	Hash:   hex.EncodeToString(hash[:]),
+	//	Height: tipHeight,
+	//}}
 	ret = &iotexapi.GetAccountResponse{
 		AccountMeta: &iotextypes.AccountMeta{
 			Address: addr,
 			Balance: balance,
 		},
-		BlockIdentifier: out.GetBlockIdentifier(),
+		BlockIdentifier: &iotextypes.BlockIdentifier{
+			Hash:   hex.EncodeToString(hash[:]),
+			Height: height,
+		},
 	}
 	return
 }
