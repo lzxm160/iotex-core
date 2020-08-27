@@ -487,6 +487,33 @@ func (api *Server) ReadState(ctx context.Context, in *iotexapi.ReadStateRequest)
 	return &out, nil
 }
 
+// ReadState reads state on blockchain
+func (api *Server) ReadState2(ctx context.Context, in *iotexapi.ReadStateRequest) (*iotexapi.ReadStateResponse, error) {
+	p, ok := api.registry.Find(string(in.ProtocolID))
+	if !ok {
+		return nil, status.Errorf(codes.Internal, "protocol %s isn't registered", string(in.ProtocolID))
+	}
+	data, readStateHeight, err := api.readState2(ctx, p, in.GetHeight(), in.MethodName, in.Arguments...)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	blkHash, err := api.dao.GetBlockHash(readStateHeight)
+	if err != nil {
+		if errors.Cause(err) == db.ErrNotExist {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	out := iotexapi.ReadStateResponse{
+		Data: data,
+		BlockIdentifier: &iotextypes.BlockIdentifier{
+			Height: readStateHeight,
+			Hash:   hex.EncodeToString(blkHash[:]),
+		},
+	}
+	return &out, nil
+}
+
 // SuggestGasPrice suggests gas price
 func (api *Server) SuggestGasPrice(ctx context.Context, in *iotexapi.SuggestGasPriceRequest) (*iotexapi.SuggestGasPriceResponse, error) {
 	suggestPrice, err := api.gs.SuggestGasPrice()
@@ -946,6 +973,41 @@ func (api *Server) readState(ctx context.Context, p protocol.Protocol, height st
 		if inputEpochNum < tipEpochNum {
 			// old data, wrap to history state reader
 			return p.ReadState(ctx, factory.NewHistoryStateReader(api.sf, rp.GetEpochHeight(inputEpochNum)), methodName, arguments...)
+		}
+	}
+
+	// TODO: need to distinguish user error and system error
+	return p.ReadState(ctx, api.sf, methodName, arguments...)
+}
+
+func (api *Server) readState2(ctx context.Context, p protocol.Protocol, height string, methodName []byte, arguments ...[]byte) ([]byte, uint64, error) {
+	// TODO: need to complete the context
+	tipHeight := api.bc.TipHeight()
+	ctx = protocol.WithBlockCtx(ctx, protocol.BlockCtx{
+		BlockHeight: tipHeight,
+	})
+	ctx = protocol.WithBlockchainCtx(
+		protocol.WithRegistry(ctx, api.registry),
+		protocol.BlockchainCtx{
+			Genesis: api.cfg.Genesis,
+		},
+	)
+
+	rp := rolldpos.FindProtocol(api.registry)
+	if rp == nil {
+		return nil, uint64(0), errors.New("rolldpos is not registered")
+	}
+
+	tipEpochNum := rp.GetEpochNum(tipHeight)
+	if height != "" {
+		inputHeight, err := strconv.ParseUint(height, 0, 64)
+		if err != nil {
+			return nil, uint64(0), err
+		}
+		inputEpochNum := rp.GetEpochNum(inputHeight)
+		if inputEpochNum < tipEpochNum {
+			// old data, wrap to history state reader
+			return p.ReadState(ctx, factory.NewHistoryStateReader(api.sf, inputHeight), methodName, arguments...)
 		}
 	}
 
@@ -1599,7 +1661,7 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 			MethodName: []byte("TotalBalance"),
 			Height:     fmt.Sprintf("%d", height),
 		}
-		out, err = api.ReadState(ctx, req)
+		out, err = api.ReadState2(ctx, req)
 		if err != nil {
 			return
 		}
@@ -1630,7 +1692,7 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 			Arguments:  [][]byte{arg},
 			Height:     fmt.Sprintf("%d", height),
 		}
-		out, err = api.ReadState(ctx, req)
+		out, err = api.ReadState2(ctx, req)
 		if err != nil {
 			return nil, err
 		}
