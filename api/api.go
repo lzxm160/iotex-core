@@ -1702,7 +1702,6 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 		}
 		balance = acc.GetBalance()
 	}
-	log.S().Info("//////////////out:", out.BlockIdentifier.Height)
 	header, err := api.bc.BlockHeaderByHeight(height)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
