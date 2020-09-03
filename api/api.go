@@ -1699,6 +1699,7 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 		out, err = api.ReadState2(ctx, req)
 		if err != nil && errors.Cause(err) == status.Error(codes.NotFound, "xxxxx") {
 			balance = "0"
+			log.L().Warn("///////////////////////////////balance 0")
 		} else if err != nil {
 			return nil, err
 		} else {
