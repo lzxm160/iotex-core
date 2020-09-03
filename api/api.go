@@ -497,6 +497,10 @@ func (api *Server) ReadState2(ctx context.Context, in *iotexapi.ReadStateRequest
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
+	rsh := fmt.Sprintf("%d", readStateHeight)
+	if rsh != in.GetHeight() {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
 	blkHash, err := api.dao.GetBlockHash(readStateHeight)
 	if err != nil {
 		if errors.Cause(err) == db.ErrNotExist {
