@@ -1697,14 +1697,17 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 			Height:     fmt.Sprintf("%d", height),
 		}
 		out, err = api.ReadState2(ctx, req)
-		if err != nil {
+		if err != nil && errors.Cause(err) == codes.NotFound {
+			balance = "0"
+		} else if err != nil {
 			return nil, err
+		} else {
+			acc := iotextypes.AccountMeta{}
+			if err := proto.Unmarshal(out.GetData(), &acc); err != nil {
+				return nil, errors.Wrap(err, "failed to unmarshal account meta")
+			}
+			balance = acc.GetBalance()
 		}
-		acc := iotextypes.AccountMeta{}
-		if err := proto.Unmarshal(out.GetData(), &acc); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal account meta")
-		}
-		balance = acc.GetBalance()
 	}
 	header, err := api.bc.BlockHeaderByHeight(height)
 	if err != nil {
