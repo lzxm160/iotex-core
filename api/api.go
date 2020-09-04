@@ -1667,14 +1667,16 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 		}
 		out, err = api.ReadState2(ctx, req)
 		if err != nil {
-			return
+			balance = "0"
+		} else {
+			val, ok := big.NewInt(0).SetString(string(out.GetData()), 10)
+			if !ok {
+				err = errors.New("balance convert error")
+				return
+			}
+			balance = val.String()
 		}
-		val, ok := big.NewInt(0).SetString(string(out.GetData()), 10)
-		if !ok {
-			err = errors.New("balance convert error")
-			return
-		}
-		balance = val.String()
+
 	case address.StakingBucketPoolAddr:
 		methodName, err := proto.Marshal(&iotexapi.ReadStakingDataMethod{
 			Method: iotexapi.ReadStakingDataMethod_TOTAL_STAKING_AMOUNT,
@@ -1700,7 +1702,6 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 		//&& err == status.Error(codes.NotFound, "xxxxx")
 		if err != nil {
 			balance = "0"
-			log.L().Warn("///////////////////////////////balance 0")
 		} else {
 			acc := iotextypes.AccountMeta{}
 			if err := proto.Unmarshal(out.GetData(), &acc); err != nil {
