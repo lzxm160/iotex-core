@@ -1667,7 +1667,11 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 		}
 		out, err = api.ReadState2(ctx, req)
 		if err != nil {
-			balance = "0"
+			//balance = "0"
+			out, err = api.ReadState(ctx, &iotexapi.ReadStateRequest{
+				ProtocolID: []byte("rewarding"),
+				MethodName: []byte("TotalBalance"),
+			})
 		} else {
 			val, ok := big.NewInt(0).SetString(string(out.GetData()), 10)
 			if !ok {
@@ -1702,6 +1706,11 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 		//&& err == status.Error(codes.NotFound, "xxxxx")
 		if err != nil {
 			balance = "0"
+			//out, err = api.ReadState(ctx, &iotexapi.ReadStateRequest{
+			//	ProtocolID: []byte("staking"),
+			//	MethodName: methodName,
+			//	Arguments:  [][]byte{arg},
+			//})
 		} else {
 			acc := iotextypes.AccountMeta{}
 			if err := proto.Unmarshal(out.GetData(), &acc); err != nil {
