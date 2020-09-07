@@ -443,6 +443,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 		resp, height, err = readStateCandidateByAddress(ctx, csr, r.GetCandidateByAddress())
 	case iotexapi.ReadStakingDataMethod_TOTAL_STAKING_AMOUNT:
 		resp, height, err = readStateTotalStakingAmount(ctx, csr, r.GetTotalStakingAmount())
+		log.L().Info("ReadStakingDataMethod_TOTAL_STAKING_AMOUNT", zap.Uint64("csr height", csr.Height()), zap.Uint64("returned height", height))
 	default:
 		err = errors.New("corresponding method isn't found")
 	}
