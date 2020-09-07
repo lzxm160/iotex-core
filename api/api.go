@@ -178,7 +178,6 @@ func (api *Server) GetAccount(ctx context.Context, in *iotexapi.GetAccountReques
 	if height != 0 {
 		sr = factory.NewHistoryStateReader(api.sf, height)
 	}
-	fmt.Println(height, in.Address)
 	//factory.NewHistoryStateReader(api.sf, rp.GetEpochHeight(inputEpochNum)
 	state, tipHeight, err := accountutil.AccountStateWithHeight(sr, in.Address)
 	if err != nil {
@@ -499,7 +498,7 @@ func (api *Server) ReadState2(ctx context.Context, in *iotexapi.ReadStateRequest
 	}
 	rsh := fmt.Sprintf("%d", readStateHeight)
 	if rsh != in.GetHeight() {
-		fmt.Println("input height", in.GetHeight(), " rsh", rsh)
+		log.L().Info("input height", zap.String("readStateHeight", rsh), zap.String("in.GetHeight()", in.GetHeight()))
 		return nil, status.Error(codes.NotFound, "xxxxx")
 	}
 	blkHash, err := api.dao.GetBlockHash(readStateHeight)
