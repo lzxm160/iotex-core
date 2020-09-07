@@ -1003,17 +1003,17 @@ func (api *Server) readState2(ctx context.Context, p protocol.Protocol, height s
 		return nil, uint64(0), errors.New("rolldpos is not registered")
 	}
 
-	tipEpochNum := rp.GetEpochNum(tipHeight)
+	//tipEpochNum := rp.GetEpochNum(tipHeight)
 	if height != "" {
 		inputHeight, err := strconv.ParseUint(height, 0, 64)
 		if err != nil {
 			return nil, uint64(0), err
 		}
-		inputEpochNum := rp.GetEpochNum(inputHeight)
-		if inputEpochNum < tipEpochNum {
-			// old data, wrap to history state reader
-			return p.ReadState(ctx, factory.NewHistoryStateReader(api.sf, inputHeight), methodName, arguments...)
-		}
+		//inputEpochNum := rp.GetEpochNum(inputHeight)
+		//if inputEpochNum < tipEpochNum {
+		// old data, wrap to history state reader
+		return p.ReadState(ctx, factory.NewHistoryStateReader(api.sf, inputHeight), methodName, arguments...)
+		//}
 	}
 
 	// TODO: need to distinguish user error and system error
