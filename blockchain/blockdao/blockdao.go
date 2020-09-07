@@ -348,7 +348,11 @@ func (dao *blockDAO) FooterByHeight(height uint64) (*block.Footer, error) {
 }
 
 func (dao *blockDAO) Height() (uint64, error) {
-	return atomic.LoadUint64(&dao.tipHeight), nil
+	h, err := dao.kvStore.Get("Account", []byte("currentHeight"))
+	if err != nil {
+		return atomic.LoadUint64(&dao.tipHeight), nil
+	}
+	return byteutil.BytesToUint64(h), nil
 }
 
 func (dao *blockDAO) Header(h hash.Hash256) (*block.Header, error) {
