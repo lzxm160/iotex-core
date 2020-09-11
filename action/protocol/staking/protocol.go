@@ -8,6 +8,7 @@ package staking
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -214,6 +215,9 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	bcCtx := protocol.MustGetBlockchainCtx(ctx)
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 	hu := config.NewHeightUpgrade(&bcCtx.Genesis)
+	if p.hu.IsPost(config.Fairbank, blkCtx.BlockHeight) {
+		p.saveStakingAddressHistory(blkCtx.BlockHeight, sm)
+	}
 	if blkCtx.BlockHeight == hu.GreenlandBlockHeight() {
 		csr, err := ConstructBaseView(sm)
 		if err != nil {
@@ -247,6 +251,16 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	}
 
 	return p.handleStakingIndexer(rp.GetEpochHeight(currentEpochNum-1), sm)
+}
+
+func (p *Protocol) saveStakingAddressHistory(height uint64, sm protocol.StateManager) {
+	csr, err := ConstructBaseView(sm)
+	if err != nil {
+		return
+	}
+	hei := []byte(fmt.Sprintf("%d", height))
+	historyKey := append(bucketPoolAddrKey, hei...)
+	sm.PutState(csr.BaseView().bucketPool.total, protocol.NamespaceOption(StakingNameSpace), protocol.KeyOption(historyKey))
 }
 
 func (p *Protocol) handleStakingIndexer(epochStartHeight uint64, sm protocol.StateManager) error {
