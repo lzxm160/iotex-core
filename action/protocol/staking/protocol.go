@@ -8,6 +8,7 @@ package staking
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"time"
@@ -262,13 +263,13 @@ func (p *Protocol) saveStakingAddressHistory(height uint64, sm protocol.StateMan
 		return
 	}
 	balance := csr.BaseView().bucketPool.total
-	fmt.Println("saveStakingAddressHistory1", height, balance)
+	fmt.Println("saveStakingAddressHistory1", height, balance.amount)
 	if balance.amount.Sign() <= 0 {
 		return
 	}
 	hei := []byte(fmt.Sprintf("%d", height))
 	historyKey := append(bucketPoolAddrKey, hei...)
-	fmt.Println("saveStakingAddressHistory2", height, balance)
+	fmt.Println("saveStakingAddressHistory2", height, hex.EncodeToString(historyKey), balance.amount)
 	sm.PutState(balance, protocol.NamespaceOption(StakingNameSpace), protocol.KeyOption(historyKey))
 }
 

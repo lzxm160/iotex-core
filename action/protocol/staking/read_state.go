@@ -8,6 +8,7 @@ package staking
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 
@@ -235,6 +236,7 @@ func getTotalStakedAmountFromHeight(csr CandidateStateReader, height uint64) (*b
 	historyKey := append(bucketPoolAddrKey, hei...)
 	var total totalAmount
 	_, err := csr.SR().State(&total, protocol.NamespaceOption(StakingNameSpace), protocol.KeyOption(historyKey))
+	fmt.Println("getTotalStakedAmountFromHeight", height, hex.EncodeToString(historyKey), err)
 	if err != nil {
 		return nil, err
 	}
