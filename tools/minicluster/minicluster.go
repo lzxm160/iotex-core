@@ -436,7 +436,7 @@ func newConfig(
 	cfg.Genesis.EnableGravityChainVoting = false
 	cfg.Genesis.PollMode = "lifeLong"
 	cfg.Genesis.FairbankBlockHeight = 1
-	cfg.Genesis.GreenlandBlockHeight = 1
+	cfg.Genesis.GreenlandBlockHeight = 100
 	cfg.Genesis.InitBalanceMap = make(map[string]string)
 	for _, a := range addr {
 		cfg.Genesis.InitBalanceMap[a.EncodedAddr] = "1000000000000000000000000000000000000000000"
