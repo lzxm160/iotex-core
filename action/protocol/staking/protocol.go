@@ -219,7 +219,7 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 	hu := config.NewHeightUpgrade(&bcCtx.Genesis)
 	fmt.Println("CreatePreStates///////", blkCtx.BlockHeight, p.hu.FairbankBlockHeight(), p.hu.GreenlandBlockHeight())
-	if p.enableArchiveMode && p.hu.IsPost(config.Fairbank, blkCtx.BlockHeight) && p.hu.IsPre(config.Greenland, blkCtx.BlockHeight) {
+	if p.enableArchiveMode && p.hu.IsPost(config.Fairbank, blkCtx.BlockHeight) {
 		p.saveStakingAddressHistory(blkCtx.BlockHeight, sm)
 	}
 	if blkCtx.BlockHeight == hu.GreenlandBlockHeight() {
