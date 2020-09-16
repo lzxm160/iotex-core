@@ -222,6 +222,7 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	fmt.Println("CreatePreStates///////", blkCtx.BlockHeight, p.hu.FairbankBlockHeight(), p.hu.GreenlandBlockHeight())
 	if p.archiveMode && p.hu.IsPre(config.Greenland, blkCtx.BlockHeight) {
 		if err := p.saveStakingAddressHistory(blkCtx.BlockHeight, sm); err != nil {
+			fmt.Println("saveStakingAddressHistory errrrr", err)
 			return err
 		}
 	}
@@ -442,7 +443,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	if err != nil {
 		return nil, 0, err
 	}
-	fmt.Println("4444444444444444444", inputHeight)
+
 	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
 	epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(inputHeight))
 
@@ -475,6 +476,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 		if p.archiveMode && p.hu.IsPre(config.Greenland, height) {
 			resp, height, err = readStateTotalStakingAmountFromIndexer(csr, r.GetTotalStakingAmount(), inputHeight)
 			if err != nil {
+				fmt.Println("478888888888", err)
 				resp, height, err = readStateTotalStakingAmount(ctx, csr, r.GetTotalStakingAmount())
 			}
 		} else {
