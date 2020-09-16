@@ -13,6 +13,8 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -74,7 +76,7 @@ type (
 		hu                 config.HeightUpgrade
 		candBucketsIndexer *CandidatesBucketsIndexer
 		voteReviser        *VoteReviser
-		enableArchiveMode  bool
+		archiveMode        bool
 	}
 
 	// Configuration is the staking protocol configuration.
@@ -91,7 +93,7 @@ type (
 )
 
 // NewProtocol instantiates the protocol of staking
-func NewProtocol(depositGas DepositGas, cfg genesis.Staking, candBucketsIndexer *CandidatesBucketsIndexer, enableArchiveMode bool, reviseHeights ...uint64) (*Protocol, error) {
+func NewProtocol(depositGas DepositGas, cfg genesis.Staking, candBucketsIndexer *CandidatesBucketsIndexer, archiveMode bool, reviseHeights ...uint64) (*Protocol, error) {
 	h := hash.Hash160b([]byte(protocolID))
 	addr, err := address.FromBytes(h[:])
 	if err != nil {
@@ -131,7 +133,7 @@ func NewProtocol(depositGas DepositGas, cfg genesis.Staking, candBucketsIndexer 
 		depositGas:         depositGas,
 		candBucketsIndexer: candBucketsIndexer,
 		voteReviser:        voteReviser,
-		enableArchiveMode:  enableArchiveMode,
+		archiveMode:        archiveMode,
 	}, nil
 }
 
@@ -219,8 +221,10 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 	hu := config.NewHeightUpgrade(&bcCtx.Genesis)
 	fmt.Println("CreatePreStates///////", blkCtx.BlockHeight, p.hu.FairbankBlockHeight(), p.hu.GreenlandBlockHeight())
-	if p.enableArchiveMode && p.hu.IsPost(config.Fairbank, blkCtx.BlockHeight) {
-		p.saveStakingAddressHistory(blkCtx.BlockHeight, sm)
+	if p.archiveMode && p.hu.IsPre(config.Greenland, blkCtx.BlockHeight) {
+		if err := p.saveStakingAddressHistory(blkCtx.BlockHeight, sm); err != nil {
+			return err
+		}
 	}
 	if blkCtx.BlockHeight == hu.GreenlandBlockHeight() {
 		csr, err := ConstructBaseView(sm)
@@ -257,20 +261,21 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	return p.handleStakingIndexer(rp.GetEpochHeight(currentEpochNum-1), sm)
 }
 
-func (p *Protocol) saveStakingAddressHistory(height uint64, sm protocol.StateManager) {
+func (p *Protocol) saveStakingAddressHistory(height uint64, sm protocol.StateManager) error {
 	csr, err := ConstructBaseView(sm)
 	if err != nil {
-		return
+		return err
 	}
 	balance := csr.BaseView().bucketPool.total
 	fmt.Println("saveStakingAddressHistory1", height, balance.amount)
 	if balance.amount.Sign() <= 0 {
-		return
+		return nil
 	}
-	hei := []byte(fmt.Sprintf("%d", height))
+	hei := byteutil.Uint64ToBytesBigEndian(height - 1)
 	historyKey := append(bucketPoolAddrKey, hei...)
 	fmt.Println("saveStakingAddressHistory2", height, hex.EncodeToString(historyKey), balance.amount)
-	sm.PutState(balance, protocol.NamespaceOption(StakingNameSpace), protocol.KeyOption(historyKey))
+	_, err = sm.PutState(balance, protocol.NamespaceOption(StakingNameSpace), protocol.KeyOption(historyKey))
+	return err
 }
 
 func (p *Protocol) handleStakingIndexer(epochStartHeight uint64, sm protocol.StateManager) error {
@@ -466,8 +471,9 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	case iotexapi.ReadStakingDataMethod_CANDIDATE_BY_ADDRESS:
 		resp, height, err = readStateCandidateByAddress(ctx, csr, r.GetCandidateByAddress())
 	case iotexapi.ReadStakingDataMethod_TOTAL_STAKING_AMOUNT:
-		resp, height, err = readStateTotalStakingAmountFromHeight(csr, r.GetTotalStakingAmount(), inputHeight)
-		if inputHeight == 0 || err != nil {
+		if p.archiveMode && p.hu.IsPre(config.Greenland, height) {
+			resp, height, err = readStateTotalStakingAmountFromIndexer(csr, r.GetTotalStakingAmount(), inputHeight)
+		} else {
 			resp, height, err = readStateTotalStakingAmount(ctx, csr, r.GetTotalStakingAmount())
 		}
 		log.L().Info("ReadStakingDataMethod_TOTAL_STAKING_AMOUNT", zap.Uint64("csr height", csr.Height()), zap.Uint64("returned height", height))

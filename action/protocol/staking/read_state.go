@@ -146,7 +146,7 @@ func readStateTotalStakingAmount(ctx context.Context, csr CandidateStateReader,
 	return &meta, csr.Height(), nil
 }
 
-func readStateTotalStakingAmountFromHeight(csr CandidateStateReader, _ *iotexapi.ReadStakingDataRequest_TotalStakingAmount, height uint64) (*iotextypes.AccountMeta, uint64, error) {
+func readStateTotalStakingAmountFromIndexer(csr CandidateStateReader, _ *iotexapi.ReadStakingDataRequest_TotalStakingAmount, height uint64) (*iotextypes.AccountMeta, uint64, error) {
 	fmt.Println("readStateTotalStakingAmountFromHeight", height)
 	meta := iotextypes.AccountMeta{}
 	meta.Address = address.StakingBucketPoolAddr
