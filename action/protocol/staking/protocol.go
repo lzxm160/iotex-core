@@ -273,7 +273,11 @@ func (p *Protocol) saveStakingAddressHistory(height uint64, sm protocol.StateMan
 	hei := byteutil.Uint64ToBytesBigEndian(height - 1)
 	historyKey := append(bucketPoolAddrKey, hei...)
 	fmt.Println("saveStakingAddressHistory2", height, hex.EncodeToString(historyKey), balance.amount)
-	_, err = sm.PutState(balance, protocol.NamespaceOption(StakingNameSpace), protocol.KeyOption(historyKey))
+	ser, err := balance.Serialize()
+	if err != nil {
+		return err
+	}
+	_, err = sm.PutState(ser, protocol.NamespaceOption(StakingNameSpace), protocol.KeyOption(historyKey))
 	return err
 }
 
@@ -471,7 +475,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	case iotexapi.ReadStakingDataMethod_CANDIDATE_BY_ADDRESS:
 		resp, height, err = readStateCandidateByAddress(ctx, csr, r.GetCandidateByAddress())
 	case iotexapi.ReadStakingDataMethod_TOTAL_STAKING_AMOUNT:
-		if inputHeight != 0 && p.archiveMode && p.hu.IsPre(config.Greenland, height) {
+		if p.archiveMode && p.hu.IsPre(config.Greenland, height) {
 			resp, height, err = readStateTotalStakingAmountFromIndexer(csr, r.GetTotalStakingAmount(), inputHeight)
 			if err != nil {
 				resp, height, err = readStateTotalStakingAmount(ctx, csr, r.GetTotalStakingAmount())
