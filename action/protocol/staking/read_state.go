@@ -12,8 +12,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
-
 	"github.com/pkg/errors"
 
 	"github.com/iotexproject/iotex-address/address"
@@ -22,6 +20,7 @@ import (
 
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/config"
+	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 	"github.com/iotexproject/iotex-core/state"
 )
 
