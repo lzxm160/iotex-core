@@ -12,6 +12,8 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
+
 	"github.com/pkg/errors"
 
 	"github.com/iotexproject/iotex-address/address"
@@ -232,7 +234,7 @@ func getTotalStakedAmount(ctx context.Context, csr CandidateStateReader) (*big.I
 }
 
 func getTotalStakedAmountFromHeight(csr CandidateStateReader, height uint64) (*big.Int, error) {
-	hei := []byte(fmt.Sprintf("%d", height))
+	hei := byteutil.Uint64ToBytesBigEndian(height)
 	historyKey := append(bucketPoolAddrKey, hei...)
 	var total totalAmount
 	_, err := csr.SR().State(&total, protocol.NamespaceOption(StakingNameSpace), protocol.KeyOption(historyKey))
