@@ -220,7 +220,7 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 	hu := config.NewHeightUpgrade(&bcCtx.Genesis)
 	fmt.Println("CreatePreStates///////", blkCtx.BlockHeight, p.hu.FairbankBlockHeight(), p.hu.GreenlandBlockHeight())
-	if p.archiveMode && p.hu.IsPre(config.Greenland, blkCtx.BlockHeight) {
+	if p.archiveMode && p.hu.IsPre(config.Greenland, blkCtx.BlockHeight) && blkCtx.BlockHeight > 1 {
 		if err := p.saveStakingAddressHistory(blkCtx.BlockHeight, sm); err != nil {
 			fmt.Println("saveStakingAddressHistory errrrr", err)
 			return err
@@ -271,11 +271,11 @@ func (p *Protocol) saveStakingAddressHistory(height uint64, sm protocol.StateMan
 	if balance.amount.Sign() <= 0 {
 		return nil
 	}
-	height1 := height - 1
+	//height1 := height - 1
 	//hei := byteutil.Uint64ToBytesBigEndian(height - 1)
-	hei := byteutil.Uint64ToBytesBigEndian(height1)
+	hei := byteutil.Uint64ToBytesBigEndian(height - 1)
 	historyKey := append(bucketPoolAddrKey, hei...)
-	fmt.Println("saveStakingAddressHistory2", height1, hex.EncodeToString(historyKey), balance.amount)
+	fmt.Println("saveStakingAddressHistory2", height, hex.EncodeToString(historyKey), balance.amount)
 
 	_, err = sm.PutState(balance, protocol.NamespaceOption(StakingNameSpace), protocol.KeyOption(historyKey))
 	return err
