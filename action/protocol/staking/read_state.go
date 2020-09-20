@@ -147,7 +147,7 @@ func readStateTotalStakingAmount(ctx context.Context, csr CandidateStateReader,
 	return &meta, csr.Height(), nil
 }
 
-func readStateTotalStakingAmountFromIndexer(csr CandidateStateReader, _ *iotexapi.ReadStakingDataRequest_TotalStakingAmount, height uint64) (*iotextypes.AccountMeta, uint64, error) {
+func readStateTotalStakingAmountFromIndexer(csr protocol.StateReader, _ *iotexapi.ReadStakingDataRequest_TotalStakingAmount, height uint64) (*iotextypes.AccountMeta, uint64, error) {
 	fmt.Println("readStateTotalStakingAmountFromHeight", height)
 	meta := iotextypes.AccountMeta{}
 	meta.Address = address.StakingBucketPoolAddr
@@ -232,11 +232,11 @@ func getTotalStakedAmount(ctx context.Context, csr CandidateStateReader) (*big.I
 	return csr.TotalStakedAmount(), nil
 }
 
-func getTotalStakedAmountFromHeight(csr CandidateStateReader, height uint64) (*big.Int, error) {
+func getTotalStakedAmountFromHeight(csr protocol.StateReader, height uint64) (*big.Int, error) {
 	hei := byteutil.Uint64ToBytesBigEndian(height)
 	historyKey := append(bucketPoolAddrKey, hei...)
 	var total totalAmount
-	_, err := csr.SR().State(&total, protocol.NamespaceOption(StakingNameSpace), protocol.KeyOption(historyKey))
+	_, err := csr.State(&total, protocol.NamespaceOption(StakingNameSpace), protocol.KeyOption(historyKey))
 	fmt.Println("getTotalStakedAmountFromHeight", height, hex.EncodeToString(historyKey), err)
 	return total.amount, err
 }
