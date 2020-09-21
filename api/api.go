@@ -170,7 +170,7 @@ func (api *Server) GetAccount(ctx context.Context, in *iotexapi.GetAccountReques
 		in.Address = in.Address[:41]
 	}
 
-	if in.Address == address.RewardingPoolAddr || (in.Address == address.StakingBucketPoolAddr && height < 100) {
+	if in.Address == address.RewardingPoolAddr || (in.Address == address.StakingBucketPoolAddr) {
 		return api.getProtocolAccount(ctx, height, in.Address)
 	}
 
