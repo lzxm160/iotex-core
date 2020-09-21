@@ -64,7 +64,7 @@ func injectCandidates(addrs []*util.AddressKey) {
 	startNonce := initNonce
 	count := uint64(4)
 	candNumber := uint64(1)
-	for startNonce < initNonce+uint64(27) {
+	for startNonce < initNonce+uint64(27000) {
 		for nonce := startNonce; nonce < startNonce+count; nonce++ {
 			fixedAmount := unit.ConvertIotxToRau(3000000).String()
 			b := make([]byte, 6)
