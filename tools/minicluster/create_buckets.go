@@ -78,7 +78,7 @@ func injectBuckets() {
 
 		startNonce := uint64(1)
 		count := uint64(4)
-		for startNonce <= 20 {
+		for startNonce <= 20000 {
 			for nonce := startNonce; nonce < startNonce+count; nonce++ {
 				fixedAmount := unit.ConvertIotxToRau(100).String()
 				candidateName := candidateNames[rand.Intn(len(candidateNames))]
