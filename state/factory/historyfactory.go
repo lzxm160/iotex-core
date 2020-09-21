@@ -46,7 +46,7 @@ func (hReader *historyStateReader) States(opts ...protocol.StateOption) (uint64,
 
 // ReadView reads the view
 func (hReader *historyStateReader) ReadView(name string) (uint64, interface{}, error) {
-	return hReader.sf.ReadView(name)
-	//_, view, err := hReader.sf.ReadView(name)
-	//return hReader.height, view, err
+	//return hReader.sf.ReadView(name)
+	_, view, err := hReader.sf.ReadView(name)
+	return hReader.height, view, err
 }
