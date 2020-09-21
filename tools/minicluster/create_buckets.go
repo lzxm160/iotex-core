@@ -48,8 +48,8 @@ func injectBuckets() {
 
 	rand.Seed(time.Now().Unix())
 
-	// Create 3 new accounts
-	for i := 0; i < 3; i++ {
+	// Create 100 new accounts
+	for i := 0; i < 10; i++ {
 		private, err := crypto.GenerateKey()
 		if err != nil {
 			log.L().Fatal("Failed to generate new key for a new account", zap.Error(err))
@@ -78,7 +78,7 @@ func injectBuckets() {
 
 		startNonce := uint64(1)
 		count := uint64(4)
-		for startNonce <= 20 {
+		for startNonce <= 50 {
 			for nonce := startNonce; nonce < startNonce+count; nonce++ {
 				fixedAmount := unit.ConvertIotxToRau(100).String()
 				candidateName := candidateNames[rand.Intn(len(candidateNames))]

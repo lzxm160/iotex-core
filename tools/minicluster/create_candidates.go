@@ -119,7 +119,7 @@ func getAllCandidateNames(chainClient iotexapi.APIServiceClient) ([]string, erro
 		ProtocolID: []byte("staking"),
 		MethodName: methodName,
 		Arguments:  [][]byte{arg},
-		Height:     "8",
+		Height:     "30",
 	}
 	res, err := chainClient.ReadState(context.Background(), request)
 	if err != nil {
