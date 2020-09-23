@@ -275,8 +275,8 @@ func (p *Protocol) saveStakingAddressHistory(height uint64, sm protocol.StateMan
 		return nil
 	}
 
-	//hei := byteutil.Uint64ToBytesBigEndian(height - 1)
-	hei := byteutil.Uint64ToBytesBigEndian(height)
+	hei := byteutil.Uint64ToBytesBigEndian(height - 1)
+	//hei := byteutil.Uint64ToBytesBigEndian(height)
 	historyKey := append(bucketPoolAddrKey, hei...)
 	fmt.Println("saveStakingAddressHistory2", height, []byte(StakingNameSpaceForStakingAddress), hex.EncodeToString(historyKey), balance.amount)
 
