@@ -236,8 +236,8 @@ func getTotalStakedAmountFromIndexer(csr protocol.StateReader, height uint64) (*
 	hei := byteutil.Uint64ToBytesBigEndian(height)
 	historyKey := append(bucketPoolAddrKey, hei...)
 	var total totalAmount
-	_, err := csr.State(&total, protocol.NamespaceOption(StakingNameSpace), protocol.KeyOption(historyKey))
-	fmt.Println("getTotalStakedAmountFromHeight", height, []byte(StakingNameSpace), hex.EncodeToString(historyKey), err)
+	_, err := csr.State(&total, protocol.NamespaceOption(StakingNameSpaceForStakingAddress), protocol.KeyOption(historyKey))
+	fmt.Println("getTotalStakedAmountFromHeight", height, []byte(StakingNameSpaceForStakingAddress), hex.EncodeToString(historyKey), err)
 	if err != nil {
 		return nil, err
 	}
