@@ -220,7 +220,7 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 	hu := config.NewHeightUpgrade(&bcCtx.Genesis)
 	fmt.Println("CreatePreStates///////", blkCtx.BlockHeight, p.hu.FairbankBlockHeight(), p.hu.GreenlandBlockHeight())
-	if p.archiveMode && p.hu.IsPre(config.Greenland, blkCtx.BlockHeight) && blkCtx.BlockHeight > 1 {
+	if p.archiveMode && blkCtx.BlockHeight <= p.hu.GreenlandBlockHeight() && blkCtx.BlockHeight > 1 {
 		if err := p.saveStakingAddressHistory(blkCtx.BlockHeight, sm); err != nil {
 			fmt.Println("saveStakingAddressHistory errrrr", err)
 			return err
@@ -475,7 +475,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	case iotexapi.ReadStakingDataMethod_CANDIDATE_BY_ADDRESS:
 		resp, height, err = readStateCandidateByAddress(ctx, csr, r.GetCandidateByAddress())
 	case iotexapi.ReadStakingDataMethod_TOTAL_STAKING_AMOUNT:
-		if p.archiveMode && p.hu.IsPre(config.Greenland, inputHeight) {
+		if p.archiveMode && inputHeight <= p.hu.GreenlandBlockHeight() {
 			resp, height, err = readStateTotalStakingAmountFromIndexer(sr, r.GetTotalStakingAmount(), inputHeight)
 			//if err != nil {
 			//	resp, height, err = readStateTotalStakingAmount(ctx, csr, r.GetTotalStakingAmount())
