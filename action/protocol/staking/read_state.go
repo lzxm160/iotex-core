@@ -8,8 +8,6 @@ package staking
 
 import (
 	"context"
-	"encoding/hex"
-	"fmt"
 	"math/big"
 
 	"github.com/pkg/errors"
@@ -20,7 +18,6 @@ import (
 
 	"github.com/iotexproject/iotex-core/action/protocol"
 	"github.com/iotexproject/iotex-core/config"
-	"github.com/iotexproject/iotex-core/pkg/util/byteutil"
 	"github.com/iotexproject/iotex-core/state"
 )
 
@@ -147,18 +144,6 @@ func readStateTotalStakingAmount(ctx context.Context, csr CandidateStateReader,
 	return &meta, csr.Height(), nil
 }
 
-func readStateTotalStakingAmountFromIndexer(csr protocol.StateReader, _ *iotexapi.ReadStakingDataRequest_TotalStakingAmount, height uint64) (*iotextypes.AccountMeta, uint64, error) {
-	fmt.Println("readStateTotalStakingAmountFromHeight", height)
-	meta := iotextypes.AccountMeta{}
-	meta.Address = address.StakingBucketPoolAddr
-	total, err := getTotalStakedAmountFromIndexer(csr, height)
-	if err != nil {
-		return nil, height, err
-	}
-	meta.Balance = total.String()
-	return &meta, height, nil
-}
-
 func toIoTeXTypesVoteBucketList(buckets []*VoteBucket) (*iotextypes.VoteBucketList, error) {
 	res := iotextypes.VoteBucketList{
 		Buckets: make([]*iotextypes.VoteBucket, 0, len(buckets)),
@@ -230,16 +215,4 @@ func getTotalStakedAmount(ctx context.Context, csr CandidateStateReader) (*big.I
 
 	// otherwise read from bucket pool
 	return csr.TotalStakedAmount(), nil
-}
-
-func getTotalStakedAmountFromIndexer(csr protocol.StateReader, height uint64) (*big.Int, error) {
-	hei := byteutil.Uint64ToBytesBigEndian(height)
-	historyKey := append(bucketPoolAddrKey, hei...)
-	var total totalAmount
-	_, err := csr.State(&total, protocol.NamespaceOption(StakingNameSpaceForStakingAddress), protocol.KeyOption(historyKey))
-	fmt.Println("getTotalStakedAmountFromHeight", height, []byte(StakingNameSpaceForStakingAddress), hex.EncodeToString(historyKey), err)
-	if err != nil {
-		return nil, err
-	}
-	return total.amount, nil
 }
