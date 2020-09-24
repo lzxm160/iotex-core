@@ -8,8 +8,6 @@ package staking
 
 import (
 	"context"
-	"encoding/hex"
-	"fmt"
 	"math/big"
 
 	"github.com/iotexproject/iotex-address/address"
@@ -181,7 +179,6 @@ func (cbi *CandidatesBucketsIndexer) GetBuckets(height uint64, offset, limit uin
 func (cbi *CandidatesBucketsIndexer) PutStakingBalance(height uint64, total *totalAmount) error {
 	hei := byteutil.Uint64ToBytesBigEndian(height - 1)
 	historyKey := append(bucketPoolAddrKey, hei...)
-	fmt.Println("PutStakingBalance", height, []byte(StakingBucketsNamespace), hex.EncodeToString(historyKey), total.amount)
 	return cbi.kvStore.Put(StakingBucketsNamespace, historyKey, total.amount.Bytes())
 }
 
@@ -189,7 +186,6 @@ func (cbi *CandidatesBucketsIndexer) PutStakingBalance(height uint64, total *tot
 func (cbi *CandidatesBucketsIndexer) GetStakingBalance(height uint64) (*iotextypes.AccountMeta, uint64, error) {
 	hei := byteutil.Uint64ToBytesBigEndian(height)
 	historyKey := append(bucketPoolAddrKey, hei...)
-	fmt.Println("GetStakingBalance", height, []byte(StakingBucketsNamespace), hex.EncodeToString(historyKey))
 	balanceBytes, err := cbi.kvStore.Get(StakingBucketsNamespace, historyKey)
 	if err != nil {
 		return nil, 0, err

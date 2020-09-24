@@ -8,7 +8,6 @@ package staking
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -243,10 +242,8 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	if p.candBucketsIndexer == nil {
 		return nil
 	}
-	fmt.Println("CreatePreStates///////", blkCtx.BlockHeight, p.hu.FairbankBlockHeight(), p.hu.GreenlandBlockHeight())
-	if p.archiveMode && blkCtx.BlockHeight <= p.hu.GreenlandBlockHeight() && blkCtx.BlockHeight > 1 {
+	if p.archiveMode && blkCtx.BlockHeight <= p.hu.GreenlandBlockHeight() {
 		if err := p.saveStakingAddressHistory(blkCtx.BlockHeight, sm); err != nil {
-			fmt.Println("saveStakingAddressHistory errrrr", err)
 			return err
 		}
 	}
@@ -269,7 +266,6 @@ func (p *Protocol) saveStakingAddressHistory(height uint64, sm protocol.StateMan
 		return err
 	}
 	balance := csr.BaseView().bucketPool.total
-	fmt.Println("saveStakingAddressHistory1", height, balance.amount)
 	if balance.amount.Sign() <= 0 {
 		return nil
 	}
