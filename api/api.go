@@ -1706,11 +1706,11 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 		//&& err == status.Error(codes.NotFound, "xxxxx")
 		if err != nil {
 			balance = "0"
-			out, err = api.ReadState(ctx, &iotexapi.ReadStateRequest{
-				ProtocolID: []byte("staking"),
-				MethodName: methodName,
-				Arguments:  [][]byte{arg},
-			})
+			//out, err = api.ReadState(ctx, &iotexapi.ReadStateRequest{
+			//	ProtocolID: []byte("staking"),
+			//	MethodName: methodName,
+			//	Arguments:  [][]byte{arg},
+			//})
 		} else {
 			acc := iotextypes.AccountMeta{}
 			if err := proto.Unmarshal(out.GetData(), &acc); err != nil {
