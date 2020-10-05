@@ -462,24 +462,8 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	case iotexapi.ReadStakingDataMethod_CANDIDATE_BY_ADDRESS:
 		resp, height, err = readStateCandidateByAddress(ctx, csr, r.GetCandidateByAddress())
 	case iotexapi.ReadStakingDataMethod_TOTAL_STAKING_AMOUNT:
-		//if p.archiveMode && inputHeight < p.hu.GreenlandBlockHeight() && inputHeight >= p.hu.FairbankBlockHeight() {
-		//if p.candBucketsIndexer != nil && p.archiveMode && inputHeight < p.hu.GreenlandBlockHeight() && inputHeight >= 5160956 {
-		//if inputHeight < p.hu.FairbankBlockHeight()-1 {
-		//	resp, height, err = &iotextypes.AccountMeta{
-		//		Address: "io000000000000000000000000stakingprotocol",
-		//		Balance: "0",
-		//	}, inputHeight, nil
-		//}
-		if p.candBucketsIndexer != nil && p.archiveMode && inputHeight < p.hu.GreenlandBlockHeight() && inputHeight >= p.hu.FairbankBlockHeight()-1 {
-			//if p.candBucketsIndexer != nil {
+		if p.archiveMode && inputHeight < p.hu.GreenlandBlockHeight() {
 			resp, height, err = p.candBucketsIndexer.GetStakingBalance(inputHeight)
-			//} else {
-			//	resp, height, err = readStateTotalStakingAmount(ctx, csr, r.GetTotalStakingAmount())
-			//}
-
-			//if err != nil {
-			//
-			//}
 		} else {
 			resp, height, err = readStateTotalStakingAmount(ctx, csr, r.GetTotalStakingAmount())
 		}
