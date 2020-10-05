@@ -8,7 +8,6 @@ package staking
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -465,10 +464,10 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	case iotexapi.ReadStakingDataMethod_TOTAL_STAKING_AMOUNT:
 		if p.candBucketsIndexer != nil && p.archiveMode && inputHeight < p.hu.GreenlandBlockHeight() && inputHeight >= p.hu.FairbankBlockHeight()-1 {
 			resp, height, err = p.candBucketsIndexer.GetStakingBalance(inputHeight)
-			fmt.Println("468.....", resp.String(), height, err)
+			log.L().Info("468.....", zap.String("resp", resp.String()), zap.Uint64("height", height), zap.Error(err))
 		} else {
 			resp, height, err = readStateTotalStakingAmount(ctx, csr, r.GetTotalStakingAmount())
-			fmt.Println("471.....", resp.String(), height, err)
+			log.L().Info("471.....", zap.String("resp", resp.String()), zap.Uint64("height", height), zap.Error(err))
 		}
 		log.L().Info("ReadStakingDataMethod_TOTAL_STAKING_AMOUNT", zap.Uint64("csr height", csr.Height()), zap.Uint64("returned height", height))
 	default:
