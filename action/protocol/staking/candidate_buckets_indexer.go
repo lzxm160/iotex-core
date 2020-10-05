@@ -10,11 +10,10 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/iotexproject/iotex-address/address"
-
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 
+	"github.com/iotexproject/iotex-address/address"
 	"github.com/iotexproject/iotex-proto/golang/iotextypes"
 
 	"github.com/iotexproject/iotex-core/db"
@@ -192,12 +191,6 @@ func (cbi *CandidatesBucketsIndexer) GetStakingBalance(height uint64) (*iotextyp
 	}
 	meta := iotextypes.AccountMeta{}
 	meta.Address = address.StakingBucketPoolAddr
-	if err != nil {
-		//return nil, 0, err
-		meta.Balance = "0"
-	} else {
-		meta.Balance = big.NewInt(0).SetBytes(balanceBytes).String()
-	}
-
+	meta.Balance = big.NewInt(0).SetBytes(balanceBytes).String()
 	return &meta, height, nil
 }
