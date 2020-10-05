@@ -37,9 +37,6 @@ const (
 	// StakingNameSpace is the bucket name for staking state
 	StakingNameSpace = "Staking"
 
-	// StakingNameSpaceForStakingAddress is the bucket name for staking state
-	StakingNameSpaceForStakingAddress = "StakingForStakingAddress"
-
 	// CandidateNameSpace is the bucket name for candidate state
 	CandidateNameSpace = "Candidate"
 )
@@ -436,7 +433,6 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	if err != nil {
 		return nil, 0, err
 	}
-
 	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
 	epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(inputHeight))
 
