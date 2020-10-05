@@ -187,6 +187,9 @@ func (cbi *CandidatesBucketsIndexer) GetStakingBalance(height uint64) (*iotextyp
 	hei := byteutil.Uint64ToBytesBigEndian(height)
 	historyKey := append(bucketPoolAddrKey, hei...)
 	balanceBytes, err := cbi.kvStore.Get(StakingBucketsNamespace, historyKey)
+	if err != nil {
+		return nil, 0, err
+	}
 	meta := iotextypes.AccountMeta{}
 	meta.Address = address.StakingBucketPoolAddr
 	if err != nil {
