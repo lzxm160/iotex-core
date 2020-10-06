@@ -475,7 +475,8 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 		//} else {
 		//
 		//}
-		if p.candBucketsIndexer != nil && p.archiveMode && inputHeight < p.hu.GreenlandBlockHeight() && inputHeight >= p.hu.FairbankBlockHeight()-1 {
+		//if p.candBucketsIndexer != nil && p.archiveMode && inputHeight < p.hu.GreenlandBlockHeight() && inputHeight >= p.hu.FairbankBlockHeight()-1 {
+		if p.candBucketsIndexer != nil && p.archiveMode && inputHeight < p.hu.GreenlandBlockHeight() {
 			resp, height, err = p.candBucketsIndexer.GetStakingBalance(inputHeight)
 			log.L().Info("477.....", zap.String("resp", resp.String()), zap.Uint64("height", height), zap.Error(err), zap.Uint64("FairbankBlockHeight", p.hu.FairbankBlockHeight()))
 		} else {
