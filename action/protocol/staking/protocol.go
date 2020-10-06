@@ -476,9 +476,16 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 		//
 		//}
 		//if p.candBucketsIndexer != nil && p.archiveMode && inputHeight < p.hu.GreenlandBlockHeight() && inputHeight >= p.hu.FairbankBlockHeight()-1 {
-		if p.candBucketsIndexer != nil && p.archiveMode && inputHeight < p.hu.GreenlandBlockHeight() {
-			resp, height, err = p.candBucketsIndexer.GetStakingBalance(inputHeight)
-			log.L().Info("477.....", zap.String("resp", resp.String()), zap.Uint64("height", height), zap.Error(err), zap.Uint64("FairbankBlockHeight", p.hu.FairbankBlockHeight()))
+		if p.archiveMode && inputHeight < p.hu.GreenlandBlockHeight() {
+			if p.candBucketsIndexer != nil {
+				resp, height, err = p.candBucketsIndexer.GetStakingBalance(inputHeight)
+				log.L().Info("477.....", zap.String("resp", resp.String()), zap.Uint64("height", height), zap.Error(err), zap.Uint64("FairbankBlockHeight", p.hu.FairbankBlockHeight()))
+			} else {
+				resp, height, err = &iotextypes.AccountMeta{
+					Address: address.StakingBucketPoolAddr,
+					Balance: "0",
+				}, inputHeight, nil
+			}
 		} else {
 			resp, height, err = readStateTotalStakingAmount(ctx, csr, r.GetTotalStakingAmount())
 			log.L().Info("480.....", zap.String("resp", resp.String()), zap.Uint64("height", height), zap.Error(err), zap.Uint64("FairbankBlockHeight", p.hu.FairbankBlockHeight()))
