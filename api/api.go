@@ -1674,11 +1674,11 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 			//})
 		} else {
 			val, ok := big.NewInt(0).SetString(string(out.GetData()), 10)
-		if !ok {
-			err = errors.New("balance convert error")
-			return
-		}
-		balance = val.String()
+			if !ok {
+				err = errors.New("balance convert error")
+				return
+			}
+			balance = val.String()
 		}
 
 	case address.StakingBucketPoolAddr:
@@ -1705,18 +1705,19 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 		out, err = api.ReadState2(ctx, req)
 		//&& err == status.Error(codes.NotFound, "xxxxx")
 		if err != nil {
-			balance = "0"
+			//balance = "0"
 			//out, err = api.ReadState(ctx, &iotexapi.ReadStateRequest{
 			//	ProtocolID: []byte("staking"),
 			//	MethodName: methodName,
 			//	Arguments:  [][]byte{arg},
 			//})
+			return nil, err
 		} else {
-		acc := iotextypes.AccountMeta{}
-		if err := proto.Unmarshal(out.GetData(), &acc); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal account meta")
-		}
-		balance = acc.GetBalance()
+			acc := iotextypes.AccountMeta{}
+			if err := proto.Unmarshal(out.GetData(), &acc); err != nil {
+				return nil, errors.Wrap(err, "failed to unmarshal account meta")
+			}
+			balance = acc.GetBalance()
 		}
 	}
 	header, err := api.bc.BlockHeaderByHeight(height)
