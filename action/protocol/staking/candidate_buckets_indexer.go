@@ -10,6 +10,9 @@ import (
 	"context"
 	"math/big"
 
+	"github.com/iotexproject/iotex-core/pkg/log"
+	"go.uber.org/zap"
+
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 
@@ -180,6 +183,7 @@ func (cbi *CandidatesBucketsIndexer) GetBuckets(height uint64, offset, limit uin
 func (cbi *CandidatesBucketsIndexer) PutStakingBalance(height uint64, total *totalAmount) error {
 	hei := byteutil.Uint64ToBytesBigEndian(height - 1)
 	historyKey := append(bucketPoolAddrKey, hei...)
+	log.L().Info("PutStakingBalance.....", zap.String("total", total.amount.String()), zap.Uint64("height", height))
 	return cbi.kvStore.Put(StakingBucketPoolAddrNamespace, historyKey, total.amount.Bytes())
 }
 
@@ -194,5 +198,6 @@ func (cbi *CandidatesBucketsIndexer) GetStakingBalance(height uint64) (*iotextyp
 	meta := iotextypes.AccountMeta{}
 	meta.Address = address.StakingBucketPoolAddr
 	meta.Balance = big.NewInt(0).SetBytes(balanceBytes).String()
+	log.L().Info("GetStakingBalance.....", zap.String("total", meta.Balance), zap.Uint64("height", height))
 	return &meta, height, nil
 }
