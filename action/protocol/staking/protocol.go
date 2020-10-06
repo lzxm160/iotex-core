@@ -462,6 +462,12 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	case iotexapi.ReadStakingDataMethod_CANDIDATE_BY_ADDRESS:
 		resp, height, err = readStateCandidateByAddress(ctx, csr, r.GetCandidateByAddress())
 	case iotexapi.ReadStakingDataMethod_TOTAL_STAKING_AMOUNT:
+		if inputHeight < p.hu.FairbankBlockHeight()-1 {
+			resp, height, err = &iotextypes.AccountMeta{
+				Address: "io000000000000000000000000stakingprotocol",
+				Balance: "0",
+			}, inputHeight, nil
+		}
 		if p.candBucketsIndexer != nil && p.archiveMode && inputHeight < p.hu.GreenlandBlockHeight() && inputHeight >= p.hu.FairbankBlockHeight()-1 {
 			resp, height, err = p.candBucketsIndexer.GetStakingBalance(inputHeight)
 			log.L().Info("468.....", zap.String("resp", resp.String()), zap.Uint64("height", height), zap.Error(err))
