@@ -72,6 +72,7 @@ type (
 		hu                 config.HeightUpgrade
 		candBucketsIndexer *CandidatesBucketsIndexer
 		voteReviser        *VoteReviser
+		archiveMode        bool
 	}
 
 	// Configuration is the staking protocol configuration.
@@ -88,7 +89,7 @@ type (
 )
 
 // NewProtocol instantiates the protocol of staking
-func NewProtocol(depositGas DepositGas, cfg genesis.Staking, candBucketsIndexer *CandidatesBucketsIndexer, reviseHeights ...uint64) (*Protocol, error) {
+func NewProtocol(depositGas DepositGas, cfg genesis.Staking, candBucketsIndexer *CandidatesBucketsIndexer, archiveMode bool, reviseHeights ...uint64) (*Protocol, error) {
 	h := hash.Hash160b([]byte(protocolID))
 	addr, err := address.FromBytes(h[:])
 	if err != nil {
@@ -128,6 +129,7 @@ func NewProtocol(depositGas DepositGas, cfg genesis.Staking, candBucketsIndexer 
 		depositGas:         depositGas,
 		candBucketsIndexer: candBucketsIndexer,
 		voteReviser:        voteReviser,
+		archiveMode:        archiveMode,
 	}, nil
 }
 
@@ -214,6 +216,7 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	bcCtx := protocol.MustGetBlockchainCtx(ctx)
 	blkCtx := protocol.MustGetBlockCtx(ctx)
 	hu := config.NewHeightUpgrade(&bcCtx.Genesis)
+
 	if blkCtx.BlockHeight == hu.GreenlandBlockHeight() {
 		csr, err := ConstructBaseView(sm)
 		if err != nil {
@@ -236,6 +239,11 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	if p.candBucketsIndexer == nil {
 		return nil
 	}
+	if p.archiveMode && blkCtx.BlockHeight <= p.hu.GreenlandBlockHeight() {
+		if err := p.saveStakingAddressHistory(blkCtx.BlockHeight, sm); err != nil {
+			return err
+		}
+	}
 	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
 	currentEpochNum := rp.GetEpochNum(blkCtx.BlockHeight)
 	if currentEpochNum == 0 {
@@ -247,6 +255,18 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	}
 
 	return p.handleStakingIndexer(rp.GetEpochHeight(currentEpochNum-1), sm)
+}
+
+func (p *Protocol) saveStakingAddressHistory(height uint64, sm protocol.StateManager) error {
+	csr, err := ConstructBaseView(sm)
+	if err != nil {
+		return err
+	}
+	balance := csr.BaseView().bucketPool.total
+	if balance.amount.Sign() <= 0 {
+		return nil
+	}
+	return p.candBucketsIndexer.PutStakingBalance(height, balance)
 }
 
 func (p *Protocol) handleStakingIndexer(epochStartHeight uint64, sm protocol.StateManager) error {
@@ -442,7 +462,14 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	case iotexapi.ReadStakingDataMethod_CANDIDATE_BY_ADDRESS:
 		resp, height, err = readStateCandidateByAddress(ctx, csr, r.GetCandidateByAddress())
 	case iotexapi.ReadStakingDataMethod_TOTAL_STAKING_AMOUNT:
-		resp, height, err = readStateTotalStakingAmount(ctx, csr, r.GetTotalStakingAmount())
+		if p.candBucketsIndexer != nil && p.archiveMode && inputHeight < p.hu.GreenlandBlockHeight() && inputHeight >= p.hu.FairbankBlockHeight()-1 {
+			resp, height, err = p.candBucketsIndexer.GetStakingBalance(inputHeight)
+			log.L().Info("468.....", zap.String("resp", resp.String()), zap.Uint64("height", height), zap.Error(err))
+		} else {
+			resp, height, err = readStateTotalStakingAmount(ctx, csr, r.GetTotalStakingAmount())
+			log.L().Info("471.....", zap.String("resp", resp.String()), zap.Uint64("height", height), zap.Error(err))
+		}
+		log.L().Info("ReadStakingDataMethod_TOTAL_STAKING_AMOUNT", zap.Uint64("csr height", csr.Height()), zap.Uint64("returned height", height))
 	default:
 		err = errors.New("corresponding method isn't found")
 	}
