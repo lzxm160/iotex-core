@@ -8,6 +8,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"testing"
 
@@ -53,4 +54,23 @@ func BenchmarkBoltDB_Get(b *testing.B) {
 	b.Run("1000000", func(b *testing.B) {
 		runBenchmark(b, 100)
 	})
+}
+
+func TestTtt(t *testing.T) {
+	path, err := testutil.PathOfTempFile("boltdb")
+	require.NoError(t, err)
+	db := boltDB{
+		path:   path,
+		config: config.Default.DB,
+	}
+	db.Start(context.Background())
+	defer db.Stop(context.Background())
+
+	require.NoError(t, db.Put("ns", []byte("key"), []byte("data")))
+
+	tt, err := db.Get("ns", []byte("key"))
+	fmt.Println(tt, err)
+
+	ttt, err := db.Get("nsxxxxx", []byte("key"))
+	fmt.Println(ttt, err)
 }
