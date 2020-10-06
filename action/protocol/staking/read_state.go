@@ -10,6 +10,9 @@ import (
 	"context"
 	"math/big"
 
+	"github.com/iotexproject/iotex-core/pkg/log"
+	"go.uber.org/zap"
+
 	"github.com/pkg/errors"
 
 	"github.com/iotexproject/iotex-address/address"
@@ -204,6 +207,7 @@ func getTotalStakedAmount(ctx context.Context, csr CandidateStateReader) (*big.I
 	chainCtx := protocol.MustGetBlockchainCtx(ctx)
 	hu := config.NewHeightUpgrade(&chainCtx.Genesis)
 	if hu.IsPre(config.Fairbank, csr.Height()) {
+		log.L().Info("getTotalStakedAmount", zap.Uint64("csr.Height()", csr.Height()))
 		return big.NewInt(0), csr.Height(), nil
 	}
 	if hu.IsPost(config.Greenland, csr.Height()) {
