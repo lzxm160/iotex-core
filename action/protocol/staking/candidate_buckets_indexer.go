@@ -26,7 +26,7 @@ const (
 	// StakingBucketsNamespace is a namespace to store vote buckets with epoch start height
 	StakingBucketsNamespace = "stakingBuckets"
 	// StakingBucketPoolAddrNamespace is a namespace to store stakingBucketPoolAddr's balance with height
-	StakingBucketPoolAddrNamespace = "stakingBucketPoolAddr"
+	StakingBucketPoolAddrNamespace = "stakingBucketPoolAddrNamespacexxxx"
 )
 
 const indexerHeightKey = "latestHeight"
