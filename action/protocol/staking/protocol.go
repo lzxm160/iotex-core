@@ -240,7 +240,7 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 		return nil
 	}
 	if p.archiveMode && blkCtx.BlockHeight <= p.hu.GreenlandBlockHeight() {
-		if err := p.saveStakingAddressHistory(blkCtx.BlockHeight, sm); err != nil {
+		if err := p.saveStakingAddressHistory(blkCtx.BlockHeight-1, sm); err != nil {
 			return err
 		}
 	}
@@ -464,7 +464,8 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 		resp, height, err = readStateCandidateByName(ctx, csr, r.GetCandidateByName())
 	case iotexapi.ReadStakingDataMethod_CANDIDATE_BY_ADDRESS:
 		resp, height, err = readStateCandidateByAddress(ctx, csr, r.GetCandidateByAddress())
-	case iotexapi.ReadStakingDataMethod_TOTAL_STAKING_AMOUNT:if p.archiveMode && inputHeight < p.hu.GreenlandBlockHeight() {
+	case iotexapi.ReadStakingDataMethod_TOTAL_STAKING_AMOUNT:
+		if p.archiveMode && inputHeight < p.hu.GreenlandBlockHeight() {
 			if p.candBucketsIndexer != nil {
 				resp, height, err = p.candBucketsIndexer.GetStakingBalance(inputHeight)
 				log.L().Info("477.....", zap.String("resp", resp.String()), zap.Uint64("height", height), zap.Uint64("FairbankBlockHeight", p.hu.FairbankBlockHeight()))
