@@ -239,7 +239,11 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	if p.candBucketsIndexer == nil {
 		return nil
 	}
-
+	if p.archiveMode && blkCtx.BlockHeight <= p.hu.GreenlandBlockHeight() && blkCtx.BlockHeight >= p.hu.FairbankBlockHeight() {
+		if err := p.saveStakingAddressHistory(blkCtx.BlockHeight-1, sm); err != nil {
+			return err
+		}
+	}
 	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
 	currentEpochNum := rp.GetEpochNum(blkCtx.BlockHeight)
 	if currentEpochNum == 0 {
@@ -249,11 +253,7 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	if epochStartHeight != blkCtx.BlockHeight || hu.IsPre(config.Fairbank, epochStartHeight) {
 		return nil
 	}
-	if p.archiveMode && blkCtx.BlockHeight <= p.hu.GreenlandBlockHeight() {
-		if err := p.saveStakingAddressHistory(blkCtx.BlockHeight-1, sm); err != nil {
-			return err
-		}
-	}
+
 	return p.handleStakingIndexer(rp.GetEpochHeight(currentEpochNum-1), sm)
 }
 
