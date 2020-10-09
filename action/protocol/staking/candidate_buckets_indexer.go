@@ -28,8 +28,6 @@ const (
 	StakingCandidatesNamespace = "stakingCandidates"
 	// StakingBucketsNamespace is a namespace to store vote buckets with epoch start height
 	StakingBucketsNamespace = "stakingBuckets"
-	// StakingBucketPoolAddrNamespace is a namespace to store stakingBucketPoolAddr's balance with height
-	StakingBucketPoolAddrNamespace = "whatspacexxxxwhat"
 )
 
 const indexerHeightKey = "latestHeight"
@@ -184,14 +182,14 @@ func (cbi *CandidatesBucketsIndexer) PutStakingBalance(height uint64, total *tot
 	hei := byteutil.Uint64ToBytesBigEndian(height)
 	historyKey := append(bucketPoolAddrKey, hei...)
 	log.L().Info("PutStakingBalance.....", zap.String("total", total.amount.String()), zap.Uint64("height", height))
-	return cbi.kvStore.Put(StakingBucketPoolAddrNamespace, historyKey, total.amount.Bytes())
+	return cbi.kvStore.Put(StakingBucketsNamespace, historyKey, total.amount.Bytes())
 }
 
 // GetStakingBalance gets staking balance
 func (cbi *CandidatesBucketsIndexer) GetStakingBalance(height uint64) (*iotextypes.AccountMeta, uint64, error) {
 	hei := byteutil.Uint64ToBytesBigEndian(height)
 	historyKey := append(bucketPoolAddrKey, hei...)
-	balanceBytes, err := cbi.kvStore.Get(StakingBucketPoolAddrNamespace, historyKey)
+	balanceBytes, err := cbi.kvStore.Get(StakingBucketsNamespace, historyKey)
 	if err != nil {
 		return nil, 0, err
 	}

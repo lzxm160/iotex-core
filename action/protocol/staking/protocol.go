@@ -239,7 +239,7 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 	if p.candBucketsIndexer == nil {
 		return nil
 	}
-	if p.archiveMode && blkCtx.BlockHeight <= p.hu.GreenlandBlockHeight() && blkCtx.BlockHeight >= p.hu.FairbankBlockHeight() {
+	if p.archiveMode && blkCtx.BlockHeight <= p.hu.GreenlandBlockHeight() {
 		if err := p.saveStakingAddressHistory(blkCtx.BlockHeight-1, sm); err != nil {
 			return err
 		}
@@ -433,8 +433,6 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 	if err != nil {
 		return nil, 0, err
 	}
-
-	log.L().Info("437.....", zap.Uint64("csr height", csr.Height()), zap.Uint64("sr.Height()", inputHeight))
 
 	rp := rolldpos.MustGetProtocol(protocol.MustGetRegistry(ctx))
 	epochStartHeight := rp.GetEpochHeight(rp.GetEpochNum(inputHeight))
