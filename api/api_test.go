@@ -9,10 +9,14 @@ package api
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/iotexproject/iotex-core/pkg/log"
+	"google.golang.org/grpc"
 
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/proto"
@@ -2217,4 +2221,30 @@ func createServer(cfg config.Config, needActPool bool) (*Server, error) {
 	}
 
 	return svr, nil
+}
+
+func TestXxxxxxx(t *testing.T) {
+	require := require.New(t)
+	grpcCtx1, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	conn1, err := grpc.DialContext(grpcCtx1, "api.iotex.one:80", grpc.WithBlock(), grpc.WithInsecure())
+	if err != nil {
+		log.L().Error("Failed to connect to chain's API server.")
+	}
+	chainClient := iotexapi.NewAPIServiceClient(conn1)
+
+	request := &iotexapi.GetActionsRequest{
+		Lookup: &iotexapi.GetActionsRequest_ByBlk{
+			ByBlk: &iotexapi.GetActionsByBlockRequest{
+				BlkHash: "0512820143339e04e72af0b3e53f93c2678c362b290cf23bc32be13833d57109",
+				Start:   0,
+				Count:   100,
+			},
+		},
+	}
+	res, err := chainClient.GetActions(context.Background(), request)
+	require.NoError(err)
+	for _, ai := range res.ActionInfo {
+		fmt.Println(ai.ActHash)
+	}
 }
