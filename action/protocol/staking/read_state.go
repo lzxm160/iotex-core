@@ -101,6 +101,24 @@ func readStateBucketByIndices(ctx context.Context, sr protocol.StateReader,
 	return pbBuckets, height, err
 }
 
+func readStateBucketCount(ctx context.Context, csr CandidateStateReader,
+	_ *iotexapi.ReadStakingDataRequest_BucketsCount) (*iotextypes.BucketsCount, uint64, error) {
+	total, err := getTotalBucketCount(csr.SR())
+	if errors.Cause(err) == state.ErrStateNotExist {
+		return &iotextypes.BucketsCount{}, csr.Height(), nil
+	}
+	if err != nil {
+		return nil, 0, err
+	}
+	active, h, err := getActiveBucketsCount(ctx, csr)
+	if err != nil {
+		return nil, h, err
+	}
+	return &iotextypes.BucketsCount{
+		Total:  total,
+		Active: active,
+	}, h, nil
+}
 func readStateCandidates(ctx context.Context, csr CandidateStateReader,
 	req *iotexapi.ReadStakingDataRequest_Candidates) (*iotextypes.CandidateListV2, uint64, error) {
 	offset := int(req.GetPagination().GetOffset())
@@ -215,4 +233,19 @@ func getTotalStakedAmount(ctx context.Context, csr CandidateStateReader) (*big.I
 
 	// otherwise read from bucket pool
 	return csr.TotalStakedAmount(), csr.Height(), nil
+}
+func getActiveBucketsCount(ctx context.Context, csr CandidateStateReader) (uint64, uint64, error) {
+	chainCtx := protocol.MustGetBlockchainCtx(ctx)
+	hu := config.NewHeightUpgrade(&chainCtx.Genesis)
+	if hu.IsPost(config.Greenland, csr.Height()) {
+		// after Greenland, read state from db
+		var total totalAmount
+		h, err := csr.SR().State(&total, protocol.NamespaceOption(StakingNameSpace), protocol.KeyOption(bucketPoolAddrKey))
+		if err != nil {
+			return 0, h, err
+		}
+		return total.count, h, nil
+	}
+	// otherwise read from bucket pool
+	return csr.ActiveBucketsCount(), csr.Height(), nil
 }
