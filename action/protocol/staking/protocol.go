@@ -240,7 +240,7 @@ func (p *Protocol) CreatePreStates(ctx context.Context, sm protocol.StateManager
 		return nil
 	}
 	if p.archiveMode && blkCtx.BlockHeight <= p.hu.GreenlandBlockHeight() {
-		if err := p.saveStakingAddressHistory(blkCtx.BlockHeight, sm); err != nil {
+		if err := p.saveStakingAddressHistory(blkCtx.BlockHeight-1, sm); err != nil {
 			return err
 		}
 	}
