@@ -181,16 +181,16 @@ func (cbi *CandidatesBucketsIndexer) GetBuckets(height uint64, offset, limit uin
 // PutStakingBalance sets staking balance
 func (cbi *CandidatesBucketsIndexer) PutStakingBalance(height uint64, total *totalAmount) error {
 	hei := byteutil.Uint64ToBytesBigEndian(height)
-	historyKey := append(bucketPoolAddrKey, hei...)
+	//historyKey := append(bucketPoolAddrKey, hei...)
 	log.L().Info("PutStakingBalance.....", zap.String("total", total.amount.String()), zap.Uint64("height", height))
-	return cbi.kvStore.Put(stakingBalanceNamespace, historyKey, total.amount.Bytes())
+	return cbi.kvStore.Put(stakingBalanceNamespace, hei, total.amount.Bytes())
 }
 
 // GetStakingBalance gets staking balance
 func (cbi *CandidatesBucketsIndexer) GetStakingBalance(height uint64) (*iotextypes.AccountMeta, uint64, error) {
 	hei := byteutil.Uint64ToBytesBigEndian(height)
-	historyKey := append(bucketPoolAddrKey, hei...)
-	balanceBytes, err := cbi.kvStore.Get(stakingBalanceNamespace, historyKey)
+	//historyKey := append(bucketPoolAddrKey, hei...)
+	balanceBytes, err := cbi.kvStore.Get(stakingBalanceNamespace, hei)
 	if err != nil {
 		return nil, 0, err
 	}
