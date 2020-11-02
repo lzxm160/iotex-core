@@ -494,7 +494,17 @@ func (api *Server) ReadState2(ctx context.Context, in *iotexapi.ReadStateRequest
 	}
 	data, readStateHeight, err := api.readState2(ctx, p, in.GetHeight(), in.MethodName, in.Arguments...)
 	if err != nil {
-		return nil, status.Error(codes.NotFound, err.Error())
+		out := &iotexapi.ReadStateResponse{
+			Data: nil,
+			BlockIdentifier: &iotextypes.BlockIdentifier{
+				Height: 0,
+				Hash:   "",
+			},
+		}
+		if readStateHeight == 1 {
+			out.BlockIdentifier.Height = 1
+		}
+		return out, status.Error(codes.NotFound, err.Error())
 	}
 	//rsh := fmt.Sprintf("%d", readStateHeight)
 	//if rsh != in.GetHeight() {
