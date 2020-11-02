@@ -1730,6 +1730,9 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 			}
 			returnedHash = fmt.Sprintf("%064x", header.HashBlock())
 			returnedHeight = height
+			if out.BlockIdentifier.Height == 1 {
+				returnedHeight = 1
+			}
 		} else {
 			acc := iotextypes.AccountMeta{}
 			if err := proto.Unmarshal(out.GetData(), &acc); err != nil {
@@ -1746,8 +1749,8 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 	//	Height: tipHeight,
 	//}}
 	log.L().Info("API ", zap.String("addr", addr), zap.String("balance", balance), zap.Uint64("returnedHeight", returnedHeight), zap.String("returnedHash", returnedHash))
-	if returnedHeight == 0 {
-		err = errors.New("readstate height is 0")
+	if returnedHeight == 1 {
+		err = errors.New("readstate height is 1")
 		return
 	}
 
