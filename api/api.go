@@ -496,11 +496,11 @@ func (api *Server) ReadState2(ctx context.Context, in *iotexapi.ReadStateRequest
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
-	rsh := fmt.Sprintf("%d", readStateHeight)
-	if rsh != in.GetHeight() {
-		log.L().Info("input height", zap.String("readStateHeight", rsh), zap.String("in.GetHeight()", in.GetHeight()))
-		return nil, status.Error(codes.NotFound, "xxxxx")
-	}
+	//rsh := fmt.Sprintf("%d", readStateHeight)
+	//if rsh != in.GetHeight() {
+	//	log.L().Info("input height", zap.String("readStateHeight", rsh), zap.String("in.GetHeight()", in.GetHeight()))
+	//	return nil, status.Error(codes.NotFound, "xxxxx")
+	//}
 	blkHash, err := api.dao.GetBlockHash(readStateHeight)
 	if err != nil {
 		if errors.Cause(err) == db.ErrNotExist {
@@ -1658,6 +1658,8 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 	var req *iotexapi.ReadStateRequest
 	var balance string
 	var out *iotexapi.ReadStateResponse
+	var returnedHash string
+	var returnedHeight uint64
 	switch addr {
 	case address.RewardingPoolAddr:
 		req = &iotexapi.ReadStateRequest{
@@ -1673,6 +1675,12 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 			//	ProtocolID: []byte("rewarding"),
 			//	MethodName: []byte("TotalBalance"),
 			//})
+			header, err := api.bc.BlockHeaderByHeight(height)
+			if err != nil {
+				return nil, status.Error(codes.NotFound, err.Error())
+			}
+			returnedHash = fmt.Sprintf("%064x", header.HashBlock())
+			returnedHeight = height
 		} else {
 			val, ok := big.NewInt(0).SetString(string(out.GetData()), 10)
 			if !ok {
@@ -1680,6 +1688,8 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 				return
 			}
 			balance = val.String()
+			returnedHash = out.GetBlockIdentifier().GetHash()
+			returnedHeight = out.GetBlockIdentifier().GetHeight()
 		}
 
 	case address.StakingBucketPoolAddr:
@@ -1697,6 +1707,7 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 		if err != nil {
 			return nil, err
 		}
+
 		req = &iotexapi.ReadStateRequest{
 			ProtocolID: []byte("staking"),
 			MethodName: methodName,
@@ -1713,31 +1724,36 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 			//	Arguments:  [][]byte{arg},
 			//})
 			//return nil, err
+			header, err := api.bc.BlockHeaderByHeight(height)
+			if err != nil {
+				return nil, status.Error(codes.NotFound, err.Error())
+			}
+			returnedHash = fmt.Sprintf("%064x", header.HashBlock())
+			returnedHeight = height
 		} else {
 			acc := iotextypes.AccountMeta{}
 			if err := proto.Unmarshal(out.GetData(), &acc); err != nil {
 				return nil, errors.Wrap(err, "failed to unmarshal account meta")
 			}
 			balance = acc.GetBalance()
+			returnedHash = out.GetBlockIdentifier().GetHash()
+			returnedHeight = out.GetBlockIdentifier().GetHeight()
 		}
 	}
-	header, err := api.bc.BlockHeaderByHeight(height)
-	if err != nil {
-		return nil, status.Error(codes.NotFound, err.Error())
-	}
-	hash := header.HashBlock()
+
 	//return &iotexapi.GetAccountResponse{AccountMeta: accountMeta, BlockIdentifier: &iotextypes.BlockIdentifier{
 	//	Hash:   hex.EncodeToString(hash[:]),
 	//	Height: tipHeight,
 	//}}
+
 	ret = &iotexapi.GetAccountResponse{
 		AccountMeta: &iotextypes.AccountMeta{
 			Address: addr,
 			Balance: balance,
 		},
 		BlockIdentifier: &iotextypes.BlockIdentifier{
-			Hash:   hex.EncodeToString(hash[:]),
-			Height: height,
+			Hash:   returnedHash,
+			Height: returnedHeight,
 		},
 	}
 	return
