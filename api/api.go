@@ -1745,6 +1745,11 @@ func (api *Server) getProtocolAccount(ctx context.Context, height uint64, addr s
 	//	Hash:   hex.EncodeToString(hash[:]),
 	//	Height: tipHeight,
 	//}}
+	log.L().Info("API ", zap.String("addr", addr), zap.String("balance", balance), zap.Uint64("returnedHeight", returnedHeight), zap.String("returnedHash", returnedHash))
+	if returnedHeight == 0 {
+		err = errors.New("readstate height is 0")
+		return
+	}
 
 	ret = &iotexapi.GetAccountResponse{
 		AccountMeta: &iotextypes.AccountMeta{
