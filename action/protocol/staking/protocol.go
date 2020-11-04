@@ -467,7 +467,7 @@ func (p *Protocol) ReadState(ctx context.Context, sr protocol.StateReader, metho
 			if p.candBucketsIndexer != nil {
 				resp, height, err = p.candBucketsIndexer.GetStakingBalance(inputHeight)
 				//if inputHeight >= 5160960 && inputHeight < p.hu.GreenlandBlockHeight() {
-				if (inputHeight > p.hu.FairbankBlockHeight() && inputHeight < p.hu.GreenlandBlockHeight()) || inputHeight == 5160960 {
+				if (inputHeight > p.hu.FairbankBlockHeight() && inputHeight < p.hu.GreenlandBlockHeight()) || inputHeight == 5160960 || inputHeight == 5160939 {
 					height = 1
 				}
 
